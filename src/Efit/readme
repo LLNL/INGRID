@@ -1,0 +1,7 @@
+A set of routines for importing EFIT geqdsk file.
+1 generate a shared object library file 
+ - line in compile.txt
+2. in python, import readg
+
+Ingrid accesses this information via the makefile, which is called when make it typed while in the src directory.
+readg.f90 will be compiled and is callable as efit

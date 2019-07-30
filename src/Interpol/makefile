@@ -26,3 +26,4 @@ $(EXECFIL) : $(FFILES)
 
 clean:
 	rm -f *.so *.pyc
+	rm -r *.so.dSYM

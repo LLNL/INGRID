@@ -14,7 +14,6 @@ from scipy.integrate import solve_ivp
 from scipy.optimize import root_scalar
 from Root_Finder import RootFinder
 from time import time
-from find_intersect import truncate_list
 import geometry as geo
 from geometry import Point
 

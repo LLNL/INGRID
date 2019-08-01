@@ -71,59 +71,6 @@ class RootFinder:
             self.final_root = (r, z)   
 
 
-#def setup_root_finder(x0, y0, grid):
-#    from Interpol.Setup_Grid_Data import get_psi
-#    guess = [x0, y0]
-#    d = {'grid': grid}  # use nonlocal grid for python3
-#
-#    def func(X):
-#        # combine the deriv functions to solve the system
-#        x = X[0]
-#        y = X[1]
-#        F = np.zeros(2)
-#        F[0] = get_psi(x, y, d['grid'], tag='vx')
-#        F[1] = get_psi(x, y, d['grid'], tag='vy')
-#        return F
-#
-#    sol = root(func, guess)
-#    r, z = sol.x[0], sol.x[1]
-#
-#    if (not d['grid']['rmin'] < r < d['grid']['rmax'] or not
-#            d['grid']['zmin'] < z < d['grid']['zmax']):
-#        print("You clicked too far from the true zero point")
-#    else:
-#        print("You chose ({0:.5f}, {1:.5f}). ".format(x0, y0) +
-#              "The zero point is ({0:.5f},{1:.5f})".format(r, z))
-#        plt.plot(r, z, '1')  # the '1' determines the shape of the marker
-#        plt.draw()
-#        return (r, z)
-#
-#
-#def run_root_finder(fig, grid):
-#    """ Drives the interactive root finder
-#    Must recieve the crude grid. Interpolation will be performed
-#    as derivatives are requested.
-#    param: class where the parameters of the grid are stored.
-#    """
-#    d = {'grid': grid}
-#    root = {0: 0}
-#
-#    def on_click(event):
-#        """ When the mouse is clicked, this function will print out
-#        the x and y coordinates of the cursor. Requires the mouse
-#        to click on a plot created from matplotlib.
-#        returns the x and y coordinates of the place the user clicks.
-#        """
-#        x, y = event.xdata, event.ydata
-#        plt.plot(x, y, 'x')
-#        plt.draw()
-#        zero = setup_root_finder(x, y, d['grid'])
-#        root[0] = zero
-#
-#    cid = fig.canvas.mpl_connect('button_press_event', on_click)
-#    return cid
-
-
 if __name__ == "__main__":
 #    from Interpol.Setup_Grid_Data import Efit_Data
     # need a driver to test the findRoots and newtons method

@@ -21,8 +21,8 @@ class Ingrid:
                  zmagy=0.0,
                  manual=True,
                  step_ratio=0.02,
-                 psi_max={'psi': 1.1},
-                 psi_min={'psi': 0.9}):
+                 psi_max=1.1,
+                 psi_min=0.9):
 
         print('Welcome to Ingrid!\n')
         self._grid_params = {'option': option,

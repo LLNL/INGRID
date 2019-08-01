@@ -276,7 +276,13 @@ class LineTracing:
             ynot = (rz_start.x, rz_start.y)
         else:
             ynot = rz_start
-
+            
+        # check to make sure ynot is not an object            
+        if isinstance(ynot, Point):
+            print('\nynot is a point object')
+            print('Object\n')
+            
+            
         # size for each line segment
         told, tnew = 0, self.dt
 
@@ -306,6 +312,7 @@ class LineTracing:
                 x: list -- r endpoints
                 y: list -- z endpoints
                 """
+                line.append(Point(x[-1], y[-1]))
                 if show_plot:
                     self.grid.ax.plot(x, y, '.-', linewidth='2', color=color)
                     plt.draw()
@@ -321,7 +328,7 @@ class LineTracing:
                 # this is just here as a safegaurd, none of the lines
                 # we care about should go off the grid
                 success('edge')
-                self.endpoint = (self.x[-1], self.y[-1])
+#                self.endpoint = (self.x[-1], self.y[-1])
                 return True
 
             # check if any point is close enough to the endpoint
@@ -332,7 +339,7 @@ class LineTracing:
                     success('endpoint')
                     new_x, new_y = geo.truncate_list(self.x, self.y, xf, yf)
                     plot_line([new_x[0], new_x[-1]], [new_y[0], new_y[-1]])
-                    self.endpoint = (new_x[-1], new_y[-1])
+#                    self.endpoint = (new_x[-1], new_y[-1])
                     return True
 
             elif test == 'line':
@@ -343,7 +350,7 @@ class LineTracing:
                     success('line crossing')
                     r, z = geo.intersect((p1, p2), rz_end)
                     plot_line([p1[0], r], [p1[1], z])
-                    self.endpoint = (r, z)
+#                    self.endpoint = (r, z)
                     return True
 
             elif test == 'psi':
@@ -353,24 +360,22 @@ class LineTracing:
                 psi1 = self.grid.get_psi(x1, y1)
                 psi2 = self.grid.get_psi(x2, y2)
 
-                if (psi1 - rz_end['psi'])*(psi2 - rz_end['psi']) < 0:
+                if (psi1 - rz_end)*(psi2 - rz_end) < 0:
                     success('psi test')
                     # need to find coords for the value of psi that we want
-                    # may move this to geometry module
-
+                    
                     def f(x):
-                        # must manualy calculate y each time we stick to
+                        # must manually calculate y each time we stick to
                         # the line of interest
                         y = (y2-y1)/(x2-x1)*(x-x1)+y1
-                        return rz_end['psi'] - self.grid.get_psi(x, y)
+                        return rz_end - self.grid.get_psi(x, y)
 
                     sol = root_scalar(f, bracket=[x1, x2])
                     r_psi = sol.root
                     z_psi = (y2-y1)/(x2-x1)*(r_psi-x1)+y1
-                    # end of potential geo function
 
                     plot_line([x1, r_psi], [y1, z_psi])
-                    self.endpoint = (r_psi, z_psi)
+#                    self.endpoint = (r_psi, z_psi)
                     return True
 
             else:
@@ -397,7 +402,7 @@ class LineTracing:
             self.y = sol.y[1]
 
             ynot = [self.x[-1], self.y[-1]]
-            line.append(Point(ynot))
+
 
             told, tnew = tnew, tnew + self.dt
             points = (self.x, self.y)
@@ -413,7 +418,7 @@ class LineTracing:
         end = time()
         print('Drew for {} seconds\n'.format(end-self.start))
 
-        line.append(Point(self.endpoint))
+
         return line
 
 

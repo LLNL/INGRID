@@ -15,7 +15,7 @@ from scipy.optimize import root_scalar
 from Root_Finder import RootFinder
 from time import time
 import geometry as geo
-from geometry import Point
+from geometry import Point, Line
 
 
 class LineTracing:
@@ -102,7 +102,6 @@ class LineTracing:
         """ Activates upon mouse click. Will call the appropriate function
         based on parameters
         """
-        self.start = time()
         if event.button == 3:
             print('...disabling fuzzy click mode...')
             event.canvas.mpl_disconnect(self.cid)
@@ -118,6 +117,7 @@ class LineTracing:
             self.draw_line((x0, y0))
 
         elif self.option == 'xpt_circ':
+            # no longer using this... 
             self.root.find_root(x0, y0)
             r, z = self.root.final_root
             self.calc_equal_psi_points(r, z)
@@ -128,8 +128,14 @@ class LineTracing:
 
             plt.legend()
             plt.draw()
-
-    def calc_equal_psi_points(self, r, z, theta2d=False, err_circles=False):
+            
+    def disconnect(self):
+        """ turns of the click functionality """
+        self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
+        self.root.disconnect()
+    
+    def calc_equal_psi_points(self, r, z, theta2d=False, err_circles=False,
+                              show_eq_psi_points=False):
         """ draws a circle around the xpt, and saves four coordinates for
         each direction the poloidal line will travel.
         """
@@ -224,10 +230,17 @@ class LineTracing:
         self.eq_psi['W'] = geo.calc_mid_point(nw, sw)  # WEST
         self.eq_psi['S'] = geo.calc_mid_point(sw, se)  # SOUTH
         self.eq_psi['E'] = geo.calc_mid_point(se, ne)  # EAST
+        
+        if show_eq_psi_points:
+            # let's us see where the offset points we will trace from are
+            for key, (x, y) in self.eq_psi.items():
+                plt.plot(x, y, 'x', label=key)
+            plt.legend()
+            plt.draw()
+        
 
-    def draw_line(self, rz_start, rz_end=None, color='red',
-                  option=None, direction=None, save_line=False,
-                  show_plot=True):
+    def draw_line(self, rz_start, rz_end=None, color='green',
+                  option=None, direction=None, show_plot=False):
         """ rz_start and rz_end are defaulted to be the same point.
         Checks the new set of points calculated and if it is near enough to
         the end point, it stops calculating.
@@ -235,8 +248,8 @@ class LineTracing:
         direction :: determines if the function plots clockwise (cw) or
                           counterclockwise (ccw). default is None.
         """
-        if not show_plot:
-            print('Tracing line, but not plotting...\n Don\'t worry.')
+#        if not show_plot:
+#            print('Tracing line, but not plotting...\n Don\'t worry.')
 
         if option is not None and direction is not None:
             self.set_function(option, direction)
@@ -261,7 +274,7 @@ class LineTracing:
         elif np.shape(rz_end) == (2, 2):
             print('Testing for line convergence')
             test = 'line'
-            print('the line is: ', rz_end)
+#            print('the line is: ', rz_end)
 
         elif np.shape(rz_end) == ():
             print('Testing for psi convergence')
@@ -327,8 +340,7 @@ class LineTracing:
                     or any(abs(zmax - points[1]) < tol)):
                 # this is just here as a safegaurd, none of the lines
                 # we care about should go off the grid
-                success('edge')
-#                self.endpoint = (self.x[-1], self.y[-1])
+#                success('edge')
                 return True
 
             # check if any point is close enough to the endpoint
@@ -336,10 +348,9 @@ class LineTracing:
                 if (any(abs(points[0]-xf) < self.tol)
                         and any(abs(points[1]-yf) < self.tol)
                         and count > 5):
-                    success('endpoint')
+#                    success('endpoint')
                     new_x, new_y = geo.truncate_list(self.x, self.y, xf, yf)
                     plot_line([new_x[0], new_x[-1]], [new_y[0], new_y[-1]])
-#                    self.endpoint = (new_x[-1], new_y[-1])
                     return True
 
             elif test == 'line':
@@ -347,10 +358,9 @@ class LineTracing:
                 p2 = (points[0][-1], points[1][-1])
                 p1s, p2s = geo.test2points(p1, p2, rz_end)
                 if p1s != p2s:
-                    success('line crossing')
+#                    success('line crossing')
                     r, z = geo.intersect((p1, p2), rz_end)
                     plot_line([p1[0], r], [p1[1], z])
-#                    self.endpoint = (r, z)
                     return True
 
             elif test == 'psi':
@@ -361,7 +371,7 @@ class LineTracing:
                 psi2 = self.grid.get_psi(x2, y2)
 
                 if (psi1 - rz_end)*(psi2 - rz_end) < 0:
-                    success('psi test')
+#                    success('psi test')
                     # need to find coords for the value of psi that we want
                     
                     def f(x):
@@ -375,7 +385,6 @@ class LineTracing:
                     z_psi = (y2-y1)/(x2-x1)*(r_psi-x1)+y1
 
                     plot_line([x1, r_psi], [y1, z_psi])
-#                    self.endpoint = (r_psi, z_psi)
                     return True
 
             else:
@@ -391,6 +400,7 @@ class LineTracing:
 
         # keep track of the line segment generated
         points = np.zeros([2, 2])  # initial length is arbitrary
+        start = time()
         while not converged(points):
             t_span = (told, tnew)
             # solve the system of differential equations
@@ -411,15 +421,15 @@ class LineTracing:
                 print('did not converge, exiting...')
                 print('Iterations: ', count)
                 end = time()
-                print('Took {} '.format(end-self.start)
+                print('Took {} '.format(end-start)
                       + 'seconds trying to converge.')
                 break
             count += 1
         end = time()
-        print('Drew for {} seconds\n'.format(end-self.start))
+#        print('Drew for {} seconds\n'.format(end-start))
 
 
-        return line
+        return Line(line)
 
 
 if __name__ == '__main__':

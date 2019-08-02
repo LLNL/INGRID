@@ -46,11 +46,8 @@ grid.plot_target_plate()
 grid.compute_eq_psi()
 
 #-here we need to block until clicked
-print("Click on the X-point")
-paws()
-
-print("Click on the null-point") ##-need blocking here!
-paws()
+#print("Click on the X-point")
+#paws()
 
 
 #-construct the patch-map for SNL

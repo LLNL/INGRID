@@ -267,8 +267,10 @@ class Ingrid:
         from line_tracing import LineTracing
         self.eq = LineTracing(self.psi_norm, self._grid_params,
                               option='xpt_circ')
+        self.eq.calc_equal_psi_points(self.xpt1[0], self.xpt1[1])
+        self.eq.disconnect()
 
-    def construct_SNL_patches(self):
+    def construct_SNL_patches(self, movie=False):
         """ more general format to construct the grid for SNL using patches
         for theta direction, cw is positive
         for rho direction, ccw is positive, which is away from the magx
@@ -280,149 +282,264 @@ class Ingrid:
             I: Inner
             O: Outer
             DL: Divertor Leg
-            PF: Provate Flux
+            PF: Private Flux
             T: Top
             B: Bottom
             S: Scrape Off Layer
+            C: Core
         """
+        plt.show()
         from geometry import Point, Patch, Line
         xpt = self.eq.eq_psi
-        dp = {}  # defining points
+#        dp = {}  # defining points
         psi_max = self._grid_params['psi_max']
         psi_min = self._grid_params['psi_min']
 
-        # IDL
-        idl_n = self.eq.draw_line(xpt['W'], psi_max, option='rho',
-                                  direction='ccw')
-        dp['ixpt'] = idl_n[-1]
-        idl_w = self.eq.draw_line(dp['ixpt'], self.itp, option='theta',
-                                  direction='ccw')
-        idl_e = self.eq.draw_line(xpt['SW'], self.itp, option='theta',
-                                  direction='ccw')
-        idl_s = Line(idl_w[-1], idl_e[-1])
-        idl_s.plot('red')
-        IDL = Patch(idl_w, idl_e[::-1])
-        IDL.fill()
+        # IDL ===================================================
+#        idl_e = self.eq.draw_line(xpt['W'], psi_max, option='rho',
+#                                  direction='ccw', show_plot=False)
+##        idl_e = Line([idl_e_temp[-1], idl_e_temp[0]])
+##        idl_e.plot('red')
+##        dp['ixpt'] = idl_e.p[0]
+#        idl_n = self.eq.draw_line(dp['ixpt'], self.itp, option='theta',
+#                                  direction='ccw', show_plot=False)
+##        idl_nn = Line(idl_n)
+##        idl_n.plot('red')
+#
+#
+#        idl_s = self.eq.draw_line(xpt['SW'], self.itp, option='theta',
+#                                  direction='ccw', show_plot=False)
+##        idl_ss = Line(idl_s)
+##        idl_s.plot('red')
+#
+#
+#
+#        idl_w = Line([idl_n.p[-1], idl_s.p[-1]])
+##        idl_w.plot('red')
+#        IDL = Patch(idl_n, idl_s[::-1])
+#        IDL.fill()
 
-        # IPF
-        ipf_n = idl_e
-        ipf_e = self.eq.draw_line(xpt['S'], psi_min, option='rho',
-                                  direction='cw')
-        ipf_s = self.eq.draw_line(ipf_e[-1], self.itp, option='theta',
-                                  direction='ccw')
-        ipf_w = Line(ipf_n[-1], ipf_s[-1])
-        ipf_w.plot('red')
-        IPF = Patch(ipf_n, ipf_s[::-1])
-        IPF.fill()
+        # +++ #### ========
+        # trying a new way of defining
+        E = self.eq.draw_line(xpt['W'], psi_max, option='rho', direction='ccw')
+        N = self.eq.draw_line(E.p[-1], self.itp, option='theta', direction='ccw').reverse()
+        S = self.eq.draw_line(xpt['SW'], self.itp, option='theta', direction='ccw')
+        E = Line([N.p[-1], S.p[0]]) # straighten it up
+        W = Line([S.p[-1], N.p[0]])
+        IDL = Patch([N, E, S, W])
+        if movie:
+            IDL.plot_border()
+            IDL.fill()
+            plt.draw()
+        # Lines are now saved inside of the patch
 
-        # OPF
-        opf_w = ipf_e
-        opf_s = self.eq.draw_line(opf_w[-1], self.otp, option='theta',
-                                  direction='cw')
-        opf_n = self.eq.draw_line(xpt['SE'], self.otp, option='theta',
-                                  direction='cw')
-        opf_e = Line(opf_n[-1], opf_s[-1])
-        opf_e.plot('red')
-        OPF = Patch(opf_s, opf_n[::-1])
-        OPF.fill()
 
-        # ODL
-        odl_w = self.eq.draw_line(xpt['E'], psi_max, option='rho',
-                                  direction='ccw')
-        dp['oxpt'] = odl_w[-1]
-        odl_n = self.eq.draw_line(dp['oxpt'], self.otp, option='theta',
-                                  direction='cw')
-        odl_s = opf_n
-        odl_e = Line(odl_n[-1], odl_s[-1])
-        odl_e.plot('red')
-        ODL = Patch(odl_n, odl_s[::-1])
-        ODL.fill()
+        # IPF ===================================================
+#        ipf_n = idl_s
+#        ipf_e_temp = self.eq.draw_line(xpt['S'], psi_min, option='rho',
+#                                  direction='cw', show_plot=False)
+#        ipf_e = Line([ipf_e_temp[0], ipf_e_temp[-1]])
+#        ipf_e.plot('red')
+#        ipf_s = self.eq.draw_line(ipf_e.p[-1], self.itp, option='theta',
+#                                  direction='ccw')
+#        ipf_w = Line([ipf_n[-1], ipf_s[-1]])
+#        ipf_w.plot('red')
+#        IPF = Patch(ipf_n, ipf_s[::-1])
+#        IPF.fill()
+        N = IDL.S.reverse()
+        E = self.eq.draw_line(xpt['S'], psi_min, option='rho', direction='cw')
+        E = Line([E.p[0], E.p[-1]])
+        S = self.eq.draw_line(E.p[-1], self.itp, option='theta', direction='ccw')
+        W = Line([S.p[-1], N.p[0]])
+        IPF = Patch([N, E, S, W])
+        if movie:
+            IPF.plot_border()
+            IPF.fill()
+            plt.draw()
+        
+#        # OPF ===================================================
+#        opf_w = ipf_e
+#        opf_s = self.eq.draw_line(opf_w[-1], self.otp, option='theta',
+#                                  direction='cw')
+#        opf_n = self.eq.draw_line(xpt['SE'], self.otp, option='theta',
+#                                  direction='cw')
+#        opf_e = Line([opf_n[-1], opf_s[-1]])
+#        opf_e.plot('red')
+#        OPF = Patch(opf_s, opf_n[::-1])
+#        OPF.fill()
+        N = self.eq.draw_line(xpt['SE'], self.otp, option='theta', direction='cw')
+        W = IPF.E.reverse()
+        S = self.eq.draw_line(W.p[0], self.otp, option='theta', direction='cw').reverse()
+        E = Line([N.p[-1], S.p[0]])
+        OPF = Patch([N, E, S, W])
+        if movie:
+            OPF.plot_border('orange')
+            OPF.fill()
+            plt.draw()
+
+#        # ODL ===================================================
+#        odl_w = self.eq.draw_line(xpt['E'], psi_max, option='rho',
+#                                  direction='ccw')
+#        dp['oxpt'] = odl_w[-1]
+#        odl_n = self.eq.draw_line(dp['oxpt'], self.otp, option='theta',
+#                                  direction='cw')
+#        odl_s = opf_n
+#        odl_e = Line([odl_n[-1], odl_s[-1]])
+#        odl_e.plot('red')
+#        ODL = Patch(odl_n, odl_s[::-1])
+#        ODL.fill()
+        W = self.eq.draw_line(xpt['E'], psi_max, option='rho', direction='ccw')
+        W = Line([W.p[0], W.p[-1]])
+        N = self.eq.draw_line(W.p[-1], self.otp, option='theta', direction='cw')
+        S = OPF.N.reverse()
+        E = Line([N.p[-1], S.p[0]])
+        ODL = Patch([N, E, S, W])
+        if movie:
+            ODL.plot_border('blue')
+            ODL.fill()
+            plt.draw()
+        
 
         # need the mid and top points of the separatrix
-        sep = self.eq.draw_line(xpt['NW'], xpt['NE'], option='theta',
-                                direction='cw')
-        sep_x = np.array([p.x for p in sep])
-        sep_y = np.array([p.y for p in sep])
+        sep = self.eq.draw_line(xpt['NW'], xpt['NE'], option='theta', direction='cw')
+#        sep_x = np.array([p.x for p in sep])
+#        sep_y = np.array([p.y for p in sep])
+        sep_x = sep.xval
+        sep_y = sep.yval
         top_index = np.argmax(sep_y)
         midpoint = np.median(sep_y)
         mid_index, = np.where(np.abs(sep_y-midpoint) < 1e-3)
+        dp = {}
         dp['top'] = Point(sep_x[top_index], sep_y[top_index])
         dp['impt'] = Point(sep_x[mid_index[0]], sep_y[mid_index[0]])
         dp['ompt'] = Point(sep_x[mid_index[1]], sep_y[mid_index[1]])
 
-        # ISB
-        isb_e = self.eq.draw_line(dp['impt'], psi_max, option='rho',
-                                  direction='ccw')
-        isb_n = self.eq.draw_line(dp['ixpt'], isb_e[-1], option='theta',
-                                  direction='cw')
-        isb_s = sep[:mid_index[0]+1]
-        ISB = Patch(isb_n, isb_s[::-1])
-        ISB.fill()
+#        # ISB ===================================================
+#        isb_e = self.eq.draw_line(dp['impt'], psi_max, option='rho',
+#                                  direction='ccw')
+#        isb_n = self.eq.draw_line(dp['ixpt'], isb_e[-1], option='theta',
+#                                  direction='cw')
+#        isb_s = sep[:mid_index[0]+1]
+#        ISB = Patch(isb_n, isb_s[::-1])
+#        ISB.fill()
+        E = self.eq.draw_line(dp['impt'], psi_max, option='rho', direction='ccw').reverse()
+        E = Line([E.p[0], E.p[-1]])
+        N = self.eq.draw_line(IDL.E.p[0], E.p[0], option='theta', direction='cw')
+        S = Line(sep.p[:mid_index[0]+1]).reverse()
+        W = IDL.E.reverse()
+        ISB = Patch([N, E, S, W])
+        
 
-        # ICB
-        icb_e = self.eq.draw_line(dp['impt'], psi_min, option='rho',
-                                  direction='cw')
-        icb_w = self.eq.draw_line(xpt['N'], psi_min, option='rho',
-                                  direction='cw')
-        icb_s = self.eq.draw_line(icb_w[-1], icb_e[-1], option='theta',
-                                  direction='cw')
-        icb_n = isb_s
-        ICB = Patch(icb_s[::-1], icb_n)
-        ICB.fill()
+#        # ICB ===================================================
+#        icb_e = self.eq.draw_line(dp['impt'], psi_min, option='rho',
+#                                  direction='cw')
+#        icb_w = self.eq.draw_line(xpt['N'], psi_min, option='rho',
+#                                  direction='cw')
+#        icb_s = self.eq.draw_line(icb_w[-1], icb_e[-1], option='theta',
+#                                  direction='cw')
+#        icb_n = isb_s
+#        ICB = Patch(icb_s[::-1], icb_n)
+#        ICB.fill()
+        N = Line(sep.p[:mid_index[0]+1])
+        E = self.eq.draw_line(dp['impt'], psi_min, option='rho', direction='cw')
+        W = self.eq.draw_line(xpt['N'], psi_min, option='rho', direction='cw').reverse()
+        W = Line([W.p[0], W.p[-1]])
+        S = self.eq.draw_line(W.p[0], E.p[-1], option='theta', direction='cw').reverse()
+        ICB = Patch([N, E, S, W])
+        
 
-        # IST
-        ist_e = self.eq.draw_line(dp['top'], psi_max, option='rho',
-                                  direction='ccw')
-        ist_n = self.eq.draw_line(isb_n[-1], ist_e[-1], option='theta',
-                                  direction='cw')
-        ist_s = sep[mid_index[0]:top_index+1]
-        IST = Patch(ist_n, ist_s[::-1])
-        IST.fill()
+#        # IST ===================================================
+#        ist_e = self.eq.draw_line(dp['top'], psi_max, option='rho',
+#                                  direction='ccw')
+#        ist_n = self.eq.draw_line(isb_n[-1], ist_e[-1], option='theta',
+#                                  direction='cw')
+#        ist_s = sep[mid_index[0]:top_index+1]
+#        IST = Patch(ist_n, ist_s[::-1])
+#        IST.fill()
+        E = self.eq.draw_line(dp['top'], psi_max, option='rho', direction='ccw').reverse()
+        E = Line([E.p[0], E.p[-1]])
+        N = self.eq.draw_line(ISB.N.p[-1], E.p[0], option='theta', direction='cw')
+        S = Line(sep.p[mid_index[0]:top_index+1]).reverse()
+        W = ISB.W.reverse()
+        IST = Patch([N, E, S, W])
 
-        # ICT
-        ict_e = self.eq.draw_line(dp['top'], psi_min, option='rho',
-                                  direction='cw')
-        ict_s = self.eq.draw_line(icb_s[-1], ict_e[-1], option='theta',
-                                  direction='cw')
-        ict_n = ist_s
-        ICT = Patch(ict_n, ict_s[::-1])
-        ICT.fill()
+#        # ICT ===================================================
+#        ict_e = self.eq.draw_line(dp['top'], psi_min, option='rho',
+#                                  direction='cw')
+#        ict_s = self.eq.draw_line(icb_s[-1], ict_e[-1], option='theta',
+#                                  direction='cw')
+#        ict_n = ist_s
+#        ICT = Patch(ict_n, ict_s[::-1])
+#        ICT.fill()
+        E = self.eq.draw_line(dp['top'], psi_min, option='rho', direction='cw')
+        E = Line([E.p[0], E.p[-1]])
+        S = self.eq.draw_line(ICB.S.p[0], E.p[-1], option='theta', direction='cw').reverse()
+        N = IST.S.reverse()
+        W = ICB.E.reverse()
+        ICT = Patch([N, E, S, W])
+        
+#        # OST ===================================================
+#        ost_e = self.eq.draw_line(dp['ompt'], psi_max, option='rho',
+#                                  direction='ccw')
+#        ost_n = self.eq.draw_line(ist_n[-1], ost_e[-1], option='theta',
+#                                  direction='cw')
+#        ost_s = sep[top_index: mid_index[1]+1]
+#        OST = Patch(ost_n, ost_s[::-1])
+#        OST.fill()
+        E = self.eq.draw_line(dp['ompt'], psi_max, option='rho', direction='ccw').reverse()
+        E = Line([E.p[0], E.p[-1]])
+        N = self.eq.draw_line(IST.N.p[-1], E.p[0], option='theta', direction='cw')
+        S = Line(sep.p[top_index: mid_index[1]+1]).reverse()
+        W = IST.W.reverse()
+        OST = Patch([N, E, S, W])
 
-        # OST
-        ost_e = self.eq.draw_line(dp['ompt'], psi_max, option='rho',
-                                  direction='ccw')
-        ost_n = self.eq.draw_line(ist_n[-1], ost_e[-1], option='theta',
-                                  direction='cw')
-        ost_s = sep[top_index: mid_index[1]+1]
-        OST = Patch(ost_n, ost_s[::-1])
-        OST.fill()
+#        # OCT ===================================================
+#        oct_e = self.eq.draw_line(dp['ompt'], psi_min, option='rho',
+#                                  direction='cw')
+#        oct_s = self.eq.draw_line(ict_e[-1], oct_e[-1], option='theta',
+#                                  direction='cw')
+#        oct_n = ost_s
+#        OCT = Patch(oct_n, oct_s[::-1])
+#        OCT.fill()
+        E = self.eq.draw_line(dp['ompt'], psi_min, option='rho', direction='cw')
+        E = Line([E.p[0], E.p[-1]])
+        S = self.eq.draw_line(ICT.E.p[-1], E.p[-1], option='theta', direction='cw').reverse()
+        N = Line(sep.p[top_index: mid_index[1]+1])
+        W = ICT.E.reverse()
+        OCT = Patch([N, E, S, W])
 
-        # OCT
-        oct_e = self.eq.draw_line(dp['ompt'], psi_min, option='rho',
-                                  direction='cw')
-        oct_s = self.eq.draw_line(ict_e[-1], oct_e[-1], option='theta',
-                                  direction='cw')
-        oct_n = ost_s
-        OCT = Patch(oct_n, oct_s[::-1])
-        OCT.fill()
+#        # OCB ===================================================
+#        ocb_w = oct_e
+#        ocb_s = self.eq.draw_line(ocb_w[-1], icb_w[-1], option='theta',
+#                                  direction='cw')
+#        ocb_n = sep[mid_index[1]:]
+#        OCB = Patch(ocb_s, ocb_n[::-1])
+#        OCB.fill()
+        W = OCT.E.reverse()
+        N = Line(sep.p[mid_index[1]:])
+        S = self.eq.draw_line(W.p[0], ICB.W.p[0], option='theta', direction='cw').reverse()
+        E = ICB.W.reverse()
+        OCB = Patch([N, E, S, W])
 
-        # OCB
-        ocb_w = oct_e
-        ocb_s = self.eq.draw_line(ocb_w[-1], icb_w[-1], option='theta',
-                                  direction='cw')
-        ocb_n = sep[mid_index[1]:]
-        OCB = Patch(ocb_s, ocb_n[::-1])
-        OCB.fill()
-
-        # OSB
-        osb_n = self.eq.draw_line(ost_e[-1], dp['oxpt'], option='theta',
-                                  direction='cw')
-        osb_s = ocb_n
-        OSB = Patch(osb_n, osb_s[::-1])
-        OSB.fill()
+#        # OSB ===================================================
+#        osb_n = self.eq.draw_line(ost_e[-1], dp['oxpt'], option='theta',
+#                                  direction='cw')
+#        osb_s = ocb_n
+#        OSB = Patch(osb_n, osb_s[::-1])
+#        OSB.fill()
+        W = OST.E.reverse()
+        N = self.eq.draw_line(W.p[-1], ODL.W.p[-1], option='theta', direction='cw')
+        S = OCB.N.reverse()
+        E = ODL.W.reverse()
+        OSB = Patch([N, E, S, W])
 
         self.patches = [IDL, IPF, OPF, ODL, ISB, ICB,
                         IST, ICT, OST, OCT, OCB, OSB]
+        if not movie:
+            for patch in self.patches:
+                patch.plot_border()
+                patch.fill()
+
 
     def patch_diagram(self):
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',

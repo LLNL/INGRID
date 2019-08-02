@@ -54,6 +54,10 @@ class RootFinder:
         x, y = event.xdata, event.ydata
         self.find_root(x, y)
         
+    def disconnect(self):
+        """ turn of the click functionality fo the root finder """
+        self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
+    
     def find_root(self, x, y):
         plt.plot(x, y, 'x')
         plt.draw()

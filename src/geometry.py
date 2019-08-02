@@ -52,26 +52,63 @@ class Point:
         plt.plot(self.x, self.y, 'x')
 
 
+#class Line:
+#    """ line object """
+#
+#    def __init__(self, *points):
+#        """ points are of the form p = (x, y)
+#        # an ordered set of points defines a line
+#        line = (p1, p2, ...)
+#        """
+#        if isinstance(points[0], Point):
+#            self.p = points  # list of objects
+#            self.xval = [p.x for p in points]
+#            self.yval = [p.y for p in points]
+#        else:
+#            self.p = np.array(points)
+#            self.xval = self.p[:, 0]
+#            self.yval = self.p[:, 1]
+#
+#    def plot(self, color='#1f77b4'):
+#        """ defaults to a light blue """
+#        plt.plot(self.xval, self.yval, color=color)
+#
+#    def print_points(self):
+#        print([(p.x, p.y) for p in self.p])
+#
+#    def divisions(self, num):
+#        self.xs = np.linspace(self.p[0].x, self.p[-1].x, num)
+#        self.ys = np.linspace(self.p[0].y, self.p[-1].y, num)
+
 class Line:
     """ line object """
 
-    def __init__(self, *points):
+    def __init__(self, points, psi=None):
         """ points are of the form p = (x, y)
+        must pass in a list, tuple, array...
         # an ordered set of points defines a line
         line = (p1, p2, ...)
         """
-        if isinstance(points[0], Point):
-            self.p = points  # list of objects
-            self.xval = [p.x for p in points]
-            self.yval = [p.y for p in points]
-        else:
-            self.p = np.array(points)
-            self.xval = self.p[:, 0]
-            self.yval = self.p[:, 1]
+        self.p = points
+        self.xval = [p.x for p in points]
+        self.yval = [p.y for p in points]
+        
+        if psi is not None:
+            self.psi = psi
+            
+    def reverse(self):    
+        # points in the other direction
+        self.p = self.p[::-1]
+        return self
+        
+#    def straighten(self):
+#        # removes interior points
+#        self.p = [self.p[0], self.p[-1]]
+#        return self
 
     def plot(self, color='#1f77b4'):
         """ defaults to a light blue """
-        plt.plot(self.xval, self.yval, color=color)
+        plt.plot(self.xval, self.yval, '.-', color=color, linewidth='2')
 
     def print_points(self):
         print([(p.x, p.y) for p in self.p])
@@ -84,24 +121,39 @@ class Line:
 class Patch:
     """ each patch contains a grid, and has it's own shape
     accepts Point objects and lists of Points"""
-    def __init__(self, *points):
-        self.p = []
-        for pt in points:
-            if type(pt) == list:
-                [self.p.append(p) for p in pt]
-            else:
-                self.p.append(pt)
+#    def __init__(self, *points):
+#        self.p = []
+#        for pt in points:
+#            if type(pt) == list:
+#                [self.p.append(p) for p in pt]
+#            else:
+#                self.p.append(pt)
+    
+    def __init__(self, lines):
+        """ Each patch defined by four lines in order - 
+        Nline, Eline, Sline, Wline
+        order points to go clockwise
+        """
+        self.lines = lines
+        self.N = lines[0]
+        self.E = lines[1]
+        self.S = lines[2]
+        self.W = lines[3]
+        
+        self.p = list(self.N.p) + list(self.S.p)
+        
 
-    def plot_bounds(self):
-        for line in self.lines:
-            line.plot()
-
-    def plot_borders(self, color='#1f77b4'):
+    def plot_border(self, color='red'):
         """ draw solid borders around the patch """
-        pts = self.p + [self.p[0]]
-        for i in range(len(self.p)):
-            line = Line(pts[i], pts[i+1])
+        for line in self.lines:
             line.plot(color)
+
+#    def plot_borders(self, color='#1f77b4'):
+#        """ draw solid borders around the patch """
+#        pts = self.p + [self.p[0]]
+#        for i in range(len(self.p)):
+#            line = Line(pts[i], pts[i+1])
+#            line.plot(color)
 
     def fill(self, color='lightsalmon'):
         """ shades in the patch with a given color """

@@ -109,7 +109,7 @@ class Line:
 
     def plot(self, color='#1f77b4'):
         """ defaults to a light blue """
-        plt.plot(self.xval, self.yval, '.-', color=color, linewidth='2')
+        plt.plot(self.xval, self.yval, color=color, linewidth='2')
 
     def print_points(self):
         print([(p.x, p.y) for p in self.p])

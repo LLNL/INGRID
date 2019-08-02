@@ -8,6 +8,7 @@ Created on Fri Jun 21 15:17:21 2019
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
+raw_input = input  # python3
 
 
 class Ingrid:
@@ -37,7 +38,7 @@ class Ingrid:
                              'psi_max': psi_max,
                              'psi_min': psi_min}
         self.gfile = gfile
-
+        print("Printing Gfile: ", gfile)
         # parameters: what is this epsilon for?
         # which names for setting psi max and psi min
 
@@ -110,6 +111,40 @@ class Ingrid:
         for key, value in self._grid_params.items():
             print(key, value)
 
+    
+    def OMFIT_read_psi(self):
+        from OMFITgeqdsk import OMFITgeqdsk
+        from Interpol.Setup_Grid_Data import Efit_Data
+
+        g = OMFITgeqdsk(self.gfile)
+        
+        nxefit = g['NW']
+        nyefit = g['NH']
+        rdim = g['RDIM']
+        zdim = g['ZDIM']
+        zmid = g['ZMID']
+        rgrid1 = g['RLEFT']
+        
+        psi = g['PSIRZ'].T
+        
+        rlim = g['RLIM']  # limiter - similar to strike plates
+        zlim = g['ZLIM']
+        
+        
+        # calc array for r and z
+        rmin = rgrid1
+        rmax = rmin + rdim
+        zmin = (zmid - 0.5 * zdim)
+        zmax = zmin + zdim
+        
+        # reproduce efit grid
+        self.efit_psi = Efit_Data(rmin, rmax, nxefit,
+                                  zmin, zmax, nyefit,
+                                  name='Efit Data')
+        self.efit_psi.set_v(psi)
+        
+        
+    
     def import_psi_data(self, plot=False):
         """ Read psi data using fortran code """
         import Efit.efit as efit
@@ -548,9 +583,9 @@ class Ingrid:
                   'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
                   'seagreen', 'firebrick', 'saddlebrown']
 
-        plt.figure('patches')
+        plt.figure('patches', figsize=(6, 10))
         for i in range(len(self.patches)):
-            self.patches[i].plot_border('red')
+            self.patches[i].plot_border('green')
             self.patches[i].fill(colors[i])
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)

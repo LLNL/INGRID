@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 class Ingrid:
     """ An interactive grid generator """
     def __init__(self,
+                 gfile,
                  option='bicubic',
                  epsilon=1e-9,
                  rmagx=0.0,
@@ -35,6 +36,7 @@ class Ingrid:
                              'step_ratio': step_ratio,
                              'psi_max': psi_max,
                              'psi_min': psi_min}
+        self.gfile = gfile
 
         # parameters: what is this epsilon for?
         # which names for setting psi max and psi min
@@ -112,7 +114,7 @@ class Ingrid:
         """ Read psi data using fortran code """
         import Efit.efit as efit
         from Interpol.Setup_Grid_Data import Efit_Data
-        efit.readg()  # defines the variables
+        efit.readg(self.gfile)  # defines the variables
         # extract dimensions and boundaries
         nxefit, nyefit, nbdry, nlim = efit.get_nxy()
 
@@ -548,7 +550,7 @@ class Ingrid:
 
         plt.figure('patches')
         for i in range(len(self.patches)):
-            self.patches[i].plot_borders('red')
+            self.patches[i].plot_border('red')
             self.patches[i].fill(colors[i])
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)

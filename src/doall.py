@@ -8,9 +8,9 @@ def paws():
     programPause = raw_input("Press the <ENTER> key to continue...")
 
 
+gfile = raw_input("Enter filename: ")
 
-
-grid = Ingrid()
+grid = Ingrid(gfile)
 
 #-read data
 grid.import_psi_data()

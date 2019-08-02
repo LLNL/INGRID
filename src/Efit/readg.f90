@@ -22,19 +22,19 @@ end module global_data_g
 
 
 
-subroutine readg 
+subroutine readg(filename) 
 
-
+  !! filename: 'neqdsk' original file
   use global_data_g
   INTEGER*4 stat
-
+  character(len=1000), intent(in) :: filename
 
   !!c *************** read the output of the EFIT code ******************
 
   print *, 'Reading neqdsk file .......'
 
   iunit=1 !file is neqdsk
-  open (iunit, file='neqdsk', form='formatted', iostat=ios, status='old')
+  open (iunit, file=filename, form='formatted', iostat=ios, status='old')
 
   if (ios .ne. 0) then
      print *, "**** neqdsk file not found, exiting..."

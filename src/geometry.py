@@ -5,6 +5,7 @@ Created on Thu Jul 25 16:00:04 2019
 
 @author: watkins35
 """
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
@@ -36,8 +37,8 @@ class Point:
         elif np.shape(pts) == (1, 2):
             self.x, self.y = pts[0]
         else:
-            print 'incompatible form'
-            print np.shape(pts), pts
+            print('incompatible form')
+            print(np.shape(pts), pts)
 
     def psi(self, grid, tag='v'):
         """ must pass in the grid upon which the value of psi is to be

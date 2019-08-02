@@ -5,7 +5,7 @@ Created on Fri Jun  7 15:31:15 2019
 
 @author: watkins35
 """
-from __future__ import division
+from __future__ import division, print_function
 import numpy as np
 from bicubicf import bicubic
 import matplotlib.pyplot as plt
@@ -81,7 +81,7 @@ class Efit_Data:
         # planning to make this more efficient using array slicing
         # need a place to store the new values of the grid
         from time import time
-        print "Beginning Derivative calculation"
+        print("Beginning Derivative calculation")
         start = time()
 
         f = self.v
@@ -169,7 +169,7 @@ class Efit_Data:
         self.vz = vz
         self.vrz = vrz
         end = time()
-        print "Time calculating derivatives", end-start
+        print("Time calculating derivatives", end-start)
 
     def locate_cell(self, r0, z0):
         """ Inputs:

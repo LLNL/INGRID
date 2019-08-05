@@ -8,7 +8,7 @@ Created on Fri Jun 21 15:17:21 2019
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
-raw_input = input  # python3
+#raw_input = input  # python3
 
 
 class Ingrid:
@@ -37,6 +37,7 @@ class Ingrid:
                              'step_ratio': step_ratio,
                              'psi_max': psi_max,
                              'psi_min': psi_min}
+        
         self.gfile = gfile
         print("Printing Gfile: ", gfile)
         # parameters: what is this epsilon for?
@@ -189,6 +190,8 @@ class Ingrid:
         """ Reads the coordinates for a line defining the inner
         and outer target plates.
         """
+        from geometry import Point, Line
+        
         self.itp = []
         with open('../data/SNL/itp1.txt') as f:
             for line in f:
@@ -198,7 +201,7 @@ class Ingrid:
                     continue
                 x = float(point.split(',')[0])
                 y = float(point.split(',')[1])
-                self.itp.append((x, y))
+                self.itp.append(Point(x, y))
 
         self.otp = []
         with open('../data/SNL/otp1.txt') as f:
@@ -209,16 +212,23 @@ class Ingrid:
                     continue
                 x = float(point.split(',')[0])
                 y = float(point.split(',')[1])
-                self.otp.append((x, y))
+                self.otp.append(Point(x, y))
         print('Using inner target plate', self.itp)
         print('Using outer target plate', self.otp)
+        
+        
+        # testing for Line instances
+        self.itp = Line(self.itp)
+        self.otp = Line(self.otp)
 
     def plot_target_plate(self):
-        itp = np.array(self.itp)
-        otp = np.array(self.otp)
+#        itp = np.array(self.itp)
+#        otp = np.array(self.otp)
 
-        plt.plot(itp[:, 0], itp[:, 1], label='itp')
-        plt.plot(otp[:, 0], otp[:, 1], label='otp')
+#        plt.plot(itp[:, 0], itp[:, 1], label='itp')
+#        plt.plot(otp[:, 0], otp[:, 1], label='otp')
+        self.itp.plot()
+        self.otp.plot()
         plt.draw()
 
     def calc_efit_derivs(self):
@@ -328,36 +338,11 @@ class Ingrid:
         plt.show()
         from geometry import Point, Patch, Line
         xpt = self.eq.eq_psi
-#        dp = {}  # defining points
         psi_max = self._grid_params['psi_max']
         psi_min = self._grid_params['psi_min']
 
         # IDL ===================================================
-#        idl_e = self.eq.draw_line(xpt['W'], psi_max, option='rho',
-#                                  direction='ccw', show_plot=False)
-##        idl_e = Line([idl_e_temp[-1], idl_e_temp[0]])
-##        idl_e.plot('red')
-##        dp['ixpt'] = idl_e.p[0]
-#        idl_n = self.eq.draw_line(dp['ixpt'], self.itp, option='theta',
-#                                  direction='ccw', show_plot=False)
-##        idl_nn = Line(idl_n)
-##        idl_n.plot('red')
-#
-#
-#        idl_s = self.eq.draw_line(xpt['SW'], self.itp, option='theta',
-#                                  direction='ccw', show_plot=False)
-##        idl_ss = Line(idl_s)
-##        idl_s.plot('red')
-#
-#
-#
-#        idl_w = Line([idl_n.p[-1], idl_s.p[-1]])
-##        idl_w.plot('red')
-#        IDL = Patch(idl_n, idl_s[::-1])
-#        IDL.fill()
 
-        # +++ #### ========
-        # trying a new way of defining
         E = self.eq.draw_line(xpt['W'], psi_max, option='rho', direction='ccw')
         N = self.eq.draw_line(E.p[-1], self.itp, option='theta', direction='ccw').reverse()
         S = self.eq.draw_line(xpt['SW'], self.itp, option='theta', direction='ccw')
@@ -372,17 +357,6 @@ class Ingrid:
 
 
         # IPF ===================================================
-#        ipf_n = idl_s
-#        ipf_e_temp = self.eq.draw_line(xpt['S'], psi_min, option='rho',
-#                                  direction='cw', show_plot=False)
-#        ipf_e = Line([ipf_e_temp[0], ipf_e_temp[-1]])
-#        ipf_e.plot('red')
-#        ipf_s = self.eq.draw_line(ipf_e.p[-1], self.itp, option='theta',
-#                                  direction='ccw')
-#        ipf_w = Line([ipf_n[-1], ipf_s[-1]])
-#        ipf_w.plot('red')
-#        IPF = Patch(ipf_n, ipf_s[::-1])
-#        IPF.fill()
         N = IDL.S.reverse()
         E = self.eq.draw_line(xpt['S'], psi_min, option='rho', direction='cw')
         E = Line([E.p[0], E.p[-1]])
@@ -394,16 +368,7 @@ class Ingrid:
             IPF.fill()
             plt.draw()
         
-#        # OPF ===================================================
-#        opf_w = ipf_e
-#        opf_s = self.eq.draw_line(opf_w[-1], self.otp, option='theta',
-#                                  direction='cw')
-#        opf_n = self.eq.draw_line(xpt['SE'], self.otp, option='theta',
-#                                  direction='cw')
-#        opf_e = Line([opf_n[-1], opf_s[-1]])
-#        opf_e.plot('red')
-#        OPF = Patch(opf_s, opf_n[::-1])
-#        OPF.fill()
+        # OPF ===================================================
         N = self.eq.draw_line(xpt['SE'], self.otp, option='theta', direction='cw')
         W = IPF.E.reverse()
         S = self.eq.draw_line(W.p[0], self.otp, option='theta', direction='cw').reverse()
@@ -414,17 +379,7 @@ class Ingrid:
             OPF.fill()
             plt.draw()
 
-#        # ODL ===================================================
-#        odl_w = self.eq.draw_line(xpt['E'], psi_max, option='rho',
-#                                  direction='ccw')
-#        dp['oxpt'] = odl_w[-1]
-#        odl_n = self.eq.draw_line(dp['oxpt'], self.otp, option='theta',
-#                                  direction='cw')
-#        odl_s = opf_n
-#        odl_e = Line([odl_n[-1], odl_s[-1]])
-#        odl_e.plot('red')
-#        ODL = Patch(odl_n, odl_s[::-1])
-#        ODL.fill()
+        # ODL ===================================================
         W = self.eq.draw_line(xpt['E'], psi_max, option='rho', direction='ccw')
         W = Line([W.p[0], W.p[-1]])
         N = self.eq.draw_line(W.p[-1], self.otp, option='theta', direction='cw')
@@ -438,27 +393,16 @@ class Ingrid:
         
 
         # need the mid and top points of the separatrix
-        sep = self.eq.draw_line(xpt['NW'], xpt['NE'], option='theta', direction='cw')
-#        sep_x = np.array([p.x for p in sep])
-#        sep_y = np.array([p.y for p in sep])
-        sep_x = sep.xval
-        sep_y = sep.yval
-        top_index = np.argmax(sep_y)
-        midpoint = np.median(sep_y)
-        mid_index, = np.where(np.abs(sep_y-midpoint) < 1e-3)
-        dp = {}
-        dp['top'] = Point(sep_x[top_index], sep_y[top_index])
-        dp['impt'] = Point(sep_x[mid_index[0]], sep_y[mid_index[0]])
-        dp['ompt'] = Point(sep_x[mid_index[1]], sep_y[mid_index[1]])
+        sep = self.eq.draw_line(Point(xpt['NW']), Point(xpt['NE']), option='theta', direction='cw')
+        top_index = np.argmax(sep.yval)
+        midpoint = np.median(sep.yval)
+        mid_index, = np.where(np.abs(sep.yval-midpoint) < 1e-3)
+        dp = {}  # defining points
+        dp['top'] = Point(sep.xval[top_index], sep.yval[top_index])
+        dp['impt'] = Point(sep.xval[mid_index[0]], sep.yval[mid_index[0]])
+        dp['ompt'] = Point(sep.xval[mid_index[1]], sep.yval[mid_index[1]])
 
-#        # ISB ===================================================
-#        isb_e = self.eq.draw_line(dp['impt'], psi_max, option='rho',
-#                                  direction='ccw')
-#        isb_n = self.eq.draw_line(dp['ixpt'], isb_e[-1], option='theta',
-#                                  direction='cw')
-#        isb_s = sep[:mid_index[0]+1]
-#        ISB = Patch(isb_n, isb_s[::-1])
-#        ISB.fill()
+        # ISB ===================================================
         E = self.eq.draw_line(dp['impt'], psi_max, option='rho', direction='ccw').reverse()
         E = Line([E.p[0], E.p[-1]])
         N = self.eq.draw_line(IDL.E.p[0], E.p[0], option='theta', direction='cw')
@@ -467,16 +411,7 @@ class Ingrid:
         ISB = Patch([N, E, S, W])
         
 
-#        # ICB ===================================================
-#        icb_e = self.eq.draw_line(dp['impt'], psi_min, option='rho',
-#                                  direction='cw')
-#        icb_w = self.eq.draw_line(xpt['N'], psi_min, option='rho',
-#                                  direction='cw')
-#        icb_s = self.eq.draw_line(icb_w[-1], icb_e[-1], option='theta',
-#                                  direction='cw')
-#        icb_n = isb_s
-#        ICB = Patch(icb_s[::-1], icb_n)
-#        ICB.fill()
+        # ICB ===================================================
         N = Line(sep.p[:mid_index[0]+1])
         E = self.eq.draw_line(dp['impt'], psi_min, option='rho', direction='cw')
         W = self.eq.draw_line(xpt['N'], psi_min, option='rho', direction='cw').reverse()
@@ -485,14 +420,7 @@ class Ingrid:
         ICB = Patch([N, E, S, W])
         
 
-#        # IST ===================================================
-#        ist_e = self.eq.draw_line(dp['top'], psi_max, option='rho',
-#                                  direction='ccw')
-#        ist_n = self.eq.draw_line(isb_n[-1], ist_e[-1], option='theta',
-#                                  direction='cw')
-#        ist_s = sep[mid_index[0]:top_index+1]
-#        IST = Patch(ist_n, ist_s[::-1])
-#        IST.fill()
+        # IST ===================================================
         E = self.eq.draw_line(dp['top'], psi_max, option='rho', direction='ccw').reverse()
         E = Line([E.p[0], E.p[-1]])
         N = self.eq.draw_line(ISB.N.p[-1], E.p[0], option='theta', direction='cw')
@@ -500,14 +428,7 @@ class Ingrid:
         W = ISB.W.reverse()
         IST = Patch([N, E, S, W])
 
-#        # ICT ===================================================
-#        ict_e = self.eq.draw_line(dp['top'], psi_min, option='rho',
-#                                  direction='cw')
-#        ict_s = self.eq.draw_line(icb_s[-1], ict_e[-1], option='theta',
-#                                  direction='cw')
-#        ict_n = ist_s
-#        ICT = Patch(ict_n, ict_s[::-1])
-#        ICT.fill()
+        # ICT ===================================================
         E = self.eq.draw_line(dp['top'], psi_min, option='rho', direction='cw')
         E = Line([E.p[0], E.p[-1]])
         S = self.eq.draw_line(ICB.S.p[0], E.p[-1], option='theta', direction='cw').reverse()
@@ -515,14 +436,7 @@ class Ingrid:
         W = ICB.E.reverse()
         ICT = Patch([N, E, S, W])
         
-#        # OST ===================================================
-#        ost_e = self.eq.draw_line(dp['ompt'], psi_max, option='rho',
-#                                  direction='ccw')
-#        ost_n = self.eq.draw_line(ist_n[-1], ost_e[-1], option='theta',
-#                                  direction='cw')
-#        ost_s = sep[top_index: mid_index[1]+1]
-#        OST = Patch(ost_n, ost_s[::-1])
-#        OST.fill()
+        # OST ===================================================
         E = self.eq.draw_line(dp['ompt'], psi_max, option='rho', direction='ccw').reverse()
         E = Line([E.p[0], E.p[-1]])
         N = self.eq.draw_line(IST.N.p[-1], E.p[0], option='theta', direction='cw')
@@ -530,14 +444,7 @@ class Ingrid:
         W = IST.W.reverse()
         OST = Patch([N, E, S, W])
 
-#        # OCT ===================================================
-#        oct_e = self.eq.draw_line(dp['ompt'], psi_min, option='rho',
-#                                  direction='cw')
-#        oct_s = self.eq.draw_line(ict_e[-1], oct_e[-1], option='theta',
-#                                  direction='cw')
-#        oct_n = ost_s
-#        OCT = Patch(oct_n, oct_s[::-1])
-#        OCT.fill()
+        # OCT ===================================================
         E = self.eq.draw_line(dp['ompt'], psi_min, option='rho', direction='cw')
         E = Line([E.p[0], E.p[-1]])
         S = self.eq.draw_line(ICT.E.p[-1], E.p[-1], option='theta', direction='cw').reverse()
@@ -545,25 +452,14 @@ class Ingrid:
         W = ICT.E.reverse()
         OCT = Patch([N, E, S, W])
 
-#        # OCB ===================================================
-#        ocb_w = oct_e
-#        ocb_s = self.eq.draw_line(ocb_w[-1], icb_w[-1], option='theta',
-#                                  direction='cw')
-#        ocb_n = sep[mid_index[1]:]
-#        OCB = Patch(ocb_s, ocb_n[::-1])
-#        OCB.fill()
+        # OCB ===================================================
         W = OCT.E.reverse()
         N = Line(sep.p[mid_index[1]:])
         S = self.eq.draw_line(W.p[0], ICB.W.p[0], option='theta', direction='cw').reverse()
         E = ICB.W.reverse()
         OCB = Patch([N, E, S, W])
 
-#        # OSB ===================================================
-#        osb_n = self.eq.draw_line(ost_e[-1], dp['oxpt'], option='theta',
-#                                  direction='cw')
-#        osb_s = ocb_n
-#        OSB = Patch(osb_n, osb_s[::-1])
-#        OSB.fill()
+        # OSB ===================================================
         W = OST.E.reverse()
         N = self.eq.draw_line(W.p[-1], ODL.W.p[-1], option='theta', direction='cw')
         S = OCB.N.reverse()
@@ -607,6 +503,84 @@ class Ingrid:
         test_interpol(option, nfine, ncrude, tag)
 
 
+def run():
+    import sys
+    #raw_input = input # for python 3
+    
+    def paws():
+        programPause = raw_input("Press the <ENTER> key to continue...")
+    
+    
+    if sys.argv[1:]:
+        # parse the stuff
+        # filename, magx, xpt
+        # g129883.05000 1.6,0 1.6,-.5
+        gfile = sys.argv[1]
+        interactive = False
+        magx = tuple(map(float,sys.argv[2].split(',')))
+        xpt = tuple(map(float,sys.argv[3].split(',')))
+    
+        grid = Ingrid(gfile)
+        grid.add_magx(*magx)
+        grid.add_xpt1(*xpt)
+    
+    else:
+        interactive = True
+        gfile = raw_input("Enter filename: ")
+        #gfile = 'neqdsk'
+    
+        grid = Ingrid(gfile)
+    
+    #-read data
+    #grid.import_psi_data()
+    
+    grid.OMFIT_read_psi()
+    grid.read_target_plate()
+    
+    #initial processing of the input data
+    grid.calc_efit_derivs()
+    grid.plot_efit_data()
+    
+    
+    #-now find the two roots: null-point and X-point
+    grid.find_roots()
+    
+    if interactive:
+        #-first find the null-point (magnetic axis)
+        print("Click on the magnetic axis") ##-need blocking here!
+        paws()
+        grid.add_magx()
+    
+        #-next, find the primary X-point
+        print("Click on the X-point") ##-need blocking here!
+        paws()
+        grid.add_xpt1()
+    
+    plt.close('Efit Data') #-finish with the raw Psi data
+    
+    
+    
+    #-calculate the normalized flux and plot normalized Psi data
+    grid.calc_psinorm()
+    
+    # for the snl neqdsk
+    grid.plot_target_plate()
+    grid.compute_eq_psi()
+    
+    #-here we need to block until clicked
+    #print("Click on the X-point")
+    #paws()
+    
+    #-construct the patch-map for SNL
+    from time import time
+    start = time()
+    grid.construct_SNL_patches()
+    end = time()
+    grid.patch_diagram()
+    
+    print("Time for grid: {} seconds.".format(end-start))
+
+
 if __name__ == '__main__':
     plt.close('all')
     grid = Ingrid()
@@ -617,8 +591,8 @@ if __name__ == '__main__':
 
     # for the snl neqdsk
     grid.read_target_plate()
-    grid.add_magx(0.6818276108184476, -0.0036146834671545633)
-    grid.add_xpt1(0.563043117220232, -0.39498650311360006)
+    grid.add_magx(0.6818276108184476,-0.0036146834671545633)
+    grid.add_xpt1(0.563043117220232,-0.39498650311360006)
     grid.calc_psinorm()
     plt.close('Efit Data')
     grid.plot_target_plate()

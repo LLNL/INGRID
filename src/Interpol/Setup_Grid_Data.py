@@ -8,8 +8,7 @@ Created on Fri Jun  7 15:31:15 2019
 from __future__ import division, print_function
 import numpy as np
 #from bicubicf import bicubic
-from .Bicubic import bicubic
-#import Bicubic.bicubic as bicubic
+from Bicubic2 import bicubic
 import matplotlib.pyplot as plt
 
 

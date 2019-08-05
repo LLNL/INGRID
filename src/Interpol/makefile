@@ -15,7 +15,7 @@ endif
 #  LINKER = gfortran                                                                       
 #endif                                                                                     
 
-FFILES = bicubic.f90
+FFILES = bicubic2.f90
 EXECFIL = bicubicf
 
 

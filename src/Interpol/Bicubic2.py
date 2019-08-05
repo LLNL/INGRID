@@ -17,7 +17,6 @@ def bicubic(f, fx, fy, fxy, x0, y0, derivs=None):
     """
     # Make sure that f, fx, fy, fxy are arrays.
     # All known quantities on 4 vertices.
-#    xall = np.vstack([f, fx, fy, fxy])
     
     xall = np.array([[f[0], f[2], fy[0], fy[2]],
                      [f[1], f[3], fy[1], fy[3]],

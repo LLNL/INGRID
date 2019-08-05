@@ -240,7 +240,7 @@ class LineTracing:
         
 
     def draw_line(self, rz_start, rz_end=None, color='green',
-                  option=None, direction=None, show_plot=False):
+                  option=None, direction=None, show_plot=False, text=False):
         """ rz_start and rz_end are defaulted to be the same point.
         Checks the new set of points calculated and if it is near enough to
         the end point, it stops calculating.
@@ -248,8 +248,6 @@ class LineTracing:
         direction :: determines if the function plots clockwise (cw) or
                           counterclockwise (ccw). default is None.
         """
-#        if not show_plot:
-#            print('Tracing line, but not plotting...\n Don\'t worry.')
 
         if option is not None and direction is not None:
             self.set_function(option, direction)
@@ -265,20 +263,32 @@ class LineTracing:
             test = 'point'
             xf = rz_end.x
             yf = rz_end.y
-
-        elif np.shape(rz_end) == (2,):
-            print('Testing for point convergence')
-            test = 'point'
-            xf, yf = rz_end
-
-        elif np.shape(rz_end) == (2, 2):
+            
+        elif isinstance(rz_end, Line):
             print('Testing for line convergence')
             test = 'line'
-#            print('the line is: ', rz_end)
-
+       
+        
         elif np.shape(rz_end) == ():
             print('Testing for psi convergence')
             test = 'psi'
+            
+            
+            
+            
+            
+
+        elif np.shape(rz_end) == (2,):
+#            print('Testing for point convergence')
+#            test = 'point'
+#            xf, yf = rz_end
+            print("Point convergence shape error")
+            print(rz_end)
+
+        elif np.shape(rz_end) == (2, 2):
+            print("Line convergence shape error")
+            print(rz_end)
+
 
         else:
             test = 'multiple lines'
@@ -319,7 +329,7 @@ class LineTracing:
                 print('Spent {} '.format(self.time_in_converged)
                       + 'seconds checking convergence.')
 
-            def plot_line(x, y):
+            def save_line(x, y):
                 """ Plots the current line segments and saves
                 it for future use
                 x: list -- r endpoints
@@ -340,7 +350,7 @@ class LineTracing:
                     or any(abs(zmax - points[1]) < tol)):
                 # this is just here as a safegaurd, none of the lines
                 # we care about should go off the grid
-#                success('edge')
+                if text: success('edge')
                 return True
 
             # check if any point is close enough to the endpoint
@@ -348,19 +358,23 @@ class LineTracing:
                 if (any(abs(points[0]-xf) < self.tol)
                         and any(abs(points[1]-yf) < self.tol)
                         and count > 5):
-#                    success('endpoint')
+                    if text: success('endpoint')
                     new_x, new_y = geo.truncate_list(self.x, self.y, xf, yf)
-                    plot_line([new_x[0], new_x[-1]], [new_y[0], new_y[-1]])
+                    save_line([new_x[0], new_x[-1]], [new_y[0], new_y[-1]])
                     return True
 
             elif test == 'line':
+                # endpoints define the latest line segment
                 p1 = (points[0][0], points[1][0])
                 p2 = (points[0][-1], points[1][-1])
                 p1s, p2s = geo.test2points(p1, p2, rz_end)
                 if p1s != p2s:
-#                    success('line crossing')
-                    r, z = geo.intersect((p1, p2), rz_end)
-                    plot_line([p1[0], r], [p1[1], z])
+                    if text: success('line crossing')
+                    # pass in the line instance
+#                    segment = Line([Point(p1), Point(p2)])
+                    endLine = rz_end.points()
+                    r, z = geo.intersect((p1, p2), endLine)
+                    save_line([p1[0], r], [p1[1], z])
                     return True
 
             elif test == 'psi':
@@ -371,7 +385,7 @@ class LineTracing:
                 psi2 = self.grid.get_psi(x2, y2)
 
                 if (psi1 - rz_end)*(psi2 - rz_end) < 0:
-#                    success('psi test')
+                    if text: success('psi test')
                     # need to find coords for the value of psi that we want
                     
                     def f(x):
@@ -384,7 +398,7 @@ class LineTracing:
                     r_psi = sol.root
                     z_psi = (y2-y1)/(x2-x1)*(r_psi-x1)+y1
 
-                    plot_line([x1, r_psi], [y1, z_psi])
+                    save_line([x1, r_psi], [y1, z_psi])
                     return True
 
             else:
@@ -393,7 +407,7 @@ class LineTracing:
             # if convergence didn't occur
             if count > 0:
                 # plot the line like normal
-                plot_line([self.x[0], self.x[-1]], [self.y[0], self.y[-1]])
+                save_line([self.x[0], self.x[-1]], [self.y[0], self.y[-1]])
 
             t2 = time()
             self.time_in_converged += t2 - t1

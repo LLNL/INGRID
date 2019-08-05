@@ -117,6 +117,9 @@ class Line:
     def divisions(self, num):
         self.xs = np.linspace(self.p[0].x, self.p[-1].x, num)
         self.ys = np.linspace(self.p[0].y, self.p[-1].y, num)
+        
+    def points(self):
+        return ((self.p[0].x, self.p[0].y), (self.p[-1].x, self.p[-1].y))
 
 
 class Patch:
@@ -194,10 +197,11 @@ def calc_mid_point(v1, v2):
 
 
 def test2points(p1, p2, line):
-    """ check if two points are on opposite side of a line.
+    """ check if two points are on opposite sides of a line.
     the signs are different if on opposite sides of the line
     """
-    (x1, y1), (x2, y2) = line
+    x1, y1 = line.p[0].x, line.p[0].y
+    x2, y2 = line.p[-1].x, line.p[-1].y
     x, y = p1
     a, b = p2
     d1 = (x-x1)*(y2-y1)-(y-y1)*(x2-x1)
@@ -225,6 +229,38 @@ def intersect(line1, line2):
     guess = (np.mean([a, c, i, p]), np.mean([b, d, j, q]))
     r, z = fsolve(f, guess)
     return r, z
+    
+
+#def intersect(line1, line2):
+#    """ accepts two Line objects """
+#    def line(x, line):
+#        """ point slope form """
+##        (x1, y1), (x2, y2) = line.p[0].x, , line.p[-1]
+#        x1 = line.p[0].x
+#        y1 = line.p[0].y
+#        x2 = line.p[-1].x
+#        y2 = line.p[-1].y
+#        return (y2-y1)/(x2-x1) * (x - x1) + y1
+#
+#    def f(xy):
+#        # parse the line, access any point
+#        # normalized to help solve for zero
+#        x, y = xy
+#        return np.array([y - line(x, line1),
+#                         y - line(x, line2)])
+#
+#    # use the mean for initial guess
+##    (a, b), (c, d) = line1
+##    (i, j), (p, q) = line2
+#    a, b = line1.p[0].x, line1.p[0].y
+#    c, d = line1.p[-1].x, line1.p[-1].y
+#    i, j = line2.p[0].x, line2.p[0].y
+#    p, q = line2.p[-1].x, line2.p[-1].y
+#    
+#    guess = (np.mean([a, c, i, p]), np.mean([b, d, j, q]))
+#    r, z = fsolve(f, guess)
+#    return r, z
+
 
 
 def truncate_list(old_x, old_y, x, y):

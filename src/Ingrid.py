@@ -8,40 +8,79 @@ Created on Fri Jun 21 15:17:21 2019
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
+import f90nml
 #raw_input = input  # python3
 
 
 class Ingrid:
     """ An interactive grid generator """
-    def __init__(self,
-                 gfile,
-                 option='bicubic',
-                 epsilon=1e-9,
-                 rmagx=0.0,
-                 rmagy=0.0,
-                 zmagx=0.0,
-                 zmagy=0.0,
-                 manual=True,
-                 step_ratio=0.02,
-                 psi_max=1.1,
-                 psi_min=0.9):
+#    def __init__(self,
+#                 gfile=None,
+#                 option='bicubic',
+#                 epsilon=1e-9,
+#                 Rmagx=0.0,
+#                 rmagy=0.0,
+#                 Zmagx=0.0,
+#                 zmagy=0.0,
+#                 manual=True,
+#                 step_ratio=0.02,
+#                 psi_max=1.1,
+#                 psi_min=0.9):
+#
+#        print('Welcome to Ingrid!\n')
+#        # TODO- change this so it reads a file
+#        # saved as params.txt
+#        # currently in the src directory
+#        self._grid_params = {'option': option,
+#                             'epsilon': epsilon,
+#                             'Rmagx': Rmagx,
+#                             'rmagy': rmagy,
+#                             'Zmagx': Zmagx,
+#                             'zmagy': zmagy,
+#                             'manual': manual,
+#                             'step_ratio': step_ratio,
+#                             'psi_max': {'psi': psi_max},
+#                             'psi_min': {'psi': psi_min}}
+#
+#        self.gfile = gfile
+#        print("Printing Gfile: ", gfile)
+#        # parameters: what is this epsilon for?
+#        # which names for setting psi max and psi min
+
+    def __init__(self, nml):
+        """ params dictionary object with shape
+        files :
+            geqdsk
+            itp
+            otp
+        grid params :
+            psi_max
+            psi_min_core
+            psi_min_pf
+            Rmagx
+            Zmagx
+            Rxpt
+            Zxpt
+        """
+        self.files = nml['files']
+        self.grid_params = nml['grid_params']
+        # TODO: include this in the file for parameters
+        self.grid_params['step_ratio'] = 0.02
 
         print('Welcome to Ingrid!\n')
-        self._grid_params = {'option': option,
-                             'epsilon': epsilon,
-                             'rmagx': rmagx,
-                             'rmagy': rmagy,
-                             'zmagx': zmagx,
-                             'zmagy': zmagy,
-                             'manual': manual,
-                             'step_ratio': step_ratio,
-                             'psi_max': psi_max,
-                             'psi_min': psi_min}
-        
-        self.gfile = gfile
-        print("Printing Gfile: ", gfile)
-        # parameters: what is this epsilon for?
-        # which names for setting psi max and psi min
+
+        print('nml:: ', nml)
+        print('files:: ', self.files)
+        print('parmas:: ', self.grid_params)
+
+
+    def setup(self):
+        self.add_magx(self.grid_params['Rmagx'], self.grid_params['Zmagx'])
+        self.add_xpt1(self.grid_params['Rxpt'], self.grid_params['Zxpt'])
+
+
+
+
 
     def set_param(self, key=None, value=None):
         """ Sets the parameters that we want, without
@@ -93,7 +132,7 @@ class Ingrid:
             check_value(key, value)
 
     def get_param(self, key=None):
-        """ Returns a the value associated with a key. """
+        """ Returns the value associated with a key. """
         first_time = True
         while True:
             try:
@@ -112,51 +151,50 @@ class Ingrid:
         for key, value in self._grid_params.items():
             print(key, value)
 
-    
+
     def OMFIT_read_psi(self):
         from OMFITgeqdsk import OMFITgeqdsk
         from Interpol.Setup_Grid_Data import Efit_Data
 
-        g = OMFITgeqdsk(self.gfile)
-        
+        g = OMFITgeqdsk(self.files['geqdsk'])
+
         nxefit = g['NW']
         nyefit = g['NH']
         rdim = g['RDIM']
         zdim = g['ZDIM']
         zmid = g['ZMID']
         rgrid1 = g['RLEFT']
-        
+
         psi = g['PSIRZ'].T
-        
+
         rlim = g['RLIM']  # limiter - similar to strike plates
         zlim = g['ZLIM']
-        
-        
+
+
         # calc array for r and z
         rmin = rgrid1
         rmax = rmin + rdim
         zmin = (zmid - 0.5 * zdim)
         zmax = zmin + zdim
-        
+
         # reproduce efit grid
         self.efit_psi = Efit_Data(rmin, rmax, nxefit,
                                   zmin, zmax, nyefit,
                                   name='Efit Data')
         self.efit_psi.set_v(psi)
-        
-        
-    
+
+
     def import_psi_data(self, plot=False):
         """ Read psi data using fortran code """
         import Efit.efit as efit
         from Interpol.Setup_Grid_Data import Efit_Data
-        efit.readg(self.gfile)  # defines the variables
+        efit.readg(self.files['geqdsk'])  # defines the variables
         # extract dimensions and boundaries
         nxefit, nyefit, nbdry, nlim = efit.get_nxy()
 
         fold, fpol, pres, qpsi, \
             rbdry, zbdry, xlim, ylim, xdim, zdim, \
-            rcentr, rgrid1, zmid, rmagx, zmagx, \
+            rcentr, rgrid1, zmid, Rmagx, Zmagx, \
             simagx, sibdry, bcentr = efit.get_psi(nxefit, nyefit,
                                                   nbdry, nlim)
         # calc array for r and z
@@ -186,14 +224,15 @@ class Ingrid:
             plt.ylim(zmin, zmax)
             plt.show()
 
+    # TODO remove this method and have the code rely on the file read in
     def read_target_plate(self):
         """ Reads the coordinates for a line defining the inner
         and outer target plates.
         """
-        from geometry import Point, Line
-        
+#        from geometry import Point  # , Line
+
         self.itp = []
-        with open('../data/SNL/itp1.txt') as f:
+        with open(self.files['itp']) as f:
             for line in f:
                 point = line.strip()
                 if point.startswith('#'):
@@ -201,10 +240,10 @@ class Ingrid:
                     continue
                 x = float(point.split(',')[0])
                 y = float(point.split(',')[1])
-                self.itp.append(Point(x, y))
+                self.itp.append((x, y))
 
         self.otp = []
-        with open('../data/SNL/otp1.txt') as f:
+        with open(self.files['otp']) as f:
             for line in f:
                 point = line.strip()
                 if point.startswith('#'):
@@ -212,23 +251,23 @@ class Ingrid:
                     continue
                 x = float(point.split(',')[0])
                 y = float(point.split(',')[1])
-                self.otp.append(Point(x, y))
+                self.otp.append((x, y))
         print('Using inner target plate', self.itp)
         print('Using outer target plate', self.otp)
-        
-        
-        # testing for Line instances
-        self.itp = Line(self.itp)
-        self.otp = Line(self.otp)
+
+
+#        # testing for Line instances
+#        self.itp = Line(self.itp)
+#        self.otp = Line(self.otp)
 
     def plot_target_plate(self):
-#        itp = np.array(self.itp)
-#        otp = np.array(self.otp)
+        itp = np.array(self.itp)
+        otp = np.array(self.otp)
 
-#        plt.plot(itp[:, 0], itp[:, 1], label='itp')
-#        plt.plot(otp[:, 0], otp[:, 1], label='otp')
-        self.itp.plot()
-        self.otp.plot()
+        plt.plot(itp[:, 0], itp[:, 1], label='itp')
+        plt.plot(otp[:, 0], otp[:, 1], label='otp')
+#        self.itp.plot()
+#        self.otp.plot()
         plt.draw()
 
     def calc_efit_derivs(self):
@@ -254,6 +293,19 @@ class Ingrid:
         from Root_Finder import RootFinder
         self.root_finder = RootFinder(self.efit_psi)
 
+    def save_root(self):
+        """ Returns the value of the root finder. This will either be the
+        root, or the click, depending on the root finding settings.
+        """
+        return self.root_finder.final_root
+
+    def toggle_root_finder(self):
+        """ Activates or deactivates the root finder ability. Enables
+        the user to save the location where they last clicked.
+        """
+        self.root_finder.toggle_root_finding()
+
+    # TODO: remove this function and replace with read in value
     def add_magx(self, r=None, z=None):
         """ Adds the magnetic axis using the coordinates of last point
         that the user has clicked.
@@ -264,6 +316,7 @@ class Ingrid:
             self.magx = (r, z)
         print('Added {} as the magnetic axis.'.format(self.magx))
 
+    # TODO: remove this function and replace with read in value
     def add_xpt1(self, r=None, z=None):
         """ Adds the X-point using the coordinates of last point
         that the user has clicked.
@@ -291,19 +344,21 @@ class Ingrid:
         self.psi_norm.Calculate_PDeriv()
         self.psi_norm.plot_data()
 
+
+
     def draw_polodal_lines(self):
         """ trace contour lines anywhere you click
         saves the most recent line that was draw.
         To keep track of lines, call the add_line function"""
         from line_tracing import LineTracing
-        self.new_line = LineTracing(self.psi_norm, self._grid_params,
+        self.new_line = LineTracing(self.psi_norm, self.grid_params,
                                     option='theta')
 
     def draw_radial_lines(self):
         """ trace the orthogonal lines to the stream function
         saves most recent line"""
         from line_tracing import LineTracing
-        self.new_line = LineTracing(self.psi_norm, self._grid_params,
+        self.new_line = LineTracing(self.psi_norm, self.grid_params,
                                     option='rho', direction='ccw')
 
     def compute_eq_psi(self):
@@ -312,7 +367,7 @@ class Ingrid:
         user clicks on the root.
         """
         from line_tracing import LineTracing
-        self.eq = LineTracing(self.psi_norm, self._grid_params,
+        self.eq = LineTracing(self.psi_norm, self.grid_params,
                               option='xpt_circ')
         self.eq.calc_equal_psi_points(self.xpt1[0], self.xpt1[1])
         self.eq.disconnect()
@@ -337,15 +392,20 @@ class Ingrid:
         """
         plt.show()
         from geometry import Point, Patch, Line
+
         xpt = self.eq.eq_psi
-        psi_max = self._grid_params['psi_max']
-        psi_min = self._grid_params['psi_min']
+#        psi_max = self.psi_term_norm[0]
+#        psi_min_core = self.psi_term_norm[1]
+#        psi_min_pf = self.psi_term_norm[2]
+        psi_max = self.grid_params['psi_max']
+        psi_min_core = self.grid_params['psi_min_core']
+        psi_min_pf = self.grid_params['psi_min_pf']
+
 
         # IDL ===================================================
-
-        E = self.eq.draw_line(xpt['W'], psi_max, option='rho', direction='ccw')
-        N = self.eq.draw_line(E.p[-1], self.itp, option='theta', direction='ccw').reverse()
-        S = self.eq.draw_line(xpt['SW'], self.itp, option='theta', direction='ccw')
+        E = self.eq.draw_line(xpt['W'], {'psi': psi_max}, option='rho', direction='ccw')
+        N = self.eq.draw_line(E.p[-1], {'line': self.itp}, option='theta', direction='ccw').reverse()
+        S = self.eq.draw_line(xpt['SW'], {'line': self.itp}, option='theta', direction='ccw')
         E = Line([N.p[-1], S.p[0]]) # straighten it up
         W = Line([S.p[-1], N.p[0]])
         IDL = Patch([N, E, S, W])
@@ -355,23 +415,22 @@ class Ingrid:
             plt.draw()
         # Lines are now saved inside of the patch
 
-
         # IPF ===================================================
         N = IDL.S.reverse()
-        E = self.eq.draw_line(xpt['S'], psi_min, option='rho', direction='cw')
+        E = self.eq.draw_line(xpt['S'], {'psi': psi_min_pf}, option='rho', direction='cw')
         E = Line([E.p[0], E.p[-1]])
-        S = self.eq.draw_line(E.p[-1], self.itp, option='theta', direction='ccw')
+        S = self.eq.draw_line(E.p[-1], {'line': self.itp}, option='theta', direction='ccw')
         W = Line([S.p[-1], N.p[0]])
         IPF = Patch([N, E, S, W])
         if movie:
             IPF.plot_border()
             IPF.fill()
             plt.draw()
-        
+
         # OPF ===================================================
-        N = self.eq.draw_line(xpt['SE'], self.otp, option='theta', direction='cw')
+        N = self.eq.draw_line(xpt['SE'], {'line': self.otp}, option='theta', direction='cw')
         W = IPF.E.reverse()
-        S = self.eq.draw_line(W.p[0], self.otp, option='theta', direction='cw').reverse()
+        S = self.eq.draw_line(W.p[0], {'line': self.otp}, option='theta', direction='cw').reverse()
         E = Line([N.p[-1], S.p[0]])
         OPF = Patch([N, E, S, W])
         if movie:
@@ -380,9 +439,9 @@ class Ingrid:
             plt.draw()
 
         # ODL ===================================================
-        W = self.eq.draw_line(xpt['E'], psi_max, option='rho', direction='ccw')
+        W = self.eq.draw_line(xpt['E'], {'psi': psi_max}, option='rho', direction='ccw')
         W = Line([W.p[0], W.p[-1]])
-        N = self.eq.draw_line(W.p[-1], self.otp, option='theta', direction='cw')
+        N = self.eq.draw_line(W.p[-1], {'line': self.otp}, option='theta', direction='cw')
         S = OPF.N.reverse()
         E = Line([N.p[-1], S.p[0]])
         ODL = Patch([N, E, S, W])
@@ -390,10 +449,9 @@ class Ingrid:
             ODL.plot_border('blue')
             ODL.fill()
             plt.draw()
-        
 
         # need the mid and top points of the separatrix
-        sep = self.eq.draw_line(Point(xpt['NW']), Point(xpt['NE']), option='theta', direction='cw')
+        sep = self.eq.draw_line(Point(xpt['NW']), {'point': Point(xpt['NE'])}, option='theta', direction='cw')
         top_index = np.argmax(sep.yval)
         midpoint = np.median(sep.yval)
         mid_index, = np.where(np.abs(sep.yval-midpoint) < 1e-3)
@@ -403,51 +461,49 @@ class Ingrid:
         dp['ompt'] = Point(sep.xval[mid_index[1]], sep.yval[mid_index[1]])
 
         # ISB ===================================================
-        E = self.eq.draw_line(dp['impt'], psi_max, option='rho', direction='ccw').reverse()
+        E = self.eq.draw_line(dp['impt'], {'psi': psi_max}, option='rho', direction='ccw').reverse()
         E = Line([E.p[0], E.p[-1]])
-        N = self.eq.draw_line(IDL.E.p[0], E.p[0], option='theta', direction='cw')
+        N = self.eq.draw_line(IDL.E.p[0], {'point': E.p[0]}, option='theta', direction='cw')
         S = Line(sep.p[:mid_index[0]+1]).reverse()
         W = IDL.E.reverse()
         ISB = Patch([N, E, S, W])
-        
 
         # ICB ===================================================
         N = Line(sep.p[:mid_index[0]+1])
-        E = self.eq.draw_line(dp['impt'], psi_min, option='rho', direction='cw')
-        W = self.eq.draw_line(xpt['N'], psi_min, option='rho', direction='cw').reverse()
+        E = self.eq.draw_line(dp['impt'], {'psi': psi_min_core}, option='rho', direction='cw')
+        W = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option='rho', direction='cw').reverse()
         W = Line([W.p[0], W.p[-1]])
-        S = self.eq.draw_line(W.p[0], E.p[-1], option='theta', direction='cw').reverse()
+        S = self.eq.draw_line(W.p[0], {'point': E.p[-1]}, option='theta', direction='cw').reverse()
         ICB = Patch([N, E, S, W])
-        
 
         # IST ===================================================
-        E = self.eq.draw_line(dp['top'], psi_max, option='rho', direction='ccw').reverse()
+        E = self.eq.draw_line(dp['top'], {'psi': psi_max}, option='rho', direction='ccw').reverse()
         E = Line([E.p[0], E.p[-1]])
-        N = self.eq.draw_line(ISB.N.p[-1], E.p[0], option='theta', direction='cw')
+        N = self.eq.draw_line(ISB.N.p[-1], {'point': E.p[0]}, option='theta', direction='cw')
         S = Line(sep.p[mid_index[0]:top_index+1]).reverse()
         W = ISB.W.reverse()
         IST = Patch([N, E, S, W])
 
         # ICT ===================================================
-        E = self.eq.draw_line(dp['top'], psi_min, option='rho', direction='cw')
+        E = self.eq.draw_line(dp['top'], {'psi': psi_min_core}, option='rho', direction='cw')
         E = Line([E.p[0], E.p[-1]])
-        S = self.eq.draw_line(ICB.S.p[0], E.p[-1], option='theta', direction='cw').reverse()
+        S = self.eq.draw_line(ICB.S.p[0], {'point': E.p[-1]}, option='theta', direction='cw').reverse()
         N = IST.S.reverse()
         W = ICB.E.reverse()
         ICT = Patch([N, E, S, W])
-        
+
         # OST ===================================================
-        E = self.eq.draw_line(dp['ompt'], psi_max, option='rho', direction='ccw').reverse()
+        E = self.eq.draw_line(dp['ompt'], {'psi': psi_max}, option='rho', direction='ccw').reverse()
         E = Line([E.p[0], E.p[-1]])
-        N = self.eq.draw_line(IST.N.p[-1], E.p[0], option='theta', direction='cw')
+        N = self.eq.draw_line(IST.N.p[-1], {'point': E.p[0]}, option='theta', direction='cw')
         S = Line(sep.p[top_index: mid_index[1]+1]).reverse()
         W = IST.W.reverse()
         OST = Patch([N, E, S, W])
 
         # OCT ===================================================
-        E = self.eq.draw_line(dp['ompt'], psi_min, option='rho', direction='cw')
+        E = self.eq.draw_line(dp['ompt'], {'psi': psi_min_core}, option='rho', direction='cw')
         E = Line([E.p[0], E.p[-1]])
-        S = self.eq.draw_line(ICT.E.p[-1], E.p[-1], option='theta', direction='cw').reverse()
+        S = self.eq.draw_line(ICT.E.p[-1], {'point': E.p[-1]}, option='theta', direction='cw').reverse()
         N = Line(sep.p[top_index: mid_index[1]+1])
         W = ICT.E.reverse()
         OCT = Patch([N, E, S, W])
@@ -455,24 +511,22 @@ class Ingrid:
         # OCB ===================================================
         W = OCT.E.reverse()
         N = Line(sep.p[mid_index[1]:])
-        S = self.eq.draw_line(W.p[0], ICB.W.p[0], option='theta', direction='cw').reverse()
+        S = self.eq.draw_line(W.p[0], {'point': ICB.W.p[0]}, option='theta', direction='cw').reverse()
         E = ICB.W.reverse()
         OCB = Patch([N, E, S, W])
 
         # OSB ===================================================
         W = OST.E.reverse()
-        N = self.eq.draw_line(W.p[-1], ODL.W.p[-1], option='theta', direction='cw')
+        N = self.eq.draw_line(W.p[-1], {'point': ODL.W.p[-1]}, option='theta', direction='cw')
         S = OCB.N.reverse()
         E = ODL.W.reverse()
         OSB = Patch([N, E, S, W])
 
-        self.patches = [IDL, IPF, OPF, ODL, ISB, ICB,
-                        IST, ICT, OST, OCT, OCB, OSB]
+        self.patches = [IDL, IPF, OPF, ODL, ISB, ICB, IST, ICT, OST, OCT, OCB, OSB]
         if not movie:
             for patch in self.patches:
                 patch.plot_border()
                 patch.fill()
-
 
     def patch_diagram(self):
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
@@ -493,7 +547,19 @@ class Ingrid:
 
     def refine_patches(self):
         """ break each patch into smaller grids based of psi"""
+        # TODO: use scipy.optimize.curve_fit to generate a polynomial
+        # fit for the two curved sections of each patch,
+        # then use the length to break into even subsections
+        # For the horizontal division use the psi levels to define subsections
         pass
+    
+    def export(self):
+        """ Saves the grid as an ascii file """
+        
+        f = open("grid.txt", "w+")
+        
+        # TODO export the points the patches contain, but don't overlap
+        # any points
 
     def test_interpol(self, option=2, nfine=100, ncrude=10, tag='v'):
         """ Provides a demonstration and test of the bicubic interpolation
@@ -503,97 +569,121 @@ class Ingrid:
         test_interpol(option, nfine, ncrude, tag)
 
 
-def run():
-    import sys
-    #raw_input = input # for python 3
+
+def interact():
+    """ Interactive mode for Ingrid. Gets the files used, and opens
+    a plot of the Efit data. Prompts the user for magx, xpt, and psi levels.
+    Saves the data in a namelist file."""
     
     def paws():
-        programPause = raw_input("Press the <ENTER> key to continue...")
+        raw_input("Press the <ENTER> key to continue...")
     
-    
-    if sys.argv[1:]:
-        # parse the stuff
-        # filename, magx, xpt
-        # g129883.05000 1.6,0 1.6,-.5
-        gfile = sys.argv[1]
-        interactive = False
-        magx = tuple(map(float,sys.argv[2].split(',')))
-        xpt = tuple(map(float,sys.argv[3].split(',')))
-    
-        grid = Ingrid(gfile)
-        grid.add_magx(*magx)
-        grid.add_xpt1(*xpt)
-    
-    else:
-        interactive = True
-        gfile = raw_input("Enter filename: ")
-        #gfile = 'neqdsk'
-    
-        grid = Ingrid(gfile)
-    
-    #-read data
-    #grid.import_psi_data()
-    
-    grid.OMFIT_read_psi()
+    nml = {'files': {}, 'grid_params': {}}
+
+    # get files from the user for data, inner and outer strike plates
+    # This is an acceptable form - also takes full path names
+    #    Geqdsk_file = “../data/SNL/neqdsk”
+    #    Inner_plate_file  = “../data/SNL/itp1”
+    #    Outer_plate_file  = “../data/SNL/itp1”
+    nml['files']['geqdsk'] = raw_input("Enter the geqsdk filename: ").strip()  # remove any whitespace
+    nml['files']['itp'] = raw_input("Enter the inner strike plate filename: ").strip()
+    nml['files']['otp'] = raw_input("Enter the outer strike plate filename: ").strip()
+
+    # now we can read the data and fine tune our parameters
+    grid = Ingrid(nml)
+    grid.import_psi_data()
     grid.read_target_plate()
-    
-    #initial processing of the input data
     grid.calc_efit_derivs()
     grid.plot_efit_data()
-    
-    
-    #-now find the two roots: null-point and X-point
+    grid.plot_target_plate()
     grid.find_roots()
-    
-    if interactive:
-        #-first find the null-point (magnetic axis)
-        print("Click on the magnetic axis") ##-need blocking here!
+
+
+    # find the null-point (magnetic axis)
+    print("Click on the magnetic axis") ##-need blocking here!
+    paws()
+    magx = grid.save_root()
+    nml['grid_params']['Rmagx'] = magx[0]
+    nml['grid_params']['Zmagx'] = magx[1]
+
+    # find the x-point
+    print("Click on the x-point")
+    paws()
+    xpt = grid.save_root()
+    nml['grid_params']['Rxpt'] = xpt[0]
+    nml['grid_params']['Zxpt'] = xpt[1]
+
+    # enter or click on the location of the psi values
+    psi_magx = grid.efit_psi.get_psi(magx[0], magx[1])
+    psi_xpt1 = grid.efit_psi.get_psi(xpt[0], xpt[1])
+
+    # get max psi level
+    max_psi = raw_input("Enter max psi level, or press <ENTER> to click on the location: ")
+    if max_psi == '':
+        grid.toggle_root_finder()
         paws()
-        grid.add_magx()
-    
-        #-next, find the primary X-point
-        print("Click on the X-point") ##-need blocking here!
+        x, y = grid.save_root()
+        psi_efit = grid.efit_psi.get_psi(x, y)
+        psi = (psi_efit - np.full_like(psi_efit, psi_magx))/(psi_xpt1 - psi_magx)
+    else:
+        psi = float(max_psi)
+    nml['grid_params']['psi_max'] = psi
+
+    # get min psi value near the core
+    core_psi = raw_input("Enter min psi level near the core plasma, or press <ENTER> to click on the location: ")
+    if core_psi == '':
         paws()
-        grid.add_xpt1()
-    
-    plt.close('Efit Data') #-finish with the raw Psi data
-    
-    
-    
-    #-calculate the normalized flux and plot normalized Psi data
+        x, y = grid.save_root()
+        psi_efit = grid.efit_psi.get_psi(x, y)
+        psi = (psi_efit - np.full_like(psi_efit, psi_magx))/(psi_xpt1 - psi_magx)
+    else:
+        psi = float(core_psi)
+    nml['grid_params']['psi_min_core'] = psi
+
+    # get min psi value near pf region
+    pf_psi = raw_input("Enter min psi level near the private flux region, or press <ENTER> to click on the location: ")
+    if pf_psi == '':
+        paws()
+        x, y = grid.save_root()
+        psi_efit = grid.efit_psi.get_psi(x, y)
+        psi = (psi_efit - np.full_like(psi_efit, psi_magx))/(psi_xpt1 - psi_magx)
+    else:
+        psi = float(pf_psi)
+    nml['grid_params']['psi_min_pf'] = psi
+
+    outFile = raw_input("Enter output filename [default is 'grid_params.nml']: ").strip()
+    if outFile == '':
+        outFile = 'grid_params.nml'
+
+    f90nml.write(nml, outFile, force=True)  # force tag is to overwrite the previous file
+    print("Saved paramters to '{}'.".format(outFile))
+    plt.close('Efit Data') # finish with the raw Psi data
+
+
+def run():
+    """ Reads a namelist file containing the parameters for Ingrid, and
+    runs the grid generator for a single null configuration.
+    """
+    nml_file = raw_input("Enter params filename: ")
+    nml = f90nml.read(nml_file)
+
+    grid = Ingrid(nml)
+    grid.setup()
+    grid.OMFIT_read_psi()
+    grid.read_target_plate()
     grid.calc_psinorm()
-    
-    # for the snl neqdsk
     grid.plot_target_plate()
     grid.compute_eq_psi()
-    
-    #-here we need to block until clicked
-    #print("Click on the X-point")
-    #paws()
-    
+
     #-construct the patch-map for SNL
     from time import time
     start = time()
     grid.construct_SNL_patches()
     end = time()
     grid.patch_diagram()
-    
+
     print("Time for grid: {} seconds.".format(end-start))
 
 
 if __name__ == '__main__':
-    plt.close('all')
-    grid = Ingrid()
-    grid.import_psi_data()
-    grid.calc_efit_derivs()
-    grid.plot_efit_data()
-    grid.find_roots()
-
-    # for the snl neqdsk
-    grid.read_target_plate()
-    grid.add_magx(0.6818276108184476,-0.0036146834671545633)
-    grid.add_xpt1(0.563043117220232,-0.39498650311360006)
-    grid.calc_psinorm()
-    plt.close('Efit Data')
-    grid.plot_target_plate()
-    grid.compute_eq_psi()
+    interact()

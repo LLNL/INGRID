@@ -200,8 +200,10 @@ def test2points(p1, p2, line):
     """ check if two points are on opposite sides of a line.
     the signs are different if on opposite sides of the line
     """
-    x1, y1 = line.p[0].x, line.p[0].y
-    x2, y2 = line.p[-1].x, line.p[-1].y
+#    x1, y1 = line.p[0].x, line.p[0].y
+#    x2, y2 = line.p[-1].x, line.p[-1].y
+    
+    (x1, y1), (x2, y2) = line
     x, y = p1
     a, b = p2
     d1 = (x-x1)*(y2-y1)-(y-y1)*(x2-x1)

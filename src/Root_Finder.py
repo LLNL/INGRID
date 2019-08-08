@@ -25,6 +25,7 @@ class RootFinder:
     """
     def __init__(self, grid, active=True):
         self.grid = grid
+        self.root_finding = True
         if active:
             self.cid = grid.ax.figure.canvas.mpl_connect('button_press_event', self)
             print("Entering Root Finder. "
@@ -51,7 +52,19 @@ class RootFinder:
             return
         
         x, y = event.xdata, event.ydata
-        self.find_root(x, y)
+        if self.root_finding: 
+            self.find_root(x, y)
+        else:
+            print("You chose ({0:.5f}, {1:.5f}). ".format(x, y))
+            self.final_root = (x, y)
+    
+    def toggle_root_finding(self):
+        """ Activates or deactivates the root finding capacity.
+        Leaves the click ability active so the user can save clicks."""
+        if self.root_finding:
+            self.root_finding = False
+        else:
+            self.root_finding = True
         
     def disconnect(self):
         """ turn of the click functionality fo the root finder """

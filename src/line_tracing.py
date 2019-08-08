@@ -15,7 +15,6 @@ from scipy.optimize import root_scalar
 from Root_Finder import RootFinder
 from time import time
 import geometry as geo
-from geometry import Point, Line
 
 
 class LineTracing:
@@ -58,6 +57,7 @@ class LineTracing:
         zdim = grid.zmax-grid.zmin
         rdim = grid.rmax-grid.rmin
         self.max_step = params['step_ratio'] * max(rdim, zdim)
+        # TODO: set self.first_step as a parameter
         self.first_step = 1e-3  # self.max_step
 
         self.set_function(option, direction)  # initialize the function
@@ -252,58 +252,76 @@ class LineTracing:
         if option is not None and direction is not None:
             self.set_function(option, direction)
 
-        if rz_end is None:
-            print('testing for loop completion')
-            test = 'point'
-            rz_end = rz_start
-            xf, yf = rz_end
 
-        elif isinstance(rz_end, Point):
-            print('Testing for point convergence')
-            test = 'point'
-            xf = rz_end.x
-            yf = rz_end.y
-            
-        elif isinstance(rz_end, Line):
-            print('Testing for line convergence')
-            test = 'line'
-       
-        
-        elif np.shape(rz_end) == ():
-            print('Testing for psi convergence')
-            test = 'psi'
-            
-            
-            
-            
-            
+        # TODO: change the accepted value for rz_end to be a key, value pair,
+        # and read this in to define what we see
 
-        elif np.shape(rz_end) == (2,):
-#            print('Testing for point convergence')
-#            test = 'point'
-#            xf, yf = rz_end
-            print("Point convergence shape error")
-            print(rz_end)
-
-        elif np.shape(rz_end) == (2, 2):
-            print("Line convergence shape error")
-            print(rz_end)
-
-
-        else:
-            test = 'multiple lines'
-            print('this could be interesting')
-
-        # reset each iteration
+        # check rz_start
         if isinstance(rz_start, geo.Point):
             ynot = (rz_start.x, rz_start.y)
         else:
             ynot = rz_start
             
-        # check to make sure ynot is not an object            
-        if isinstance(ynot, Point):
-            print('\nynot is a point object')
-            print('Object\n')
+
+
+        # check rz_end:
+        if rz_end is None:
+            print('testing for loop completion')
+            test = 'point'
+            rz_end = ynot
+            xf, yf = rz_end
+            
+        elif rz_end.keys() == ['point']:
+            print('Testing for point convergence')
+            test = 'point'
+            if isinstance(rz_end['point'], geo.Point):
+                xf = rz_end['point'].x
+                yf = rz_end['point'].y
+            else:
+                xf = rz_end['point'][0]
+                yf = rz_end['point'][1]
+        
+        # TODO: generalize the line termination to include "curves", or lines
+        # defined by more than one set of points.
+        elif rz_end.keys() == ['line']:
+            print('Testing for line convergence')
+            test = 'line'
+            if isinstance(rz_end['line'], geo.Line):
+                # extract
+                endLine = rz_end['line'].points()
+            else:
+                # form ((),())
+                endLine = rz_end['line']
+                
+        elif rz_end.keys() ==  ['psi']:
+            print('Testing for psi convergence')
+            test = 'psi'
+            psi_test = rz_end['psi']
+            
+            
+        else:
+            print('rz_end type not recognized')
+            
+            
+#
+#        elif np.shape(rz_end) == (2,):
+##            print('Testing for point convergence')
+##            test = 'point'
+##            xf, yf = rz_end
+#            print("Point convergence shape error")
+#            print(rz_end)
+#
+#        elif np.shape(rz_end) == (2, 2):
+#            print("Line convergence shape error")
+#            print(rz_end)
+#
+#
+#        else:
+#            test = 'multiple lines'
+#            print('this could be interesting')
+
+
+            
             
             
         # size for each line segment
@@ -317,7 +335,7 @@ class LineTracing:
         zmax = self.grid.zmax
 
         self.time_in_converged = 0
-        line = [Point(ynot)]
+        line = [geo.Point(ynot)]
 
         def converged(points):
             """ checks for converence of the line in various ways """
@@ -335,7 +353,7 @@ class LineTracing:
                 x: list -- r endpoints
                 y: list -- z endpoints
                 """
-                line.append(Point(x[-1], y[-1]))
+                line.append(geo.Point(x[-1], y[-1]))
                 if show_plot:
                     self.grid.ax.plot(x, y, '.-', linewidth='2', color=color)
                     plt.draw()
@@ -344,6 +362,8 @@ class LineTracing:
             t1 = time()
             # don't go off the plot
             tol = 1e-3
+            # TODO adjust this so boundaries are lines, 
+            # and we don't have to test every intermediate points
             if (any(abs(rmin - points[0]) < tol)
                     or any(abs(rmax - points[0]) < tol)
                     or any(abs(zmin - points[1]) < tol)
@@ -365,14 +385,12 @@ class LineTracing:
 
             elif test == 'line':
                 # endpoints define the latest line segment
+                # TODO change the point criteria
                 p1 = (points[0][0], points[1][0])
                 p2 = (points[0][-1], points[1][-1])
-                p1s, p2s = geo.test2points(p1, p2, rz_end)
+                p1s, p2s = geo.test2points(p1, p2, endLine)
                 if p1s != p2s:
                     if text: success('line crossing')
-                    # pass in the line instance
-#                    segment = Line([Point(p1), Point(p2)])
-                    endLine = rz_end.points()
                     r, z = geo.intersect((p1, p2), endLine)
                     save_line([p1[0], r], [p1[1], z])
                     return True
@@ -384,7 +402,7 @@ class LineTracing:
                 psi1 = self.grid.get_psi(x1, y1)
                 psi2 = self.grid.get_psi(x2, y2)
 
-                if (psi1 - rz_end)*(psi2 - rz_end) < 0:
+                if (psi1 - psi_test)*(psi2 - psi_test) < 0:
                     if text: success('psi test')
                     # need to find coords for the value of psi that we want
                     
@@ -392,7 +410,7 @@ class LineTracing:
                         # must manually calculate y each time we stick to
                         # the line of interest
                         y = (y2-y1)/(x2-x1)*(x-x1)+y1
-                        return rz_end - self.grid.get_psi(x, y)
+                        return psi_test - self.grid.get_psi(x, y)
 
                     sol = root_scalar(f, bracket=[x1, x2])
                     r_psi = sol.root
@@ -443,7 +461,7 @@ class LineTracing:
 #        print('Drew for {} seconds\n'.format(end-start))
 
 
-        return Line(line)
+        return geo.Line(line)
 
 
 if __name__ == '__main__':

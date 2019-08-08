@@ -7,5 +7,5 @@ all:
 
 clean:
 	cd Efit; make clean; cd -
-	rm -f *.so *.pyc\
+	rm -f *.so *.pyc *.rst~ *.nml~\
 

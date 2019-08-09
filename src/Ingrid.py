@@ -335,7 +335,7 @@ class Ingrid:
         self.eq.calc_equal_psi_points(self.xpt1[0], self.xpt1[1])
         self.eq.disconnect()
 
-    def construct_SNL_patches(self, movie=False):
+    def construct_SNL_patches(self):
         """ more general format to construct the grid for SNL using patches
         for theta direction, cw is positive
         for rho direction, ccw is positive, which is away from the magx
@@ -369,10 +369,6 @@ class Ingrid:
         E = Line([N.p[-1], S.p[0]]) # straighten it up
         W = Line([S.p[-1], N.p[0]])
         IDL = Patch([N, E, S, W])
-        if movie:
-            IDL.plot_border()
-            IDL.fill()
-            plt.draw()
         # Lines are now saved inside of the patch
 
         # IPF ===================================================
@@ -382,10 +378,6 @@ class Ingrid:
         S = self.eq.draw_line(E.p[-1], {'line': self.itp}, option='theta', direction='ccw')
         W = Line([S.p[-1], N.p[0]])
         IPF = Patch([N, E, S, W])
-        if movie:
-            IPF.plot_border()
-            IPF.fill()
-            plt.draw()
 
         # OPF ===================================================
         N = self.eq.draw_line(xpt['SE'], {'line': self.otp}, option='theta', direction='cw')
@@ -393,10 +385,6 @@ class Ingrid:
         S = self.eq.draw_line(W.p[0], {'line': self.otp}, option='theta', direction='cw').reverse()
         E = Line([N.p[-1], S.p[0]])
         OPF = Patch([N, E, S, W])
-        if movie:
-            OPF.plot_border('orange')
-            OPF.fill()
-            plt.draw()
 
         # ODL ===================================================
         W = self.eq.draw_line(xpt['E'], {'psi': psi_max}, option='rho', direction='ccw')
@@ -405,10 +393,6 @@ class Ingrid:
         S = OPF.N.reverse()
         E = Line([N.p[-1], S.p[0]])
         ODL = Patch([N, E, S, W])
-        if movie:
-            ODL.plot_border('blue')
-            ODL.fill()
-            plt.draw()
 
         # need the mid and top points of the separatrix
         sep = self.eq.draw_line(Point(xpt['NW']), {'point': Point(xpt['NE'])}, option='theta', direction='cw')
@@ -483,12 +467,13 @@ class Ingrid:
         OSB = Patch([N, E, S, W])
 
         self.patches = [IDL, IPF, OPF, ODL, ISB, ICB, IST, ICT, OST, OCT, OCB, OSB]
-        if not movie:
-            for patch in self.patches:
-                patch.plot_border()
-                patch.fill()
+        for patch in self.patches:
+            patch.plot_border()
+            patch.fill()
 
     def patch_diagram(self):
+        """ Generates the patch diagram for a given configuration. """
+        
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
                   'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
                   'seagreen', 'firebrick', 'saddlebrown']
@@ -513,7 +498,7 @@ class Ingrid:
         # For the horizontal division use the psi levels to define subsections
         print('Refining patches')
         
-#        self.patches[0].refine(self)  # test with a single patch
+        # self.patches[0].refine(self)  # test with a single patch
         
         for patch in self.patches:
             patch.refine(self)
@@ -527,18 +512,35 @@ class Ingrid:
     def test_interpol(self, option=2, nfine=100, ncrude=10, tag='v'):
         """ Provides a demonstration and test of the bicubic interpolation
         methods used. Wrapper for the real code from another module.
+        
+        Parameters
+        ----------
+        option : int, optional
+            Specify which of a set of function to use as the test.
+            Accepts 1, 11, 12, 13, 2, 3, 4, 5, 51, 52
+            See Test_Functions.get_f for more detail
+        nfine : int, optional
+            Density of the fine grid we will interpolate onto.
+        ncrude : int, optional
+            Density of the crude grid the sample data will be generated
+            onto.
+        tag : str, optional
+            Specify if it is wanted to test the derivative interpolation
+            methods. Accepts 'v', 'vr', 'vz', 'vrz'.
+        
         """
         from Interpol.Test_Interpol import test_interpol
         test_interpol(option, nfine, ncrude, tag)
 
 
 
-def interact():
+def prep_input():
     """ Interactive mode for Ingrid. Gets the files used, and opens
     a plot of the Efit data. Prompts the user for magx, xpt, and psi levels.
     Saves the data in a namelist file."""
     
     def paws():
+        # Helps the code to wait for the user to select points
         raw_input("Press the <ENTER> key to continue...")
     
     nml = {'files': {}, 'grid_params': {}}
@@ -560,7 +562,6 @@ def interact():
     grid.plot_efit_data()
     grid.plot_target_plate()
     grid.find_roots()
-
 
     # find the null-point (magnetic axis)
     print("Click on the magnetic axis") ##-need blocking here!
@@ -658,4 +659,4 @@ def run():
 
 
 if __name__ == '__main__':
-    interact()
+    prep_input()

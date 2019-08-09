@@ -1,0 +1,370 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Ingrid Class &#8212; Ingrid  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bicubic Interpolation" href="Interpol.html" />
+    <link rel="prev" title="Summary and Plans" href="Summary_and_Plans.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-Ingrid">
+<span id="ingrid-class"></span><h1>Ingrid Class<a class="headerlink" href="#module-Ingrid" title="Permalink to this headline">¶</a></h1>
+<p>Created on Fri Jun 21 15:17:21 2019</p>
+<p>&#64;author: watkins35</p>
+<dl class="class">
+<dt id="Ingrid.Ingrid">
+<em class="property">class </em><code class="descclassname">Ingrid.</code><code class="descname">Ingrid</code><span class="sig-paren">(</span><em>nml</em><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>An interactive grid generator for edge plasmas in a tokamak
+Accepts a dictionary generated from a namelist file that contains
+the parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nml</strong> (<em>dict</em>) – Params dictionary object contains two dictionaries
+First is ‘files’ which contains the keys: geqdsk, itp, otp.
+The second is ‘grid params’ which has: psi_max, psi_min_core,
+psi_min_pf, Rmagx, Zmagx, Rxpt, Zxpt</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="Ingrid.Ingrid.OMFIT_read_psi">
+<code class="descname">OMFIT_read_psi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.OMFIT_read_psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Python class to read the psi data in from an ascii file.
+Saves the boundary information and generated efit_data instance</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.add_magx">
+<code class="descname">add_magx</code><span class="sig-paren">(</span><em>r=None</em>, <em>z=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.add_magx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the magnetic axis using the coordinates of last point
+that the user has clicked.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.add_xpt1">
+<code class="descname">add_xpt1</code><span class="sig-paren">(</span><em>r=None</em>, <em>z=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.add_xpt1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the X-point using the coordinates of last point
+that the user has clicked.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.calc_efit_derivs">
+<code class="descname">calc_efit_derivs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.calc_efit_derivs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the partial derivatives using finite differences.
+Wrapper for the member function in the efit class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.calc_psinorm">
+<code class="descname">calc_psinorm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.calc_psinorm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses magx and xpt1 to normalize the psi data. Furthur calculations
+will use this information</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.compute_eq_psi">
+<code class="descname">compute_eq_psi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.compute_eq_psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the line tracing class for the construction
+of the grid. Necessary to be separate so we can wiat until the
+user clicks on the root.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.construct_SNL_patches">
+<code class="descname">construct_SNL_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.construct_SNL_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>More general format to construct the grid for SNL using patches.
+For theta direction, cw is positive.
+For rho direction, ccw is positive, which is away from the magx.</p>
+<p>Lines are drawn in the form:
+self.eq.draw_line(, , option=’‘, direction=’‘)</p>
+<dl class="docutils">
+<dt>Patch Labeling Key:</dt>
+<dd>I: Inner,
+O: Outer,
+DL: Divertor Leg,
+PF: Private Flux,
+T: Top,
+B: Bottom,
+S: Scrape Off Layer,
+C: Core.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.draw_polodal_lines">
+<code class="descname">draw_polodal_lines</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.draw_polodal_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace contour lines anywhere you click
+saves the most recent line that was draw.
+To keep track of lines, call the add_line function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.draw_radial_lines">
+<code class="descname">draw_radial_lines</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.draw_radial_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trace the orthogonal lines to the stream function
+saves most recent line.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.export">
+<code class="descname">export</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the grid as an ascii file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.find_roots">
+<code class="descname">find_roots</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.find_roots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays a plot, and has the user click on an approximate
+zero point. Uses a root finder to adjust to the more exact point.
+Right click to disable.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.get_param">
+<code class="descname">get_param</code><span class="sig-paren">(</span><em>key=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.get_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value associated with a key.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.import_psi_data">
+<code class="descname">import_psi_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.import_psi_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same as OMFIT_read_psi, but calls a fortran function to
+read in the psi data. Saves and creates the same instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.patch_diagram">
+<code class="descname">patch_diagram</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.patch_diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the patch diagram for a given configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.plot_efit_data">
+<code class="descname">plot_efit_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.plot_efit_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the plot that we will be able to manipulate
+using the root finder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.plot_target_plate">
+<code class="descname">plot_target_plate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.plot_target_plate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the inner and outer target plates on the current figure</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.print_params">
+<code class="descname">print_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.print_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists the parameters that the user should know about.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.read_target_plate">
+<code class="descname">read_target_plate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.read_target_plate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the coordinates for a line defining the inner
+and outer target plates.
+The lines to define target plates end up with the shape ((x,y),(x,y)).
+These files read can contain more complicated lines than this.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.refine_patches">
+<code class="descname">refine_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.refine_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Break each patch into smaller grids based on psi.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.save_root">
+<code class="descname">save_root</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.save_root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value of the root finder. This will either be the
+root, or the click, depending on the root finding settings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.set_param">
+<code class="descname">set_param</code><span class="sig-paren">(</span><em>key=None</em>, <em>value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.set_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the parameters that we want, without
+adding new and unwanted options.
+User can pass in new values directly in,
+or can be prompted.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> (<em>str</em><em>, </em><em>optional</em>) – Keyword for the dictionary object. Specify which value we
+wish to change. Will be prompted for it if is None.</li>
+<li><strong>value</strong> (<em>varies</em><em>, </em><em>optional</em>) – Value associated with a key. Must match the type of the
+value currently tied to the key.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.setup">
+<code class="descname">setup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the magnetic axis and the x-point</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.test_interpol">
+<code class="descname">test_interpol</code><span class="sig-paren">(</span><em>option=2</em>, <em>nfine=100</em>, <em>ncrude=10</em>, <em>tag='v'</em><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.test_interpol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a demonstration and test of the bicubic interpolation
+methods used. Wrapper for the real code from another module.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>option</strong> (<em>int</em><em>, </em><em>optional</em>) – Specify which of a set of function to use as the test.
+Accepts 1, 11, 12, 13, 2, 3, 4, 5, 51, 52
+See Test_Functions.get_f for more detail.</li>
+<li><strong>nfine</strong> (<em>int</em><em>, </em><em>optional</em>) – Density of the fine grid we will interpolate onto.</li>
+<li><strong>ncrude</strong> (<em>int</em><em>, </em><em>optional</em>) – Density of the crude grid the sample data will be generated
+onto.</li>
+<li><strong>tag</strong> (<em>str</em><em>, </em><em>optional</em>) – Specify if it is wanted to test the derivative interpolation
+methods. Accepts ‘v’, ‘vr’, ‘vz’, ‘vrz’.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Ingrid.Ingrid.toggle_root_finder">
+<code class="descname">toggle_root_finder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.Ingrid.toggle_root_finder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Activates or deactivates the root finder ability. Enables
+the user to save the location where they last clicked.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="Ingrid.run">
+<code class="descclassname">Ingrid.</code><code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a namelist file containing the parameters for Ingrid, and
+runs the grid generator for a single null configuration.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Ingrid.set_params">
+<code class="descclassname">Ingrid.</code><code class="descname">set_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Ingrid.set_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interactive mode for Ingrid. Gets the files used, and opens
+a plot of the Efit data. Prompts the user for magx, xpt, and psi levels.
+Saves the data in a namelist file.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Ingrid</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="abstract.html">View Abstract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="why_python.html">Why Python?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Summary_and_Plans.html">Summary and Plans</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Ingrid Class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Interpol.html">Bicubic Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Geometry.html">Geometry Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Line_Tracing.html">Line Tracing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Root_Finder.html">Root Finder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Test_Modules.html">Test Modules</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Summary_and_Plans.html" title="previous chapter">Summary and Plans</a></li>
+      <li>Next: <a href="Interpol.html" title="next chapter">Bicubic Interpolation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Joey Watkins.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/Ingrid.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

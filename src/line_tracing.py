@@ -22,31 +22,31 @@ class LineTracing:
     """
     This class traces the polodal and radial lines of a given psi
     function based of the points where the user clicks.
-
+    
     Parameters
     ----------
-    grid : Setup_Grid_Data.Efit_Data object
+    grid : Setup_Grid_Data.Efit_Data
         The grid object upon which the lines will be drawn.
     params : dict
-        Dicitionary of the grid parameters. Should have been read in
+        Dictionary of the grid parameters. Should have been read in
         from a namelist file.
     eps : float, optional
         Short for epsilon. Specifies the size of the circle drawn
-        around the zero point
+        around the zero point.
     tol : float, optional
         Short for tolerance. Specifies how close to the final point the
         line must get before converging. Also defines a circle.
     numPoints : int
-        Number of points in the circle of radius eps
+        Number of points in the circle of radius eps.
     dt : float, optional
         Specify the size of each line segment that is traced by
-        scipy.integrate.solve_ivp
+        scipy.integrate.solve_ivp.
     option : str, optional
-        'theta' draws the poloidal line where the user clicks
-        'rho' draws the radial line where the user clicked
+        'theta' draws the poloidal line where the user clicks.
+        'rho' draws the radial line where the user clicked.
         'xpt_circ': uses the root finder to find the root closest
-         to where the user clicked. Then finds the points around
-         that circle a distance epsilon away
+        to where the user clicked. Then finds the points around
+        that circle a distance epsilon away.
     direction : str, optional
         'cw' or 'ccw'. Specifies clockwise or counterclockwise line
         tracing.
@@ -79,7 +79,7 @@ class LineTracing:
     def _differential_theta(self, t, xy):
         """
         Coupled set of differential equations
-        to trace the poloidal lines
+        to trace the poloidal lines.
         """
 
         R, Z = xy
@@ -96,7 +96,7 @@ class LineTracing:
     def _differential_rho(self, t, xy):
         """
         Coupled set of differential equations
-        to trace the radial lines
+        to trace the radial lines.
         """
         R, Z = xy
         B_R = (1/R)*self.grid.get_psi(R, Z, tag='vz')
@@ -120,7 +120,7 @@ class LineTracing:
     def __call__(self, event):
         """
         Activates upon mouse click. Will call the appropriate function
-        based on parameters
+        based on parameters.
         """
         if event.button == 3:
             print('...disabling fuzzy click mode...')
@@ -150,13 +150,13 @@ class LineTracing:
             plt.draw()
 
     def disconnect(self):
-        """ turns off the click functionality """
+        """ Turns off the click functionality """
         self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
         self.root.disconnect()
 
     def calc_equal_psi_points(self, r, z, theta2d=False, err_circles=False,
                               show_eq_psi_points=False):
-        """ draws a circle around the xpt, and saves four coordinates
+        """ Draws a circle around the xpt, and saves four coordinates
         for each direction the poloidal line will travel. Also
         calculates the location of the points that bisect the poloidal
         lines.
@@ -178,8 +178,8 @@ class LineTracing:
         """
 
         def get_circle(eps, x0, y0, psi=False):
-            """ traces a circle of given radius (eps) around a point.
-            Can be set to return the value of psi at each point
+            """ Traces a circle of given radius (eps) around a point.
+            Can be set to return the value of psi at each point.
             """
             x, y, z = [], [], []
             for th in self.theta:
@@ -291,9 +291,9 @@ class LineTracing:
             Defaults to be rz_start. This is how we specify the
             termination critera. i.e. {'point': Point}, {'line': Line},
             {'psi': Psi}
-            Points can be a geometry.Point object, or array-like
+            Points can be a geometry.Point, or array-like
             i.e. (x, y)
-            Lines can be a geometry.Line object, or array-like
+            Lines can be a geometry.Line, or array-like
             i.e. ((x, y), (x, y))
             Psi must be a scalar, i.e. 1.1, and specifies the
             level of psi to stop on.

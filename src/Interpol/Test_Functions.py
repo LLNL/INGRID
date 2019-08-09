@@ -10,11 +10,29 @@ import numpy as np
 
 def get_f(x, y, option=11, x0=0, y0=0):
     """ some functions for testing.
+    
     Parameters
     ----------
-    x, y: 1d or 2d arrays that define the grid.
-    option: determines which function to return
-    x0, y0: options to shift the centers of a certain functions. Default is 0
+    x : ndarray
+    y : ndarray
+        2d arrays that define the grid.
+    option : int, optional
+        determines which function to return
+        1 - sine * cosine
+        11 - diagonal lines
+        12 - horizontal lines
+        13 - vertical lines
+        2 - sine + cosine
+        3 - more complicated trig function
+        4 - exponential
+    x0 : float, optional
+    y0 : float, optional
+        options to shift the centers of a certain functions. Default is 0
+        
+    Returns
+    -------
+    f : ndarray
+        Specified function evaluated at x and y
     """
     if option == 1:
         f = np.sin(np.pi*x)*np.cos(np.pi*y)

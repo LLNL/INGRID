@@ -20,8 +20,8 @@ class RootFinder:
     
     Parameters
     ----------
-    grid : Setup_Grid_Data.Efit_Data object
-        uses the grid definitions defined in the Efit_Data class
+    grid : Setup_Grid_Data.Efit_Data
+        Uses the grid definitions defined in the Efit_Data class
         to find the roots.
     
     """
@@ -42,12 +42,12 @@ class RootFinder:
         Parameters
         ----------
         xy : array-like
-            contains x and y. ex xy = (x0, y0)
+            Contains x and y. Ex: xy = (x0, y0).
             
         Returns
         -------
         F : array
-            vector function to be used in find root
+            Vector function to be used in find root.
         """
         # combine the deriv functions to solve the system
         x, y = xy
@@ -57,7 +57,7 @@ class RootFinder:
         return F
 
     def __call__(self, event):
-        """ Executes when the user clicks on the plot """
+        """ Executes when the user clicks on the plot. """
         if event.button == 3:
             print('Root Finder Disabled.')
             event.canvas.mpl_disconnect(self.cid)
@@ -83,7 +83,7 @@ class RootFinder:
             self.root_finding = True
         
     def disconnect(self):
-        """ turn of the click functionality for the root finder """
+        """ Turn off the click functionality for the root finder. """
         self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
     
     def find_root(self, x, y):
@@ -98,10 +98,7 @@ class RootFinder:
             x or r value for the guess
         y : float
             y or z value for the guess
-            
-        
-        
-        
+
         """
         plt.plot(x, y, 'x')
         plt.draw()

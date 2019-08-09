@@ -36,7 +36,7 @@ class Vector:
         Returns
         -------
         ndarray
-            returns the vector as an array 
+            Returns the vector as an array.
         """
         return np.array([self.xnorm, self.ynorm])
 
@@ -51,7 +51,8 @@ class Vector:
 
 
 class Point:
-    """ Point object 
+    """
+    Point object 
     
     Parameters
     ----------
@@ -73,13 +74,13 @@ class Point:
         """ 
         Parameters
         ----------
-        grid : Setup_Grid_Data.Efit_Data object
+        grid : Setup_Grid_Data.Efit_Data
             Must pass in the grid upon which the value of psi is to be
             calculated on. Must be the Efit grid object.
         tag : str, optional
-            This is to specify the
-            type of psi derivative, if desired. accepts 'v', 'vr', 'vz', 'vrz'.
-            default is 'v', or no derivative.
+            This is to specify the type of psi derivative, if desired. 
+            Accepts 'v', 'vr', 'vz', 'vrz'.
+            The default is 'v', or no derivative.
          
         Returns
         -------
@@ -95,44 +96,38 @@ class Point:
 
 class Line:
     """ 
-    line object 
-    
+    Line object, in which an ordered set of points defines a line.
     
     Parameters
     ----------
     points : list
-        points are of the form p = (x, y), and the list should be
+        Points are of the form p = (x, y), and the list should be
         made up of multiple points. [p, p, p]...  
     """
 
     def __init__(self, points):
-        """ 
-        must pass in a list, tuple, array...
-        # an ordered set of points defines a line
-        line = (p1, p2, ...)
-        """
         self.p = points
         self.xval = [p.x for p in points]
         self.yval = [p.y for p in points]
 
             
     def reverse(self):    
-        """ points the line in the other direction 
-        Intended to be used right after generating a line using the 
-        draw_line funciton from the line tracer. 
-        Ex : 
-            LineTracing.draw_line(arguments...).reverse()
+        """ Points the line in the other direction.
+        It is intended to be used right after generating a line  
+        using the draw_line funciton from the line tracer. 
+        For example; LineTracing.draw_line(args...).reverse().
         
         Returns
         -------
         self
-
+            geometry.Line
         """
         self.p = self.p[::-1]
         return self
 
     def plot(self, color='#1f77b4'):
         """ Plots the line of the current figure.
+        
         Parameters
         ----------
         color : str, optional
@@ -141,15 +136,15 @@ class Line:
         plt.plot(self.xval, self.yval, color=color, linewidth='2')
 
     def print_points(self):
-        """ Prints each point in the line to the terminal """
+        """ Prints each point in the line to the terminal. """
         print([(p.x, p.y) for p in self.p])
 
     def divisions(self, num):
         """
         Splits the line into discrete segments.
         
-        Paramters
-        ---------
+        Parameters
+        ----------
         num : int
             Number of points in the segmented line.
         """
@@ -157,21 +152,20 @@ class Line:
         self.ys = np.linspace(self.p[0].y, self.p[-1].y, num)
         
     def points(self):
-        """ Returns the line as a tuple """
+        """ Returns the points in the line as a tuple. """
         return ((self.p[0].x, self.p[0].y), (self.p[-1].x, self.p[-1].y))
 
 
 class Patch:
-    """ each patch contains a grid, and has it's own shape.
+    """
+    Each patch contains a grid, and has it's own shape.
     
-    Paramters
-    ---------
-    lines : geometry.Line object
+    Parameters
+    ----------
+    lines : geometry.Line
         Each patch defined by four lines in order - 
-        Nline, Eline, Sline, Wline
-        order points to go clockwise
-    
-    
+        Nline, Eline, Sline, Wline - order points to go clockwise.
+
     """
     
     def __init__(self, lines):
@@ -212,13 +206,13 @@ class Patch:
         plt.fill(x, y, facecolor=color)
         
     def refine(self, grid):
-        """ divides a patch into smaller cells based on N and S lines,
+        """ Divides a patch into smaller cells based on N and S lines,
         and the psi levels of E and W lines.
         
-        Paramters
-        ---------
-        grid : Setup_Grid_Data.Efit_Data object
-            Requires the grid the patches were calculatede on.
+        Parameters
+        ----------
+        grid : Setup_Grid_Data.Efit_Data
+            Requires the grid the patches were calculated on.
         """
         
         # TODO: need a more universal fit for the function
@@ -226,7 +220,7 @@ class Patch:
             # fit to a cubic polynomial
             return a + b*x + c*x**2 + d*x**3
         
-        # curve fit return optimal paramters and 
+        # curve fit return optimal Parameters and 
         # the covariance of those parameters
         poptN, pcovN = curve_fit(f, self.N.xval, self.N.yval)
         poptS, pcovS = curve_fit(f, self.S.xval, self.S.yval)
@@ -289,10 +283,10 @@ def calc_mid_point(v1, v2):
     
     Parameters
     ----------
-    v1 : geometry.Vector object
-        v1 must be furthest right in a counter clockwise direction
-    v2 : geometry.Vector object
-        Vector on the left
+    v1 : geometry.Vector
+        v1 must be furthest right in a counter clockwise direction.
+    v2 : geometry.Vector
+        Vector on the left.
         
     Returns
     -------
@@ -336,12 +330,12 @@ def test2points(p1, p2, line):
     p2 : tuple
         Second point, (x, y)
     line : array-like
-        The line is comprised of two points ((x, y), (x, y))
+        The line is comprised of two points ((x, y), (x, y)).
 
     Returns
     -------
     tuple
-        returns two numbers, if the signs are different 
+        Returns two numbers, if the signs are different 
         the points are on opposite sides of the line.
     
     """    
@@ -362,16 +356,16 @@ def intersect(line1, line2):
     ----------
     line1 : array-like
     line2 : array-like
-        both lines of the form A = ((x, y), (x, y)) 
+        Both lines of the form A = ((x, y), (x, y)).
         
     Returns
     -------
     tuple
-        coordinates of the intesection
+        Coordinates of the intersection.
     
     """
     def line(x, line):
-        """ point slope form """
+        """ Point slope form. """
         (x1, y1), (x2, y2) = line
         return (y2-y1)/(x2-x1) * (x - x1) + y1
 

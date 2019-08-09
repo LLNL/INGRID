@@ -14,16 +14,15 @@ import f90nml
 class Ingrid:
     """ An interactive grid generator for edge plasmas in a tokamak
     Accepts a dictionary generated from a namelist file that contains
-    the paramters.
+    the parameters.
     
     Parameters
     ----------
     nml : dict
-        params dictionary object with shape
-        files :
-            geqdsk, itp, otp
-        grid params :
-            psi_max, psi_min_core, psi_min_pf, Rmagx, Zmagx, Rxpt, Zxpt
+        Params dictionary object contains two dictionaries
+        First is 'files' which contains the keys: geqdsk, itp, otp.
+        The second is 'grid params' which has: psi_max, psi_min_core,
+        psi_min_pf, Rmagx, Zmagx, Rxpt, Zxpt
     
     """
 
@@ -50,10 +49,10 @@ class Ingrid:
         Parameters
         ----------
         key : str, optional
-            keyword for the dicitonary object. Specify which value we
+            Keyword for the dictionary object. Specify which value we
             wish to change. Will be prompted for it if is None.
         value : varies, optional
-            value associated with a key. Must match the type of the
+            Value associated with a key. Must match the type of the
             value currently tied to the key.
         
         
@@ -240,12 +239,12 @@ class Ingrid:
         self.efit_psi.Calculate_PDeriv()
 
     def plot_efit_data(self):
-        """ generates the plot that we will be able to manipulate
+        """ Generates the plot that we will be able to manipulate
         using the root finder """
         self.efit_psi.plot_data()
 
     def find_roots(self):
-        """ displays a plot, and has the user click on an approximate
+        """ Displays a plot, and has the user click on an approximate
         zero point. Uses a root finder to adjust to the more exact point.
         Right click to disable.
         """
@@ -310,7 +309,7 @@ class Ingrid:
 
 
     def draw_polodal_lines(self):
-        """ trace contour lines anywhere you click
+        """ Trace contour lines anywhere you click
         saves the most recent line that was draw.
         To keep track of lines, call the add_line function"""
         from line_tracing import LineTracing
@@ -318,8 +317,8 @@ class Ingrid:
                                     option='theta')
 
     def draw_radial_lines(self):
-        """ trace the orthogonal lines to the stream function
-        saves most recent line"""
+        """ Trace the orthogonal lines to the stream function
+        saves most recent line."""
         from line_tracing import LineTracing
         self.new_line = LineTracing(self.psi_norm, self.grid_params,
                                     option='rho', direction='ccw')
@@ -336,22 +335,22 @@ class Ingrid:
         self.eq.disconnect()
 
     def construct_SNL_patches(self):
-        """ more general format to construct the grid for SNL using patches
-        for theta direction, cw is positive
-        for rho direction, ccw is positive, which is away from the magx
+        """ More general format to construct the grid for SNL using patches.
+        For theta direction, cw is positive.
+        For rho direction, ccw is positive, which is away from the magx.
 
-        lines are drawn in the form:
+        Lines are drawn in the form:
         self.eq.draw_line(, , option='', direction='')
 
         Patch Labeling Key:
-            I: Inner
-            O: Outer
-            DL: Divertor Leg
-            PF: Private Flux
-            T: Top
-            B: Bottom
-            S: Scrape Off Layer
-            C: Core
+            I: Inner,
+            O: Outer,
+            DL: Divertor Leg,
+            PF: Private Flux,
+            T: Top,
+            B: Bottom,
+            S: Scrape Off Layer,
+            C: Core.
         """
         plt.show()
         from geometry import Point, Patch, Line
@@ -491,7 +490,7 @@ class Ingrid:
         plt.show()
 
     def refine_patches(self):
-        """ break each patch into smaller grids based of psi"""
+        """ Break each patch into smaller grids based on psi."""
         # TODO: use scipy.optimize.curve_fit to generate a polynomial
         # fit for the two curved sections of each patch,
         # then use the length to break into even subsections
@@ -518,7 +517,7 @@ class Ingrid:
         option : int, optional
             Specify which of a set of function to use as the test.
             Accepts 1, 11, 12, 13, 2, 3, 4, 5, 51, 52
-            See Test_Functions.get_f for more detail
+            See Test_Functions.get_f for more detail.
         nfine : int, optional
             Density of the fine grid we will interpolate onto.
         ncrude : int, optional
@@ -534,7 +533,7 @@ class Ingrid:
 
 
 
-def prep_input():
+def set_params():
     """ Interactive mode for Ingrid. Gets the files used, and opens
     a plot of the Efit data. Prompts the user for magx, xpt, and psi levels.
     Saves the data in a namelist file."""
@@ -620,7 +619,7 @@ def prep_input():
         outFile = 'grid_params.nml'
 
     f90nml.write(nml, outFile, force=True)  # force tag is to overwrite the previous file
-    print("Saved paramters to '{}'.".format(outFile))
+    print("Saved parameters to '{}'.".format(outFile))
     plt.close('Efit Data') # finish with the raw Psi data
 
 

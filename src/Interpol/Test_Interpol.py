@@ -15,9 +15,22 @@ from Setup_Grid_Data import Efit_Data
 
 def test_interpol(option=2, nfine=100, ncrude=10, tag='v'):
     """ Drives a simple test of a bicubic interpolation function.
-    Option specifies which of several functions to demonstrate over.
-    tag specifies the type of derivative we are printint, or none at all.
-    can be 'v', 'vx', 'vy', 'vxy'
+    
+    Parameters
+    ----------
+    option : int, optional
+        Specifies which of several functions to demonstrate over.
+        Accepts 1, 11, 12, 13, 2, 3, 4, 5, 51, 52
+        See Test_Functions.get_f for more detail
+    nfine : int, optional
+        Density of the fine grid we will interpolate onto.
+    ncrude : int, optional
+        Density of the crude grid the sample data will be generated
+        onto.
+    tag : str, optional
+        Specify if it is wanted to test the derivative interpolation
+        methods. Accepts 'v', 'vr', 'vz', 'vrz'.
+
     """
     rmin = 0.0
     rmax = 2.0
@@ -37,7 +50,6 @@ def test_interpol(option=2, nfine=100, ncrude=10, tag='v'):
                       rmin=rmin, rmax=rmax, zmin=zmin, zmax=zmax)
 
     # get the function value, and analytic derivs
-
     grid0.v = get_f(grid0.r, grid0.z, option)
 
     # retrieve the data for our function on the crude grid

@@ -18,5 +18,5 @@ python
 >>> #-use the path to Ingrid installation:
 >>> sys.path.insert(1, '/home/umansky1/Projects/INGRID/INGRID_31jul19/src/')
 >>> import Ingrid
->>>Ingrid.prep_input()
+>>>Ingrid.set_params()
 >>> Ingrid.run()

@@ -1,0 +1,16 @@
+&files
+    geqdsk = 'neqdsk'
+    itp = '/Users/watkins35/Documents/GitHub/LLNL/INGRID/data/SNL/itp1.txt'
+    otp = '/Users/watkins35/Documents/GitHub/LLNL/INGRID/data/SNL/otp1.txt'
+/
+
+&grid_params
+    rmagx = 0.681827575433
+    rxpt = 0.563043114918
+    zmagx = -0.00361482940222
+    zxpt = -0.394986500123
+    psi_max = 1.1
+    psi_min_core = 0.9
+    psi_min_pf = 0.8
+    step_ratio = 0.02
+/

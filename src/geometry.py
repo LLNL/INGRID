@@ -363,10 +363,15 @@ def intersect(line1, line2):
     tuple
         Coordinates of the intersection.
     
-    """
+    """ 
+    # TODO: Imporove this method so it can handle verticle lines.
+    # there is a division by zero error in some DIII-D data caused by this.
     def line(x, line):
         """ Point slope form. """
         (x1, y1), (x2, y2) = line
+        if x2-x1 == 0:
+            x1 += 1e-4
+        
         return (y2-y1)/(x2-x1) * (x - x1) + y1
 
     def f(xy):

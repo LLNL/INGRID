@@ -9,84 +9,54 @@ from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
 import f90nml
-#raw_input = input  # python3
 
 
 class Ingrid:
-    """ An interactive grid generator """
-#    def __init__(self,
-#                 gfile=None,
-#                 option='bicubic',
-#                 epsilon=1e-9,
-#                 Rmagx=0.0,
-#                 rmagy=0.0,
-#                 Zmagx=0.0,
-#                 zmagy=0.0,
-#                 manual=True,
-#                 step_ratio=0.02,
-#                 psi_max=1.1,
-#                 psi_min=0.9):
-#
-#        print('Welcome to Ingrid!\n')
-#        # TODO- change this so it reads a file
-#        # saved as params.txt
-#        # currently in the src directory
-#        self._grid_params = {'option': option,
-#                             'epsilon': epsilon,
-#                             'Rmagx': Rmagx,
-#                             'rmagy': rmagy,
-#                             'Zmagx': Zmagx,
-#                             'zmagy': zmagy,
-#                             'manual': manual,
-#                             'step_ratio': step_ratio,
-#                             'psi_max': {'psi': psi_max},
-#                             'psi_min': {'psi': psi_min}}
-#
-#        self.gfile = gfile
-#        print("Printing Gfile: ", gfile)
-#        # parameters: what is this epsilon for?
-#        # which names for setting psi max and psi min
+    """ An interactive grid generator for edge plasmas in a tokamak
+    Accepts a dictionary generated from a namelist file that contains
+    the paramters.
+    
+    Parameters
+    ----------
+    nml : dict
+        params dictionary object with shape
+        files :
+            geqdsk, itp, otp
+        grid params :
+            psi_max, psi_min_core, psi_min_pf, Rmagx, Zmagx, Rxpt, Zxpt
+    
+    """
 
     def __init__(self, nml):
-        """ params dictionary object with shape
-        files :
-            geqdsk
-            itp
-            otp
-        grid params :
-            psi_max
-            psi_min_core
-            psi_min_pf
-            Rmagx
-            Zmagx
-            Rxpt
-            Zxpt
-        """
         self.files = nml['files']
         self.grid_params = nml['grid_params']
         # TODO: include this in the file for parameters
         self.grid_params['step_ratio'] = 0.02
 
         print('Welcome to Ingrid!\n')
-
-        print('nml:: ', nml)
-        print('files:: ', self.files)
-        print('parmas:: ', self.grid_params)
-
-
+        
     def setup(self):
+        """ Add the magnetic axis and the x-point """
         self.add_magx(self.grid_params['Rmagx'], self.grid_params['Zmagx'])
         self.add_xpt1(self.grid_params['Rxpt'], self.grid_params['Zxpt'])
 
-
-
-
-
+    # TODO update this method to be able to change parameters.
     def set_param(self, key=None, value=None):
         """ Sets the parameters that we want, without
         adding new and unwanted options.
         User can pass in new values directly in,
         or can be prompted.
+        
+        Parameters
+        ----------
+        key : str, optional
+            keyword for the dicitonary object. Specify which value we
+            wish to change. Will be prompted for it if is None.
+        value : varies, optional
+            value associated with a key. Must match the type of the
+            value currently tied to the key.
+        
+        
         """
         def check_key(self, key=None, first_time=True):
             while True:
@@ -131,6 +101,7 @@ class Ingrid:
             key = check_key(key)
             check_value(key, value)
 
+    # TODO: update this method.
     def get_param(self, key=None):
         """ Returns the value associated with a key. """
         first_time = True
@@ -153,6 +124,11 @@ class Ingrid:
 
 
     def OMFIT_read_psi(self):
+        """
+        Python class to read the psi data in from an ascii file.
+        Saves the boundary information and generated efit_data instance
+        """
+        
         from OMFITgeqdsk import OMFITgeqdsk
         from Interpol.Setup_Grid_Data import Efit_Data
 
@@ -167,8 +143,11 @@ class Ingrid:
 
         psi = g['PSIRZ'].T
 
-        rlim = g['RLIM']  # limiter - similar to strike plates
-        zlim = g['ZLIM']
+        # TODO: possibly use the limiters to determine where the strke plates
+        # are located. rlim and zlim contain lists of the r and z coordinates
+        # for the limiter surrounding the plasma
+        # rlim = g['RLIM']  # limiter - similar to strike plates
+        # zlim = g['ZLIM']
 
 
         # calc array for r and z
@@ -184,8 +163,10 @@ class Ingrid:
         self.efit_psi.set_v(psi)
 
 
-    def import_psi_data(self, plot=False):
-        """ Read psi data using fortran code """
+    def import_psi_data(self):
+        """ Same as OMFIT_read_psi, but calls a fortran function to
+        read in the psi data. Saves and creates the same instance.
+        """
         import Efit.efit as efit
         from Interpol.Setup_Grid_Data import Efit_Data
         efit.readg(self.files['geqdsk'])  # defines the variables
@@ -209,27 +190,13 @@ class Ingrid:
                                   name='Efit Data')
         self.efit_psi.set_v(fold)  # this is psi
 
-        if plot:
-            plt.figure('efit data')
-            plt.subplot(1, 2, 1)
-            plt.plot(rbdry, zbdry, label='plasma boundary')
-            plt.gca().set_aspect('equal', adjustable='box')
-            plt.legend()
 
-            plt.subplot(1, 2, 2)
-            plt.contour(self.efit_psi.x, self.efit_psi.y, self.efit_psi.v, 30)
-            plt.title('Original Cross-Section')
-            plt.gca().set_aspect('equal', adjustable='box')
-            plt.xlim(rmin, rmax)
-            plt.ylim(zmin, zmax)
-            plt.show()
-
-    # TODO remove this method and have the code rely on the file read in
     def read_target_plate(self):
         """ Reads the coordinates for a line defining the inner
         and outer target plates.
+        The lines to define target plates end up with the shape ((x,y),(x,y)).
+        These files read can contain more complicated lines than this.
         """
-#        from geometry import Point  # , Line
 
         self.itp = []
         with open(self.files['itp']) as f:
@@ -237,6 +204,7 @@ class Ingrid:
                 point = line.strip()
                 if point.startswith('#'):
                     # move along to the next iteration
+                    # this simulates a comment
                     continue
                 x = float(point.split(',')[0])
                 y = float(point.split(',')[1])
@@ -255,19 +223,14 @@ class Ingrid:
         print('Using inner target plate', self.itp)
         print('Using outer target plate', self.otp)
 
-
-#        # testing for Line instances
-#        self.itp = Line(self.itp)
-#        self.otp = Line(self.otp)
-
     def plot_target_plate(self):
+        """ Plots the inner and outer target plates on the current figure """
+        
         itp = np.array(self.itp)
         otp = np.array(self.otp)
 
         plt.plot(itp[:, 0], itp[:, 1], label='itp')
         plt.plot(otp[:, 0], otp[:, 1], label='otp')
-#        self.itp.plot()
-#        self.otp.plot()
         plt.draw()
 
     def calc_efit_derivs(self):
@@ -394,9 +357,6 @@ class Ingrid:
         from geometry import Point, Patch, Line
 
         xpt = self.eq.eq_psi
-#        psi_max = self.psi_term_norm[0]
-#        psi_min_core = self.psi_term_norm[1]
-#        psi_min_pf = self.psi_term_norm[2]
         psi_max = self.grid_params['psi_max']
         psi_min_core = self.grid_params['psi_min_core']
         psi_min_pf = self.grid_params['psi_min_pf']
@@ -551,15 +511,18 @@ class Ingrid:
         # fit for the two curved sections of each patch,
         # then use the length to break into even subsections
         # For the horizontal division use the psi levels to define subsections
-        pass
+        print('Refining patches')
+        
+#        self.patches[0].refine(self)  # test with a single patch
+        
+        for patch in self.patches:
+            patch.refine(self)
     
     def export(self):
         """ Saves the grid as an ascii file """
-        
-        f = open("grid.txt", "w+")
-        
         # TODO export the points the patches contain, but don't overlap
         # any points
+        pass
 
     def test_interpol(self, option=2, nfine=100, ncrude=10, tag='v'):
         """ Provides a demonstration and test of the bicubic interpolation
@@ -591,7 +554,7 @@ def interact():
 
     # now we can read the data and fine tune our parameters
     grid = Ingrid(nml)
-    grid.import_psi_data()
+    grid.OMFIT_read_psi()
     grid.read_target_plate()
     grid.calc_efit_derivs()
     grid.plot_efit_data()
@@ -664,7 +627,11 @@ def run():
     """ Reads a namelist file containing the parameters for Ingrid, and
     runs the grid generator for a single null configuration.
     """
-    nml_file = raw_input("Enter params filename: ")
+    nml_file = raw_input("Enter params filename [params.nml]: ")
+    if nml_file == '':
+        # default is an example case for snl
+        nml_file = 'params.nml'
+    
     nml = f90nml.read(nml_file)
 
     grid = Ingrid(nml)
@@ -680,6 +647,11 @@ def run():
     start = time()
     grid.construct_SNL_patches()
     end = time()
+    
+    # TODO: finish writing the refine patches method.
+#    grid.refine_patches()
+    
+    
     grid.patch_diagram()
 
     print("Time for grid: {} seconds.".format(end-start))

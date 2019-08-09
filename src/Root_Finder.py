@@ -3,14 +3,9 @@
 """
 Created on Tue Jun 18 14:44:42 2019
 
-@author: watkins35
-
-    Goal of this module: we want to create
-    a plot of the psi function,
-    then click on the plot at some point and
-    calculate where the nearest zero is.
-
+@author: Joey Watkins
 """
+
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,10 +13,17 @@ from scipy.optimize import root
 
 
 class RootFinder:
-    """ Finds the root closest to a point the user clicks on. 
-    Saves the value as self.final_root
+    """
+    Finds the root closest to a point the user clicks on. 
     If active is set to false the find_roots method must be passed
     an initial guess.
+    
+    Parameters
+    ----------
+    grid : Setup_Grid_Data.Efit_Data object
+        uses the grid definitions defined in the Efit_Data class
+        to find the roots.
+    
     """
     def __init__(self, grid, active=True):
         self.grid = grid
@@ -34,6 +36,19 @@ class RootFinder:
             print("Root Finder on standby.")
 
     def func(self, xy):
+        """ Combines the first partial derivatives to solve the system for
+        maximum, minimum, and saddle locations.     
+        
+        Parameters
+        ----------
+        xy : array-like
+            contains x and y. ex xy = (x0, y0)
+            
+        Returns
+        -------
+        F : array
+            vector function to be used in find root
+        """
         # combine the deriv functions to solve the system
         x, y = xy
         F = np.zeros(2)
@@ -60,17 +75,34 @@ class RootFinder:
     
     def toggle_root_finding(self):
         """ Activates or deactivates the root finding capacity.
-        Leaves the click ability active so the user can save clicks."""
+        Leaves the click ability active so the user can save clicks.
+        """
         if self.root_finding:
             self.root_finding = False
         else:
             self.root_finding = True
         
     def disconnect(self):
-        """ turn of the click functionality fo the root finder """
+        """ turn of the click functionality for the root finder """
         self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
     
     def find_root(self, x, y):
+        """        
+        Accepts an initial guess for the root, then uses scipy.optimize.root
+        to refine the zero point. Saves the root as a tuple
+        called self.final_root.
+        
+        Parameters
+        ---------
+        x : float
+            x or r value for the guess
+        y : float
+            y or z value for the guess
+            
+        
+        
+        
+        """
         plt.plot(x, y, 'x')
         plt.draw()
         sol = root(self.func, [x, y])

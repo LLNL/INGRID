@@ -7,12 +7,35 @@ Created on Fri Jun  7 15:31:15 2019
 """
 from __future__ import division, print_function
 import numpy as np
-#from bicubicf import bicubic
 from Bicubic2 import bicubic
 import matplotlib.pyplot as plt
 
 
 class Efit_Data:
+    """
+    Structure to store the rectangular grid of psi data. It uses 
+    cylindrical coordinates, where R and Z are similar to the cartesian
+    x and y. The phi components goes away due to the symmetry of a 
+    tokamak.
+    
+    Parameters
+    ----------
+    rmin : float, optional
+        left boundary of the grid
+    rmax : float, optional
+        right boundary
+    nr : int, optional
+        number of grid points in the R direction
+    zmin : float, optional
+        bottom boundary for the grid
+    zmax : float, optional
+        top boundary
+    nz : int, optional
+        number of grid points in the Z direction
+    name : str, optional
+        Specify the title of the figure the data will be plotted on.
+    
+    """
 
     def __init__(self, rmin=0.0, rmax=1.0, nr=10, zmin=0.0, zmax=2.0, nz=20,
                  name='unnamed'):
@@ -41,6 +64,17 @@ class Efit_Data:
     def get_v(self, tag='v'):
         """ returns the entire array of v, vr, vz, or vrz.
         If you want a single value use self.get_psi
+        
+        Parameters
+        ----------
+        tag : str, optional
+            Specify the type of derivative. 'v', 'vr', 'vz', 'vrz'
+        
+        Returns
+        -------
+        ndarray
+            value of the function or its derivative over the entire
+            grid.
         """
         if tag == 'v':
             return self.v
@@ -52,8 +86,18 @@ class Efit_Data:
             return self.vrz
 
     def set_v(self, value, coords=None, tag='v'):
-        """ sets a value for v, vr, vz, or vrz. Coords must be a tuple or list.
-        if set to none, it will set the entire value
+        """ sets a value for v, vr, vz, or vrz.        
+        
+        Parameters
+        ----------
+        value : ndarray, float
+            new set of values for the function. Must be the same shape
+            as the grid if you are setting every value. Also accepts a
+            single float for setting spevific values.
+        coords : array-like, optional
+            The coordinates of a single value, if you are setting one value.
+            if set to none, it will set the entire value
+        
         """
         if coords is not None:
             if tag == 'v':
@@ -76,9 +120,19 @@ class Efit_Data:
 
     def Calculate_PDeriv(self, unit_spacing=True):
         """ Calculate partial derivatives at grid nodes.
-        Attempts to use finite differences to increase accuracy at the
+        Use finite differences to increase accuracy at the
         boundaries.
-        These formulas are derived from Taylor Series representations"""
+        These formulas are derived from Taylor Series representations.
+        Values for vr, vz, and vrz are produced and saved within the
+        grid structure.
+        
+        Parameters
+        ----------
+        unit_spacing : bool, optional
+            Allow for the derivatives to be calculated on a unit cell,
+            or on a grid with any other spacing. Default is true.
+        
+        """
         # planning to make this more efficient using array slicing
         # need a place to store the new values of the grid
         from time import time
@@ -173,11 +227,21 @@ class Efit_Data:
         print("Time calculating derivatives", end-start)
 
     def locate_cell(self, r0, z0):
-        """ Inputs:
-               r0,z0 - tested point
+        """ 
+        Locate the cell on the rectangular grid that surrounds
+        a point of interest.
+        
+        Parameters
+        ----------
+        r0 : float
+            R or x coordinate of the point
+        z0 : float
+            Z or y coordinate of the tested point
 
-               Outputs:
-                  node indices of grid cell encompassing tested point
+        Returns
+        -------
+        dict
+            node indices of grid cell encompassing tested point
         """
         # indices of lower left vertex of the cell
         # (and make sure they are within [0,nr-1])
@@ -193,9 +257,25 @@ class Efit_Data:
 
     def get_psi(self, r0, z0, tag='v'):
         """ find grid cell encompassing (r0,z0)
-        note: grid is the crude grid
-        tag is the type of derivative we want: v, vr, vz, vrz
-        if nothing is provided, it assumes no derivative (v).
+        note: grid is the crude grid. Uses Bicubic Interpolation
+        to calculate the exact value at the point. Useful for 
+        finding information inbetween grid points.
+        
+        Parameters
+        ----------
+        r0 : float
+            R coordinate of the point of interest
+        z0 : float
+            Z coordinate of same point.
+        tag : str, optional
+            tag is the type of derivative we want: v, vr, vz, vrz
+            if nothing is provided, it assumes no derivative (v).
+        
+        Returns
+        -------
+        float
+            Value of psi or its derviative at the coordinate specified.
+            
         """
         cell = self.locate_cell(r0, z0)
         rcell = self.r[cell['ir'], cell['iz']]
@@ -222,14 +302,35 @@ class Efit_Data:
         return res
 
     def plot_levels(self, level=1.0, color='red'):
-        """ level must be a float """
+        """
+        This function is useful if you need to quickly see
+        where a particular line of constant psi is. It in't able to store
+        points of intersection, and cannot be generalized. If you
+        need just a segment of psi, use the draw_lines method in the
+        line tracing class.
+        
+        Parameters
+        ----------
+        level : float, optional
+            Value of psi you wish to see
+        color : str, optional
+            color of the line.
+        
+        """
         # draw contour line on top of existing figure
         level = float(level)
         self.ax.contour(self.r, self.z, self.v, level, colors=color)
 
     def plot_data(self, nlev=30):
         """ generates the plot that we will be able to manipulate
-        using the root finder """
+        using the root finder 
+        
+        Parameters
+        ----------
+        nlev : int, optional
+            number of levels we want to be plotted
+        
+        """
         fig = plt.figure(self.name, figsize=(6, 10))
         self.ax = fig.add_subplot(111)
         lev = (self.v.min() + (self.v.max()

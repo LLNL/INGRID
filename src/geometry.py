@@ -8,12 +8,22 @@ Created on Thu Jul 25 16:00:04 2019
 from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import fsolve
+from scipy.optimize import fsolve, curve_fit, root_scalar
 
 
 class Vector:
+    """
+    Defines a vector from a nontrivial origin.
+    
+    Parameters
+    ----------
+    xy : array-like
+        Location of the vector. It if of the form (x, y).
+    origin : array-like
+        Location of the origin. This is to adjust for not being at the
+        origin of the axes. Of the form (x, y).
+    """
     def __init__(self, xy, origin):
-        """ xy is of the form xy = (x, y) """
         self.x, self.y = xy
         self.xorigin = origin[0]
         self.yorigin = origin[1]
@@ -22,15 +32,34 @@ class Vector:
         self.quadrant = (int(np.sign(self.xnorm)), int(np.sign(self.ynorm)))
 
     def arr(self):
-        """ returns the vector as an array """
+        """ 
+        Returns
+        -------
+        ndarray
+            returns the vector as an array 
+        """
         return np.array([self.xnorm, self.ynorm])
 
     def mag(self):
-        """ computes the magnitude of the vector """
+        """  
+        Returns
+        -------
+        float
+            Computes the magnitude, or length of the vector.
+        """
         return np.linalg.norm(self.arr())
 
 
 class Point:
+    """ Point object 
+    
+    Parameters
+    ----------
+    pts : array-like
+        Accepts either two values x, y as floats, or 
+        a single tuple/list value (x, y).
+    """
+    
     def __init__(self, *pts):
         if np.shape(pts) == (2,):
             self.x, self.y = pts
@@ -41,51 +70,43 @@ class Point:
             print(np.shape(pts), pts)
 
     def psi(self, grid, tag='v'):
-        """ must pass in the grid upon which the value of psi is to be
-        calculated on. Must be the Efit grid object.
-        also accepts 'tag' as an optional parameter. This is to specify the
-        type of psi derivative, if desired. accepts 'v', 'vr', 'vz', 'vrz'.
-        default is 'v', or no derivative.
+        """ 
+        Parameters
+        ----------
+        grid : Setup_Grid_Data.Efit_Data object
+            Must pass in the grid upon which the value of psi is to be
+            calculated on. Must be the Efit grid object.
+        tag : str, optional
+            This is to specify the
+            type of psi derivative, if desired. accepts 'v', 'vr', 'vz', 'vrz'.
+            default is 'v', or no derivative.
+         
+        Returns
+        -------
+        float
+            Calculate the value of psi at the point.
         """
-        return grid.get_psi(self.x, self.y, tag)
+        return grid.psi_norm.get_psi(self.x, self.y, tag)
 
     def plot(self):
+        """ Places an x on the location of the point. """
         plt.plot(self.x, self.y, 'x')
 
 
-#class Line:
-#    """ line object """
-#
-#    def __init__(self, *points):
-#        """ points are of the form p = (x, y)
-#        # an ordered set of points defines a line
-#        line = (p1, p2, ...)
-#        """
-#        if isinstance(points[0], Point):
-#            self.p = points  # list of objects
-#            self.xval = [p.x for p in points]
-#            self.yval = [p.y for p in points]
-#        else:
-#            self.p = np.array(points)
-#            self.xval = self.p[:, 0]
-#            self.yval = self.p[:, 1]
-#
-#    def plot(self, color='#1f77b4'):
-#        """ defaults to a light blue """
-#        plt.plot(self.xval, self.yval, color=color)
-#
-#    def print_points(self):
-#        print([(p.x, p.y) for p in self.p])
-#
-#    def divisions(self, num):
-#        self.xs = np.linspace(self.p[0].x, self.p[-1].x, num)
-#        self.ys = np.linspace(self.p[0].y, self.p[-1].y, num)
-
 class Line:
-    """ line object """
+    """ 
+    line object 
+    
+    
+    Parameters
+    ----------
+    points : list
+        points are of the form p = (x, y), and the list should be
+        made up of multiple points. [p, p, p]...  
+    """
 
-    def __init__(self, points, psi=None):
-        """ points are of the form p = (x, y)
+    def __init__(self, points):
+        """ 
         must pass in a list, tuple, array...
         # an ordered set of points defines a line
         line = (p1, p2, ...)
@@ -93,83 +114,191 @@ class Line:
         self.p = points
         self.xval = [p.x for p in points]
         self.yval = [p.y for p in points]
-        
-        if psi is not None:
-            self.psi = psi
+
             
     def reverse(self):    
-        # points in the other direction
+        """ points the line in the other direction 
+        Intended to be used right after generating a line using the 
+        draw_line funciton from the line tracer. 
+        Ex : 
+            LineTracing.draw_line(arguments...).reverse()
+        
+        Returns
+        -------
+        self
+
+        """
         self.p = self.p[::-1]
         return self
-        
-#    def straighten(self):
-#        # removes interior points
-#        self.p = [self.p[0], self.p[-1]]
-#        return self
 
     def plot(self, color='#1f77b4'):
-        """ defaults to a light blue """
+        """ Plots the line of the current figure.
+        Parameters
+        ----------
+        color : str, optional
+            Defaults to a light blue.
+        """
         plt.plot(self.xval, self.yval, color=color, linewidth='2')
 
     def print_points(self):
+        """ Prints each point in the line to the terminal """
         print([(p.x, p.y) for p in self.p])
 
     def divisions(self, num):
+        """
+        Splits the line into discrete segments.
+        
+        Paramters
+        ---------
+        num : int
+            Number of points in the segmented line.
+        """
         self.xs = np.linspace(self.p[0].x, self.p[-1].x, num)
         self.ys = np.linspace(self.p[0].y, self.p[-1].y, num)
         
     def points(self):
+        """ Returns the line as a tuple """
         return ((self.p[0].x, self.p[0].y), (self.p[-1].x, self.p[-1].y))
 
 
 class Patch:
-    """ each patch contains a grid, and has it's own shape
-    accepts Point objects and lists of Points"""
-#    def __init__(self, *points):
-#        self.p = []
-#        for pt in points:
-#            if type(pt) == list:
-#                [self.p.append(p) for p in pt]
-#            else:
-#                self.p.append(pt)
+    """ each patch contains a grid, and has it's own shape.
     
-    def __init__(self, lines):
-        """ Each patch defined by four lines in order - 
+    Paramters
+    ---------
+    lines : geometry.Line object
+        Each patch defined by four lines in order - 
         Nline, Eline, Sline, Wline
         order points to go clockwise
-        """
+    
+    
+    """
+    
+    def __init__(self, lines):
         self.lines = lines
         self.N = lines[0]
         self.E = lines[1]
         self.S = lines[2]
         self.W = lines[3]
         
+        # This is the border for the fill function
+        # It need to only include N and S lines
         self.p = list(self.N.p) + list(self.S.p)
         
 
     def plot_border(self, color='red'):
-        """ draw solid borders around the patch """
+        """
+        Draw solid borders around the patch.
+        
+        Parameters
+        ----------
+        color : str, optional
+            Defaults to red.
+        """
         for line in self.lines:
             line.plot(color)
 
-#    def plot_borders(self, color='#1f77b4'):
-#        """ draw solid borders around the patch """
-#        pts = self.p + [self.p[0]]
-#        for i in range(len(self.p)):
-#            line = Line(pts[i], pts[i+1])
-#            line.plot(color)
-
     def fill(self, color='lightsalmon'):
-        """ shades in the patch with a given color """
+        """
+        Shades in the patch with a given color
+        
+        Parameters
+        ----------
+        color : str, optional
+            Defaults to a light salmon.
+        """
         x = [p.x for p in self.p]
         y = [p.y for p in self.p]
         plt.fill(x, y, facecolor=color)
+        
+    def refine(self, grid):
+        """ divides a patch into smaller cells based on N and S lines,
+        and the psi levels of E and W lines.
+        
+        Paramters
+        ---------
+        grid : Setup_Grid_Data.Efit_Data object
+            Requires the grid the patches were calculatede on.
+        """
+        
+        # TODO: need a more universal fit for the function
+        def f(x, a, b, c, d):
+            # fit to a cubic polynomial
+            return a + b*x + c*x**2 + d*x**3
+        
+        # curve fit return optimal paramters and 
+        # the covariance of those parameters
+        poptN, pcovN = curve_fit(f, self.N.xval, self.N.yval)
+        poptS, pcovS = curve_fit(f, self.S.xval, self.S.yval)
+        
+        x1 = np.linspace(self.N.xval[0], self.N.xval[-1])
+        x2 = np.linspace(self.S.xval[0], self.S.xval[-1])
+        
+        plt.plot(x1, f(x1, *poptN), color='green')
+        plt.plot(x2, f(x2, *poptS), color='magenta')
+        plt.draw()
+        
+        
+        # split horizontally 
+        psiN = self.N.p[0].psi(grid)
+        psiS = self.S.p[-1].psi(grid)
+        
+        alp = .5 # test split at half psi
+        
+        psiAlp = psiS + alp*(psiN - psiS)
+                
+        # TODO in the Ingrid.construct_SNL_patches method there must be some
+        # inconsistency in the definition of lines, on the order isn't being 
+        # maintained, because the below definition for the west endpoints
+        # of the north and south lines is correct for most of the patches
+        # but a few has one point on the wrong end.
+        # these are: IDL, IST, OCB, and OPF
+        x1 = self.S.p[-1].x
+        x2 = self.N.p[0].x
+        y1 = self.S.p[-1].y
+        y2 = self.N.p[0].y
+        
+        plt.plot(x2, y2, 'X', color='blue')  # north
+        plt.plot(x1, y1, 'X', color='red')  # south
+        plt.draw()
+                
+        def fpsi(x):
+            # line in 3d space
+            # must manually calculate y each time we stick it into
+            # the line of interest
+            y = (y2-y1)/(x2-x1)*(x-x1)+y1
+            return grid.psi_norm.get_psi(x, y) - psiAlp
 
+        sol = root_scalar(fpsi, bracket=[x1, x2])
+        r_psi = sol.root
+        z_psi = (y2-y1)/(x2-x1)*(r_psi-x1)+y1
+        
+        plt.plot(r_psi, z_psi, 'x')
+        plt.draw()
+        
+        mid_line = grid.eq.draw_line((r_psi, z_psi), {'line': self.E},option='theta', direction='cw', show_plot=True)
+        
+        self.lines.append(mid_line)
+ 
 
 def calc_mid_point(v1, v2):
     """
-    v1 must be furthest right in a counter clockwise direction
-    v1 and v2 are vectors of equal length
+    Calculates the bisection of two vectors of equal length, 
+    and returns the point on the circle at that angle.
+    
+    
+    Parameters
+    ----------
+    v1 : geometry.Vector object
+        v1 must be furthest right in a counter clockwise direction
+    v2 : geometry.Vector object
+        Vector on the left
+        
+    Returns
+    -------
+    tuple
+        The point at the bisection of two vectors.
+    
     """
     # bisection
     theta = np.arccos(np.dot(v1.arr(), v2.arr())/(v1.mag() * v2.mag())) / 2.
@@ -197,22 +326,50 @@ def calc_mid_point(v1, v2):
 
 
 def test2points(p1, p2, line):
-    """ check if two points are on opposite sides of a line.
-    the signs are different if on opposite sides of the line
     """
-#    x1, y1 = line.p[0].x, line.p[0].y
-#    x2, y2 = line.p[-1].x, line.p[-1].y
+    Check if two points are on opposite sides of a given line.
+        
+    Parameters
+    ----------
+    p1 : tuple
+        First point, (x, y)
+    p2 : tuple
+        Second point, (x, y)
+    line : array-like
+        The line is comprised of two points ((x, y), (x, y))
+
+    Returns
+    -------
+    tuple
+        returns two numbers, if the signs are different 
+        the points are on opposite sides of the line.
     
+    """    
     (x1, y1), (x2, y2) = line
     x, y = p1
     a, b = p2
     d1 = (x-x1)*(y2-y1)-(y-y1)*(x2-x1)
     d2 = (a-x1)*(y2-y1)-(b-y1)*(x2-x1)
+    
     return np.sign(d1),  np.sign(d2)
 
 
 def intersect(line1, line2):
-    """ lines of the form A = ((x, y), (x, y)) """
+    """ Finds the intersection of two line segments
+    
+    
+    Parameters
+    ----------
+    line1 : array-like
+    line2 : array-like
+        both lines of the form A = ((x, y), (x, y)) 
+        
+    Returns
+    -------
+    tuple
+        coordinates of the intesection
+    
+    """
     def line(x, line):
         """ point slope form """
         (x1, y1), (x2, y2) = line
@@ -231,85 +388,6 @@ def intersect(line1, line2):
     guess = (np.mean([a, c, i, p]), np.mean([b, d, j, q]))
     r, z = fsolve(f, guess)
     return r, z
-    
-
-#def intersect(line1, line2):
-#    """ accepts two Line objects """
-#    def line(x, line):
-#        """ point slope form """
-##        (x1, y1), (x2, y2) = line.p[0].x, , line.p[-1]
-#        x1 = line.p[0].x
-#        y1 = line.p[0].y
-#        x2 = line.p[-1].x
-#        y2 = line.p[-1].y
-#        return (y2-y1)/(x2-x1) * (x - x1) + y1
-#
-#    def f(xy):
-#        # parse the line, access any point
-#        # normalized to help solve for zero
-#        x, y = xy
-#        return np.array([y - line(x, line1),
-#                         y - line(x, line2)])
-#
-#    # use the mean for initial guess
-##    (a, b), (c, d) = line1
-##    (i, j), (p, q) = line2
-#    a, b = line1.p[0].x, line1.p[0].y
-#    c, d = line1.p[-1].x, line1.p[-1].y
-#    i, j = line2.p[0].x, line2.p[0].y
-#    p, q = line2.p[-1].x, line2.p[-1].y
-#    
-#    guess = (np.mean([a, c, i, p]), np.mean([b, d, j, q]))
-#    r, z = fsolve(f, guess)
-#    return r, z
-
-
-
-def truncate_list(old_x, old_y, x, y):
-    """ accepts lists of x and y coordinates, and shortens them.
-    ends at the given x and y values. assumes they are on the same line
-    as the rest of the list.
-    """
-
-    # find the nearest index
-    # this index may be an upper or lower bound
-    ix = (abs(old_x - x)).argmin()
-    iy = (abs(old_y - y)).argmin()
-
-    # case ascending x
-    if old_x[0] - old_x[1] < 0:
-        if old_x[ix] > x:
-            # upper bound
-            new_x = np.copy(old_x[:ix+1])
-        else:
-            # lower bound
-            new_x = np.copy(old_x[:ix+2])
-
-    # case descending x
-    else:  # if old_x[0] - old_x[1] > 0:
-        if old_x[ix] > x:
-            new_x = np.copy(old_x[:ix+2])
-        else:
-            new_x = np.copy(old_x[:ix+1])
-    # now we can set the last value
-    new_x[-1] = x
-
-    # case ascending y
-    if old_y[0] - old_y[1] < 0:
-        if old_y[iy] > y:
-            new_y = np.copy(old_y[:iy+1])
-        else:
-            new_y = np.copy(old_y[:iy+2])
-
-    # case descending
-    else:  # if old_y[0] - old_y[1] > 0:
-        if old_y[iy] > y:
-            new_y = np.copy(old_y[:iy+2])
-        else:
-            new_y = np.copy(old_y[:iy+1])
-    # set the last value
-    new_y[-1] = y
-    return new_x, new_y
 
 
 if __name__ == "__main__":
@@ -329,7 +407,7 @@ if __name__ == "__main__":
     patch.fill('lightsalmon')
 
     # borders
-    patch.plot_borders('red')
+    patch.plot_border('red')
 
     plt.xlim(0, 6)
     plt.ylim(0, 6)

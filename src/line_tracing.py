@@ -5,6 +5,7 @@ Created on Wed Jul  3 14:07:45 2019
 
 @author: watkins35
 """
+
 # want to click on a point close to a zero, adjust to the exact point
 # via newton's, and then trace out the contour line.
 from __future__ import print_function, division
@@ -18,29 +19,41 @@ import geometry as geo
 
 
 class LineTracing:
-    """ This class traces the polodal and radial lines of a given psi
-    function based of the points where the user clicks.
     """
+    This class traces the polodal and radial lines of a given psi
+    function based of the points where the user clicks.
+
+    Parameters
+    ----------
+    grid : Setup_Grid_Data.Efit_Data object
+        The grid object upon which the lines will be drawn.
+    params : dict
+        Dicitionary of the grid parameters. Should have been read in
+        from a namelist file.
+    eps : float, optional
+        Short for epsilon. Specifies the size of the circle drawn
+        around the zero point
+    tol : float, optional
+        Short for tolerance. Specifies how close to the final point the
+        line must get before converging. Also defines a circle.
+    numPoints : int
+        Number of points in the circle of radius eps
+    dt : float, optional
+        Specify the size of each line segment that is traced by
+        scipy.integrate.solve_ivp
+    option : str, optional
+        'theta' draws the poloidal line where the user clicks
+        'rho' draws the radial line where the user clicked
+        'xpt_circ': uses the root finder to find the root closest
+         to where the user clicked. Then finds the points around
+         that circle a distance epsilon away
+    direction : str, optional
+        'cw' or 'ccw'. Specifies clockwise or counterclockwise line
+        tracing.
+    """
+
     def __init__(self, grid, params, eps=1e-3, tol=1e-3,
                  numPoints=25, dt=0.02, option='xpt_circ', direction='cw'):
-        """ Supports many different types of line drawing,
-        parameters
-        ----------
-        grid - the grid object upon which the lines will be drawn.
-                expects one from the Efit_Data class.
-        eps - epsilon :: size of the circle drawn around the zero point
-        tol - tolerance :: how close to the final point the line must get
-                before converging. also a circle
-        numPoints - number of points in the circle of radius eps
-        option - accepts a string. default is contour
-               - 'theta' : draws the contour line where the user clicks
-               - 'rho' : draws the line orthogonal to the
-                          contour line where the user clicked
-               - 'xpt_circ': uses the root finder to find the root
-                           closest to where the user clicked. Then
-                           finds the points around that circle a distance
-                           epsilon away
-        """
         self.grid = grid
 
         self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event',
@@ -60,11 +73,15 @@ class LineTracing:
         # TODO: set self.first_step as a parameter
         self.first_step = 1e-3  # self.max_step
 
-        self.set_function(option, direction)  # initialize the function
+        # initialize the function
+        self._set_function(option, direction)
 
-    def differential_theta(self, t, xy):
-        """ coupled set of differential equations
-        to trace the poloidal lines """
+    def _differential_theta(self, t, xy):
+        """
+        Coupled set of differential equations
+        to trace the poloidal lines
+        """
+
         R, Z = xy
         B_R = (1/R)*self.grid.get_psi(R, Z, tag='vz')
         B_Z = -(1/R)*self.grid.get_psi(R, Z, tag='vr')
@@ -76,9 +93,11 @@ class LineTracing:
         else:
             return -np.array([dR, dZ])
 
-    def differential_rho(self, t, xy):
-        """ coupled set of differential equations
-        to trace the radial lines """
+    def _differential_rho(self, t, xy):
+        """
+        Coupled set of differential equations
+        to trace the radial lines
+        """
         R, Z = xy
         B_R = (1/R)*self.grid.get_psi(R, Z, tag='vz')
         B_Z = -(1/R)*self.grid.get_psi(R, Z, tag='vr')
@@ -90,16 +109,17 @@ class LineTracing:
         else:
             return -np.array([dR, dZ])
 
-    def set_function(self, option, direction):
+    def _set_function(self, option, direction):
         self.option = option
         self.dir = direction
         if self.option == 'theta':
-            self.function = self.differential_theta
+            self.function = self._differential_theta
         elif self.option == 'rho':
-            self.function = self.differential_rho
+            self.function = self._differential_rho
 
     def __call__(self, event):
-        """ Activates upon mouse click. Will call the appropriate function
+        """
+        Activates upon mouse click. Will call the appropriate function
         based on parameters
         """
         if event.button == 3:
@@ -114,10 +134,10 @@ class LineTracing:
         plt.draw()
 
         if self.option in ['theta', 'rho']:
-            self.draw_line((x0, y0))
+            self.draw_line((x0, y0), show_plot=True, text=True)
 
         elif self.option == 'xpt_circ':
-            # no longer using this... 
+            # no longer using this...
             self.root.find_root(x0, y0)
             r, z = self.root.final_root
             self.calc_equal_psi_points(r, z)
@@ -128,17 +148,35 @@ class LineTracing:
 
             plt.legend()
             plt.draw()
-            
+
     def disconnect(self):
-        """ turns of the click functionality """
+        """ turns off the click functionality """
         self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
         self.root.disconnect()
-    
+
     def calc_equal_psi_points(self, r, z, theta2d=False, err_circles=False,
                               show_eq_psi_points=False):
-        """ draws a circle around the xpt, and saves four coordinates for
-        each direction the poloidal line will travel.
+        """ draws a circle around the xpt, and saves four coordinates
+        for each direction the poloidal line will travel. Also
+        calculates the location of the points that bisect the poloidal
+        lines.
+
+        Parameters
+        ---------
+        r : float
+            R coordinate of the point in question.
+        z : float
+            Z coordinate of the point.
+        theta2d : bool, optional
+            Displays a plot on a seperate figure of the value of psi on
+            circle that is traced versus the value of psi at (r, z).
+        err_circles : bool, optional
+            Draw some circles around (r, z) to show what the allowed
+            error is for the point convergence criteria.
+        show_eq_psi_points : bool, optional
+            Plots an x on the NE, NW, SE, SW points that are found.
         """
+
         def get_circle(eps, x0, y0, psi=False):
             """ traces a circle of given radius (eps) around a point.
             Can be set to return the value of psi at each point
@@ -159,8 +197,7 @@ class LineTracing:
         self.theta = np.linspace(0, 2*np.pi, self.numPoints)
 
         # get the circle
-        circ['x'], circ['y'], circ['psi'] = get_circle(self.eps, r, z,
-                                                       psi=True)
+        circ['x'], circ['y'], circ['psi'] = get_circle(self.eps, r, z, psi=True)
 
         if err_circles:
             # include some other error lines around the zero point
@@ -230,39 +267,66 @@ class LineTracing:
         self.eq_psi['W'] = geo.calc_mid_point(nw, sw)  # WEST
         self.eq_psi['S'] = geo.calc_mid_point(sw, se)  # SOUTH
         self.eq_psi['E'] = geo.calc_mid_point(se, ne)  # EAST
-        
+
         if show_eq_psi_points:
             # let's us see where the offset points we will trace from are
             for key, (x, y) in self.eq_psi.items():
                 plt.plot(x, y, 'x', label=key)
             plt.legend()
             plt.draw()
-        
 
     def draw_line(self, rz_start, rz_end=None, color='green',
                   option=None, direction=None, show_plot=False, text=False):
-        """ rz_start and rz_end are defaulted to be the same point.
-        Checks the new set of points calculated and if it is near enough to
-        the end point, it stops calculating.
+        """
+        Uses scipy.integrate.solve_ivp to trace poloidal or radial
+        lines. Uses the LSODA method to solve the differential
+        equations. Three options for termination criteria, specified
+        by rz_end.
 
-        direction :: determines if the function plots clockwise (cw) or
-                          counterclockwise (ccw). default is None.
+        Parameters
+        ----------
+        rz_start : array-like or geometry.Point
+            Starting location for line tracing.
+        rz_end : dict, optional
+            Defaults to be rz_start. This is how we specify the
+            termination critera. i.e. {'point': Point}, {'line': Line},
+            {'psi': Psi}
+            Points can be a geometry.Point object, or array-like
+            i.e. (x, y)
+            Lines can be a geometry.Line object, or array-like
+            i.e. ((x, y), (x, y))
+            Psi must be a scalar, i.e. 1.1, and specifies the
+            level of psi to stop on.
+        color : str, optional
+            Specifies the color of the produced grid lines.
+        option : str, optional
+            Change which differential equation is used in the line
+            tracing proccess. 'theta', 'rho'
+        direction : str
+            determines if the function plots clockwise (cw) or
+            counterclockwise (ccw). default is None.
+        show_plot : bool, optional
+            Show the user real-time tracing and the line tracer works.
+        text : bool, optional
+            Prints convergence method, number of iterations, and
+            time taken to the terminal window.
+
+        Returns
+        -------
+        line : geometry.Line
+            Curved line consisting of the start and end points of each
+            segment calculated by solve_ivp. Does not store the
+            intermediate points.
         """
 
         if option is not None and direction is not None:
-            self.set_function(option, direction)
-
-
-        # TODO: change the accepted value for rz_end to be a key, value pair,
-        # and read this in to define what we see
+            self._set_function(option, direction)
 
         # check rz_start
         if isinstance(rz_start, geo.Point):
             ynot = (rz_start.x, rz_start.y)
         else:
             ynot = rz_start
-            
-
 
         # check rz_end:
         if rz_end is None:
@@ -270,7 +334,7 @@ class LineTracing:
             test = 'point'
             rz_end = ynot
             xf, yf = rz_end
-            
+
         elif rz_end.keys() == ['point']:
             print('Testing for point convergence')
             test = 'point'
@@ -280,7 +344,7 @@ class LineTracing:
             else:
                 xf = rz_end['point'][0]
                 yf = rz_end['point'][1]
-        
+
         # TODO: generalize the line termination to include "curves", or lines
         # defined by more than one set of points.
         elif rz_end.keys() == ['line']:
@@ -292,38 +356,15 @@ class LineTracing:
             else:
                 # form ((),())
                 endLine = rz_end['line']
-                
-        elif rz_end.keys() ==  ['psi']:
+
+        elif rz_end.keys() == ['psi']:
             print('Testing for psi convergence')
             test = 'psi'
             psi_test = rz_end['psi']
-            
-            
+
         else:
             print('rz_end type not recognized')
-            
-            
-#
-#        elif np.shape(rz_end) == (2,):
-##            print('Testing for point convergence')
-##            test = 'point'
-##            xf, yf = rz_end
-#            print("Point convergence shape error")
-#            print(rz_end)
-#
-#        elif np.shape(rz_end) == (2, 2):
-#            print("Line convergence shape error")
-#            print(rz_end)
-#
-#
-#        else:
-#            test = 'multiple lines'
-#            print('this could be interesting')
 
-
-            
-            
-            
         # size for each line segment
         told, tnew = 0, self.dt
 
@@ -338,21 +379,20 @@ class LineTracing:
         line = [geo.Point(ynot)]
 
         def converged(points):
-            """ checks for converence of the line in various ways """
+            # checks for converence of the line in various ways
 
             def success(message):
-                """ Displays a message so we know the convergence worked. """
+                # Displays a message so we know the convergence worked.
                 print('Converged via {}.'.format(message))
                 print('Iterations: ', count)
                 print('Spent {} '.format(self.time_in_converged)
                       + 'seconds checking convergence.')
 
             def save_line(x, y):
-                """ Plots the current line segments and saves
-                it for future use
-                x: list -- r endpoints
-                y: list -- z endpoints
-                """
+                # Plots the current line segments and saves
+                # it for future use
+                # x: list -- r endpoints
+                # y: list -- z endpoints
                 line.append(geo.Point(x[-1], y[-1]))
                 if show_plot:
                     self.grid.ax.plot(x, y, '.-', linewidth='2', color=color)
@@ -361,26 +401,36 @@ class LineTracing:
 
             t1 = time()
             # don't go off the plot
-            tol = 1e-3
-            # TODO adjust this so boundaries are lines, 
-            # and we don't have to test every intermediate points
-            if (any(abs(rmin - points[0]) < tol)
-                    or any(abs(rmax - points[0]) < tol)
-                    or any(abs(zmin - points[1]) < tol)
-                    or any(abs(zmax - points[1]) < tol)):
-                # this is just here as a safegaurd, none of the lines
-                # we care about should go off the grid
-                if text: success('edge')
-                return True
+            boundary = [((rmin, zmin), (rmin, zmax)),
+                        ((rmin, zmax), (rmax, zmax)),
+                        ((rmax, zmax), (rmax, zmin)),
+                        ((rmax, zmin), (rmin, zmin))]
+
+            # check for intersections
+            for edge in boundary:
+                p1 = (points[0][0], points[1][0])
+                p2 = (points[0][-1], points[1][-1])
+                p1s, p2s = geo.test2points(p1, p2, edge)
+                if p1s != p2s:
+                    print('The line went over the boundary')
+                    if text:
+                        success('edge')
+                    r, z = geo.intersect((p1, p2), edge)
+                    save_line([p1[0], r], [p1[1], z])
+                    return True
 
             # check if any point is close enough to the endpoint
+            # this currently works by checking all the intermediate points
+            # with the termination point.
+            # TODO: develope a method to check if the point is close
+            # to a line defined by two points.
             if test == 'point':
                 if (any(abs(points[0]-xf) < self.tol)
                         and any(abs(points[1]-yf) < self.tol)
                         and count > 5):
-                    if text: success('endpoint')
-                    new_x, new_y = geo.truncate_list(self.x, self.y, xf, yf)
-                    save_line([new_x[0], new_x[-1]], [new_y[0], new_y[-1]])
+                    if text:
+                        success('endpoint')
+                    save_line([points[0][0], xf], [points[1][0], yf])
                     return True
 
             elif test == 'line':
@@ -390,7 +440,8 @@ class LineTracing:
                 p2 = (points[0][-1], points[1][-1])
                 p1s, p2s = geo.test2points(p1, p2, endLine)
                 if p1s != p2s:
-                    if text: success('line crossing')
+                    if text:
+                        success('line crossing')
                     r, z = geo.intersect((p1, p2), endLine)
                     save_line([p1[0], r], [p1[1], z])
                     return True
@@ -405,9 +456,9 @@ class LineTracing:
                 if (psi1 - psi_test)*(psi2 - psi_test) < 0:
                     if text: success('psi test')
                     # need to find coords for the value of psi that we want
-                    
+
                     def f(x):
-                        # must manually calculate y each time we stick to
+                        # must manually calculate y each time we stick it into
                         # the line of interest
                         y = (y2-y1)/(x2-x1)*(x-x1)+y1
                         return psi_test - self.grid.get_psi(x, y)
@@ -425,7 +476,7 @@ class LineTracing:
             # if convergence didn't occur
             if count > 0:
                 # plot the line like normal
-                save_line([self.x[0], self.x[-1]], [self.y[0], self.y[-1]])
+                save_line([points[0][0], points[0][-1]], [points[1][0], points[1][-1]])
 
             t2 = time()
             self.time_in_converged += t2 - t1
@@ -445,8 +496,13 @@ class LineTracing:
 
             ynot = [self.x[-1], self.y[-1]]
 
-
             told, tnew = tnew, tnew + self.dt
+
+            # TODO: reduce the list passed in to only be the endpoints
+            # of the line, and not include all the intermediate points
+            # currently there is an error in the calculation of midpoints
+            # for the sepratrix, when we try to truncate the points list.
+            # Occurs with point converence.
             points = (self.x, self.y)
 
             if count > 350:
@@ -454,12 +510,12 @@ class LineTracing:
                 print('Iterations: ', count)
                 end = time()
                 print('Took {} '.format(end-start)
-                      + 'seconds trying to converge.')
+                      + 'seconds trying Lto converge.')
                 break
             count += 1
         end = time()
-#        print('Drew for {} seconds\n'.format(end-start))
-
+        if text:
+            print('Drew for {} seconds\n'.format(end-start))
 
         return geo.Line(line)
 

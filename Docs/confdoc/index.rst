@@ -6,11 +6,7 @@
 Welcome to Ingrid's documentation!
 ==================================
 
-Add a link to some of the major ideals that went into this project
-View Abstract
-Why python
-future plans
-
+Ingrid is an interactive python-based grid generator for the tokamak boundary region.
 
 .. toctree::
    :maxdepth: 2
@@ -19,8 +15,13 @@ future plans
    abstract
    why_python
    Summary_and_Plans
-   code
+
+   Ingrid
    Interpol
+   Geometry
+   Line_Tracing
+   Root_Finder
+   Test_Modules
 
 Indices and tables
 ==================

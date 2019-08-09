@@ -5,8 +5,6 @@ Created on Sat Aug  3 13:24:06 2019
 
 @author: Joey
 """
-
-#from numpy import array, reshape, matmul, transpose
 import numpy as np
 
 
@@ -14,10 +12,38 @@ def bicubic(f, fx, fy, fxy, x0, y0, derivs=None):
     """ Bicubic interpolation on unit square [0,1]x[0,1].
     Returns the value of the interpolated polynomial at the given interior
     point (x0,y0).
-    """
-    # Make sure that f, fx, fy, fxy are arrays.
-    # All known quantities on 4 vertices.
+    f, fx, fy, fxy can be arrays, lists, tulpes etc. They must each 
+    have four values and are ordered 
+    f_{i,j}, f_{i,j+1}, f_{i+1,j}, f_{i+1,j+1}.
+    This is the natural order produced by the locate cell method,
+    in the Setup_Grid_Data.EFit_Data class, which how
+    this function is usually called.
     
+    Parameters
+    ----------
+    f : array-like
+        Contains the value of the function of each cell coordinate.
+    fx : array-like
+        Contains the x or R derivative
+    fy : array-like
+        Contains the y or Z derivative
+    fxy : array-like
+        Contains the cross derivative, xy or RZ
+    x0 : float
+        Normalized x or R coordinate of the point of interest
+    y0 : float
+        Normalized y  or Z coordinate of the point
+    derivs : str, optional
+        Contains the tag for the type of derivative we want.
+        Accepts 'v', 'vr', 'vz', 'vrz'
+        
+    Returns
+    -------
+    res : float
+        The value of the function of its derivative at a given location
+    
+    """
+    # All known quantities on 4 vertices.
     xall = np.array([[f[0], f[2], fy[0], fy[2]],
                      [f[1], f[3], fy[1], fy[3]],
                      [fx[0], fx[2], fxy[0], fxy[2]],

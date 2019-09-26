@@ -141,7 +141,7 @@ class LineTracing:
             self.root.find_root(x0, y0)
             r, z = self.root.final_root
             self.calc_equal_psi_points(r, z)
-
+           
             # this part is just plotting
             for key, (x, y) in self.eq_psi.items():
                 plt.plot(x, y, 'x', label=key)
@@ -397,7 +397,7 @@ class LineTracing:
                 if show_plot:
                     self.grid.ax.plot(x, y, '.-', linewidth='2', color=color)
                     plt.draw()
-                    plt.pause(1e-15)
+                    plt.pause(np.finfo(float).eps)
 
             t1 = time()
             # don't go off the plot

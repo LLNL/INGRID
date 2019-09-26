@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import root
 
+import IngridApp
 
 class RootFinder:
     """
@@ -25,9 +26,15 @@ class RootFinder:
         to find the roots.
     
     """
-    def __init__(self, grid, active=True):
+    def __init__(self, grid, active=True, controller=None):
         self.grid = grid
         self.root_finding = True
+        self.controller = controller
+
+        self.curr_x = 0.0
+        self.curr_y = 0.0
+        self.final_root = ()
+
         if active:
             self.cid = grid.ax.figure.canvas.mpl_connect('button_press_event', self)
             print("Entering Root Finder. "
@@ -66,12 +73,12 @@ class RootFinder:
             # safe gaurd against clicking outside the figure
             return
         
-        x, y = event.xdata, event.ydata
+        self.curr_x, self.curr_y = event.xdata, event.ydata
         if self.root_finding: 
-            self.find_root(x, y)
+            self.find_root(self.curr_x, self.curr_y)
         else:
-            print("You chose ({0:.5f}, {1:.5f}). ".format(x, y))
-            self.final_root = (x, y)
+            print("You chose ({0:.5f}, {1:.5f}). ".format(self.curr_x, self.curr_y))
+            self.final_root = (self.curr_x, self.curr_y)
     
     def toggle_root_finding(self):
         """ Activates or deactivates the root finding capacity.
@@ -85,6 +92,12 @@ class RootFinder:
     def disconnect(self):
         """ Turn off the click functionality for the root finder. """
         self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
+        print('RF Disabled')
+   
+    def connect(self):
+        """ Turn on the click functionality for the root finder. """
+        self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event', self)
+        print('RF Enabled')
     
     def find_root(self, x, y):
         """        
@@ -113,8 +126,12 @@ class RootFinder:
                   "The zero point is ({0:.5f},{1:.5f})".format(r, z))
             plt.plot(r, z, '1')  # the '1' determines the shape of the marker
             plt.draw()
-            self.final_root = (r, z)   
 
+            self.final_root = (r, z)
+
+            self.controller.frames[IngridApp.ParamPicker].curr_click = (x, y)
+            # self.controller.curr_root = self.final_root
+            self.controller.frames[IngridApp.ParamPicker].update_root_finder()
 
 if __name__ == "__main__":
 #    from Interpol.Setup_Grid_Data import Efit_Data

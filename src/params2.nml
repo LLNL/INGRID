@@ -1,6 +1,6 @@
 &files
-    geqdsk = '/global/homes/b/bryan343/Data/SF15/neqdsk'
-    itp = '/global/homes/b/bryan343/test/ingrid_demo/itp1.txt'
+    geqdsk = '/global/homes/b/bryan343/test/ingrid_demo/neqdsk'
+    itp = 'itp2.txt'
     otp = '/global/homes/b/bryan343/test/ingrid_demo/otp1.txt'
 /
 

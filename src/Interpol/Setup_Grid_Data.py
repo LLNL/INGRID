@@ -344,7 +344,12 @@ class Efit_Data:
         plt.ylim(self.zmin, self.zmax)
         plt.ion()
         plt.show()
-
+        
+    def clear_plot(self):
+        if plt.get_fignums():
+            plt.clf()
+        else:
+            pass
 
 if __name__ == "__main__":
     grid = Efit_Data()

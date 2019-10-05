@@ -1,5 +1,5 @@
 &files
-    geqdsk = '/global/homes/b/bryan343/Data/SF15/neqdsk'
+    geqdsk = '/global/homes/b/bryan343/INGRID/src/neqdsk'
     itp = '/global/homes/b/bryan343/test/ingrid_demo/itp1.txt'
     otp = '/global/homes/b/bryan343/test/ingrid_demo/otp1.txt'
 /
@@ -12,5 +12,15 @@
     psi_max = 1.1
     psi_min_core = 0.9
     psi_min_pf = 0.8
-    step_ratio = 0.02
+    step_ratio = 0.002
+/
+
+&debug
+    start_R = 0.462727272727
+    start_Z = -0.063636363636
+    end_R = 0.705454545455
+    end_Z = 0.287272727273
+    tol = 5e-6
+    option = theta
+    dir = ccw
 /

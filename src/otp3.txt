@@ -1,7 +1,5 @@
 # contains data for the two endpoints of the outer target plate
 # left point
-# 0.75091, -0.63636
-0.570909, -0.570909
+1.37, -1.03
 # right point
-# 0.87091, -0.47455
-0.681818, -0.563636
+1.64, -0.97

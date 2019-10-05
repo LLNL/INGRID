@@ -28,6 +28,19 @@ LARGE_FONT = 'Helvetica 13 bold'
 MEDIUM_FONT = 'Helvetica 9 bold'
 
 class IngridApp(tk.Tk):
+    """
+    IngridApp:
+    ----------
+        - Primary controller/hub for the GUI application.
+        - Contains the 'FilePicker' and 'ParamPicker' pages,
+          along with our INGRID data corresponding to the 
+          current session.
+
+    TODO:
+    -----
+        - Determine if helper functions can be established
+          to streamline the other classes.
+    """
 
     def __init__(self, *args, **kwargs):
         
@@ -58,6 +71,21 @@ class IngridApp(tk.Tk):
         frame.tkraise()
 
 class FilePicker(tk.Frame):
+    """
+    FilePicker:
+    -----------
+        - Class representing the Frame that contains all file selection 
+          functionality.
+
+    TODO:
+    -----
+        - Transition from tk.pack geometry manager to tk.grid
+          geometry manager.
+        - Create Classes representing objects currently populating
+          the FilePicker Frame.
+        - General code-cleanup...
+
+    """
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent) 
@@ -75,7 +103,6 @@ class FilePicker(tk.Frame):
         self.itp_loaded = False
         self.otp_loaded = False
         self.param_loaded = False
-
         self.preview_loaded = False
         
         # TODO: Gather all buttons in a list or dictionary, and
@@ -84,6 +111,18 @@ class FilePicker(tk.Frame):
         label = tk.Label(self, text = "Ingrid.", font=LARGE_FONT)
         label.pack(side = 'top', padx = 5, pady = 3)
 
+        # TODO: Create class to automate widget creation. 
+        #       Structure of widget should capture the
+        #       essence of the following block:
+
+        """
+        self._EQDSK = FilePickerWidget(parent, controller, {'ButtonText' : 'Select EQDSK File', \
+                                                            'EntryText'  : 'Select an EQDSK File',
+                                                            'Command'    :  self.load_eqdsk_file})
+        """
+
+
+        """ Start Block."""
         self.container1 = tk.Frame(self)
         self.eqdsk_button = tk.Button(self.container1, anchor = 'w', width = 16, \
                                     text = "Select EQDSK File", command=self.load_eqdsk_file, \
@@ -96,6 +135,7 @@ class FilePicker(tk.Frame):
         self.container1.pack(side = 'top', fill = tk.X, padx = 5, pady = 2)
         self.eqdsk_button.pack(side = 'right', padx = 5,   pady = 2)
         self.eqdsk_entry.pack(side = 'left', fill = tk.X)
+        """End Block."""
 
         self.container2 = tk.Frame(self)
         self.itp_button = tk.Button(self.container2, anchor = 'w', width = 16, \
@@ -145,9 +185,28 @@ class FilePicker(tk.Frame):
         print(self.master)
 
     def get_file(self, ftypes = (("All Files", "*"), ("Text Files", "*.txt"))):
+        """
+        General method to allow user to select a file via GUI.
+
+        Parameters:
+        ----------
+            ftypes : tuple-like, optional
+                    Specification of file types to be shown in
+                    file-explorer. Takes form of:
+                        ( ('Prompt_To_User', 'file_type') )
+        Return vals:
+        -----------
+            fpath : PathLib object
+                    PathLib2 instance if file-exists.
+                    Empty string if no file selected.
+            
+            True/False  : bool
+                    Return whether a file was selected or not.
+                
+        """
         try:
-            fpath = Path(tkFD.askopenfilename(initialdir = '.', title = 'Select File', \
-                         filetypes = ftypes ))
+            fpath = Path(tkFD.askopenfilename(initialdir = '../test_params', \
+                         title = 'Select File', filetypes = ftypes ))
             if fpath.is_file():
                 return fpath, True
             else:
@@ -155,8 +214,36 @@ class FilePicker(tk.Frame):
         except TypeError:
             return '', False
 
-    def load_eqdsk_file(self): 
-        eqdsk_file, valid_path = self.get_file()
+    def load_eqdsk_file(self, toLoad = None):
+        """
+        Loads EQDSK file.
+
+        Parameters:
+        -----------
+            toLoad : string, optional
+                    Path to an EQDSK file that we 
+                    will attempt to load.
+        Return Vals:
+        ------------
+            True/False : bool
+                    Return whether or not the file
+                    was successfully loaded.
+
+        Post-Call:
+        ----------
+            Updates eqdsk_loaded flag to True if
+            an EQDSK file was loaded successfully.
+
+            Updates eqdsk_loaded flag to False if
+            wrong file-type selected.
+
+        """
+        if toLoad:
+            eqdsk_file = Path(toLoad)
+            valid_path = eqdsk_file.is_file()
+        else:
+            eqdsk_file, valid_path = self.get_file()
+
         if valid_path and eqdsk_file.suffix == '':
             self.ROOT.nml['files']['geqdsk'] = str(eqdsk_file)
             print(self.ROOT.nml)
@@ -170,8 +257,21 @@ class FilePicker(tk.Frame):
             self.eqdsk_loaded = False
             self.update_frame_state()
 
-    def load_itp_file(self):
-        itp_file, valid_path = self.get_file()
+    def load_itp_file(self, toLoad = None):
+        """
+        Loads *.txt file containing ITP geometry.
+
+        Post-Call:
+        ----------
+            Updates itp_loaded flag to True if
+            a *.txt file was loaded successfully.
+
+        """
+        if toLoad:
+            itp_file = Path(toLoad)
+            valid_path = itp_file.is_file()
+        else:
+            itp_file, valid_path = self.get_file()
         if valid_path and itp_file.suffix == '.txt':
             self.ROOT.nml['files']['itp'] = str(itp_file)
             print(self.ROOT.nml)
@@ -180,7 +280,19 @@ class FilePicker(tk.Frame):
             self.itp_loaded = True
             self.update_frame_state()
 
-    def load_otp_file(self):
+    def load_otp_file(self, toLoad=None):
+        """
+        Loads *.txt file containing OTP geometry.
+
+        Post-Call:
+        ----------
+            Updates otp_loaded flag to True if
+            a *.txt file was loaded successfully.
+
+        """
+        if toLoad:
+            otp_file = Path(toLoad)
+            valid_path = otp_file.is_file()
         otp_file, valid_path = self.get_file()
         if valid_path and otp_file.suffix == '.txt':
             self.ROOT.nml['files']['otp'] = str(otp_file)
@@ -191,17 +303,43 @@ class FilePicker(tk.Frame):
             self.update_frame_state()
 
     def load_param_file(self):
+        """
+        Loads *.nml file containing INGRID parameters.
+        Said *.nml contains session settings.
+
+        Post-Call:
+        ----------
+            Updates param_loaded flag to True if
+            a *.nml file was loaded successfully.
+
+        TODO:
+        -----
+            Check whether the *.nml file actually
+            contained all the required files. This
+            can be done by inspecting the nml object.
+
+        """
         param_file, valid_path = self.get_file( (('NML Files', '*.nml'), ('All Files', '*')) )
         if valid_path and param_file.suffix == '.nml':
+            self.neqdsk = param_file
             self.ROOT.nml = f90nml.read(str(param_file))
             print(self.ROOT.nml)
             self.param_button.config(fg = 'lime green')
             self.param_text.set(str(param_file))
+            
             self.param_loaded = True
             self.update_all_widgets()
             self.update_frame_state()
 
     def update_frame_state(self):
+        """
+        Keeps track of which files are loaded via
+        our file-flags.
+
+        When all files are loaded successfully, the
+        user can proceed to the next Frame (ParamPicker)
+
+        """
         # Button state bool flag would be nice here.
         # We'd be able to call a 'flip_state' function instead of
         # manually setting the config.
@@ -213,6 +351,12 @@ class FilePicker(tk.Frame):
             self.proceed_button.config(state = 'normal')
     
     def update_all_widgets(self):
+        """
+        To be called when a *.nml parameter file is loaded.
+        Updates all file-loaded flags to True and updates
+        the Frame visuals (button color, Entry text)
+
+        """
         self.eqdsk_button.config(fg = 'lime green')
         self.eqdsk_text.set(self.ROOT.nml['files']['geqdsk'])
         self.eqdsk_loaded = True
@@ -226,6 +370,16 @@ class FilePicker(tk.Frame):
         self.otp_loaded = True
 
     def files_ready(self):
+        """
+        Helper that determines if all the required files
+        have been loaded or not.
+
+        Return Vals:
+            True/False : bool
+                        Return whether or not all files
+                        have been loaded.
+
+        """
         if self.param_loaded and self.preview_loaded:
             return True
         if self.eqdsk_loaded and self.itp_loaded and self.otp_loaded and self.preview_loaded:
@@ -233,6 +387,9 @@ class FilePicker(tk.Frame):
         return False
 
     def preview_data(self):
+        """
+
+        """
         # TODO: Make sure ONLY if self.ROOT.nml good to go.. execute this code. 
          
         # self.ROOT.IngridSession.setup()
@@ -252,10 +409,31 @@ class FilePicker(tk.Frame):
         for item in self.controller.frames[ParamPicker].All_RefineFrames:
             item.Edit_Button.config(state = 'normal')
 
-        
+        self.controller.frames[ParamPicker].loadParameters()
         self.ROOT.IngridSession.find_roots(tk_controller = self.controller)
         self.ROOT.show_frame(ParamPicker)
         self.ROOT.geometry('760x530')
+
+"""
+class FilePickerWidget(tk.Frame):
+    def __init__(self, parent, controller, params):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        
+        self.FP_ButtonText = tk.StringVar()
+        self.FP_Buttontext.set(params['ButtonText'])
+
+        self.FP_EntryText = tk.StringVar()
+        self.FP_EntryText.set(params['EntryText'])
+
+        self.FP_Entry = tk.Entry(self, text = self.FP_EntryText, width = 40\
+                                 disabledbackground = '#f8f8ff', state = 'disabled')
+        self.FP_Button = tk.Button(self, text = self.FP_ButtonText, width = 16\
+                                   font = MEDIUM_FONT, command = params['button_command'])
+
+        self.FP_Entry.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'EW')
+        self.FP_Button.grid(row = 0, column = 2, padx = 10, pady = 10, sticky = 'EW')
+"""
 
 class ParamPicker(tk.Frame):
     
@@ -323,8 +501,8 @@ class ParamPicker(tk.Frame):
         sol = root(self.controller.IngridSession.root_finder.func, \
                 [float(self.ActiveFrame[0].R_EntryText.get()), \
                  float(self.ActiveFrame[0].Z_EntryText.get())] )
-        self.ActiveFrame[0].R_EntryText.set('{0:.7f}'.format(sol.x[0]))
-        self.ActiveFrame[0].Z_EntryText.set('{0:.7f}'.format(sol.x[1]))
+        self.ActiveFrame[0].R_EntryText.set('{0:.12f}'.format(sol.x[0]))
+        self.ActiveFrame[0].Z_EntryText.set('{0:.12f}'.format(sol.x[1]))
         
 
     def activate_frame(self, calling_frame):
@@ -352,15 +530,14 @@ class ParamPicker(tk.Frame):
         self.controller.geometry('450x215')
 
     def update_root_finder(self):
-        self.ActiveFrame[0].R_EntryText.set('{0:.7f}'.format(self.curr_click[0]))
-        self.ActiveFrame[0].Z_EntryText.set('{0:.7f}'.format(self.curr_click[1]))
+        self.ActiveFrame[0].R_EntryText.set('{0:.12f}'.format(self.curr_click[0]))
+        self.ActiveFrame[0].Z_EntryText.set('{0:.12f}'.format(self.curr_click[1]))
         if self.ActiveFrame[0] in self.All_PsiFrames:
             psi_magx = self.controller.IngridSession.efit_psi.get_psi(self.MagAxis[0], self.MagAxis[1])
             psi_xpt = self.controller.IngridSession.efit_psi.get_psi(self.Xpt[0], self.Xpt[1])
             psi_efit = self.controller.IngridSession.efit_psi.get_psi(self.curr_click[0],self.curr_click[1])
             psi = (psi_efit - full_like(psi_efit, psi_magx))/(psi_xpt - psi_magx)
-            self.ActiveFrame[0].Psi_EntryText.set('{0:.7f}'.format(psi))
-            self.controller.IngridSession.compute_eq_psi()
+            self.ActiveFrame[0].Psi_EntryText.set('{0:.12f}'.format(psi))
 
     def set_RFValues(self):
         self.controller.nml['grid_params']['Rmagx'] = float(self.MagFrame.R_EntryText.get())
@@ -381,11 +558,26 @@ class ParamPicker(tk.Frame):
         self.unlock_PsiFrame()
     
     def set_PsiValues(self):
+        
+        for F in self.All_PsiFrames:
+            if F.R_EntryText.get() == '':
+                F.R_EntryText.set('0.0')
+            if F.Z_EntryText.get() == '':
+                F.Z_EntryText.set('0.0')
+
+        self.controller.nml['grid_params']['psi_max_R'] = float(self.PsiMaxFrame.R_EntryText.get())
+        self.controller.nml['grid_params']['psi_max_Z'] = float(self.PsiMaxFrame.Z_EntryText.get())
         self.controller.nml['grid_params']['psi_max'] = float(self.PsiMaxFrame.Psi_EntryText.get())
+
+        self.controller.nml['grid_params']['psi_min_core_R'] = float(self.PsiMinFrame.R_EntryText.get())
+        self.controller.nml['grid_params']['psi_min_core_Z'] = float(self.PsiMinFrame.Z_EntryText.get())
         self.controller.nml['grid_params']['psi_min_core'] = float(self.PsiMinFrame.Psi_EntryText.get())
+
+        self.controller.nml['grid_params']['psi_min_pf_R'] = float(self.PsiPrivateFrame.R_EntryText.get())
+        self.controller.nml['grid_params']['psi_min_pf_Z'] = float(self.PsiPrivateFrame.Z_EntryText.get())
         self.controller.nml['grid_params']['psi_min_pf'] = float(self.PsiPrivateFrame.Psi_EntryText.get())
         self.controller.nml['grid_params']['step_ratio'] = 0.02
-
+        
         self.unlock_controls()
         self.acceptPF_Button.config(text = 'Entries Saved!', fg = 'lime green')
 
@@ -393,11 +585,10 @@ class ParamPicker(tk.Frame):
         self.set_RFValues()
         self.set_PsiValues()
         self.controller.IngridSession.magx = self.MagAxis
-        print('Magnetic Axis: ' + str(self.MagAxis))
         self.controller.IngridSession.xpt1 = self.Xpt
         self.controller.IngridSession.calc_psinorm()
-        self.controller.IngridSession.compute_eq_psi()
-        self.controller.IngridSession.construct_SNL_patches()
+        self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].eqdsk_text.get()))
+        self.controller.IngridSession.construct_SNL_patches2()
         self.controller.IngridSession.patch_diagram()
 
     def saveParameters(self):
@@ -407,6 +598,35 @@ class ParamPicker(tk.Frame):
         print(fname)
         f90nml.write(self.controller.nml, fname, force=True)  # force tag is to overwrite the previous file
         print("Saved parameters to '{}'.".format(fname))
+
+    def loadParameters(self):
+        lookup = {'rmagx' : self.MagFrame.R_EntryText, 'zmagx' : self.MagFrame.Z_EntryText,\
+                  'rxpt'  : self.XptFrame.R_EntryText, 'zxpt'  : self.XptFrame.Z_EntryText,\
+                  'psi_max_R' : self.PsiMaxFrame.R_EntryText, 'psi_max_Z' : self.PsiMaxFrame.Z_EntryText,\
+                  'psi_min_core_R' : self.PsiMinFrame.R_EntryText, 'psi_min_core_Z' : self.PsiMinFrame.Z_EntryText,\
+                  'psi_min_pf_R' : self.PsiPrivateFrame.R_EntryText, 'psi_min_pf_Z' : self.PsiPrivateFrame.Z_EntryText,\
+                  'psi_max' : self.PsiMaxFrame.Psi_EntryText, 'psi_min_core' : self.PsiMinFrame.Psi_EntryText,\
+                  'psi_min_pf' : self.PsiPrivateFrame.Psi_EntryText\
+                  }
+        for param in self.controller.nml['grid_params']:
+            try:
+                lookup[param].set('{0:.12f}'.format(self.controller.nml['grid_params'][param]))
+            except:
+                print('Did not find: ' + str(param))
+        """
+        self.MagFrame.R_EntryText.set(
+        self.MagFrame.Z_EntryText.set(
+        self.Magframe.Psi_EntryText.set(
+
+        self.XptFrame.R_EntryText
+        self.XptFrame.Z_EntryText
+        
+
+        self.PsiMaxFrame.Psi_EntryText
+        self.PsiMinFrame.Psi_EntryText
+        self.PsiPrivateFrame.Psi_EntryText
+        """
+
 
 class RefineFrame(tk.LabelFrame):
 

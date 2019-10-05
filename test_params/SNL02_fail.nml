@@ -1,0 +1,24 @@
+# ISSUE: Degenerate Patch Diagram.
+# 	 OST line goes over the boundary. View in debug_mode.
+&files
+    geqdsk = '/global/u2/b/bryan343/INGRID/src/neqdsk'
+    itp = '/global/u2/b/bryan343/INGRID/src/itp1.txt'
+    otp = '/global/u2/b/bryan343/INGRID/src/otp1.txt'
+/
+
+&grid_params
+    rmagx = 0.6818276
+    rxpt = 0.5630431
+    zmagx = -0.0036148
+    zxpt = -0.3949865
+    psi_max = 1.13005
+    psi_min_core = 0.5972389
+    psi_min_pf = 0.8854032
+    step_ratio = 0.02
+    psi_max_r = 0.5298438
+    psi_max_z = 0.4439446
+    psi_min_core_r = 0.0
+    psi_min_core_z = 0.0
+    psi_min_pf_r = 0.0
+    psi_min_pf_z = 0.0
+/

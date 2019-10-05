@@ -1,0 +1,16 @@
+&files
+    geqdsk = '/global/u2/b/bryan343/INGRID/src/neqdsk'
+    itp = '/global/u2/b/bryan343/INGRID/src/itp1.txt'
+    otp = '/global/u2/b/bryan343/INGRID/src/otp1.txt'
+/
+
+&grid_params
+    rmagx = 0.681827575433
+    rxpt = 0.563043114769
+    zmagx = -0.00361482939879
+    zxpt = -0.394986500081
+    psi_max = 1.13006106611
+    psi_min_core = 0.597238946751
+    psi_min_pf = 0.885403199721
+    step_ratio = 0.02
+/

@@ -298,6 +298,10 @@ class Efit_Data:
             res /= self.dz
         elif tag == 'vrz':
             res /= self.dr*self.dz
+        elif tag == 'vrr':
+            res /= self.dr * self.dr
+        elif tag == 'vzz':
+            res /= self.dz * self.dz
 
         return res
 

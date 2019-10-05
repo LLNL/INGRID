@@ -388,6 +388,44 @@ def intersect(line1, line2):
     r, z = fsolve(f, guess)
     return r, z
 
+def segment_intersect(line1, line2):
+    """ Finds the intersection of two FINITE line segments.
+
+    Parameters
+    ----------
+    line1 : array-like
+    line2 : array-like
+        Both lines of the form line1 = (P1, P2), line2 = (P3, P4)
+
+    Returns
+    -------
+    bool, tuple
+        True/False of whether the segments intersect
+        Coordinates of the intersection
+    """
+
+    (xa, ya), (xb, yb) = (line1.xval[0], line1.yval[0]), (line2.xval[0], line2.yval[0])
+    (xc, yc), (xd, yd) = (line1.xval[1], line1.yval[1]), (line2.xval[1], line2.yval[1])
+
+
+    print(xb - xa)
+    print(yb - ya)
+    M = np.array([[xb - xa, -xd + xc],\
+                 [yb - ya, -yd + yc]])
+
+    print(M)
+    r = np.array([xc-xa, yc - ya])
+
+    print(r)
+
+    sol = np.linalg.solve(M, r)
+
+    if sol[0] <= 1 and sol[1] <= 1\
+       and sol[0] >= 0 and sol[1] >= 0:
+           return True, sol
+    else:
+        False, (None,None)
+
 
 if __name__ == "__main__":
     p1 = Point(1, 2)

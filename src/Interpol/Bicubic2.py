@@ -5,6 +5,10 @@ Created on Sat Aug  3 13:24:06 2019
 
 @author: Joey
 """
+"""
+Edit: 10/2/19:
+    Added 'vrr' and 'vzz' functionality.
+"""
 import numpy as np
 
 
@@ -74,5 +78,11 @@ def bicubic(f, fx, fy, fxy, x0, y0, derivs=None):
 
     elif derivs == 'vrz':
         res = np.matmul([0, 1, 2*x0, 3*x0**2], np.matmul(alp, [0, 1, 2*y0, 3*y0**2]))
+
+    elif derivs == 'vrr':
+        res = np.matmul([0, 0, 2, 6*x0], np.matmul(alp, [1, y0, y0**2, y0**3]))
+
+    elif derivs == 'vzz':
+        res = np.matmul([1, x0, x0**2, x0**3], np.matmul(alp, [0, 0, 2, 6*y0]))
 
     return res

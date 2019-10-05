@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(1, '/Users/garcia299/Desktop/INGRID_today/src')
+sys.path.insert(1, '/Users/garcia299/Desktop/INGRID/src')
 
 import Ingrid
-Ingrid.set_params_visual()
+Ingrid.set_params_GUI()

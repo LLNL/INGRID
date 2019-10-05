@@ -323,16 +323,84 @@ class Ingrid:
         self.new_line = LineTracing(self.psi_norm, self.grid_params,
                                     option='rho', direction='ccw')
 
-    def compute_eq_psi(self):
+    def compute_eq_psi(self, input_tol = 1e-3):
         """ Initializes the line tracing class for the construction
         of the grid. Necessary to be separate so we can wiat until the
         user clicks on the root.
         """
         from line_tracing import LineTracing
         self.eq = LineTracing(self.psi_norm, self.grid_params,
-                              option='xpt_circ')
-        self.eq.calc_equal_psi_points(self.xpt1[0], self.xpt1[1])
+                              option='xpt_circ', eps = 1e-3, tol = input_tol)
+        self.eq.find_NSEW(self.xpt1, self.magx)
+        # self.eq.calc_equal_psi_points(self.xpt1[0], self.xpt1[1])
         self.eq.disconnect()
+
+
+    def construct_SNL_patches2(self):
+        """
+        """
+        from geometry import Point, Patch, Line
+
+        debug_mode = True
+
+        # Get starting directions from primary x-point
+        self.compute_eq_psi()
+        xpt = self.eq.eq_psi
+        magx = np.array([self.grid_params['rmagx'], self.grid_params['zmagx']])
+        psi_max = self.grid_params['psi_max']
+        psi_min_core = self.grid_params['psi_min_core']
+        psi_min_pf = self.grid_params['psi_min_pf']
+
+        # Generate Horizontal Mid-Plane line
+        LHS_Point = Point(magx[0] - 1e6, magx[1])
+        RHS_Point = Point(magx[0] + 1e6, magx[1])
+        midLine = Line([LHS_Point, RHS_Point])
+        midLine.plot(color = 'blue')
+
+        # Generate Vertical Mid-Plane line
+        Lower_Point = Point(magx[0], magx[1] - 1e6)
+        Upper_Point = Point(magx[0], magx[1] + 1e6)
+        topLine = Line([Lower_Point, Upper_Point])
+        topLine.plot(color = 'red')
+
+        # Drawing Separatrix
+        xptNE_midLine = self.eq.draw_line(xpt['NE'], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug_mode)
+        xptNW_midLine = self.eq.draw_line(xpt['NW'], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+        omidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug_mode)
+        imidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+        
+        # Drawing Lower-SNL region
+        xptW_psiMax = self.eq.draw_line(xpt['W'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = debug_mode)
+        xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = debug_mode)
+        xptS_psiMinPF = self.eq.draw_line(xpt['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = debug_mode)
+        xptSW_ITP = self.eq.draw_line(xpt['SW'], {'line' : self.itp}, option = 'theta', direction = 'ccw', show_plot = debug_mode)
+        xptSE_OTP = self.eq.draw_line(xpt['SE'], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+        
+        # IDL Patch
+        IDL_N = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : self.itp}, option = 'theta', direction = 'ccw', show_plot = debug_mode)
+        psiMinPF_ITP = self.eq.draw_line(xptSW_ITP.p[-1], {'line' : self.itp},option = 'theta', direction = 'ccw', show_plot = debug_mode)
+
+        omidLine_psiMax = self.eq.draw_line(xptNE_midLine.p[-1], {'psi_horizontal' : psi_max}, option = 'z_const', direction = 'cw', show_plot = debug_mode)
+        omidLine_psiMinCore = self.eq.draw_line(xptNE_midLine.p[-1], {'psi_horizontal' : psi_min_core}, option = 'z_const', direction = 'ccw', show_plot = debug_mode)
+        imidLine_psiMax = self.eq.draw_line(xptNW_midLine.p[-1], {'psi_horizontal' : psi_max}, option = 'z_const', direction = 'ccw', show_plot = debug_mode)
+        imidLine_psiMinCore = self.eq.draw_line(xptNW_midLine.p[-1], {'psi_horizontal' : psi_min_core}, option = 'z_const', direction = 'cw', show_plot = debug_mode)
+        
+        topLine_psiMax = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_max}, option = 'r_const', direction = 'ccw', show_plot = debug_mode)
+        topLine_psiMinCore = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_min_core}, option = 'r_const', direction = 'cw', show_plot = debug_mode)
+
+        xptN_psiMinCore = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option = 'rho', direction = 'cw', show_plot = debug_mode)
+        ICB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+        IST_S = self.eq.draw_line(ICB_S.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+        OST_S = self.eq.draw_line(IST_S.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+        
+        # Point convergence... change to some kind of line....
+        OCB_S = self.eq.draw_line(OST_S.p[-1], {'point' : xptN_psiMinCore.p[-1]}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+        ICB_N = self.eq.draw_line(IDL_N.p[0], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+        IST_N = self.eq.draw_line(imidLine_psiMax.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+        OST_N = self.eq.draw_line(IST_N.p[-1], {'line' : omidLine_psiMax}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+        OCB_N = self.eq.draw_line(OST_N.p[-1], {'point': xpt['NE']}, option = 'theta', direction = 'cw', show_plot = debug_mode)
+
+        
 
     def construct_SNL_patches(self):
         """ More general format to construct the grid for SNL using patches.
@@ -357,120 +425,165 @@ class Ingrid:
         debug_mode = True
 
         from geometry import Point, Patch, Line
-
+        # self.eq.find_NSEW((self.grid_params['rxpt'], self.grid_params['zxpt']), (self.grid_params['rmagx'], self.grid_params['zmagx']))
+        self.compute_eq_psi()
         xpt = self.eq.eq_psi
+        magx = np.array([self.grid_params['rmagx'], self.grid_params['zmagx']])
         psi_max = self.grid_params['psi_max']
         psi_min_core = self.grid_params['psi_min_core']
         psi_min_pf = self.grid_params['psi_min_pf']
 
         # IDL ===================================================
+        print('BEGIN: IDL ===================================================')
         E = self.eq.draw_line(xpt['W'], {'psi': psi_max}, option='rho', direction='ccw', show_plot = debug_mode)
         N = self.eq.draw_line(E.p[-1], {'line': self.itp}, option='theta', direction='ccw', show_plot = debug_mode).reverse()
         S = self.eq.draw_line(xpt['SW'], {'line': self.itp}, option='theta', direction='ccw', show_plot = debug_mode)
         E = Line([N.p[-1], S.p[0]]) # straighten it up
         W = Line([S.p[-1], N.p[0]])
         IDL = Patch([N, E, S, W])
+        print('END: IDL ===================================================')
         # Lines are now saved inside of the patch
 
         # IPF ===================================================
+        print('BEGIN: IPF ===================================================')
         N = IDL.S.reverse()
         E = self.eq.draw_line(xpt['S'], {'psi': psi_min_pf}, option='rho', direction='cw', show_plot = debug_mode)
         E = Line([E.p[0], E.p[-1]])
         S = self.eq.draw_line(E.p[-1], {'line': self.itp}, option='theta', direction='ccw', show_plot = debug_mode)
         W = Line([S.p[-1], N.p[0]])
         IPF = Patch([N, E, S, W])
+        print('END: IPF ===================================================')
 
         # OPF ===================================================
+        print('BEGIN: OPF ===================================================')
         N = self.eq.draw_line(xpt['SE'], {'line': self.otp}, option='theta', direction='cw', show_plot = debug_mode)
         W = IPF.E.reverse()
         S = self.eq.draw_line(W.p[0], {'line': self.otp}, option='theta', direction='cw', show_plot = debug_mode).reverse()
         E = Line([N.p[-1], S.p[0]])
         OPF = Patch([N, E, S, W])
+        print('END: OPF ===================================================')
 
         # ODL ===================================================
+        print('BEGIN: ODL ===================================================')
         W = self.eq.draw_line(xpt['E'], {'psi': psi_max}, option='rho', direction='ccw', show_plot = debug_mode)
         W = Line([W.p[0], W.p[-1]])
         N = self.eq.draw_line(W.p[-1], {'line': self.otp}, option='theta', direction='cw', show_plot = debug_mode)
         S = OPF.N.reverse()
         E = Line([N.p[-1], S.p[0]])
         ODL = Patch([N, E, S, W])
+        print('END: ODL ===================================================')
 
         # need the mid and top points of the separatrix
+        print('BEGIN: Draw separatrix')
         sep = self.eq.draw_line(Point(xpt['NW']), {'point': Point(xpt['NE'])}, option='theta', direction='cw', show_plot = debug_mode)
         top_index = np.argmax(sep.yval)
         imid_index = np.argmin(sep.xval)
         omid_index = np.argmax(sep.xval)
         midpoint = np.median(sep.yval)
-        print('Median Value: ' + str(midpoint))
         mid_index, = np.where(np.abs(sep.yval-midpoint) < 1e-3)
-        print('Mid-Index: ' + str(mid_index))
         dp = {}  # defining points
         dp['top'] = Point(sep.xval[top_index], sep.yval[top_index])
         dp['impt'] = Point(sep.xval[imid_index], sep.yval[imid_index])
         dp['ompt'] = Point(sep.xval[omid_index], sep.yval[omid_index])
 
+        imid_EndLine = Line([Point(dp['impt'].x - 5, dp['impt'].y), Point(dp['impt'].x + 5, dp['impt'].y)])
+        omid_EndLine = Line([Point(dp['ompt'].x - 5, dp['ompt'].y), Point(dp['ompt'].x + 5, dp['impt'].y)])
+        top_EndLine = Line([Point(dp['top'].x, dp['top'].y - 5), Point(dp['top'].x, dp['top'].y + 5)])
+
+        top_EndLine.plot(color = 'purple')
+        imid_EndLine.plot(color = 'red')
+        omid_EndLine.plot(color = 'blue')
+        print('END: Draw separatrix')
+
         # ISB ===================================================
-        E = self.eq.draw_line(dp['impt'], {'psi': psi_max}, option='rho', direction='ccw', show_plot = debug_mode).reverse()
+        print('BEGIN: ISB ===================================================')
+        E = self.eq.draw_line(dp['impt'], {'psi': psi_max}, option='z_const', direction='ccw', show_plot = debug_mode).reverse()
         E = Line([E.p[0], E.p[-1]])
-        N = self.eq.draw_line(IDL.E.p[0], {'point': E.p[0]}, option='theta', direction='cw', show_plot = debug_mode)
+        N = self.eq.draw_line(IDL.E.p[0], {'line': imid_EndLine}, option='theta', direction='cw', show_plot = debug_mode) 
+        # N = self.eq.draw_line(IDL.E.p[0], {'point': E.p[0]}, option='theta', direction='cw', show_plot = debug_mode)
         S = Line(sep.p[:imid_index+1]).reverse()
         W = IDL.E.reverse()
         ISB = Patch([N, E, S, W])
+        print('END: ISB ===================================================')
 
         # ICB ===================================================
+        print('BEGIN: ICB ===================================================')
         N = Line(sep.p[:imid_index+1])
-        E = self.eq.draw_line(dp['impt'], {'psi': psi_min_core}, option='rho', direction='cw', show_plot = debug_mode)
+        E = self.eq.draw_line(dp['impt'], {'psi': psi_min_core}, option='z_const', direction='cw', show_plot = debug_mode)
+        # W = self.eq.draw_line(xpt['N'], {'point': Point(magx[0], magx[1])}, option='rho', direction='cw', show_plot = debug_mode).reverse()
         W = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option='rho', direction='cw', show_plot = debug_mode).reverse()
+        print('ICB PSI VALUE (Psi-min): {}'.format(self.psi_norm.get_psi(W.p[0].x, W.p[0].y)))
         W = Line([W.p[0], W.p[-1]])
-        S = self.eq.draw_line(W.p[0], {'point': E.p[-1]}, option='theta', direction='cw', show_plot = debug_mode).reverse()
+        S = self.eq.draw_line(W.p[0], {'line': imid_EndLine}, option='theta', direction='cw', show_plot = debug_mode).reverse()
+        # S = self.eq.draw_line(W.p[0], {'point': E.p[-1]}, option='theta', direction='cw', show_plot = debug_mode).reverse()
         ICB = Patch([N, E, S, W])
+        print('END: ICB ===================================================')
 
         # IST ===================================================
-        E = self.eq.draw_line(dp['top'], {'psi': psi_max}, option='rho', direction='ccw', show_plot = debug_mode).reverse()
+        print('BEGIN: IST ===================================================')
+        E = self.eq.draw_line(dp['top'], {'psi_vertical': psi_max}, option='r_const', direction='ccw', show_plot = debug_mode).reverse()
         E = Line([E.p[0], E.p[-1]])
-        N = self.eq.draw_line(ISB.N.p[-1], {'point': E.p[0]}, option='theta', direction='cw', show_plot = debug_mode)
+        N = self.eq.draw_line(ISB.N.p[-1], {'line': top_EndLine}, option='theta', direction='cw', show_plot = debug_mode)
+        # N = self.eq.draw_line(ISB.N.p[-1], {'point': E.p[0]}, option='theta', direction='cw', show_plot = debug_mode)
         S = Line(sep.p[imid_index:top_index+1]).reverse()
         W = ISB.W.reverse()
         IST = Patch([N, E, S, W])
+        print('END: IST ===================================================')
 
         # ICT ===================================================
-        E = self.eq.draw_line(dp['top'], {'psi': psi_min_core}, option='rho', direction='cw', show_plot = debug_mode)
+        print('BEGIN: ICT ===================================================')
+        E = self.eq.draw_line(dp['top'], {'psi_vertical': psi_min_core}, option='r_const', direction='cw', show_plot = debug_mode)
+        print('ICT PSI VALUE (Psi-min): {}'.format(self.psi_norm.get_psi(E.p[-1].x, E.p[-1].y)))
         E = Line([E.p[0], E.p[-1]])
+        # S = self.eq.draw_line(ICB.S.p[0], {'line': top_EndLine}, option='theta', direction='cw', show_plot = debug_mode).reverse()
         S = self.eq.draw_line(ICB.S.p[0], {'point': E.p[-1]}, option='theta', direction='cw', show_plot = debug_mode).reverse()
         N = IST.S.reverse()
         W = ICB.E.reverse()
         ICT = Patch([N, E, S, W])
+        print('END: ICT ===================================================')
 
         # OST ===================================================
-        E = self.eq.draw_line(dp['ompt'], {'psi': psi_max}, option='rho', direction='ccw', show_plot = debug_mode).reverse()
+        print('BEGIN: OST ===================================================')
+        E = self.eq.draw_line(dp['ompt'], {'psi': psi_max}, option='rho', direction='ccw', show_plot = debug_mode, text = True).reverse()
         E = Line([E.p[0], E.p[-1]])
-        N = self.eq.draw_line(IST.N.p[-1], {'point': E.p[0]}, option='theta', direction='cw', show_plot = debug_mode)
+        N = self.eq.draw_line(IST.N.p[-1], {'line': omid_EndLine}, option='theta', direction='cw', show_plot = debug_mode, text = True)
+        # N = self.eq.draw_line(IST.N.p[-1], {'point': E.p[0]}, option='theta', direction='cw', show_plot = debug_mode, text = True)
         S = Line(sep.p[top_index: omid_index+1]).reverse()
         W = IST.W.reverse()
         OST = Patch([N, E, S, W])
+        print('END: OST ===================================================')
 
         # OCT ===================================================
-        E = self.eq.draw_line(dp['ompt'], {'psi': psi_min_core}, option='rho', direction='cw', show_plot = debug_mode)
+        print('BEGIN: OCT ===================================================')
+        # E = self.eq.draw_line(dp['ompt'], {'psi': psi_min_core}, option='rho', direction='cw', show_plot = debug_mode)
+        E = self.eq.draw_line(dp['ompt'], {'psi': psi_min_core}, option='psi_vertical', direction='ccw', show_plot = debug_mode)
         E = Line([E.p[0], E.p[-1]])
-        S = self.eq.draw_line(ICT.E.p[-1], {'point': E.p[-1]}, option='theta', direction='cw', show_plot = debug_mode).reverse()
+        S = self.eq.draw_line(ICT.E.p[-1], {'line': omid_EndLine}, option='theta', direction='cw', show_plot = debug_mode).reverse()
+        # S = self.eq.draw_line(ICT.E.p[-1], {'point': E.p[-1]}, option='theta', direction='cw', show_plot = debug_mode).reverse()
         N = Line(sep.p[top_index: omid_index+1])
         W = ICT.E.reverse()
         OCT = Patch([N, E, S, W])
+        print('END: OCT ===================================================')
 
         # OCB ===================================================
+        print('BEGIN: OCB ===================================================')
         W = OCT.E.reverse()
         N = Line(sep.p[omid_index:])
         S = self.eq.draw_line(W.p[0], {'point': ICB.W.p[0]}, option='theta', direction='cw', show_plot = debug_mode).reverse()
         E = ICB.W.reverse()
         OCB = Patch([N, E, S, W])
+        print('END: OCB ===================================================')
 
         # OSB ===================================================
+        print('BEGIN: OSB ===================================================')
         W = OST.E.reverse()
         N = self.eq.draw_line(W.p[-1], {'point': ODL.W.p[-1]}, option='theta', direction='cw', show_plot = debug_mode)
         S = OCB.N.reverse()
         E = ODL.W.reverse()
         OSB = Patch([N, E, S, W])
+        print('END: OSB ===================================================')
 
+        print('Beginning plotting of patches...')
         self.patches = [IDL, IPF, OPF, ODL, ISB, ICB, IST, ICT, OST, OCT, OCB, OSB]
         for patch in self.patches:
             patch.plot_border()
@@ -537,7 +650,7 @@ class Ingrid:
         from Interpol.Test_Interpol import test_interpol
         test_interpol(option, nfine, ncrude, tag)
 
-def set_params_visual():
+def set_params_GUI():
     """
     
     GUI version for Ingrid. Gets the files used, and opens a plot

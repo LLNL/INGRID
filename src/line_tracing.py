@@ -600,15 +600,17 @@ class LineTracing:
         else:
             ynot = rz_start
 
+        key_list = list()
+        for item in rz_end.keys():
+            key_list.append(item)
+
         # check rz_end:
-        print(rz_end.keys())
         if rz_end is None:
             print('testing for loop completion')
             test = 'point'
             rz_end = ynot
             xf, yf = rz_end
-
-        elif rz_end.keys() == ['point']:
+        elif key_list == ['point']:
             print('Testing for point convergence')
             test = 'point'
             if isinstance(rz_end['point'], geo.Point):
@@ -620,7 +622,7 @@ class LineTracing:
 
         # TODO: generalize the line termination to include "curves", or lines
         # defined by more than one set of points.
-        elif rz_end.keys() == ['line']:
+        elif key_list == ['line']:
             print('Testing for line convergence')
             test = 'line'
             if isinstance(rz_end['line'], geo.Line):
@@ -630,17 +632,17 @@ class LineTracing:
                 # form ((),())
                 endLine = rz_end['line']
 
-        elif rz_end.keys() == ['psi']:
+        elif key_list == ['psi']:
             print('Testing for psi convergence')
             test = 'psi'
             psi_test = rz_end['psi']
 
-        elif rz_end.keys() == ['psi_horizontal']:
+        elif key_list == ['psi_horizontal']:
             print('Testing for psi convergence (horizontal trajectory)')
             test = 'psi_horizontal'
             psi_test = rz_end['psi_horizontal']
 
-        elif rz_end.keys() == ['psi_vertical']:
+        elif key_list == ['psi_vertical']:
             print('Testing for psi convergence (vertical trajectory)')
             test = 'psi_vertical'
             psi_test = rz_end['psi_vertical']

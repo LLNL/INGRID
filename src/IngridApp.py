@@ -1,25 +1,35 @@
-#!/usr/bin/env python2
+#!/usr/bin/env pythonu
 # -*- coding: utf-8 -*-
 """
 Created on Wed Sep 11 08:58:43 2019
 
 @author: garcia299
 """
-
-from __future__ import print_function
+from __future__ import print_function, division, absolute_import
 import matplotlib
 matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 from scipy.optimize import root 
 from numpy import full_like
 import f90nml
 
-from pathlib2 import Path
-
-import Tkinter as tk
-import tkFileDialog as tkFD
-import tkMessageBox as tkMB
+try:
+    from pathlib import Path
+except:
+    from pathlib2 import Path
+try:
+    import tkinter as tk
+except:
+    import Tkinter as tk
+try:
+    import tkinter.filedialog as tkFD
+except:
+    import tkFileDialog as tkFD
+try:
+    from tkinter import messagebox as tkMB
+except:
+    import tkMessageBox as tkMB
 
 import Ingrid
 import Root_Finder

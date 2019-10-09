@@ -12,7 +12,8 @@
     psi_max = 1.1
     psi_min_core = 0.9
     psi_min_pf = 0.8
-    step_ratio = 0.002
+    step_ratio = 1e-2
+    tol = 1e-6
 /
 
 &debug

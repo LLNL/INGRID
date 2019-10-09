@@ -5,9 +5,9 @@ Created on Fri Jun  7 15:31:15 2019
 
 @author: watkins35
 """
-from __future__ import division, print_function
+from __future__ import division, print_function, absolute_import
 import numpy as np
-from Bicubic2 import bicubic
+from Interpol.Bicubic2 import bicubic
 import matplotlib.pyplot as plt
 
 

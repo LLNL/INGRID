@@ -5,7 +5,7 @@ Created on Fri Jun 21 15:17:21 2019
 
 @author: watkins35, garcia299
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 import numpy as np
 import matplotlib.pyplot as plt
 import f90nml
@@ -867,8 +867,14 @@ def set_params_GUI():
     and psi levels.
 
     """
-    import tkinter as tk
-    import tkMessageBox as messagebox
+    try:
+        import tkinter as tk
+    except:
+        import Tkinter as tk
+    try:
+        import tkinter.messagebox as messagebox
+    except:
+        import tkMessageBox as messagebox 
     def on_closing():
         if messagebox.askyesno('', 'Are you sure you want to quit?'):
             plt.close('all')

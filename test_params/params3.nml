@@ -18,5 +18,6 @@
     psi_min_pf = 0.926078251632
     psi_min_pf_r = 1.39285713721
     psi_min_pf_z = -0.731428582857
-    step_ratio = 0.02
+    step_ratio = 1e-3
+    tol = 1e-3
 /

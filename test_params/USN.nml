@@ -1,0 +1,22 @@
+&files
+    geqdsk = '/global/u2/b/bryan343/g162940_02944_670'
+    itp = '/global/u2/b/bryan343/INGRID/src/itp4.txt'
+    otp = '/global/u2/b/bryan343/INGRID/src/otp4.txt'
+/
+
+&grid_params
+    rmagx = 1.73209552336
+    rxpt = 1.26672949176
+    zmagx = 0.011571896776
+    zxpt = 1.17213596006
+    psi_max = 1.02942514871
+    psi_max_r = 1.14350649351
+    psi_max_z = 0.59012987013
+    psi_min_core = 0.671536484929
+    psi_min_core_r = 1.65467532467
+    psi_min_core_z = 0.644155844156
+    psi_min_pf = 0.967516864475
+    psi_min_pf_r = 1.16012987013
+    psi_min_pf_z = 1.34233766234
+    step_ratio = 1e-3
+/

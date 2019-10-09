@@ -544,7 +544,6 @@ class ParamPicker(tk.Frame):
         self.controller.nml['grid_params']['Zmagx'] = float(self.MagFrame.Z_EntryText.get())
         self.controller.nml['grid_params']['Rxpt'] = float(self.XptFrame.R_EntryText.get())
         self.controller.nml['grid_params']['Zxpt'] = float(self.XptFrame.Z_EntryText.get())
-        self.controller.nml['grid_params']['step_ratio'] = 0.02
 
         self.MagAxis = (self.controller.nml['grid_params']['Rmagx'], self.controller.nml['grid_params']['Zmagx'])
         self.Xpt = (self.controller.nml['grid_params']['Rxpt'], self.controller.nml['grid_params']['Zxpt'])
@@ -576,7 +575,6 @@ class ParamPicker(tk.Frame):
         self.controller.nml['grid_params']['psi_min_pf_R'] = float(self.PsiPrivateFrame.R_EntryText.get())
         self.controller.nml['grid_params']['psi_min_pf_Z'] = float(self.PsiPrivateFrame.Z_EntryText.get())
         self.controller.nml['grid_params']['psi_min_pf'] = float(self.PsiPrivateFrame.Psi_EntryText.get())
-        self.controller.nml['grid_params']['step_ratio'] = 0.02
         
         self.unlock_controls()
         self.acceptPF_Button.config(text = 'Entries Saved!', fg = 'lime green')
@@ -587,7 +585,10 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.magx = self.MagAxis
         self.controller.IngridSession.xpt1 = self.Xpt
         self.controller.IngridSession.calc_psinorm()
-        self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].eqdsk_text.get()))
+        self.controller.nml = f90nml.read(str(self.controller.frames[FilePicker].param_text.get()))
+        print('NML file reloaded...')
+        print(self.controller.nml)
+        self.controller.IngridSession.grid_params = self.controller.nml['grid_params']
         self.controller.IngridSession.construct_SNL_patches2()
         self.controller.IngridSession.patch_diagram()
 
@@ -602,9 +603,9 @@ class ParamPicker(tk.Frame):
     def loadParameters(self):
         lookup = {'rmagx' : self.MagFrame.R_EntryText, 'zmagx' : self.MagFrame.Z_EntryText,\
                   'rxpt'  : self.XptFrame.R_EntryText, 'zxpt'  : self.XptFrame.Z_EntryText,\
-                  'psi_max_R' : self.PsiMaxFrame.R_EntryText, 'psi_max_Z' : self.PsiMaxFrame.Z_EntryText,\
-                  'psi_min_core_R' : self.PsiMinFrame.R_EntryText, 'psi_min_core_Z' : self.PsiMinFrame.Z_EntryText,\
-                  'psi_min_pf_R' : self.PsiPrivateFrame.R_EntryText, 'psi_min_pf_Z' : self.PsiPrivateFrame.Z_EntryText,\
+                  'psi_max_r' : self.PsiMaxFrame.R_EntryText, 'psi_max_z' : self.PsiMaxFrame.Z_EntryText,\
+                  'psi_min_core_r' : self.PsiMinFrame.R_EntryText, 'psi_min_core_z' : self.PsiMinFrame.Z_EntryText,\
+                  'psi_min_pf_r' : self.PsiPrivateFrame.R_EntryText, 'psi_min_pf_z' : self.PsiPrivateFrame.Z_EntryText,\
                   'psi_max' : self.PsiMaxFrame.Psi_EntryText, 'psi_min_core' : self.PsiMinFrame.Psi_EntryText,\
                   'psi_min_pf' : self.PsiPrivateFrame.Psi_EntryText\
                   }

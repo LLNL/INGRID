@@ -3,7 +3,7 @@
 """
 Created on Wed Jul  3 14:07:45 2019
 
-@author: watkins35
+@author: watkins35, garcia299
 """
 
 # want to click on a point close to a zero, adjust to the exact point
@@ -52,14 +52,18 @@ class LineTracing:
         tracing.
     """
 
-    def __init__(self, grid, params, eps=1e-3, tol=1e-3,
+    def __init__(self, grid, params, eps=1e-5, tol=1e-3,
                  numPoints=25, dt=0.02, option='xpt_circ', direction='cw'):
         self.grid = grid
 
         self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event',
                                                           self)
         self.eps = eps
-        self.tol = tol
+        try:
+            self.tol = params['tol']
+            print('Tol set to {}'.format(self.tol))
+        except:
+            self.tol = tol
         self.numPoints = numPoints
         self.dt = dt
         self.option = option
@@ -71,7 +75,7 @@ class LineTracing:
         rdim = grid.rmax-grid.rmin
         self.max_step = params['step_ratio'] * max(rdim, zdim)
         # TODO: set self.first_step as a parameter
-        self.first_step = 1e-3  # self.max_step
+        self.first_step = 1e-5  # self.max_step
 
         # initialize the function
         self._set_function(option, direction)
@@ -134,8 +138,8 @@ class LineTracing:
         B_R = 1
         B_Z = 0
         B = np.sqrt(B_R**2 + B_Z**2)
-        dR = B_Z/B
-        dZ = -B_R/B
+        dR = -B_Z/B
+        dZ = B_R/B
         if self.dir == 'cw':
             return np.array([dR, dZ])
         else:
@@ -361,6 +365,7 @@ class LineTracing:
         theta_crit = get_theta(rxpt, zxpt)
         theta_min = get_concave_theta(theta_crit)
 
+
         NSEW_coor = []
 
         # N guess
@@ -384,6 +389,8 @@ class LineTracing:
         
         # Set E and W based off N and S.
         theta_max = theta_min - np.pi/2
+
+        print('NSEW Theta Values: ({}, {}, {}, {})'.format(theta_min[0], theta_min[1], theta_max[0], theta_max[1]))
         
         # NE
         NSEW_coor.append((rxpt + self.eps*np.cos(theta_min[0] - np.pi/4), \
@@ -540,7 +547,7 @@ class LineTracing:
             plt.legend()
             plt.draw()
 
-    def draw_line(self, rz_start, rz_end=None, color='green',
+    def draw_line(self, rz_start, rz_end=None, color='magenta',
                   option=None, direction=None, show_plot=False, text=False):
         """
         Uses scipy.integrate.solve_ivp to trace poloidal or radial
@@ -623,16 +630,6 @@ class LineTracing:
                 # form ((),())
                 endLine = rz_end['line']
 
-        # Prototype case for segment intersection
-        elif rz_end.keys() == ['segment_intersect']:
-            print('Testing for line-segment intersection')
-            test = 'segment_intersect'
-            if isinstance(rz_end['segment_intersect'], geo.Line):
-                endLine = rz_end['segment_intersect']
-                print('Got endLine')
-            else:
-                endLine = rz_end['segment_intersect']
-
         elif rz_end.keys() == ['psi']:
             print('Testing for psi convergence')
             test = 'psi'
@@ -680,7 +677,7 @@ class LineTracing:
                 # y: list -- z endpoints
                 line.append(geo.Point(x[-1], y[-1]))
                 if show_plot:
-                    self.grid.ax.plot(x, y, '.-', linewidth='2', color=color)
+                    self.grid.ax.plot(x, y, '.-', linewidth='0.75', color=color)
                     plt.draw()
                     plt.pause(np.finfo(float).eps)
 
@@ -720,19 +717,6 @@ class LineTracing:
                         success('endpoint')
                     save_line([points[0][0], xf], [points[1][0], yf])
                     return True
-            elif test == 'segment_intersect':
-                p1 = geo.Point(points[0][0], points[1][0])
-                p2 = geo.Point(points[0][-1], points[1][-1])
-                
-                startLine = geo.Line([p1, p2])
-
-                segment_intersected, coor = geo.segment_intersect(startLine, endLine)
-                print(segment_intersected)
-                if segment_intersected:
-                    if text:
-                        success('segment intersection')
-                    save_line([ p1.x, coor[0] ], [ p1.y, coor[1] ])
-                    return True
             elif test == 'line':
                 # endpoints define the latest line segment
                 # TODO change the point criteria
@@ -760,7 +744,6 @@ class LineTracing:
                 if (psi1 - psi_test)*(psi2 - psi_test) < 0:
                     if text: success('psi test')
                     # need to find coords for the value of psi that we want
-                    """
                     def f(x):
                         # must manually calculate y each time we stick it into
                         # the line of interest
@@ -770,15 +753,17 @@ class LineTracing:
                     sol = root_scalar(f, bracket=[x1, x2])
                     r_psi = sol.root
                     z_psi = (y2-y1)/(x2-x1)*(r_psi-x1)+y1
-                    """
                     print('[x1, y1]: [{}, {}]'.format(x1, y1))
                     print('[x2, y2]: [{}, {}]'.format(x2, y2))
                     x_end = x1 + (x2 - x1)/(psi2 - psi1) * (psi_test - psi1)
                     y_end = y1 + (y2 - y1)/(psi2 - psi1) * (psi_test - psi1)
 
-                    print('Terminated at: ({}, {})'.format(x_end, y_end))
-                    print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(x_end, y_end))))
-                    save_line([x1, x_end], [y1, y_end])
+                    print('Termination via *_end Coordinates: ({}, {})'.format(x_end, y_end))
+                    print('Psi Residual via *_end coordinates: {}'.format(abs(psi_test - self.grid.get_psi(x_end, y_end))))
+
+                    print('Termination via root_scalar: ({}, {})'.format(r_psi, z_psi))
+                    print('Psi Residual via root_scalar: {}'.format(abs(psi_test - self.grid.get_psi(r_psi, z_psi))))
+                    save_line([x1, r_psi], [y1, z_psi])
                     return True
             elif test == 'psi_horizontal':
                 x1, y1 = points[0][0], points[1][0]
@@ -792,14 +777,15 @@ class LineTracing:
                         success('horizontal psi integration')
 
                     def fend_R(x):
-                        return self.grid.get_psi(x, y2) - self.grid.get_psi(x2, y2)
+                        return self.grid.get_psi(x, y2) - psi_test
                     print('[x1, y1]: [{}, {}]'.format(x1, y1))
                     print('[x2, y2]: [{}, {}]'.format(x2, y2))
                     sol = root_scalar(fend_R, bracket = [x1, x2])
                     r_psi = sol.root
-                    save_line([x1, r_psi], [y1, self.y[-1]])
-                    print('Terminated at: ({}, {})'.format(r_psi, self.y[-1]))
-                    print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(r_psi, self.y[-1]))))
+                    print(r_psi)
+                    save_line([x1, r_psi], [y1, y1])
+                    print('Terminated at: ({}, {})'.format(r_psi, y1))
+                    print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(r_psi, y1))))
                     return True
 
             elif test == 'psi_vertical':
@@ -814,14 +800,14 @@ class LineTracing:
                         success('vertical psi integration')
 
                     def fend_Z(y):
-                        return self.grid.get_psi(x2, y) - self.grid.get_psi(x2, y2)
+                        return self.grid.get_psi(x2, y) - psi_test 
                     print('[x1, y1]: [{}, {}]'.format(x1, y1))
                     print('[x2, y2]: [{}, {}]'.format(x2, y2))
                     sol = root_scalar(fend_Z, bracket = [y1, y2])
                     z_psi = sol.root
-                    save_line([x1, self.x[-1]], [y1, z_psi])
-                    print('Terminated at: ({}, {})'.format(self.x[-1], z_psi))
-                    print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(self.x[-1], z_psi))))
+                    save_line([x1, x1], [y1, z_psi])
+                    print('Terminated at: ({}, {})'.format(x1, z_psi))
+                    print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(x1, z_psi))))
                     return True
             else:
                 print('Error: No termination criteria specified.')
@@ -844,7 +830,7 @@ class LineTracing:
             # solve the system of differential equations
             sol = solve_ivp(self.function, t_span, ynot, method='LSODA',
                             first_step=self.first_step, max_step=self.max_step,
-                            rtol=1e-12, atol=1e-11)
+                            rtol=1e-13, atol=1e-12)
             # unpack
             self.x = sol.y[0]
             self.y = sol.y[1]

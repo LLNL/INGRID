@@ -5,7 +5,7 @@ import f90nml
 class v():
 
     def __init__(self):
-        self.nml = f90nml.read('../test_params/params.nml')
+        self.nml = f90nml.read('../test_params/params3.nml')
         self.xpt = np.array([self.nml['grid_params']['rxpt'], self.nml['grid_params']['zxpt']])
         self.mag = np.array([self.nml['grid_params']['rmagx'], self.nml['grid_params']['zmagx']])
         self.grid = Ingrid.Ingrid(self.nml)

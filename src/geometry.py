@@ -125,6 +125,14 @@ class Line:
         self.p = self.p[::-1]
         return self
 
+    def reverse_copy(self):
+        """
+        Returns a copy of the line in the reversed direction.
+        Does not overwrite the current line.
+        """
+
+        return Line(self.p[::-1])
+
     def plot(self, color='#1f77b4'):
         """ Plots the line of the current figure.
         

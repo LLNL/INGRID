@@ -7,6 +7,8 @@ Created on Fri Jun 21 15:17:21 2019
 """
 from __future__ import print_function, division, absolute_import
 import numpy as np
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import f90nml
 import IngridApp as IA
@@ -460,7 +462,7 @@ class Ingrid:
             IDL_S = xpt_ITP
             IDL_E = xptW_psiMax.reverse_copy()
             IDL_W = Line([IDL_S.p[-1], IDL_N.p[0]])
-        IDL = Patch([IDL_N, IDL_E, IDL_S, IDL_W]) 
+        IDL = Patch([IDL_N, IDL_E, IDL_S, IDL_W])
 
         # IPF Patch
         if sign_test[1] == -1:
@@ -477,7 +479,7 @@ class Ingrid:
 
         # ISB Patch
         if sign_test[1] == -1:
-            ISB_N = self.eq.draw_line(IDL_N.p[0], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug).reverse()
+            ISB_N = self.eq.draw_line(IDL_N.p[0], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug).reverse_copy()
             ISB_S = xptNE_midLine
             ISB_E = xptE_psiMax.reverse_copy()
             ISB_W = Line([ISB_S.p[-1], ISB_N.p[0]])
@@ -607,9 +609,19 @@ class Ingrid:
 
         self.patches = [IDL, IPF, ISB, ICB, IST, ICT, OST, OCT, OSB, OCB, ODL, OPF]
 
+
+        # Straighten up East and West segments of our patches,
+        # Plot borders and fill patches.
+        from scipy.interpolate import splprep, splev, BSpline
+        from scipy.integrate import quad
+        from scipy.optimize import root_scalar
         for patch in self.patches:
+            patch.W = patch.W.straighten()
+            patch.E = patch.E.straighten()
             patch.plot_border()
+            patch.make_subgrid(self)
             patch.fill()
+            raise SystemError
 
     def construct_SNL_patches(self):
         """ More general format to construct the grid for SNL using patches.

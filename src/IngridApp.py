@@ -194,7 +194,7 @@ class FilePicker(tk.Frame):
         self.proceed_button.pack(side = 'right')
         print(self.master)
 
-    def get_file(self, ftypes = (("All Files", "*"), ("Text Files", "*.txt"))):
+    def get_file(self):
         """
         General method to allow user to select a file via GUI.
 
@@ -216,7 +216,7 @@ class FilePicker(tk.Frame):
         """
         try:
             fpath = Path(tkFD.askopenfilename(initialdir = '../test_params', \
-                         title = 'Select File', filetypes = ftypes ))
+                         title = 'Select File' ))
             if fpath.is_file():
                 return fpath, True
             else:
@@ -329,7 +329,7 @@ class FilePicker(tk.Frame):
             can be done by inspecting the nml object.
 
         """
-        param_file, valid_path = self.get_file( (('NML Files', '*.nml'), ('All Files', '*')) )
+        param_file, valid_path = self.get_file()
         if valid_path and param_file.suffix == '.nml':
             self.neqdsk = param_file
             self.ROOT.nml = f90nml.read(str(param_file))
@@ -595,9 +595,16 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.magx = self.MagAxis
         self.controller.IngridSession.xpt1 = self.Xpt
         self.controller.IngridSession.calc_psinorm()
-        self.controller.nml = f90nml.read(str(self.controller.frames[FilePicker].param_text.get()))
-        print('NML file reloaded...')
-        print(self.controller.nml)
+        try:
+		self.controller.nml = f90nml.read(str(self.controller.frames[FilePicker].param_text.get()))
+        	print('NML file reloaded...')
+        	print(self.controller.nml)
+	except:
+		self.controller.nml['grid_params']['rmagx'], \
+		self.controller.nml['grid_params']['zmagx'] = self.MagAxis[0], self.MagAxis[1]
+		
+		self.controller.nml['grid_params']['rxpt'], \
+		self.controller.nml['grid_params']['zxpt'] = self.Xpt[0], self.Xpt[1]
         self.controller.IngridSession.grid_params = self.controller.nml['grid_params']
         self.controller.IngridSession.construct_SNL_patches2()
         self.controller.IngridSession.patch_diagram()

@@ -73,7 +73,11 @@ class LineTracing:
 
         zdim = grid.zmax-grid.zmin
         rdim = grid.rmax-grid.rmin
-        self.max_step = params['step_ratio'] * max(rdim, zdim)
+	try:
+        	self.max_step = params['step_ratio'] * max(rdim, zdim)
+	except:
+		default_step_ratio = 0.02
+		self.max_step = default_step_ratio * max(rdim, zdim)
         # TODO: set self.first_step as a parameter
         self.first_step = 1e-5  # self.max_step
 
@@ -547,7 +551,7 @@ class LineTracing:
             plt.legend()
             plt.draw()
 
-    def draw_line(self, rz_start, rz_end=None, color='magenta',
+    def draw_line(self, rz_start, rz_end=None, color='#1d617a',
                   option=None, direction=None, show_plot=False, text=False):
         """
         Uses scipy.integrate.solve_ivp to trace poloidal or radial
@@ -679,7 +683,7 @@ class LineTracing:
                 # y: list -- z endpoints
                 line.append(geo.Point(x[-1], y[-1]))
                 if show_plot:
-                    self.grid.ax.plot(x, y, '.-', linewidth='0.75', color=color)
+                    self.grid.ax.plot(x, y, '.-', linewidth='1.25', color=color, markersize = 1.5)
                     plt.draw()
                     plt.pause(np.finfo(float).eps)
 

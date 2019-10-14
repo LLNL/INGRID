@@ -52,8 +52,8 @@ class LineTracing:
         tracing.
     """
 
-    def __init__(self, grid, params, eps=1e-5, tol=1e-3,
-                 numPoints=25, dt=0.02, option='xpt_circ', direction='cw'):
+    def __init__(self, grid, params, eps=1e-8, tol=1e-4,
+                 numPoints=25, dt=0.001, option='xpt_circ', direction='cw'):
         self.grid = grid
 
         self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event',
@@ -73,11 +73,12 @@ class LineTracing:
 
         zdim = grid.zmax-grid.zmin
         rdim = grid.rmax-grid.rmin
-	try:
-        	self.max_step = params['step_ratio'] * max(rdim, zdim)
-	except:
-		default_step_ratio = 0.02
-		self.max_step = default_step_ratio * max(rdim, zdim)
+        try:
+            self.max_step = params['step_ratio'] * max(rdim, zdim)
+        except:
+            default_step_ratio = 0.02
+            self.max_step = default_step_ratio * max(rdim, zdim)
+        
         # TODO: set self.first_step as a parameter
         self.first_step = 1e-5  # self.max_step
 
@@ -551,7 +552,7 @@ class LineTracing:
             plt.legend()
             plt.draw()
 
-    def draw_line(self, rz_start, rz_end=None, color='#1d617a',
+    def draw_line(self, rz_start, rz_end=None, color= 'orange',
                   option=None, direction=None, show_plot=False, text=False):
         """
         Uses scipy.integrate.solve_ivp to trace poloidal or radial
@@ -683,7 +684,7 @@ class LineTracing:
                 # y: list -- z endpoints
                 line.append(geo.Point(x[-1], y[-1]))
                 if show_plot:
-                    self.grid.ax.plot(x, y, '.-', linewidth='1.25', color=color, markersize = 1.5)
+                    self.grid.ax.plot(x, y, '.-', linewidth = 1.5, color=color, markersize = 1.5)
                     plt.draw()
                     plt.pause(np.finfo(float).eps)
 
@@ -851,7 +852,7 @@ class LineTracing:
             # Occurs with point converence.
             points = (self.x, self.y)
 
-            if count > 350:
+            if count > 3500:
                 print('did not converge, exiting...')
                 print('Iterations: ', count)
                 end = time()

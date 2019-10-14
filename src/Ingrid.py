@@ -199,29 +199,36 @@ class Ingrid:
         """
 
         self.itp = []
-        with open(self.files['itp']) as f:
-            for line in f:
-                point = line.strip()
-                if point.startswith('#'):
-                    # move along to the next iteration
-                    # this simulates a comment
-                    continue
-                x = float(point.split(',')[0])
-                y = float(point.split(',')[1])
-                self.itp.append((x, y))
+        try:
+            with open(self.files['itp']) as f:
+                for line in f:
+                    point = line.strip()
+                    if point.startswith('#'):
+                        # move along to the next iteration
+                        # this simulates a comment
+                        continue
+                    x = float(point.split(',')[0])
+                    y = float(point.split(',')[1])
+                    self.itp.append((x, y))
+            print('Using inner target plate', self.itp)
+        except KeyError:
+            print('No inner target plate file.')
 
         self.otp = []
-        with open(self.files['otp']) as f:
-            for line in f:
-                point = line.strip()
-                if point.startswith('#'):
-                    # move along to the next iteration
-                    continue
-                x = float(point.split(',')[0])
-                y = float(point.split(',')[1])
-                self.otp.append((x, y))
-        print('Using inner target plate', self.itp)
-        print('Using outer target plate', self.otp)
+        try:
+            with open(self.files['otp']) as f:
+                for line in f:
+                    point = line.strip()
+                    if point.startswith('#'):
+                        # move along to the next iteration
+                        continue
+                    x = float(point.split(',')[0])
+                    y = float(point.split(',')[1])
+                    self.otp.append((x, y))
+            print('Using outer target plate', self.otp)
+        except KeyError:
+            print('No outer target plate file.')
+
 
     def plot_target_plate(self):
         """ Plots the inner and outer target plates on the current figure """
@@ -616,12 +623,10 @@ class Ingrid:
         from scipy.integrate import quad
         from scipy.optimize import root_scalar
         for patch in self.patches:
-            patch.W = patch.W.straighten()
-            patch.E = patch.E.straighten()
-            patch.plot_border()
+            #patch.plot_border()
             patch.make_subgrid(self)
-            patch.fill()
             raise SystemError
+            # patch.fill()
 
     def construct_SNL_patches(self):
         """ More general format to construct the grid for SNL using patches.
@@ -892,8 +897,7 @@ def set_params_GUI():
             plt.close('all')
             IngridWindow.destroy()
     IngridWindow = IA.IngridApp()
-    IngridWindow.geometry("760x530")
-    # IngridWindow.geometry("450x215")
+    IngridWindow.geometry("805x485")
     IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
     IngridWindow.mainloop()
 

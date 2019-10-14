@@ -151,7 +151,7 @@ class Line:
         color : str, optional
             Defaults to a light blue.
         """
-        plt.plot(self.xval, self.yval, color=color, linewidth='2', zorder = 5)
+        plt.plot(self.xval, self.yval, color=color, linewidth='1.5', zorder = 5)
 
     def print_points(self):
         """ Prints each point in the line to the terminal. """
@@ -168,6 +168,17 @@ class Line:
         """
         self.xs = np.linspace(self.p[0].x, self.p[-1].x, num)
         self.ys = np.linspace(self.p[0].y, self.p[-1].y, num)
+
+    def fluff(self, num = 1000):
+        x_fluff = np.empty(0)
+        y_fluff = np.empty(0)
+        for i in range(len(self.xval) - 1):
+            x_fluff = np.append(x_fluff, np.linspace(self.xval[i], self.xval[i+1], num, endpoint = False))
+            y_fluff = np.append(y_fluff, np.linspace(self.yval[i], self.yval[i+1], num, endpoint = False))
+        x_fluff = np.append(x_fluff, self.xval[-1])
+        y_fluff = np.append(y_fluff, self.yval[-1])
+
+        return x_fluff, y_fluff
         
     def points(self):
         """ Returns the points in the line as a tuple. """
@@ -250,9 +261,155 @@ class Patch:
         y = [p.y for p in self.p]
         plt.fill(x, y, facecolor=color)
 
-
+    def plot_subgrid(self):
+        for cell in self.cells:
+            cell.plot_border()
 
     def make_subgrid(self, grid, num = 4):
+        """
+        Generate a refined grid within a patch.
+        This 'refined-grid' within a Patch is a collection
+        of num x num Cell objects
+
+        Parameters:
+        ----------
+        grid : Ingrid object
+                To be used for obtaining Efit data and all
+                other class information.
+        num  : int, optional
+                Number to be used to generate num x num 
+                cells within our Patch.
+        """
+        from scipy.interpolate import splprep, splev
+        from scipy.optimize import root_scalar
+
+        def psi_parameterize(grid, r, z):
+            """
+            Helper function to be used to generate a 
+            list of values to parameterize a spline 
+            in Psi. Returns a list to be used for splprep only
+            """
+            vmax = grid.psi_norm.get_psi(r[-1], z[-1])
+            vmin = grid.psi_norm.get_psi(r[0], z[0])
+
+            vparameterization = np.empty(0)
+            for i in range(len(r)):
+                vcurr = grid.psi_norm.get_psi(r[i], z[i])
+                vparameterization = np.append(vparameterization, abs((vcurr - vmin) / (vmax - vmin)))
+
+            return vparameterization
+
+        # Allocate space for collection of cell objects.
+        # Arbitrary 2D container for now.
+        cell_list = []
+        num += 1
+        # Parameters to be used in generation of B-Splines.
+        eps = 1e-5
+        unew = np.arange(0, 1 + eps, eps)
+
+        # Create B-Splines along the North and South boundaries.
+        N_vals = self.N.fluff()
+
+        N_spl, uN = splprep([N_vals[0], N_vals[1]], s = 0)
+        # Reverse the orientation of the South line to line up with the North.
+
+        S_vals = self.S.reverse_copy().fluff()
+        S_spl, uS = splprep([S_vals[0], S_vals[1]], s = 0)
+
+
+        # Create B-Splines along the East and West boundaries.
+        # Parameterize EW splines in Psi
+        # TODO: Currently linear along E and W. Generalize to curves...
+        # rpts, zpts = np.linspace(self.W.p[0].x, self.W.p[-1].x, 1000), \
+        #              np.linspace(self.W.p[0].y, self.W.p[-1].y, 1000)
+
+        W_vals = self.W.fluff()
+        W_spl, uW = splprep([W_vals[0], W_vals[1]], u = psi_parameterize(grid, W_vals[0], W_vals[1]), s = 0)
+        
+        # rpts, zpts = np.linspace(self.E.reverse_copy().p[0].x, self.E.reverse_copy().p[-1].x, 1000), \
+        #              np.linspace(self.E.reverse_copy().p[0].y, self.E.reverse_copy().p[-1].y, 1000)
+
+        E_vals = self.E.reverse_copy().fluff()
+        E_spl, uE = splprep([E_vals[0], E_vals[1]], u = psi_parameterize(grid, E_vals[0], E_vals[1]), s = 0)      
+
+        spl_data = {'N' : N_spl, 'S' : S_spl, 'E' : E_spl, 'W' : W_spl}
+        N_spline = splev(uN, N_spl)
+        S_spline = splev(uS, S_spl)
+        E_spline = splev(uE, E_spl)
+        W_spline = splev(uW, W_spl)
+
+        # Generate our sub-grid anchor points along the North
+        # and South boundaries of our patch.
+        N_vertices = []
+        S_vertices = []
+        E_vertices = []
+        W_vertices = []
+
+        for i in range(num):
+            _n = splev(i / (num-1), spl_data['N'])
+            N_vertices.append(Point((_n[0], _n[1])))
+
+            _s = splev(i / (num-1), spl_data['S'])
+            S_vertices.append(Point((_s[0], _s[1])))
+
+            _e = splev(i / (num-1), spl_data['E'])
+            E_vertices.append(Point((_e[0], _e[1])))
+
+            _w = splev(i / (num-1), spl_data['W'])
+            W_vertices.append(Point((_w[0], _w[1])))
+
+        for item in [N_vertices, S_vertices, E_vertices, W_vertices]:
+            for vertex in item:
+                plt.plot(vertex.x, vertex.y, '.', color = 'black')
+
+        bounds = []
+        colors = ['red', 'orange', 'green', 'blue', 'black']
+        for i in range(num):
+            upper = Point((N_vertices[i].x, N_vertices[i].y))
+            lower = Point((S_vertices[i].x, S_vertices[i].y))
+            bounds.append(Line([upper, lower]))
+
+        def make_cell(SW_vert, NW_vert, endLine):
+            print('Plotting N')
+            N = grid.eq.draw_line(NW_vert, {'line' : endLine}, option = 'theta', direction = 'cw', show_plot = True)
+            print('Plotting S')
+            S = grid.eq.draw_line(SW_vert, {'line' : endLine}, option = 'theta', direction = 'cw', show_plot = True).reverse_copy()
+            print('Plotting E')
+            E = Line([N.p[-1], S.p[0]])
+            print('Plotting W')
+            W = Line([S.p[-1], N.p[0]])
+            return Cell([N, S, E, W])
+        
+        # Prepare data to generate Cells.
+        w_list = [p for p in W_vertices]
+        bounds.pop(0)
+        
+        next_w = []
+        for endLine in bounds:
+            print(len(w_list))
+            
+            for i in range(len(w_list) - 1):
+                new_cell = make_cell(w_list[i], w_list[i+1], endLine)
+                new_cell.plot_border()
+                next_w.append(new_cell.S.p[0])
+                next_w.append(new_cell.N.p[-1])
+                Line([next_w[i], next_w[i+1]]).plot(color = colors[i])
+                cell_list.append(new_cell)
+            w_list = list(dict.fromkeys([p for p in next_w]))
+            next_w = []
+
+        self.cells = cell_list
+        """
+        for i in range(len(W_vertices) - 1):
+            grid.eq.draw_line(W_vertices[i + 1], {'line': self.E}, option = 'theta', direction = 'cw', show_plot = True).plot()
+
+        for line in bounds:
+            line.plot()
+        """
+        
+
+
+    def make_subgrid2(self, grid, num = 4):
         """
         Generate a refined grid within a patch.
         This 'refined-grid' within a Patch is a collection

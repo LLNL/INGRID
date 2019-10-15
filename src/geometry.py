@@ -9,7 +9,7 @@ from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from scipy.optimize import fsolve, curve_fit, root_scalar
+from scipy.optimize import fsolve, curve_fit, root_scalar, brentq
 from scipy.interpolate import splprep, splev
 
 
@@ -185,7 +185,7 @@ class Line:
         
     def points(self):
         """ Returns the points in the line as a tuple. """
-        return ((self.p[0].x, self.p[0].y), (self.p[-1].x, self.p[-1].y))
+        return [(p.x, p.y) for p in self.p]
 
     def calc_length(self):
         l = 0
@@ -240,7 +240,7 @@ class Patch:
 
     """
     
-    def __init__(self, lines):
+    def __init__(self, lines, platePatch = False, plateLocation = None):
         self.lines = lines
         self.N = lines[0]
         self.E = lines[1]
@@ -250,6 +250,9 @@ class Patch:
         # This is the border for the fill function
         # It need to only include N and S lines
         self.p = list(self.N.p) + list(self.S.p)
+
+        self.platePatch = platePatch
+        self.plateLocation = plateLocation
         
 
     def plot_border(self, color='red'):
@@ -330,14 +333,52 @@ class Patch:
         # Create B-Splines along the East and West boundaries.
         # Parameterize EW splines in Psi
         W_vals = self.W.reverse_copy().fluff()
-        plt.plot(W_vals[0], W_vals[1], color = 'black')
         W_spl, uW = splprep([W_vals[0], W_vals[1]], u = psi_parameterize(grid, W_vals[0], W_vals[1]), s = 0)
 
         E_vals = self.E.fluff()
-        plt.plot(E_vals[0], E_vals[1], color = 'red')
-        E_spl, uE = splprep([E_vals[0], E_vals[1]], u = psi_parameterize(grid, E_vals[0], E_vals[1]), s = 0)      
+        E_spl, uE = splprep([E_vals[0], E_vals[1]], u = psi_parameterize(grid, E_vals[0], E_vals[1]), s = 0)     
+        
+        # ACCURACY ON PSI_MIN SIDE OF W IDL LINE ISSUE.
+        if self.platePatch:
 
-        spl_data = {'N' : N_spl, 'S' : S_spl, 'E' : E_spl, 'W' : W_spl}
+            def f(u, *args):
+                _y = splev(u, args[0])
+                return grid.psi_norm.get_psi(args[1], args[2]) - grid.psi_norm.get_psi(_y[0], _y[1])
+
+            def find_nearest(array, value):
+                array = np.asarray(array)
+                idx = (np.abs(array - value)).argmin()
+                return array[idx]
+
+            if self.plateLocation == 'W':
+                _u = uW
+                U_vals = W_vals
+                U_spl = W_spl
+                upper = [N_vals[0][0], N_vals[1][0]]
+                lower = [S_vals[0][0], S_vals[1][0]]
+            elif self.plateLocation == 'E':
+                _u = uE
+                U_spl = E_spl
+                upper = [N_vals[0][-1], N_vals[1][-1]]
+                lower = [S_vals[1][-1], S_vals[1][-1]]
+
+            lookup = {}
+            for i in range(len(_u)):
+                lookup[_u[i]] = i
+            upper = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args = (U_spl, upper[0], upper[1])))]
+            lower = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args = (U_spl, lower[0], lower[1])))]
+
+            U_vals = [U_vals[0][upper:lower], U_vals[1][upper:lower]]
+            U_spl, _u = splprep([U_vals[0], U_vals[1]], u = psi_parameterize(grid, U_vals[0], U_vals[1]), s = 0)
+
+            if self.plateLocation == 'W':
+                W_vals = U_vals
+                W_spl = U_spl
+                uW = _u
+            elif self.plateLocation == 'E':
+                E_vals = U_vals
+                E_spl = U_spl
+                uE = _u
 
         # Generate our sub-grid anchor points along the North
         # and South boundaries of our patch.
@@ -347,23 +388,21 @@ class Patch:
         W_vertices = []
 
         for i in range(num):
-            _n = splev(i / (num-1), spl_data['N'])
+            _n = splev(i / (num-1), N_spl)
             N_vertices.append(Point((_n[0], _n[1])))
 
-            _s = splev(i / (num-1), spl_data['S'])
+            _s = splev(i / (num-1), S_spl)
             S_vertices.append(Point((_s[0], _s[1])))
 
-            _e = splev(i / (num-1), spl_data['E'])
+            _e = splev(i / (num-1), E_spl)
             E_vertices.append(Point((_e[0], _e[1])))
 
-            _w = splev(i / (num-1), spl_data['W'])
+            _w = splev(i / (num-1), W_spl)
             W_vertices.append(Point((_w[0], _w[1])))
 
-        """
         for vertices in [W_vertices, E_vertices, N_vertices, S_vertices]:
             for p in vertices:
                 plt.plot(p.x, p.y, '.', color = 'black')
-        """
 
         # Radial lines of Psi surfaces. Ordered with increasing magnitude, starting with
         # the South boundary of the current Patch, and ending with the North boundary of
@@ -373,6 +412,7 @@ class Patch:
 
         # Interpolate radial lines between North and South patch boundaries.
         for i in range(len(W_vertices) - 2):
+            plt.plot(W_vertices[i+1].x, W_vertices[i+1].y, '.', color = 'blue')
             plt.plot(E_vertices[i+1].x, E_vertices[i+1].y, '.', color = 'black')
             radial_lines.append(grid.eq.draw_line(W_vertices[i + 1], {'point' : E_vertices[i + 1]}, option = 'theta', direction = 'cw', show_plot = False))
             radial_vals = radial_lines[i + 1].fluff()
@@ -413,6 +453,7 @@ class Patch:
         elif corner == 'SW':
             self.cells[-1][0].vertices[corner] = point
             self.cells[-1][0].vertices[corner] = point
+
 
     def refine(self, grid):
         """ Divides a patch into smaller cells based on N and S lines,
@@ -546,17 +587,17 @@ def test2points(p1, p2, line):
         Returns two numbers, if the signs are different 
         the points are on opposite sides of the line.
     
-    """    
-    (x1, y1), (x2, y2) = line
-    x, y = p1
-    a, b = p2
-    d1 = (x-x1)*(y2-y1)-(y-y1)*(x2-x1)
-    d2 = (a-x1)*(y2-y1)-(b-y1)*(x2-x1)
-    
-    if (np.sign(d1) != np.sign(d2)):
-        return True
-    else:
-        return False
+    """
+    for ind in range(len(line) - 1):
+        (x1, y1), (x2, y2) = line[ind], line[ind + 1]
+        x, y = p1
+        a, b = p2
+        d1 = (x-x1)*(y2-y1)-(y-y1)*(x2-x1)
+        d2 = (a-x1)*(y2-y1)-(b-y1)*(x2-x1)
+        
+        if (np.sign(d1) != np.sign(d2)):
+            return True
+    return False
 
 
 def intersect(line1, line2):
@@ -590,14 +631,21 @@ def intersect(line1, line2):
         # normalized to help solve for zero
         x, y = xy
         return np.array([y - line(x, line1),
-                         y - line(x, line2)])
+                         y - line(x, test_line)])
 
-    # use the mean for initial guess
-    (a, b), (c, d) = line1
-    (i, j), (p, q) = line2
-    guess = (np.mean([a, c, i, p]), np.mean([b, d, j, q]))
-    r, z = fsolve(f, guess)
-    return r, z
+    if isinstance(line2, Line):
+        line2 = [(p.x, p.y) for p in line2.p]
+    for ind in range(len(line2) - 1):
+        # use the mean for initial guess
+        test_line = [line2[ind], line2[ind + 1]]
+        (a, b), (c, d) = line1
+        (i, j), (p, q) = test_line
+        guess = (np.mean([a, c, i, p]), np.mean([b, d, j, q]))
+        sol, infoDict, ier, mesg = fsolve(f, guess, full_output = True)
+        print('{}: {}'.format(ind, mesg))
+        if ier == 1:
+            break
+    return sol[0], sol[1]
 
 def segment_intersect(line1, line2):
     """ Finds the intersection of two FINITE line segments.
@@ -612,28 +660,44 @@ def segment_intersect(line1, line2):
         True/False of whether the segments intersect
         Coordinates of the intersection
     """
+    (xa, ya), (xb, yb) = line1
+    if isinstance(line2, Line):
+        line2 = [(p.x, p.y) for p in line2.p]
+    for i in range(len(line2) - 1):
+        (xc, yc), (xd, yd) = line2[i], line2[i+1]
 
+        M = np.array([[xb - xa, -xd + xc], [yb - ya, -yd + yc]])
+        r = np.array([xc - xa, yc - ya])
+        try:
+            sol = np.linalg.solve(M, r)
+        except np.linalg.LinAlgError:
+            print('Singular matrix...')
+            continue
+
+        if (sol[0] <= 1) and (sol[1] <= 1) \
+            and (sol[0] >= 0) and (sol[1] >= 0):
+            plt.plot(sol[0], sol[1], '+', color = 'purple')
+            print('INTERSECTION OCCURED')
+            return True, [(xc, yc), (xd, yd)]
+    return False, [(np.nan, np.nan), (np.nan, np.nan)]
+    
+    """
     (xa, ya), (xb, yb) = (line1.xval[0], line1.yval[0]), (line2.xval[0], line2.yval[0])
     (xc, yc), (xd, yd) = (line1.xval[1], line1.yval[1]), (line2.xval[1], line2.yval[1])
-
-
     print(xb - xa)
     print(yb - ya)
     M = np.array([[xb - xa, -xd + xc],\
                  [yb - ya, -yd + yc]])
-
     print(M)
     r = np.array([xc-xa, yc - ya])
-
     print(r)
-
     sol = np.linalg.solve(M, r)
-
     if sol[0] <= 1 and sol[1] <= 1\
        and sol[0] >= 0 and sol[1] >= 0:
            return True, sol
     else:
         False, (None,None)
+    """
 
 
 if __name__ == "__main__":

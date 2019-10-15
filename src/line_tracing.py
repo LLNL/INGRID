@@ -732,10 +732,12 @@ class LineTracing:
                 # p2 = ( x2, y2 )
                 p2 = (points[0][-1], points[1][-1])
                 result = geo.test2points(p1, p2, endLine)
-                if result == True:
+                intersected, segment = geo.segment_intersect((p1, p2), endLine)
+                if result and intersected:
                     if text:
                         success('line crossing')
-                    r, z = geo.intersect((p1, p2), endLine)
+                    segment = geo.Line([geo.Point(segment[0]), geo.Point(segment[-1])])
+                    r, z = geo.intersect((p1, p2), segment)
                     save_line([p1[0], r], [p1[1], z])
                     return True
 

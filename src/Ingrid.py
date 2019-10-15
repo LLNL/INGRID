@@ -378,16 +378,23 @@ class Ingrid:
         psi_min_core = self.grid_params['psi_min_core']
         psi_min_pf = self.grid_params['psi_min_pf']
 
+        ITP = Line([p for p in [Point(i) for i in self.itp]])
+        ITP.plot()
+        OTP = Line([p for p in [Point(i) for i in self.otp]])
+        OTP.plot()
+
         # Generate Horizontal Mid-Plane line
         LHS_Point = Point(magx[0] - 1e6, magx[1])
         RHS_Point = Point(magx[0] + 1e6, magx[1])
         midLine = Line([LHS_Point, RHS_Point])
+        midLine.plot()
         # midLine.plot(color = 'blue')
 
         # Generate Vertical Mid-Plane line
         Lower_Point = Point(magx[0], magx[1] - 1e6)
         Upper_Point = Point(magx[0], magx[1] + 1e6)
         topLine = Line([Lower_Point, Upper_Point])
+        topLine.plot()
         # topLine.plot(color = 'red')
 
         # Drawing Separatrix
@@ -430,13 +437,13 @@ class Ingrid:
             psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = debug)
 
         elif sign_test[1] == 1:
-            iPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : self.itp}, option = 'theta', direction = 'ccw', show_plot = debug)
-            oPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = debug)
+            iPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = debug)
+            oPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = debug)
 
             imidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug)
             omidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug)
 
-            xpt_ITP = self.eq.draw_line(xpt['SW'], {'line' : self.itp}, option = 'theta', direction = 'ccw', show_plot = debug)
+            xpt_ITP = self.eq.draw_line(xpt['SW'], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = debug)
             xpt_OTP = self.eq.draw_line(xpt['SE'], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = debug)
             
             # Integrating horizontally along mid-line towards psiMax and psiMinCore
@@ -455,7 +462,7 @@ class Ingrid:
             topLine_psiMinCore = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_min_core}, option = 'r_const', \
                     direction = 'ccw', show_plot = debug)
 
-            psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.itp},option = 'theta', direction = 'ccw', show_plot = debug)
+            psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : ITP},option = 'theta', direction = 'ccw', show_plot = debug)
             psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = debug)
         
         # IDL Patch
@@ -464,12 +471,15 @@ class Ingrid:
             IDL_S = xpt_ITP.reverse_copy()
             IDL_E = Line([IDL_N.p[-1], IDL_S.p[0]])
             IDL_W = xptE_psiMax
+            location = 'E'
         elif sign_test[1] == 1:
             IDL_N = iPsiMax_TP.reverse_copy()
             IDL_S = xpt_ITP
             IDL_E = xptW_psiMax.reverse_copy()
-            IDL_W = Line([IDL_S.p[-1], IDL_N.p[0]])
-        IDL = Patch([IDL_N, IDL_E, IDL_S, IDL_W])
+            IDL_W = ITP.reverse_copy()
+            location = 'W'
+            # IDL_W = Line([IDL_S.p[-1], IDL_N.p[0]])
+        IDL = Patch([IDL_N, IDL_E, IDL_S, IDL_W], platePatch = True, plateLocation = location)
 
         # IPF Patch
         if sign_test[1] == -1:
@@ -477,12 +487,14 @@ class Ingrid:
             IPF_S = psiMinPF_ITP.reverse_copy()
             IPF_E = Line([IPF_N.p[-1], IPF_S.p[0]])
             IPF_W = xptS_psiMinPF.reverse_copy()
+            location = 'E'
         elif sign_test[1] == 1:
             IPF_N = IDL_S.reverse_copy()
             IPF_S = psiMinPF_ITP
             IPF_E = xptS_psiMinPF
-            IPF_W = Line([IPF_S.p[-1], IPF_N.p[0]])
-        IPF = Patch([IPF_N, IPF_E, IPF_S, IPF_W])
+            IPF_W = ITP.reverse_copy()
+            location = 'W'
+        IPF = Patch([IPF_N, IPF_E, IPF_S, IPF_W], platePatch = True, plateLocation = location)
 
         # ISB Patch
         if sign_test[1] == -1:
@@ -640,7 +652,7 @@ class Ingrid:
             """
             print(names[i])
             i += 1
-            patch.make_subgrid(self, num = 2)
+            patch.make_subgrid(self, num = 10)
             patch.plot_border()
             patch.fill()
             #TODO: Make this it's own function? It's a bit cumbersome looking...

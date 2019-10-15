@@ -326,7 +326,7 @@ class FilePicker(tk.Frame):
             otp_file, valid_path = self.get_file()
             if valid_path and otp_file.suffix == '.txt':
                 self.ROOT.nml['files']['otp'] = str(otp_file)
-                self.itpFrame.fileLoaded(otp_file)
+                self.otpFrame.fileLoaded(otp_file)
                 self.update_frame_state()
             elif not valid_path:
                 self.otpFrame.invalidPath(otp_file)
@@ -545,14 +545,14 @@ class ParamPicker(tk.Frame):
             self.ActiveFrame[0].Psi_EntryText.set('{0:.12f}'.format(psi))
 
     def set_RFValues(self):
-        self.controller.nml['grid_params']['Rmagx'] = float(self.MagFrame.R_EntryText.get())
-        self.controller.nml['grid_params']['Zmagx'] = float(self.MagFrame.Z_EntryText.get())
-        self.controller.nml['grid_params']['Rxpt'] = float(self.XptFrame.R_EntryText.get())
-        self.controller.nml['grid_params']['Zxpt'] = float(self.XptFrame.Z_EntryText.get())
+        self.controller.nml['grid_params']['rmagx'] = float(self.MagFrame.R_EntryText.get())
+        self.controller.nml['grid_params']['zmagx'] = float(self.MagFrame.Z_EntryText.get())
+        self.controller.nml['grid_params']['rxpt'] = float(self.XptFrame.R_EntryText.get())
+        self.controller.nml['grid_params']['zxpt'] = float(self.XptFrame.Z_EntryText.get())
         self.controller.nml['grid_params']['step_ratio'] = 0.02
 
-        self.MagAxis = (self.controller.nml['grid_params']['Rmagx'], self.controller.nml['grid_params']['Zmagx'])
-        self.Xpt = (self.controller.nml['grid_params']['Rxpt'], self.controller.nml['grid_params']['Zxpt'])
+        self.MagAxis = (self.controller.nml['grid_params']['rmagx'], self.controller.nml['grid_params']['zmagx'])
+        self.Xpt = (self.controller.nml['grid_params']['rxpt'], self.controller.nml['grid_params']['zxpt'])
 
         self.controller.IngridSession.magx = self.MagAxis
         self.controller.IngridSession.xpt1 = self.Xpt
@@ -587,6 +587,7 @@ class ParamPicker(tk.Frame):
         self.acceptPF_Button.config(text = 'Entries Saved!', fg = 'lime green')
 
     def createPatches(self):
+        print(self.ROOT.nml)
         self.set_RFValues()
         self.set_PsiValues()
         self.controller.IngridSession.magx = self.MagAxis
@@ -595,6 +596,7 @@ class ParamPicker(tk.Frame):
         self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].eqdskFrame.FP_EntryText.get()))
         self.controller.IngridSession.construct_SNL_patches2()
         self.controller.IngridSession.patch_diagram()
+        self.controller.IngridSession.grid_diagram()
 
     def saveParameters(self):
         self.set_RFValues()

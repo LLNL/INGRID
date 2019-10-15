@@ -52,8 +52,8 @@ class LineTracing:
         tracing.
     """
 
-    def __init__(self, grid, params, eps=1e-8, tol=1e-4,
-                 numPoints=25, dt=0.001, option='xpt_circ', direction='cw'):
+    def __init__(self, grid, params, eps=1e-12, tol=5e-3,
+                 numPoints=25, dt=0.01, option='xpt_circ', direction='cw'):
         self.grid = grid
 
         self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event',
@@ -636,7 +636,6 @@ class LineTracing:
             else:
                 # form ((),())
                 endLine = rz_end['line']
-
         elif key_list == ['psi']:
             print('Testing for psi convergence')
             test = 'psi'
@@ -699,8 +698,8 @@ class LineTracing:
             for edge in boundary:
                 p1 = (points[0][0], points[1][0])
                 p2 = (points[0][-1], points[1][-1])
-                p1s, p2s = geo.test2points(p1, p2, edge)
-                if p1s != p2s:
+                result = geo.test2points(p1, p2, edge)
+                if result == True:
                     print('The line went over the boundary')
                     if text:
                         success('edge')
@@ -732,8 +731,8 @@ class LineTracing:
                 p1 = (points[0][0], points[1][0])
                 # p2 = ( x2, y2 )
                 p2 = (points[0][-1], points[1][-1])
-                p1s, p2s = geo.test2points(p1, p2, endLine)
-                if p1s != p2s:
+                result = geo.test2points(p1, p2, endLine)
+                if result == True:
                     if text:
                         success('line crossing')
                     r, z = geo.intersect((p1, p2), endLine)

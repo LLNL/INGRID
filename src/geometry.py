@@ -3,12 +3,15 @@
 """
 Created on Thu Jul 25 16:00:04 2019
 
-@author: watkins35
+@author: watkins35, garcia299
 """
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 from scipy.optimize import fsolve, curve_fit, root_scalar
+from scipy.interpolate import splprep, splev
+
 
 
 class Vector:
@@ -151,7 +154,7 @@ class Line:
         color : str, optional
             Defaults to a light blue.
         """
-        plt.plot(self.xval, self.yval, color=color, linewidth='1.5', zorder = 5)
+        plt.plot(self.xval, self.yval, color=color, linewidth='1', zorder = 5)
 
     def print_points(self):
         """ Prints each point in the line to the terminal. """
@@ -203,14 +206,27 @@ class Cell:
     """
     def __init__(self, lines):
         self.lines = lines
-        self.N = lines[0]
-        self.S = lines[1]
-        self.E = lines[2]
-        self.W = lines[3]
+        N = lines[0]
+        S = lines[1]
+        E = lines[2]
+        W = lines[3]
 
-    def plot_border(self, color = 'blue'):
-        for line in self.lines:
-            line.plot()
+        self.vertices = {'NW' : N.p[0], 'NE' : N.p[-1], \
+                         'SW' : S.p[0], 'SE' : S.p[-1]}
+
+        self.p = list(N.p) + list(S.p)
+
+    def plot_border(self, color = 'red'):
+        Line([self.vertices['NW'], self.vertices['NE']]).plot(color)
+        Line([self.vertices['NE'], self.vertices['SE']]).plot(color)
+        Line([self.vertices['SE'], self.vertices['SW']]).plot(color)
+        Line([self.vertices['SW'], self.vertices['NW']]).plot(color)
+
+    def fill(self, color = 'salmon'):
+        x = [p.x for p in self.p]
+        y = [p.y for p in self.p]
+        plt.fill(y, x, facecolor = color)
+
 
 class Patch:
     """
@@ -265,7 +281,7 @@ class Patch:
         for cell in self.cells:
             cell.plot_border()
 
-    def make_subgrid(self, grid, num = 4):
+    def make_subgrid(self, grid, num = 2):
         """
         Generate a refined grid within a patch.
         This 'refined-grid' within a Patch is a collection
@@ -280,9 +296,6 @@ class Patch:
                 Number to be used to generate num x num 
                 cells within our Patch.
         """
-        from scipy.interpolate import splprep, splev
-        from scipy.optimize import root_scalar
-
         def psi_parameterize(grid, r, z):
             """
             Helper function to be used to generate a 
@@ -303,9 +316,6 @@ class Patch:
         # Arbitrary 2D container for now.
         cell_list = []
         num += 1
-        # Parameters to be used in generation of B-Splines.
-        eps = 1e-5
-        unew = np.arange(0, 1 + eps, eps)
 
         # Create B-Splines along the North and South boundaries.
         N_vals = self.N.fluff()
@@ -319,24 +329,15 @@ class Patch:
 
         # Create B-Splines along the East and West boundaries.
         # Parameterize EW splines in Psi
-        # TODO: Currently linear along E and W. Generalize to curves...
-        # rpts, zpts = np.linspace(self.W.p[0].x, self.W.p[-1].x, 1000), \
-        #              np.linspace(self.W.p[0].y, self.W.p[-1].y, 1000)
-
-        W_vals = self.W.fluff()
+        W_vals = self.W.reverse_copy().fluff()
+        plt.plot(W_vals[0], W_vals[1], color = 'black')
         W_spl, uW = splprep([W_vals[0], W_vals[1]], u = psi_parameterize(grid, W_vals[0], W_vals[1]), s = 0)
-        
-        # rpts, zpts = np.linspace(self.E.reverse_copy().p[0].x, self.E.reverse_copy().p[-1].x, 1000), \
-        #              np.linspace(self.E.reverse_copy().p[0].y, self.E.reverse_copy().p[-1].y, 1000)
 
-        E_vals = self.E.reverse_copy().fluff()
+        E_vals = self.E.fluff()
+        plt.plot(E_vals[0], E_vals[1], color = 'red')
         E_spl, uE = splprep([E_vals[0], E_vals[1]], u = psi_parameterize(grid, E_vals[0], E_vals[1]), s = 0)      
 
         spl_data = {'N' : N_spl, 'S' : S_spl, 'E' : E_spl, 'W' : W_spl}
-        N_spline = splev(uN, N_spl)
-        S_spline = splev(uS, S_spl)
-        E_spline = splev(uE, E_spl)
-        W_spline = splev(uW, W_spl)
 
         # Generate our sub-grid anchor points along the North
         # and South boundaries of our patch.
@@ -358,293 +359,61 @@ class Patch:
             _w = splev(i / (num-1), spl_data['W'])
             W_vertices.append(Point((_w[0], _w[1])))
 
-        for item in [N_vertices, S_vertices, E_vertices, W_vertices]:
-            for vertex in item:
-                plt.plot(vertex.x, vertex.y, '.', color = 'black')
-
-        bounds = []
-        colors = ['red', 'orange', 'green', 'blue', 'black']
-        for i in range(num):
-            upper = Point((N_vertices[i].x, N_vertices[i].y))
-            lower = Point((S_vertices[i].x, S_vertices[i].y))
-            bounds.append(Line([upper, lower]))
-
-        def make_cell(SW_vert, NW_vert, endLine):
-            print('Plotting N')
-            N = grid.eq.draw_line(NW_vert, {'line' : endLine}, option = 'theta', direction = 'cw', show_plot = True)
-            print('Plotting S')
-            S = grid.eq.draw_line(SW_vert, {'line' : endLine}, option = 'theta', direction = 'cw', show_plot = True).reverse_copy()
-            print('Plotting E')
-            E = Line([N.p[-1], S.p[0]])
-            print('Plotting W')
-            W = Line([S.p[-1], N.p[0]])
-            return Cell([N, S, E, W])
-        
-        # Prepare data to generate Cells.
-        w_list = [p for p in W_vertices]
-        bounds.pop(0)
-        
-        next_w = []
-        for endLine in bounds:
-            print(len(w_list))
-            
-            for i in range(len(w_list) - 1):
-                new_cell = make_cell(w_list[i], w_list[i+1], endLine)
-                new_cell.plot_border()
-                next_w.append(new_cell.S.p[0])
-                next_w.append(new_cell.N.p[-1])
-                Line([next_w[i], next_w[i+1]]).plot(color = colors[i])
-                cell_list.append(new_cell)
-            w_list = list(dict.fromkeys([p for p in next_w]))
-            next_w = []
-
-        self.cells = cell_list
         """
-        for i in range(len(W_vertices) - 1):
-            grid.eq.draw_line(W_vertices[i + 1], {'line': self.E}, option = 'theta', direction = 'cw', show_plot = True).plot()
-
-        for line in bounds:
-            line.plot()
+        for vertices in [W_vertices, E_vertices, N_vertices, S_vertices]:
+            for p in vertices:
+                plt.plot(p.x, p.y, '.', color = 'black')
         """
-        
 
+        # Radial lines of Psi surfaces. Ordered with increasing magnitude, starting with
+        # the South boundary of the current Patch, and ending with the North boundary of
+        # this current Patch. These will serve as delimiters when constructing cells.
+        radial_lines = [self.N]
+        radial_vertices = [N_vertices]
 
-    def make_subgrid2(self, grid, num = 4):
-        """
-        Generate a refined grid within a patch.
-        This 'refined-grid' within a Patch is a collection
-        of num x num Cell objects
-
-        Parameters:
-        ----------
-        grid : Ingrid object
-                To be used for obtaining Efit data and all
-                other class information.
-        num  : int, optional
-                Number to be used to generate num x num 
-                cells within our Patch.
-        """
-        from scipy.interpolate import splprep, splev
-        from scipy.optimize import root_scalar
-
-        def psi_parameterize(grid, r, z):
-            """
-            Helper function to be used to generate a 
-            list of values to parameterize a spline 
-            in Psi. Returns a list to be used for splprep only
-            """
-            vmax = grid.psi_norm.get_psi(r[-1], z[-1])
-            vmin = grid.psi_norm.get_psi(r[0], z[0])
-
-            vparameterization = np.zeros(len(unew))
-            for i in range(len(unew)):
-                vcurr = grid.psi_norm.get_psi(r[i], z[i])
-                vparameterization[i] = abs((vcurr - vmin) / (vmax - vmin))
-
-            return vparameterization
-
-        # Allocate space for collection of cell objects.
-        # Arbitrary 2D container for now.
-        cell_list = []
-
-        # Parameters to be used in generation of B-Splines.
-        eps = 1e-5
-        unew = np.arange(0, 1 + eps, eps)
-
-        # Create B-Splines along the North and South boundaries.
-        N_spl, uN = splprep([self.N.xval, self.N.yval], s = 0, t = len(self.N.xval))
-        # Reverse the orientation of the South line to line up with the North.
-        S_spl, uS = splprep([self.S.reverse_copy().xval, self.S.reverse_copy().yval], s = 0, t = len(self.S.xval))
-
-
-        # Create B-Splines along the East and West boundaries.
-        # Parameterize EW splines in Psi
-        # TODO: Currently linear along E and W. Generalize to curves...
-        rpts, zpts = np.linspace(self.W.p[0].x, self.W.p[-1].x, len(unew)), \
-                     np.linspace(self.W.p[0].y, self.W.p[-1].y, len(unew))
-
-        W_spl, uW = splprep([rpts, zpts], u = psi_parameterize(grid, rpts, zpts), s = 0)
-        
-        rpts, zpts = np.linspace(self.E.reverse_copy().p[0].x, self.E.reverse_copy().p[-1].x, len(unew)), \
-                     np.linspace(self.E.reverse_copy().p[0].y, self.E.reverse_copy().p[-1].y, len(unew))
-
-        E_spl, uE = splprep([rpts, zpts], u = psi_parameterize(grid, rpts, zpts), s = 0)      
-
-        spl_data = {'N' : N_spl, 'S' : S_spl, 'E' : E_spl, 'W' : W_spl}
-        N_spline = splev(uN, N_spl)
-        S_spline = splev(uS, S_spl)
-        E_spline = splev(uE, E_spl)
-        W_spline = splev(uW, W_spl)
-
-        # Generate our sub-grid anchor points along the North
-        # and South boundaries of our patch.
-        N_vertices = []
-        S_vertices = []
-        E_vertices = []
-        W_vertices = []
-
-        for i in range(num):
-            _n = splev(i / (num-1), spl_data['N'])
-            N_vertices.append(Point((_n[0], _n[1])))
-
-            _s = splev(i / (num-1), spl_data['S'])
-            S_vertices.append(Point((_s[0], _s[1])))
-
-            _e = splev(i / (num-1), spl_data['E'])
-            E_vertices.append(Point((_e[0], _e[1])))
-
-            _w = splev(i / (num-1), spl_data['W'])
-            W_vertices.append(Point((_w[0], _w[1])))
-
-        for item in [N_vertices, S_vertices, E_vertices, W_vertices]:
-            for vertex in item:
-                plt.plot(vertex.x, vertex.y, '.', color = 'black')
-
-        bounds = []
-        for i in range(num):
-            upper = Point((N_vertices[i].x, N_vertices[i].y))
-            lower = Point((S_vertices[i].x, S_vertices[i].y))
-            bounds.append(Line([upper, lower]))
-
-        def make_cell(NW_vert, SW_vert, endLine):
-            N = grid.eq.draw_line(NW_vert, {'line' : endLine}, option = 'theta', direction = 'cw', show_plot = True)       
-            S = grid.eq.draw_line(SW_vert, {'line' : endLine}, option = 'theta', direction = 'cw', show_plot = True).reverse_copy()
-            E = Line([N.p[-1], S.p[0]])
-            W = Line([S.p[-1], N.p[0]])
-            return Cell([N, S, E, W])
-
-        NW_start = N_vertices[0]
-        SW_start = S_vertices[0]
-
-        r_line = [p for p in W_vertices]
-        r_line.reverse()
-        r_line.pop(0)
-
-        for i in range(len(bounds)):
-            NW_start = N_vertices[i]
-            next_r = []
-            while r_line:
-                SW_start = r_line[0]
-                r_line.pop(0)
-                new_cell = make_cell(NW_start, SW_start, bounds[i + 1])
-                NW_start = new_cell.S.p[-1]
-                cell_list.append(new_cell)
-                next_r.append(new_cell.N.p[-1])
-            r_line = next_r
-            r_line.pop(0)
-
-
-        self.cells = cell_list
-
-
-        """
-        for i in range(num):
-            for j in range(num):
-                self.cells[i][j] = make_cell(grid, spl_dat, i, j)
- 
-        nline_pts = []
-        sline_pts = []
-        colors = ['red', 'blue', 'green', 'purple', 'magenta']
-
-
-        for line in [nline, sline]:
-            spl_dat, u = splprep([line.xval, line.yval], s = 0)  
-            unew = np.arange(0, 1 + 1e-5, 1e-5)           
-            _spline = splev(unew, spl_dat)
-            plt.plot(_spline[0], _spline[1], color='blue', linewidth='2', zorder = 1)
-        
+        # Interpolate radial lines between North and South patch boundaries.
+        for i in range(len(W_vertices) - 2):
+            plt.plot(E_vertices[i+1].x, E_vertices[i+1].y, '.', color = 'black')
+            radial_lines.append(grid.eq.draw_line(W_vertices[i + 1], {'point' : E_vertices[i + 1]}, option = 'theta', direction = 'cw', show_plot = False))
+            radial_vals = radial_lines[i + 1].fluff()
+            radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s = 0)
+            radial_spline = splev(uR, radial_spl)
+            vertex_list = []
             for i in range(num):
-                _root = splev(i/(num-1), spl_dat)
-                plt.plot(_root[0], _root[1], '.', color = colors[i], zorder = 2)
-                if line is nline:
-                    nline_pts.append(Point(_root))
-                elif line is sline:
-                    sline_pts.append(Point(_root))
+                _r = splev(i / (num - 1), radial_spl)
+                vertex_list.append(Point((_r[0], _r[1])))
+            radial_vertices.append(vertex_list)
+        radial_lines.append(self.S)
+        radial_vertices.append(S_vertices)
 
-        for i in range(num):
-            grid_line = Line([nline_pts[i], sline_pts[num - i - 1]])
-            grid_line.plot(color = colors[i])
+        # Create Cells: South boundary -> North Boundary
+        for i in range(len(radial_lines)):
+            if radial_lines[i] is self.S:
+                break
+            cell_list.append([])
+            for j in range(len(radial_vertices[i]) - 1):
+                NW = radial_vertices[i][j]
+                NE = radial_vertices[i][j+1]
+                SW = radial_vertices[i+1][j]
+                SE = radial_vertices[i+1][j+1]
+                cell_list[i].append(Cell([Line([NW, NE]), Line([SW, SE]), Line([SE, NE]), Line([SW, NW])]))
 
-        line = self.E
-        rpts = np.linspace(line.p[-1].x, line.p[0].x, 100)
-        zpts = np.linspace(line.p[-1].y, line.p[0].y, 100)
+        self.cells = cell_list
 
-        psivals = np.zeros(len(rpts))
+    def adjust_corner(self, point, corner):
+        if corner == 'NW':
+            self.cells[0][0].vertices[corner] = point
+            self.cells[0][0].vertices[corner] = point
+        elif corner == 'NE':
+            self.cells[0][-1].vertices[corner] = point
+            self.cells[0][-1].vertices[corner] = point
+        elif corner == 'SE':
+            self.cells[-1][-1].vertices[corner] = point
+            self.cells[-1][-1].vertices[corner] = point
+        elif corner == 'SW':
+            self.cells[-1][0].vertices[corner] = point
+            self.cells[-1][0].vertices[corner] = point
 
-        psiStart = grid.psi_norm.get_psi(rpts[0], zpts[0])
-        psiEnd = grid.psi_norm.get_psi(rpts[-1], zpts[-1])
-
-        for i in range(len(psivals)):
-            psiCurrent = grid.psi_norm.get_psi(rpts[i], zpts[i])
-            psivals[i] = abs((psiCurrent - psiStart)/(psiEnd - psiStart))
-
-        spl_dat, u = splprep([rpts, zpts], u = psivals, s = 0)
-        unew = np.arange(0, 1 + 1e-7, 1e-7)           
-        _spline = splev(unew, spl_dat)
-        
-        plt.plot(_spline[0], _spline[1], color='blue', linewidth='2', zorder = 1)
-        
-        for i in range(num):
-            _root = splev(i/(num-1), spl_dat)
-            plt.plot(_root[0], _root[1], '.', color = colors[i], zorder=2)
-        """
-
-
-        """
-        for i in range(num):
-            alpha = i / (num -1)
-
-            psiN = self.N.p[0].psi(grid)
-            psiS = self.S.p[-1].psi(grid)
-            psiStart = psiN + alpha * (psiS - psiN)
-
-            x1 = self.S.p[-1].x
-            x2 = self.N.p[0].x
-            y1 = self.S.p[-1].y
-            y2 = self.N.p[0].y
-            
-            plt.plot(x2, y2, 'X', color='blue')  # north
-            plt.plot(x1, y1, 'X', color='red')  # south
-            plt.draw()
-                    
-            def fpsi(x):
-                # line in 3d space
-                # must manually calculate y each time we stick it into
-                # the line of interest
-                y = (y2-y1)/(x2-x1)*(x-x1)+y1
-                return grid.psi_norm.get_psi(x, y) - psiStart
-
-            sol = root_scalar(fpsi, bracket=[x1, x2])
-            r_psi = sol.root
-            z_psi = (y2-y1)/(x2-x1)*(r_psi-x1)+y1
-            
-            plt.plot(r_psi, z_psi, 'x')
-            plt.draw()
-            
-            mid_line = grid.eq.draw_line((r_psi, z_psi), {'line': self.E},option='theta', direction='cw', show_plot=False)
-        """
-
-        """
-        nr_subgrid = num
-        np_subgrid = num
-
-        psi_upper = grid.get_psi(self.N.p.x[0], self.N.p.y[0])
-        psi_lower = grid.get_psi(self.S.p.x[-1], self.S.p.y[-1])
-
-        psi_increments = np.linspace(psi_lower, psi_upper, num)
-        """
-
-        """
-        def dL(s):
-            dR = splev(s, spl_dat, der = 1)[0]
-            dZ = splev(s, spl_dat, der = 1)[1]
-            return np.sqrt( dR ** 2 + dZ ** 2)
-
-        _spline_len = quad(dL, 0, 1)[0]
-        """
-
-
-        
     def refine(self, grid):
         """ Divides a patch into smaller cells based on N and S lines,
         and the psi levels of E and W lines.
@@ -771,7 +540,6 @@ def test2points(p1, p2, line):
         Second point, (x, y)
     line : array-like
         The line is comprised of two points ((x, y), (x, y)).
-
     Returns
     -------
     tuple
@@ -785,7 +553,10 @@ def test2points(p1, p2, line):
     d1 = (x-x1)*(y2-y1)-(y-y1)*(x2-x1)
     d2 = (a-x1)*(y2-y1)-(b-y1)*(x2-x1)
     
-    return np.sign(d1),  np.sign(d2)
+    if (np.sign(d1) != np.sign(d2)):
+        return True
+    else:
+        return False
 
 
 def intersect(line1, line2):
@@ -830,13 +601,11 @@ def intersect(line1, line2):
 
 def segment_intersect(line1, line2):
     """ Finds the intersection of two FINITE line segments.
-
     Parameters
     ----------
     line1 : array-like
     line2 : array-like
         Both lines of the form line1 = (P1, P2), line2 = (P3, P4)
-
     Returns
     -------
     bool, tuple

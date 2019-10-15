@@ -37,8 +37,8 @@ class Ingrid:
         
     def setup(self):
         """ Add the magnetic axis and the x-point """
-        self.add_magx(self.grid_params['Rmagx'], self.grid_params['Zmagx'])
-        self.add_xpt1(self.grid_params['Rxpt'], self.grid_params['Zxpt'])
+        self.add_magx(self.grid_params['rmagx'], self.grid_params['zmagx'])
+        self.add_xpt1(self.grid_params['rxpt'], self.grid_params['zxpt'])
 
     # TODO update this method to be able to change parameters.
     def set_param(self, key=None, value=None):
@@ -615,205 +615,89 @@ class Ingrid:
         OCT = Patch([OCT_N, OCT_E, OCT_S, OCT_W])
 
         self.patches = [IDL, IPF, ISB, ICB, IST, ICT, OST, OCT, OSB, OCB, ODL, OPF]
-
+        names = ['IDL', 'IPF', 'ISB', 'ICB', 'IST', 'ICT', 'OST', 'OCT', 'OSB', 'OCB', 'ODL', 'OPF']
 
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
         from scipy.interpolate import splprep, splev, BSpline
         from scipy.integrate import quad
         from scipy.optimize import root_scalar
+
+        from timeit import default_timer as timer
+        subgrid_start = timer()
+
+        primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
+
+        i = 0
         for patch in self.patches:
-            #patch.plot_border()
-            patch.make_subgrid(self)
-            raise SystemError
-            # patch.fill()
-
-    def construct_SNL_patches(self):
-        """ More general format to construct the grid for SNL using patches.
-        For theta direction, cw is positive.
-        For rho direction, ccw is positive, which is away from the magx.
-
-        Lines are drawn in the form:
-        self.eq.draw_line(, , option='', direction='')
-
-        Patch Labeling Key:
-            I: Inner,
-            O: Outer,
-            DL: Divertor Leg,
-            PF: Private Flux,
-            T: Top,
-            B: Bottom,
-            S: Scrape Off Layer,
-            C: Core.
-        """           
-        plt.show()
-
-        debug = True
-
-        from geometry import Point, Patch, Line
-        # self.eq.find_NSEW((self.grid_params['rxpt'], self.grid_params['zxpt']), (self.grid_params['rmagx'], self.grid_params['zmagx']))
-        self.compute_eq_psi()
-        xpt = self.eq.eq_psi
-        magx = np.array([self.grid_params['rmagx'], self.grid_params['zmagx']])
-        psi_max = self.grid_params['psi_max']
-        psi_min_core = self.grid_params['psi_min_core']
-        psi_min_pf = self.grid_params['psi_min_pf']
-
-        # IDL ===================================================
-        print('BEGIN: IDL ===================================================')
-        E = self.eq.draw_line(xpt['W'], {'psi': psi_max}, option='rho', direction='ccw', show_plot = debug)
-        N = self.eq.draw_line(E.p[-1], {'line': self.itp}, option='theta', direction='ccw', show_plot = debug).reverse()
-        S = self.eq.draw_line(xpt['SW'], {'line': self.itp}, option='theta', direction='ccw', show_plot = debug)
-        E = Line([N.p[-1], S.p[0]]) # straighten it up
-        W = Line([S.p[-1], N.p[0]])
-        IDL = Patch([N, E, S, W])
-        print('END: IDL ===================================================')
-        # Lines are now saved inside of the patch
-
-        # IPF ===================================================
-        print('BEGIN: IPF ===================================================')
-        N = IDL.S.reverse()
-        E = self.eq.draw_line(xpt['S'], {'psi': psi_min_pf}, option='rho', direction='cw', show_plot = debug)
-        E = Line([E.p[0], E.p[-1]])
-        S = self.eq.draw_line(E.p[-1], {'line': self.itp}, option='theta', direction='ccw', show_plot = debug)
-        W = Line([S.p[-1], N.p[0]])
-        IPF = Patch([N, E, S, W])
-        print('END: IPF ===================================================')
-
-        # OPF ===================================================
-        print('BEGIN: OPF ===================================================')
-        N = self.eq.draw_line(xpt['SE'], {'line': self.otp}, option='theta', direction='cw', show_plot = debug)
-        W = IPF.E.reverse()
-        S = self.eq.draw_line(W.p[0], {'line': self.otp}, option='theta', direction='cw', show_plot = debug).reverse()
-        E = Line([N.p[-1], S.p[0]])
-        OPF = Patch([N, E, S, W])
-        print('END: OPF ===================================================')
-
-        # ODL ===================================================
-        print('BEGIN: ODL ===================================================')
-        W = self.eq.draw_line(xpt['E'], {'psi': psi_max}, option='rho', direction='ccw', show_plot = debug)
-        W = Line([W.p[0], W.p[-1]])
-        N = self.eq.draw_line(W.p[-1], {'line': self.otp}, option='theta', direction='cw', show_plot = debug)
-        S = OPF.N.reverse()
-        E = Line([N.p[-1], S.p[0]])
-        ODL = Patch([N, E, S, W])
-        print('END: ODL ===================================================')
-
-        # need the mid and top points of the separatrix
-        print('BEGIN: Draw separatrix')
-        sep = self.eq.draw_line(Point(xpt['NW']), {'point': Point(xpt['NE'])}, option='theta', direction='cw', show_plot = debug)
-        top_index = np.argmax(sep.yval)
-        imid_index = np.argmin(sep.xval)
-        omid_index = np.argmax(sep.xval)
-        midpoint = np.median(sep.yval)
-        mid_index, = np.where(np.abs(sep.yval-midpoint) < 1e-3)
-        dp = {}  # defining points
-        dp['top'] = Point(sep.xval[top_index], sep.yval[top_index])
-        dp['impt'] = Point(sep.xval[imid_index], sep.yval[imid_index])
-        dp['ompt'] = Point(sep.xval[omid_index], sep.yval[omid_index])
-
-        imid_EndLine = Line([Point(dp['impt'].x - 5, dp['impt'].y), Point(dp['impt'].x + 5, dp['impt'].y)])
-        omid_EndLine = Line([Point(dp['ompt'].x - 5, dp['ompt'].y), Point(dp['ompt'].x + 5, dp['impt'].y)])
-        top_EndLine = Line([Point(dp['top'].x, dp['top'].y - 5), Point(dp['top'].x, dp['top'].y + 5)])
-
-        top_EndLine.plot(color = 'purple')
-        imid_EndLine.plot(color = 'red')
-        omid_EndLine.plot(color = 'blue')
-        print('END: Draw separatrix')
-
-        # ISB ===================================================
-        print('BEGIN: ISB ===================================================')
-        E = self.eq.draw_line(dp['impt'], {'psi': psi_max}, option='z_const', direction='ccw', show_plot = debug).reverse()
-        E = Line([E.p[0], E.p[-1]])
-        N = self.eq.draw_line(IDL.E.p[0], {'line': imid_EndLine}, option='theta', direction='cw', show_plot = debug) 
-        # N = self.eq.draw_line(IDL.E.p[0], {'point': E.p[0]}, option='theta', direction='cw', show_plot = debug)
-        S = Line(sep.p[:imid_index+1]).reverse()
-        W = IDL.E.reverse()
-        ISB = Patch([N, E, S, W])
-        print('END: ISB ===================================================')
-
-        # ICB ===================================================
-        print('BEGIN: ICB ===================================================')
-        N = Line(sep.p[:imid_index+1])
-        E = self.eq.draw_line(dp['impt'], {'psi': psi_min_core}, option='z_const', direction='cw', show_plot = debug)
-        # W = self.eq.draw_line(xpt['N'], {'point': Point(magx[0], magx[1])}, option='rho', direction='cw', show_plot = debug).reverse()
-        W = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option='rho', direction='cw', show_plot = debug).reverse()
-        print('ICB PSI VALUE (Psi-min): {}'.format(self.psi_norm.get_psi(W.p[0].x, W.p[0].y)))
-        W = Line([W.p[0], W.p[-1]])
-        S = self.eq.draw_line(W.p[0], {'line': imid_EndLine}, option='theta', direction='cw', show_plot = debug).reverse()
-        # S = self.eq.draw_line(W.p[0], {'point': E.p[-1]}, option='theta', direction='cw', show_plot = debug).reverse()
-        ICB = Patch([N, E, S, W])
-        print('END: ICB ===================================================')
-
-        # IST ===================================================
-        print('BEGIN: IST ===================================================')
-        E = self.eq.draw_line(dp['top'], {'psi_vertical': psi_max}, option='r_const', direction='ccw', show_plot = debug).reverse()
-        E = Line([E.p[0], E.p[-1]])
-        N = self.eq.draw_line(ISB.N.p[-1], {'line': top_EndLine}, option='theta', direction='cw', show_plot = debug)
-        # N = self.eq.draw_line(ISB.N.p[-1], {'point': E.p[0]}, option='theta', direction='cw', show_plot = debug)
-        S = Line(sep.p[imid_index:top_index+1]).reverse()
-        W = ISB.W.reverse()
-        IST = Patch([N, E, S, W])
-        print('END: IST ===================================================')
-
-        # ICT ===================================================
-        print('BEGIN: ICT ===================================================')
-        E = self.eq.draw_line(dp['top'], {'psi_vertical': psi_min_core}, option='r_const', direction='cw', show_plot = debug)
-        print('ICT PSI VALUE (Psi-min): {}'.format(self.psi_norm.get_psi(E.p[-1].x, E.p[-1].y)))
-        E = Line([E.p[0], E.p[-1]])
-        # S = self.eq.draw_line(ICB.S.p[0], {'line': top_EndLine}, option='theta', direction='cw', show_plot = debug).reverse()
-        S = self.eq.draw_line(ICB.S.p[0], {'point': E.p[-1]}, option='theta', direction='cw', show_plot = debug).reverse()
-        N = IST.S.reverse()
-        W = ICB.E.reverse()
-        ICT = Patch([N, E, S, W])
-        print('END: ICT ===================================================')
-
-        # OST ===================================================
-        print('BEGIN: OST ===================================================')
-        E = self.eq.draw_line(dp['ompt'], {'psi': psi_max}, option='rho', direction='ccw', show_plot = debug, text = True).reverse()
-        E = Line([E.p[0], E.p[-1]])
-        N = self.eq.draw_line(IST.N.p[-1], {'line': omid_EndLine}, option='theta', direction='cw', show_plot = debug, text = True)
-        # N = self.eq.draw_line(IST.N.p[-1], {'point': E.p[0]}, option='theta', direction='cw', show_plot = debug, text = True)
-        S = Line(sep.p[top_index: omid_index+1]).reverse()
-        W = IST.W.reverse()
-        OST = Patch([N, E, S, W])
-        print('END: OST ===================================================')
-
-        # OCT ===================================================
-        print('BEGIN: OCT ===================================================')
-        # E = self.eq.draw_line(dp['ompt'], {'psi': psi_min_core}, option='rho', direction='cw', show_plot = debug)
-        E = self.eq.draw_line(dp['ompt'], {'psi': psi_min_core}, option='psi_vertical', direction='ccw', show_plot = debug)
-        E = Line([E.p[0], E.p[-1]])
-        S = self.eq.draw_line(ICT.E.p[-1], {'line': omid_EndLine}, option='theta', direction='cw', show_plot = debug).reverse()
-        # S = self.eq.draw_line(ICT.E.p[-1], {'point': E.p[-1]}, option='theta', direction='cw', show_plot = debug).reverse()
-        N = Line(sep.p[top_index: omid_index+1])
-        W = ICT.E.reverse()
-        OCT = Patch([N, E, S, W])
-        print('END: OCT ===================================================')
-
-        # OCB ===================================================
-        print('BEGIN: OCB ===================================================')
-        W = OCT.E.reverse()
-        N = Line(sep.p[omid_index:])
-        S = self.eq.draw_line(W.p[0], {'point': ICB.W.p[0]}, option='theta', direction='cw', show_plot = debug).reverse()
-        E = ICB.W.reverse()
-        OCB = Patch([N, E, S, W])
-        print('END: OCB ===================================================')
-
-        # OSB ===================================================
-        print('BEGIN: OSB ===================================================')
-        W = OST.E.reverse()
-        N = self.eq.draw_line(W.p[-1], {'point': ODL.W.p[-1]}, option='theta', direction='cw', show_plot = debug)
-        S = OCB.N.reverse()
-        E = ODL.W.reverse()
-        OSB = Patch([N, E, S, W])
-        print('END: OSB ===================================================')
-
-        print('Beginning plotting of patches...')
-        self.patches = [IDL, IPF, OPF, ODL, ISB, ICB, IST, ICT, OST, OCT, OCB, OSB]
-        for patch in self.patches:
+            """
+            if patch in [IDL, IPF, ODL, OPF]:
+                num = 8
+            elif patch in [ISB, ICB, OSB, OCB]:
+                num = 4
+            else:
+                num = 2
+            """
+            print(names[i])
+            i += 1
+            patch.make_subgrid(self, num = 2)
             patch.plot_border()
             patch.fill()
+            #TODO: Make this it's own function? It's a bit cumbersome looking...
+            if sign_test[1] == -1:
+                if patch is IDL:
+                    patch.adjust_corner(primary_xpt, 'SW')
+                elif patch is IPF:
+                    patch.adjust_corner(primary_xpt, 'NW')
+                elif patch is ISB:
+                    patch.adjust_corner(primary_xpt, 'SE')
+                elif patch is ICB:
+                    patch.adjust_corner(primary_xpt, 'NE')
+                elif patch is OCB:
+                    patch.adjust_corner(primary_xpt, 'NW')
+                elif patch is OSB:
+                    patch.adjust_corner(primary_xpt, 'SW')
+                elif patch is OPF:
+                    patch.adjust_corner(primary_xpt, 'NE')
+                elif patch is ODL:
+                    patch.adjust_corner(primary_xpt, 'SE')
+            elif sign_test[1] == 1:
+                if patch is IDL:
+                    patch.adjust_corner(primary_xpt, 'SE')
+                elif patch is IPF:
+                    patch.adjust_corner(primary_xpt, 'NE')
+                elif patch is ISB:
+                    patch.adjust_corner(primary_xpt, 'SW')
+                elif patch is ICB:
+                    patch.adjust_corner(primary_xpt, 'NW')
+                elif patch is OCB:
+                    patch.adjust_corner(primary_xpt, 'NE')
+                elif patch is OSB:
+                    patch.adjust_corner(primary_xpt, 'SE')
+                elif patch is OPF:
+                    patch.adjust_corner(primary_xpt, 'NW')
+                elif patch is ODL:
+                    patch.adjust_corner(primary_xpt, 'SW')
+        subgrid_end = timer()
+        print('Subgrid Generation took: {}s'.format(subgrid_end - subgrid_start))
+
+    def grid_diagram(self):
+        colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
+          'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
+          'seagreen', 'firebrick', 'saddlebrown']
+        plt.figure('grid', figsize=(6,10))
+        for i in range(len(self.patches)):
+            for row in self.patches[i].cells:
+                for cell in row:
+                    cell.plot_border('green')
+        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
+        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.xlabel('R')
+        plt.ylabel('Z')
+        plt.title('Example Grid')
+        plt.show() 
+
 
     def patch_diagram(self):
         """ Generates the patch diagram for a given configuration. """
@@ -955,15 +839,15 @@ def set_params():
     print("Click on the magnetic axis") ##-need blocking here!
     paws()
     magx = grid.save_root()
-    nml['grid_params']['Rmagx'] = magx[0]
-    nml['grid_params']['Zmagx'] = magx[1]
+    nml['grid_params']['rmagx'] = magx[0]
+    nml['grid_params']['zmagx'] = magx[1]
 
     # find the x-point
     print("Click on the x-point")
     paws()
     xpt = grid.save_root()
-    nml['grid_params']['Rxpt'] = xpt[0]
-    nml['grid_params']['Zxpt'] = xpt[1]
+    nml['grid_params']['rxpt'] = xpt[0]
+    nml['grid_params']['zxpt'] = xpt[1]
 
     # enter or click on the location of the psi values
     psi_magx = grid.efit_psi.get_psi(magx[0], magx[1])

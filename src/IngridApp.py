@@ -587,6 +587,9 @@ class ParamPicker(tk.Frame):
         self.acceptPF_Button.config(text = 'Entries Saved!', fg = 'lime green')
 
     def createPatches(self):
+
+        debug = False
+
         print(self.ROOT.nml)
         self.set_RFValues()
         self.set_PsiValues()
@@ -595,15 +598,13 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.calc_psinorm()
         self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].eqdskFrame.FP_EntryText.get()))
         self.controller.IngridSession.construct_SNL_patches2()
-        from timeit import default_timer as timer
-        _start = timer()
-        self.controller.IngridSession.patch_diagram()
-        _end = timer()
-        print('Patch Diagram call took: {}s'.format(_end - _start))
-        _start = timer()
-        self.controller.IngridSession.grid_diagram()
-        _end = timer()
-        print('Grid Diagram call took: {}s'.format(_end - _start))
+        if not debug:
+            self.controller.IngridSession.patch_diagram()
+            self.controller.IngridSession.grid_diagram()
+        elif debug:
+            self.controller.IngridSession.grid_diagram_debug()
+        self.controller.IngridSession.export()
+
 
     def saveParameters(self):
         self.set_RFValues()

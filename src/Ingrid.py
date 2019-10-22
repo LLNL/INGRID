@@ -141,6 +141,9 @@ class Ingrid:
         zmid = g['ZMID']
         rgrid1 = g['RLEFT']
 
+        rcenter = g['RCENTR']
+        bcenter = g['BCENTR']
+
         psi = g['PSIRZ'].T
 
         # TODO: possibly use the limiters to determine where the strke plates
@@ -159,7 +162,7 @@ class Ingrid:
         # reproduce efit grid
         self.efit_psi = Efit_Data(rmin, rmax, nxefit,
                                   zmin, zmax, nyefit,
-                                  name='Efit Data')
+                                  rcenter, bcenter, name='Efit Data')
         self.efit_psi.set_v(psi)
 
 
@@ -187,6 +190,7 @@ class Ingrid:
         # reproduce efit grid
         self.efit_psi = Efit_Data(rmin, rmax, nxefit,
                                   zmin, zmax, nyefit,
+                                  rcentr, bcentr,
                                   name='Efit Data')
         self.efit_psi.set_v(fold)  # this is psi
 
@@ -276,28 +280,6 @@ class Ingrid:
         """
         self.root_finder.toggle_root_finding()
 
-    # TODO: remove this function and replace with read in value
-    def add_magx(self, r=None, z=None):
-        """ Adds the magnetic axis using the coordinates of last point
-        that the user has clicked.
-        """
-        if r is None and z is None:
-            self.magx = self.root_finder.final_root
-        else:
-            self.magx = (r, z)
-        print('Added {} as the magnetic axis.'.format(self.magx))
-
-    # TODO: remove this function and replace with read in value
-    def add_xpt1(self, r=None, z=None):
-        """ Adds the X-point using the coordinates of last point
-        that the user has clicked.
-        """
-        if r is None and z is None:
-            self.xpt1 = self.root_finder.final_root
-        else:
-            self.xpt1 = (r, z)
-        print('Added {} as the primary x point.'.format(self.xpt1))
-
     def calc_psinorm(self):
         """ Uses magx and xpt1 to normalize the psi data. Furthur calculations
         will use this information """
@@ -306,6 +288,7 @@ class Ingrid:
         self.psi_norm = Efit_Data(self.efit_psi.rmin, self.efit_psi.rmax,
                                   self.efit_psi.nr, self.efit_psi.zmin,
                                   self.efit_psi.zmax, self.efit_psi.nz,
+                                  self.efit_psi.rcenter, self.efit_psi.bcenter,
                                   name='psi norm')
         psi = self.efit_psi.v
         psi_magx = self.efit_psi.get_psi(self.magx[0], self.magx[1])
@@ -316,22 +299,6 @@ class Ingrid:
         self.psi_norm.plot_data()
 
 
-
-    def draw_polodal_lines(self):
-        """ Trace contour lines anywhere you click
-        saves the most recent line that was draw.
-        To keep track of lines, call the add_line function"""
-        from line_tracing import LineTracing
-        self.new_line = LineTracing(self.psi_norm, self.grid_params,
-                                    option='theta')
-
-    def draw_radial_lines(self):
-        """ Trace the orthogonal lines to the stream function
-        saves most recent line."""
-        from line_tracing import LineTracing
-        self.new_line = LineTracing(self.psi_norm, self.grid_params,
-                                    option='rho', direction='ccw')
-
     def compute_eq_psi(self):
         """ Initializes the line tracing class for the construction
         of the grid. Necessary to be separate so we can wiat until the
@@ -341,7 +308,6 @@ class Ingrid:
         self.eq = LineTracing(self.psi_norm, self.grid_params,
                               option='xpt_circ', eps = 1e-3)
         self.eq.find_NSEW(self.xpt1, self.magx)
-        # self.eq.calc_equal_psi_points(self.xpt1[0], self.xpt1[1])
         self.eq.disconnect()
 
 
@@ -368,9 +334,8 @@ class Ingrid:
 
         # Get starting directions from primary x-point
         self.compute_eq_psi()
-
-        # sign_test
-        sign_test = np.sign([np.cos(self.eq.eq_psi_theta['N']), np.sin(self.eq.eq_psi_theta['N'])])
+        # Determine if Upper Single Null or Lower Single Null
+        self.config = get_config()
 
         xpt = self.eq.eq_psi
         magx = np.array([self.grid_params['rmagx'], self.grid_params['zmagx']])
@@ -379,9 +344,7 @@ class Ingrid:
         psi_min_pf = self.grid_params['psi_min_pf']
 
         ITP = Line([p for p in [Point(i) for i in self.itp]])
-        ITP.plot()
         OTP = Line([p for p in [Point(i) for i in self.otp]])
-        OTP.plot()
 
         # Generate Horizontal Mid-Plane line
         LHS_Point = Point(magx[0] - 1e6, magx[1])
@@ -478,8 +441,7 @@ class Ingrid:
             IDL_E = xptW_psiMax.reverse_copy()
             IDL_W = ITP.reverse_copy()
             location = 'W'
-            # IDL_W = Line([IDL_S.p[-1], IDL_N.p[0]])
-        IDL = Patch([IDL_N, IDL_E, IDL_S, IDL_W], platePatch = True, plateLocation = location)
+        IDL = Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchType = 'IDL', platePatch = True, plateLocation = location)
 
         # IPF Patch
         if sign_test[1] == -1:
@@ -494,7 +456,7 @@ class Ingrid:
             IPF_E = xptS_psiMinPF
             IPF_W = ITP.reverse_copy()
             location = 'W'
-        IPF = Patch([IPF_N, IPF_E, IPF_S, IPF_W], platePatch = True, plateLocation = location)
+        IPF = Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchType = 'IPF', platePatch = True, plateLocation = location)
 
         # ISB Patch
         if sign_test[1] == -1:
@@ -507,7 +469,7 @@ class Ingrid:
             ISB_S = xptNW_midLine.reverse_copy()
             ISB_E = Line([ISB_N.p[-1], ISB_S.p[0]])
             ISB_W = xptW_psiMax
-        ISB = Patch([ISB_N, ISB_E, ISB_S, ISB_W])
+        ISB = Patch([ISB_N, ISB_E, ISB_S, ISB_W], patchType = 'ISB')
 
         # ICB Patch
         if sign_test[1] == -1:
@@ -520,7 +482,7 @@ class Ingrid:
             ICB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug).reverse_copy()
             ICB_E = Line([ICB_N.p[-1], ICB_S.p[0]])
             ICB_W = xptN_psiMinCore.reverse_copy()
-        ICB = Patch([ICB_N, ICB_E, ICB_S, ICB_W])
+        ICB = Patch([ICB_N, ICB_E, ICB_S, ICB_W], patchType = 'ICB')
 
         # IST Patch
         if sign_test[1] == -1:
@@ -533,7 +495,7 @@ class Ingrid:
             IST_S = imidLine_topLine.reverse_copy()
             IST_E = Line([IST_N.p[-1], IST_S.p[0]])
             IST_W = Line([IST_S.p[-1], IST_N.p[0]])
-        IST = Patch([IST_N, IST_E, IST_S, IST_W])
+        IST = Patch([IST_N, IST_E, IST_S, IST_W], patchType = 'IST')
 
         # ICT Patch
         if sign_test[1] == -1:
@@ -546,7 +508,7 @@ class Ingrid:
             ICT_S = self.eq.draw_line(ICB_S.p[0], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug).reverse_copy()
             ICT_E = Line([ICT_N.p[-1], ICT_S.p[0]])
             ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
-        ICT = Patch([ICT_N, ICT_E, ICT_S, ICT_W])
+        ICT = Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchType = 'ICT')
 
         # ODL Patch
         if sign_test[1] == -1:
@@ -561,7 +523,7 @@ class Ingrid:
             ODL_E = OTP.reverse_copy()
             ODL_W = xptE_psiMax
             location = 'E'
-        ODL = Patch([ODL_N, ODL_E, ODL_S, ODL_W], platePatch = True, plateLocation = location)
+        ODL = Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchType = 'ODL', platePatch = True, plateLocation = location)
 
         # OPF Patch
         if sign_test[1] == -1:
@@ -576,7 +538,7 @@ class Ingrid:
             OPF_E = OTP.reverse_copy()
             OPF_W = xptS_psiMinPF.reverse_copy()
             location = 'E'
-        OPF = Patch([OPF_N, OPF_E, OPF_S, OPF_W], platePatch = True, plateLocation = location)
+        OPF = Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchType = 'OPF', platePatch = True, plateLocation = location)
 
         # OSB Patch
         if sign_test[1] == -1:
@@ -589,7 +551,7 @@ class Ingrid:
             OSB_S = xptNE_midLine
             OSB_E = xptE_psiMax.reverse_copy()
             OSB_W = Line([OSB_S.p[-1], OSB_N.p[0]])
-        OSB = Patch([OSB_N, OSB_E, OSB_S, OSB_W])
+        OSB = Patch([OSB_N, OSB_E, OSB_S, OSB_W], patchType = 'OSB')
 
         # OCB Patch
         if sign_test[1] == -1:
@@ -602,7 +564,7 @@ class Ingrid:
             OCB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug)
             OCB_E = xptN_psiMinCore
             OCB_W = Line([OCB_S.p[-1], OCB_N.p[0]])
-        OCB = Patch([OCB_N, OCB_E, OCB_S, OCB_W])
+        OCB = Patch([OCB_N, OCB_E, OCB_S, OCB_W], patchType = 'OCB')
 
         # OST Patch
         if sign_test[1] == -1:
@@ -615,7 +577,7 @@ class Ingrid:
             OST_S = omidLine_topLine
             OST_E = Line([OST_N.p[-1], OST_S.p[0]])
             OST_W = Line([OST_S.p[-1], OST_N.p[0]])
-        OST = Patch([OST_N, OST_E, OST_S, OST_W])
+        OST = Patch([OST_N, OST_E, OST_S, OST_W], patchType = 'OST')
 
         # OCT Patch
         if sign_test[1] == -1:
@@ -628,7 +590,7 @@ class Ingrid:
             OCT_S = self.eq.draw_line(OCB_S.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug)
             OCT_E = Line([OCT_N.p[-1], OCT_S.p[0]])
             OCT_W = Line([OCT_S.p[-1], OCT_N.p[0]])
-        OCT = Patch([OCT_N, OCT_E, OCT_S, OCT_W])
+        OCT = Patch([OCT_N, OCT_E, OCT_S, OCT_W], patchType = 'OCT')
 
         self.patches = [IDL, IPF, ISB, ICB, IST, ICT, OST, OCT, OSB, OCB, ODL, OPF]
         names = ['IDL', 'IPF', 'ISB', 'ICB', 'IST', 'ICT', 'OST', 'OCT', 'OSB', 'OCB', 'ODL', 'OPF']
@@ -640,10 +602,6 @@ class Ingrid:
 
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
-        from scipy.interpolate import splprep, splev, BSpline
-        from scipy.integrate import quad
-        from scipy.optimize import root_scalar
-
         from timeit import default_timer as timer
         subgrid_start = timer()
 
@@ -651,17 +609,9 @@ class Ingrid:
 
         i = 0
         for patch in self.patches:
-            """
-            if patch in [IDL, IPF, ODL, OPF]:
-                num = 8
-            elif patch in [ISB, ICB, OSB, OCB]:
-                num = 4
-            else:
-                num = 2
-            """
             print(names[i])
             i += 1
-            patch.make_subgrid(self, num = 2)
+            patch.make_subgrid(self, num = 10)
             patch.plot_border()
             patch.fill()
             #TODO: Make this it's own function? It's a bit cumbersome looking...
@@ -702,28 +652,26 @@ class Ingrid:
         subgrid_end = timer()
         print('Subgrid Generation took: {}s'.format(subgrid_end - subgrid_start))
 
-        self.concat_grid()
-
     def grid_diagram(self):
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
           'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
           'seagreen', 'firebrick', 'saddlebrown']
-        plt.figure('grid', figsize=(6,10))
+        plt.figure('INGRID', figsize=(6,10))
         for patch in self.patches:
             patch.plot_subgrid()
             print('patch completed...')
-        for i in range(len(self.rm)):
-            for j in range(len(self.rm[0])):
-                print('plotting rm/zm entry: ({},{})'.format(i,j))
-                plt.plot(self.rm[i][j][0], self.zm[i][j][0], '.', color = 'black', markersize = 1)
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
         plt.gca().set_aspect('equal', adjustable='box')
         plt.xlabel('R')
         plt.ylabel('Z')
-        plt.title('Example Grid')
-        plt.show() 
+        plt.title('INGRID Subgrid')
+        plt.show()
 
+    def grid_diagram_debug():
+        plt.figure('DEBUG')
+        import pdb
+        pdb.set_trace()
 
     def patch_diagram(self):
         """ Generates the patch diagram for a given configuration. """
@@ -732,7 +680,7 @@ class Ingrid:
                   'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
                   'seagreen', 'firebrick', 'saddlebrown']
 
-        plt.figure('patches', figsize=(6, 10))
+        plt.figure('INGRID', figsize=(6, 10))
         for i in range(len(self.patches)):
             self.patches[i].plot_border('green')
             self.patches[i].fill(colors[i])
@@ -744,18 +692,6 @@ class Ingrid:
         plt.title('Example Patch')
         plt.show() 
 
-    def refine_patches(self):
-        """ Break each patch into smaller grids based on psi."""
-        # TODO: use scipy.optimize.curve_fit to generate a polynomial
-        # fit for the two curved sections of each patch,
-        # then use the length to break into even subsections
-        # For the horizontal division use the psi levels to define subsections
-        print('Refining patches')
-        
-        # self.patches[0].refine(self)  # test with a single patch
-        
-        for patch in self.patches:
-            patch.refine(self)
 
     def concat_grid(self, config = 'SNL'):
         """
@@ -796,10 +732,6 @@ class Ingrid:
             np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
             nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
 
-            print('Total Poloidal cells: {}'.format(np_total))
-            print('Total Radial cells: {}'.format(nr_total))
-
-
             rm = np.zeros((np_total, nr_total, 5), order = 'F')
             zm = np.zeros((np_total, nr_total, 5), order = 'F')
 
@@ -815,25 +747,20 @@ class Ingrid:
                     for ixl in range(patch_matrix[jyp][ixp].npol - 1):
                         for jyl in range(patch_matrix[jyp][ixp].nrad - 1):
 
-                            print(patch_matrix[jyp][ixp].npol)
                             ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
                                 - pol_const + ixl + 1
                             jycell = int(np.sum([patch.nrad - 1 for patch in patch_matrix[1][1:jyp+1]])) \
                                 - rad_const + jyl + 1
-                            print('{}, {}'.format(ixcell, jycell))
                             ind = 0
                             for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
                                 rm[ixcell][nr_total - jycell - 1][ind] = patch_matrix[jyp][ixp].cell_grid[jyl][ixl].vertices[coor].x
                                 zm[ixcell][nr_total - jycell - 1][ind] = patch_matrix[jyp][ixp].cell_grid[jyl][ixl].vertices[coor].y
                                 ind += 1
 
+            # Add guard cells to the concatenated grid.
             ixrb = len(rm) - 2
-
             self.rm = self.add_guardc(rm, 0, ixrb)
             self.zm = self.add_guardc(zm, 0, ixrb)
-
-            import pdb
-            pdb.set_trace()
 
 
     def add_guardc(self, cell_map, ixlb, ixrb, nxpt = 1, eps = 1e-3):
@@ -893,12 +820,70 @@ class Ingrid:
             cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'top')
 
         return cell_map
-    
+
+    def set_gridue(self):
+        """
+        Prepare the relevant arrays for writing to GRIDUE.
+        """
+
+        # RECALL: self.rm has FORTRAN style ordering (columns are accessed via the first entry)
+
+        # Getting relevant values for gridue file
+        ixrb = len(self.rm) - 2
+        ixpt1 = self.patch_lookup['IDL'].npol - 1
+        ixpt2 = ixrb - self.patch_lookup['ODL'].npol + 1
+        iyseparatrix1 = self.patch_lookup['IDL'].nrad - 1
+        nxm = len(self.rm) - 2
+        nym = len(self.rm[0]) - 2
+
+        psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+
+        rm = self.rm
+        zm = self.zm
+        rb_prod = self.psi_norm.rcenter * self.psi_norm.bcenter
+
+        for i in range(len(b)):
+            for j in range(len(b[0])):
+                for k in range(5):
+                    _r = rm[i][j][k]
+                    _z = zm[i][j][k]
+
+                    _psi = self.psi_norm.get_psi(_r, _z)
+                    _br = self.psi_norm.get_psi(_r, _z, tag = 'vz') / _r
+                    _bz = self.psi_norm.get_psi(_r, _z, tag = 'vr') / _r
+                    _bpol = np.sqrt(_br ** 2 + _bz ** 2)
+                    _bphi = rb_prod / _r
+                    _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
+
+                    psi[i][j][k] = _psi
+                    br[i][j][k] = _br
+                    bz[i][j][k] = _bz
+                    bpol[i][j][k] = _bpol
+                    bphi[i][j][k] = _bphi
+                    b[i][j][k] = _b
+
+        self.gridue = {'nxm' : nxm, 'nym' : nym, 'ixpt1' : ixpt1, 'ixpt2' : ixpt2, 'iyseptrx1' : iyseparatrix1, \
+            'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b}
+
+    def write_gridue(self):
+        import Uegrid.uegrid as uegrid
+        g = self.gridue
+        status = uegrid.write_gridue(np.int32(g['ixpt1']), np.int32(g['ixpt2']), np.int32(g['iyseptrx1']),\
+                (g['rm'].astype(np.double)), g['zm'].astype(np.double), g['psi'].astype(np.double), g['br'].astype(np.double), g['bz'].astype(np.double),\
+                g['bpol'].astype(np.double), g['bphi'].astype(np.double), g['b'].astype(np.double))
+
     def export(self):
         """ Saves the grid as an ascii file """
         # TODO export the points the patches contain, but don't overlap
         # any points
-        pass
+        self.concat_grid()
+        self.set_gridue()
+        self.write_gridue()
 
 
     def test_interpol(self, option=2, nfine=100, ncrude=10, tag='v'):

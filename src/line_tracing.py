@@ -67,9 +67,6 @@ class LineTracing:
         self.numPoints = numPoints
         self.dt = dt
         self.option = option
-        if self.option == 'xpt_circ':
-            self.root = RootFinder(self.grid)
-            print('Entering Fuzzy click mode. Click near a zero point.')
 
         zdim = grid.zmax-grid.zmin
         rdim = grid.rmax-grid.rmin
@@ -180,7 +177,7 @@ class LineTracing:
 
         if self.option in ['theta', 'rho']:
             self.draw_line((x0, y0), show_plot=True, text=True)
-
+        """
         elif self.option == 'xpt_circ':
             # no longer using this...
             self.root.find_root(x0, y0)
@@ -193,6 +190,7 @@ class LineTracing:
 
             plt.legend()
             plt.draw()
+        """
 
     def disconnect(self):
         """ Turns off the click functionality """
@@ -214,12 +212,9 @@ class LineTracing:
         self.eq_psi will contain NSEW information.
         """
 
-        print('Inside find_NSEW...')
-        print('X-Point at: ({}, {})'.format(xpt[0],xpt[1]))
         rxpt, zxpt = xpt
-        print('Magnetic Axis at: ({}, {})'.format(magx[0],magx[1]))
         rmag, zmag = magx
-        print('Current self.tol value: {}'.format(self.tol))
+
         # Getting coefficients.
         vrz = self.grid.get_psi(rxpt, zxpt, tag = 'vrz')
         vrr = self.grid.get_psi(rxpt, zxpt, tag = 'vrr')
@@ -288,7 +283,7 @@ class LineTracing:
             magx = np.array([magx[0], magx[1]])
 
             # Assume NSEW_coor['N'] is not actually the north direction.
-            self.is_true_north = False
+            is_true_north = False
             Nline = [geo.Point((N_0[0], N_0[1]))]
             Sline = [geo.Point((S_0[0], S_0[1]))]
 
@@ -314,14 +309,14 @@ class LineTracing:
                     and (abs(N_path[1][-1] - magx[1]) < self.tol):
                     # Adjust our flag accordingly.
                     print('N_path went to magnetic axis.')
-                    self.is_true_north = True
+                    is_true_north = True
                     return True
                 # Check if the S_path is converging to magx.
                 elif (abs(S_path[0][-1] - magx[0]) < self.tol) \
                     and (abs(S_path[1][-1] - magx[1]) < self.tol):
                     # Reassigning for code-clarity.
                     print('S_path went to magnetic axis.')
-                    self.is_true_north = False
+                    is_true_north = False
                     return True
                 # We haven't converged.
                 else:
@@ -353,7 +348,7 @@ class LineTracing:
                 N_path = [Nx, Ny]
                 S_path = [Sx, Sy]
 
-            if self.is_true_north:
+            if is_true_north:
                 print('NSEW_coor[N] was true-north!') 
                 return NSEW_coor, theta
             else:
@@ -431,127 +426,6 @@ class LineTracing:
                              'SW': theta_min[1] - np.pi/4
                              }
 
-    def calc_equal_psi_points(self, r, z, theta2d=False, err_circles=False,
-                              show_eq_psi_points=False):
-        """ Draws a circle around the xpt, and saves four coordinates
-        for each direction the poloidal line will travel. Also
-        calculates the location of the points that bisect the poloidal
-        lines.
-
-        Parameters
-        ---------
-        r : float
-            R coordinate of the point in question.
-        z : float
-            Z coordinate of the point.
-        theta2d : bool, optional
-            Displays a plot on a seperate figure of the value of psi on
-            circle that is traced versus the value of psi at (r, z).
-        err_circles : bool, optional
-            Draw some circles around (r, z) to show what the allowed
-            error is for the point convergence criteria.
-        show_eq_psi_points : bool, optional
-            Plots an x on the NE, NW, SE, SW points that are found.
-        """
-
-        def get_circle(eps, x0, y0, psi=False):
-            """ Traces a circle of given radius (eps) around a point.
-            Can be set to return the value of psi at each point.
-            """
-            x, y, z = [], [], []
-            for th in self.theta:
-                x.append(x0 + eps * np.cos(th))
-                y.append(y0 + eps * np.sin(th))
-                if psi:
-                    z.append(self.grid.get_psi(x[-1], y[-1]))
-            if psi:
-                return x, y, z
-            return x, y
-
-        circ = {}
-        zero = {'x': r, 'y': z, 'psi': self.grid.get_psi(r, z)}
-        zero_psi_line = np.full(self.numPoints, zero['psi'])
-        self.theta = np.linspace(0, 2*np.pi, self.numPoints)
-
-        # get the circle
-        circ['x'], circ['y'], circ['psi'] = get_circle(self.eps, r, z, psi=True)
-
-        if err_circles:
-            # include some other error lines around the zero point
-            cx0, cy0 = get_circle(1e-2, r, z)
-            self.grid.ax.plot(cx0, cy0, label='1e-2', color='black')
-            plt.draw()
-            cx1, cy1 = get_circle(1e-3, r, z)
-            self.grid.ax.plot(cx1, cy1, label='1e-3', color='green')
-            plt.draw()
-            cx2, cy2 = get_circle(1e-4, r, z)
-            self.grid.ax.plot(cx2, cy2, label='1e-4', color='blue')
-            plt.draw()
-            plt.legend()
-
-        if theta2d:
-            # 2d representation of the circle of psi values
-            plt.figure('2d psi circle')
-            plt.plot(self.theta, circ['psi'], '.')
-            plt.plot(self.theta, zero_psi_line)
-            plt.show()
-
-        adjusted_psi = circ['psi'] - zero_psi_line
-        sign_changes = []
-        zeros = []
-        for i in range(len(adjusted_psi)-1):
-            if adjusted_psi[i] > 0 and adjusted_psi[i+1] < 0:
-                sign_changes.append((i, i+1))
-            elif adjusted_psi[i] < 0 and adjusted_psi[i+1] > 0:
-                sign_changes.append((i, i+1))
-            elif adjusted_psi[i] == 0:
-                zeros.append(i)
-
-        root = []
-
-        for i, j in sign_changes:
-            # i and j are the idices of our points
-            x0, y0 = self.theta[i], adjusted_psi[i]
-            x1, y1 = self.theta[j], adjusted_psi[j]
-            sol = root_scalar(lambda x: (y1-y0)/(x1-x0) * (x-x0) + y0,
-                              bracket=[x0, x1])
-            root.append(sol.root)
-
-        equal_psi_coords = []
-        for th in root:
-            # this is the value for theta
-            xr = zero['x'] + self.eps * np.cos(th)
-            yr = zero['y'] + self.eps * np.sin(th)
-            equal_psi_coords.append((xr, yr))
-        for th in zeros:
-            # this is the index of the value
-            xr = zero['x'] + self.eps * np.cos(self.theta[th])
-            yr = zero['y'] + self.eps * np.sin(self.theta[th])
-            equal_psi_coords.append((xr, yr))
-
-        self.eq_psi = {'NE': (equal_psi_coords[0]),
-                       'NW': (equal_psi_coords[1]),
-                       'SW': (equal_psi_coords[2]),
-                       'SE': (equal_psi_coords[3])}
-
-        # calculate N, S, E, W
-        ne = geo.Vector(self.eq_psi['NE'], (zero['x'], zero['y']))
-        nw = geo.Vector(self.eq_psi['NW'], (zero['x'], zero['y']))
-        sw = geo.Vector(self.eq_psi['SW'], (zero['x'], zero['y']))
-        se = geo.Vector(self.eq_psi['SE'], (zero['x'], zero['y']))
-
-        self.eq_psi['N'] = geo.calc_mid_point(ne, nw)  # NORTH
-        self.eq_psi['W'] = geo.calc_mid_point(nw, sw)  # WEST
-        self.eq_psi['S'] = geo.calc_mid_point(sw, se)  # SOUTH
-        self.eq_psi['E'] = geo.calc_mid_point(se, ne)  # EAST
-
-        if show_eq_psi_points:
-            # let's us see where the offset points we will trace from are
-            for key, (x, y) in self.eq_psi.items():
-                plt.plot(x, y, 'x', label=key)
-            plt.legend()
-            plt.draw()
-
     def draw_line(self, rz_start, rz_end=None, color= 'orange',
                   option=None, direction=None, show_plot=False, text=False):
         """
@@ -615,6 +489,7 @@ class LineTracing:
             test = 'point'
             rz_end = ynot
             xf, yf = rz_end
+
         elif key_list == ['point']:
             print('Testing for point convergence')
             test = 'point'
@@ -625,8 +500,6 @@ class LineTracing:
                 xf = rz_end['point'][0]
                 yf = rz_end['point'][1]
 
-        # TODO: generalize the line termination to include "curves", or lines
-        # defined by more than one set of points.
         elif key_list == ['line']:
             print('Testing for line convergence')
             test = 'line'
@@ -636,6 +509,7 @@ class LineTracing:
             else:
                 # form ((),())
                 endLine = rz_end['line']
+
         elif key_list == ['psi']:
             print('Testing for psi convergence')
             test = 'psi'
@@ -650,6 +524,7 @@ class LineTracing:
             print('Testing for psi convergence (vertical trajectory)')
             test = 'psi_vertical'
             psi_test = rz_end['psi_vertical']
+
         else:
             print('rz_end type not recognized')
 
@@ -773,6 +648,7 @@ class LineTracing:
                     print('Psi Residual via root_scalar: {}'.format(abs(psi_test - self.grid.get_psi(r_psi, z_psi))))
                     save_line([x1, r_psi], [y1, z_psi])
                     return True
+                    
             elif test == 'psi_horizontal':
                 x1, y1 = points[0][0], points[1][0]
                 x2, y2 = points[0][-1], points[1][-1]

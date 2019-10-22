@@ -4,6 +4,7 @@
 
 all:
 	cd Efit; make; cd -
+	cd Uegrid; make; cd -
 
 clean:
 	cd Efit; make clean; cd -

@@ -258,7 +258,7 @@ class Patch:
 
     """
     
-    def __init__(self, lines, platePatch = False, plateLocation = None, ):
+    def __init__(self, lines, patchType = '', platePatch = False, plateLocation = None, ):
         self.lines = lines
         self.N = lines[0]
         self.E = lines[1]
@@ -307,6 +307,8 @@ class Patch:
             for cell in row:
                 cell.plot_border(color)
                 #cell.plot_center()
+
+    def plot_subgrid_debug():
 
 
     def make_subgrid(self, grid, num = 2):

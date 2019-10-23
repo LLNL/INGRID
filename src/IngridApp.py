@@ -597,7 +597,7 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.xpt1 = self.Xpt
         self.controller.IngridSession.calc_psinorm()
         self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].eqdskFrame.FP_EntryText.get()))
-        self.controller.IngridSession.construct_SNL_patches2()
+        self.controller.IngridSession.construct_SNL_patches()
         if not debug:
             self.controller.IngridSession.patch_diagram()
             self.controller.IngridSession.grid_diagram()

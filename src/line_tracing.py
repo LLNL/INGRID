@@ -70,6 +70,11 @@ class LineTracing:
 
         zdim = grid.zmax-grid.zmin
         rdim = grid.rmax-grid.rmin
+
+        if self.option == 'xpt_circ':
+            self.root = RootFinder(self.grid)
+            print('Entering Fuzzy click mode. Click near a zero point.')
+
         try:
             self.max_step = params['step_ratio'] * max(rdim, zdim)
         except:
@@ -283,7 +288,7 @@ class LineTracing:
             magx = np.array([magx[0], magx[1]])
 
             # Assume NSEW_coor['N'] is not actually the north direction.
-            is_true_north = False
+            self.is_true_north = False
             Nline = [geo.Point((N_0[0], N_0[1]))]
             Sline = [geo.Point((S_0[0], S_0[1]))]
 
@@ -309,14 +314,14 @@ class LineTracing:
                     and (abs(N_path[1][-1] - magx[1]) < self.tol):
                     # Adjust our flag accordingly.
                     print('N_path went to magnetic axis.')
-                    is_true_north = True
+                    self.is_true_north = True
                     return True
                 # Check if the S_path is converging to magx.
                 elif (abs(S_path[0][-1] - magx[0]) < self.tol) \
                     and (abs(S_path[1][-1] - magx[1]) < self.tol):
                     # Reassigning for code-clarity.
                     print('S_path went to magnetic axis.')
-                    is_true_north = False
+                    self.is_true_north = False
                     return True
                 # We haven't converged.
                 else:
@@ -348,7 +353,7 @@ class LineTracing:
                 N_path = [Nx, Ny]
                 S_path = [Sx, Sy]
 
-            if is_true_north:
+            if self.is_true_north:
                 print('NSEW_coor[N] was true-north!') 
                 return NSEW_coor, theta
             else:
@@ -425,6 +430,10 @@ class LineTracing:
                              'SE': theta_min[1] + np.pi/4,\
                              'SW': theta_min[1] - np.pi/4
                              }
+        # Determine if these NSEW values give us an USN or LSN configuration.
+        sign_test = np.sign([np.cos(self.eq.eq_psi_theta['N']), np.sin(self.eq.eq_psi_theta['N'])])
+        
+        self.SNL_CONFIG = 'LSN' if sign_test[1] == 1 else 'USN'
 
     def draw_line(self, rz_start, rz_end=None, color= 'orange',
                   option=None, direction=None, show_plot=False, text=False):

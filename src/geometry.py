@@ -308,8 +308,6 @@ class Patch:
                 cell.plot_border(color)
                 #cell.plot_center()
 
-    def plot_subgrid_debug():
-
 
     def make_subgrid(self, grid, num = 2):
         """

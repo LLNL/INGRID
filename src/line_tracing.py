@@ -74,7 +74,6 @@ class LineTracing:
         if self.option == 'xpt_circ':
             self.root = RootFinder(self.grid)
             print('Entering Fuzzy click mode. Click near a zero point.')
-
         try:
             self.max_step = params['step_ratio'] * max(rdim, zdim)
         except:
@@ -431,9 +430,10 @@ class LineTracing:
                              'SW': theta_min[1] - np.pi/4
                              }
         # Determine if these NSEW values give us an USN or LSN configuration.
-        sign_test = np.sign([np.cos(self.eq.eq_psi_theta['N']), np.sin(self.eq.eq_psi_theta['N'])])
+        sign_test = np.sign([np.cos(self.eq_psi_theta['N']), np.sin(self.eq_psi_theta['N'])])
         
         self.SNL_CONFIG = 'LSN' if sign_test[1] == 1 else 'USN'
+        print('===============\nGenerating {} grid...\n==================='.format(self.SNL_CONFIG))
 
     def draw_line(self, rz_start, rz_end=None, color= 'orange',
                   option=None, direction=None, show_plot=False, text=False):

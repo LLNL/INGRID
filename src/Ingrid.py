@@ -335,7 +335,7 @@ class Ingrid:
     
         from geometry import Point, Patch, Line
 
-        debug = False
+        debug = True
 
         # Get starting directions from primary x-point
         self.compute_eq_psi()
@@ -354,18 +354,16 @@ class Ingrid:
         OTP = Line([p for p in [Point(i) for i in self.otp]])
 
         # Generate Horizontal Mid-Plane line
-        LHS_Point = Point(magx[0] - np.finfo(float).eps, magx[1])
-        RHS_Point = Point(magx[0] + np.finfo(float).eps, magx[1])
+        LHS_Point = Point(magx[0] - 1e6, magx[1])
+        RHS_Point = Point(magx[0] + 1e6, magx[1])
         midLine = Line([LHS_Point, RHS_Point])
         midLine.plot()
-        # midLine.plot(color = 'blue')
 
         # Generate Vertical Mid-Plane line
-        Lower_Point = Point(magx[0], magx[1] - np.finfo(float).eps)
-        Upper_Point = Point(magx[0], magx[1] + np.finfo(float).eps)
+        Lower_Point = Point(magx[0], magx[1] - 1e6)
+        Upper_Point = Point(magx[0], magx[1] + 1e6)
         topLine = Line([Lower_Point, Upper_Point])
         topLine.plot()
-        # topLine.plot(color = 'red')
 
         # Drawing Separatrix
         xptN_psiMinCore = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option = 'rho', direction = 'cw', show_plot = debug)

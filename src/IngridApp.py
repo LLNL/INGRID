@@ -590,6 +590,8 @@ class ParamPicker(tk.Frame):
 
         debug = False
 
+        import time as ti
+
         print(self.ROOT.nml)
         self.set_RFValues()
         self.set_PsiValues()
@@ -597,13 +599,35 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.xpt1 = self.Xpt
         self.controller.IngridSession.calc_psinorm()
         self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].eqdskFrame.FP_EntryText.get()))
+        
+        patch_time = ti.time()
         self.controller.IngridSession.construct_SNL_patches()
-        if not debug:
-            self.controller.IngridSession.patch_diagram()
-            self.controller.IngridSession.grid_diagram()
-        elif debug:
-            self.controller.IngridSession.grid_diagram_debug()
+        patch_time = ti.time() - patch_time
+
+        subgrid_time = ti.time()
+        self.controller.IngridSession.construct_SNL_subgrid()
+        subgrid_time = ti.time() - subgrid_time
+
+        patchDiagram_time = ti.time()
+        self.controller.IngridSession.patch_diagram()
+        patchDiagram_time = ti.time() - patchDiagram_time
+
+        gridDiagram_time = ti.time()
+        self.controller.IngridSession.grid_diagram()
+        gridDiagram_time = ti.time() - gridDiagram_time
+
+        export_time = ti.time()
         self.controller.IngridSession.export()
+        export_time = ti.time() - export_time
+
+        print('========================================================')
+        print('SUMMARY:')
+        print("'construct_SNL_patches' took: {}s".format(patch_time))
+        print("'construct_SNL_subgrid' took: {}s".format(subgrid_time))
+        print("'patch_diagram' took: {}s".format(patchDiagram_time))
+        print("'grid_diagram' took: {}s".format(gridDiagram_time))
+        print("'export' took: {}s".format(export_time))
+        print('========================================================')
 
 
     def saveParameters(self):

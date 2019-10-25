@@ -389,14 +389,14 @@ class Patch:
                 plate_north = [N_vals[0][-1], N_vals[1][-1]]
                 plate_south = [S_vals[0][-1], S_vals[1][-1]]
 
-            print(_u)
+            # print(_u)
             lookup = {}
             for i in range(len(_u)):
                 lookup[_u[i]] = i
             try:
                 plate_north_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args = (U_spl, plate_north[0], plate_north[1])))]
             except ValueError:
-                print('brentq failed. attempting fsolve...')
+                # print('brentq failed. attempting fsolve...')
                 plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args = (U_spl, plate_north[0], plate_north[1])))]
             try:
                 plate_south_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args = (U_spl, plate_south[0], plate_south[1])))]
@@ -404,14 +404,7 @@ class Patch:
                 print('brentq failed. attempting fsolve...')
                 plate_south_index = lookup[find_nearest(_u, fsolve(f, 0, args = (U_spl, plate_south[0], plate_south[1])))]
 
-            print(len(_u))
-            print('plate_north_index: {}'.format(plate_north_index))
-            print('plate_south_index: {}'.format(plate_south_index))
-            print('U_vals: {}'.format(U_vals))
-
             U_vals = [U_vals[0][plate_north_index:plate_south_index], U_vals[1][plate_north_index:plate_south_index]]
-
-            print('U_vals: {}'.format(U_vals))
             U_spl, _u = splprep([U_vals[0], U_vals[1]], u = psi_parameterize(grid, U_vals[0], U_vals[1]), s = 0)
 
             if self.plateLocation == 'W':
@@ -686,7 +679,7 @@ def intersect(line1, line2):
         (i, j), (p, q) = test_line
         guess = (np.mean([a, c, i, p]), np.mean([b, d, j, q]))
         sol, infoDict, ier, mesg = fsolve(f, guess, full_output = True)
-        print('{}: {}'.format(ind, mesg))
+        # print('{}: {}'.format(ind, mesg))
         if ier == 1:
             break
     return sol[0], sol[1]
@@ -715,13 +708,13 @@ def segment_intersect(line1, line2):
         try:
             sol = np.linalg.solve(M, r)
         except np.linalg.LinAlgError:
-            print('Singular matrix...')
+            # print('Singular matrix...')
             continue
 
         if (sol[0] <= 1) and (sol[1] <= 1) \
             and (sol[0] >= 0) and (sol[1] >= 0):
             plt.plot(sol[0], sol[1], '+', color = 'purple')
-            print('INTERSECTION OCCURED')
+            # print('INTERSECTION OCCURED')
             return True, [(xc, yc), (xd, yd)]
     return False, [(np.nan, np.nan), (np.nan, np.nan)]
     

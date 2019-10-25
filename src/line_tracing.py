@@ -312,14 +312,14 @@ class LineTracing:
                 if (abs(N_path[0][-1] - magx[0]) < self.tol) \
                     and (abs(N_path[1][-1] - magx[1]) < self.tol):
                     # Adjust our flag accordingly.
-                    print('N_path went to magnetic axis.')
+                    # print('N_path went to magnetic axis.')
                     self.is_true_north = True
                     return True
                 # Check if the S_path is converging to magx.
                 elif (abs(S_path[0][-1] - magx[0]) < self.tol) \
                     and (abs(S_path[1][-1] - magx[1]) < self.tol):
                     # Reassigning for code-clarity.
-                    print('S_path went to magnetic axis.')
+                    # print('S_path went to magnetic axis.')
                     self.is_true_north = False
                     return True
                 # We haven't converged.
@@ -353,10 +353,10 @@ class LineTracing:
                 S_path = [Sx, Sy]
 
             if self.is_true_north:
-                print('NSEW_coor[N] was true-north!') 
+                # print('NSEW_coor[N] was true-north!') 
                 return NSEW_coor, theta
             else:
-                print('NSEW_coor[S] was true-north! Updating values.')
+                # print('NSEW_coor[S] was true-north! Updating values.')
                 S_coor = NSEW_coor[0]
                 S_theta = theta[0]
                 NSEW_coor[0] = NSEW_coor[1]
@@ -494,13 +494,13 @@ class LineTracing:
 
         # check rz_end:
         if rz_end is None:
-            print('testing for loop completion')
+            # print('testing for loop completion')
             test = 'point'
             rz_end = ynot
             xf, yf = rz_end
 
         elif key_list == ['point']:
-            print('Testing for point convergence')
+            # print('Testing for point convergence')
             test = 'point'
             if isinstance(rz_end['point'], geo.Point):
                 xf = rz_end['point'].x
@@ -510,7 +510,7 @@ class LineTracing:
                 yf = rz_end['point'][1]
 
         elif key_list == ['line']:
-            print('Testing for line convergence')
+            # print('Testing for line convergence')
             test = 'line'
             if isinstance(rz_end['line'], geo.Line):
                 # extract
@@ -520,17 +520,17 @@ class LineTracing:
                 endLine = rz_end['line']
 
         elif key_list == ['psi']:
-            print('Testing for psi convergence')
+            # print('Testing for psi convergence')
             test = 'psi'
             psi_test = rz_end['psi']
 
         elif key_list == ['psi_horizontal']:
-            print('Testing for psi convergence (horizontal trajectory)')
+            # print('Testing for psi convergence (horizontal trajectory)')
             test = 'psi_horizontal'
             psi_test = rz_end['psi_horizontal']
 
         elif key_list == ['psi_vertical']:
-            print('Testing for psi convergence (vertical trajectory)')
+            # print('Testing for psi convergence (vertical trajectory)')
             test = 'psi_vertical'
             psi_test = rz_end['psi_vertical']
 
@@ -645,16 +645,18 @@ class LineTracing:
                     sol = root_scalar(f, bracket=[x1, x2])
                     r_psi = sol.root
                     z_psi = (y2-y1)/(x2-x1)*(r_psi-x1)+y1
-                    print('[x1, y1]: [{}, {}]'.format(x1, y1))
-                    print('[x2, y2]: [{}, {}]'.format(x2, y2))
+                    if text:
+                        print('[x1, y1]: [{}, {}]'.format(x1, y1))
+                        print('[x2, y2]: [{}, {}]'.format(x2, y2))
                     x_end = x1 + (x2 - x1)/(psi2 - psi1) * (psi_test - psi1)
                     y_end = y1 + (y2 - y1)/(psi2 - psi1) * (psi_test - psi1)
 
-                    print('Termination via *_end Coordinates: ({}, {})'.format(x_end, y_end))
-                    print('Psi Residual via *_end coordinates: {}'.format(abs(psi_test - self.grid.get_psi(x_end, y_end))))
+                    if text:
+                        print('Termination via *_end Coordinates: ({}, {})'.format(x_end, y_end))
+                        print('Psi Residual via *_end coordinates: {}'.format(abs(psi_test - self.grid.get_psi(x_end, y_end))))
 
-                    print('Termination via root_scalar: ({}, {})'.format(r_psi, z_psi))
-                    print('Psi Residual via root_scalar: {}'.format(abs(psi_test - self.grid.get_psi(r_psi, z_psi))))
+                        print('Termination via root_scalar: ({}, {})'.format(r_psi, z_psi))
+                        print('Psi Residual via root_scalar: {}'.format(abs(psi_test - self.grid.get_psi(r_psi, z_psi))))
                     save_line([x1, r_psi], [y1, z_psi])
                     return True
                     
@@ -671,14 +673,15 @@ class LineTracing:
 
                     def fend_R(x):
                         return self.grid.get_psi(x, y2) - psi_test
-                    print('[x1, y1]: [{}, {}]'.format(x1, y1))
-                    print('[x2, y2]: [{}, {}]'.format(x2, y2))
+                    if text:
+                        print('[x1, y1]: [{}, {}]'.format(x1, y1))
+                        print('[x2, y2]: [{}, {}]'.format(x2, y2))
                     sol = root_scalar(fend_R, bracket = [x1, x2])
                     r_psi = sol.root
-                    print(r_psi)
                     save_line([x1, r_psi], [y1, y1])
-                    print('Terminated at: ({}, {})'.format(r_psi, y1))
-                    print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(r_psi, y1))))
+                    if text:
+                        print('Terminated at: ({}, {})'.format(r_psi, y1))
+                        print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(r_psi, y1))))
                     return True
 
             elif test == 'psi_vertical':
@@ -693,14 +696,16 @@ class LineTracing:
                         success('vertical psi integration')
 
                     def fend_Z(y):
-                        return self.grid.get_psi(x2, y) - psi_test 
-                    print('[x1, y1]: [{}, {}]'.format(x1, y1))
-                    print('[x2, y2]: [{}, {}]'.format(x2, y2))
+                        return self.grid.get_psi(x2, y) - psi_test
+                    if text:
+                        print('[x1, y1]: [{}, {}]'.format(x1, y1))
+                        print('[x2, y2]: [{}, {}]'.format(x2, y2))
                     sol = root_scalar(fend_Z, bracket = [y1, y2])
                     z_psi = sol.root
                     save_line([x1, x1], [y1, z_psi])
-                    print('Terminated at: ({}, {})'.format(x1, z_psi))
-                    print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(x1, z_psi))))
+                    if text:
+                        print('Terminated at: ({}, {})'.format(x1, z_psi))
+                        print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(x1, z_psi))))
                     return True
             else:
                 print('Error: No termination criteria specified.')

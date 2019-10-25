@@ -605,66 +605,62 @@ class Ingrid:
         self.patch_lookup = patch_lookup
 
 
+    def construct_SNL_subgrid(self, num = 10):
+        from geometry import Point, Patch, Line
+
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
-        from timeit import default_timer as timer
-        subgrid_start = timer()
 
+        SNL_CONFIG = self.get_SNL_configuration()
         primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
-
-        i = 0
         for patch in self.patches:
-            print(names[i])
-            i += 1
-            patch.make_subgrid(self, num = 4)
-            patch.plot_border()
-            patch.fill()
-            #TODO: Make this it's own function? It's a bit cumbersome looking...
+            # print(patch.patchName)
+            patch.make_subgrid(self, num = num)
+
             if SNL_CONFIG == 'USN':
-                if patch is IDL:
+                if patch.patchName == 'IDL':
                     patch.adjust_corner(primary_xpt, 'SW')
-                elif patch is IPF:
+                elif patch.patchName == 'IPF':
                     patch.adjust_corner(primary_xpt, 'NW')
-                elif patch is ISB:
+                elif patch.patchName == 'ISB':
                     patch.adjust_corner(primary_xpt, 'SE')
-                elif patch is ICB:
+                elif patch.patchName == 'ICB':
                     patch.adjust_corner(primary_xpt, 'NE')
-                elif patch is OCB:
+                elif patch.patchName == 'OCB':
                     patch.adjust_corner(primary_xpt, 'NW')
-                elif patch is OSB:
+                elif patch.patchName == 'OSB':
                     patch.adjust_corner(primary_xpt, 'SW')
-                elif patch is OPF:
+                elif patch.patchName == 'OPF':
                     patch.adjust_corner(primary_xpt, 'NE')
-                elif patch is ODL:
+                elif patch.patchName == 'ODL':
                     patch.adjust_corner(primary_xpt, 'SE')
             elif SNL_CONFIG == 'LSN':
-                if patch is IDL:
+                if patch.patchName == 'IDL':
                     patch.adjust_corner(primary_xpt, 'SE')
-                elif patch is IPF:
+                elif patch.patchName == 'IPF':
                     patch.adjust_corner(primary_xpt, 'NE')
-                elif patch is ISB:
+                elif patch.patchName == 'ISB':
                     patch.adjust_corner(primary_xpt, 'SW')
-                elif patch is ICB:
+                elif patch.patchName == 'ICB':
                     patch.adjust_corner(primary_xpt, 'NW')
-                elif patch is OCB:
+                elif patch.patchName == 'OCB':
                     patch.adjust_corner(primary_xpt, 'NE')
-                elif patch is OSB:
+                elif patch.patchName == 'OSB':
                     patch.adjust_corner(primary_xpt, 'SE')
-                elif patch is OPF:
+                elif patch.patchName == 'OPF':
                     patch.adjust_corner(primary_xpt, 'NW')
-                elif patch is ODL:
+                elif patch.patchName == 'ODL':
                     patch.adjust_corner(primary_xpt, 'SW')
-        subgrid_end = timer()
-        print('Subgrid Generation took: {}s'.format(subgrid_end - subgrid_start))
 
     def grid_diagram(self):
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
           'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
           'seagreen', 'firebrick', 'saddlebrown']
-        plt.figure('INGRID', figsize=(6,10))
+        plt.figure('INGRID: Subgrid Diagram', figsize=(6,10))
         for patch in self.patches:
             patch.plot_subgrid()
-            print('patch completed...')
+            # print('patch completed...')
+        
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
         plt.gca().set_aspect('equal', adjustable='box')
@@ -685,7 +681,7 @@ class Ingrid:
                   'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
                   'seagreen', 'firebrick', 'saddlebrown']
 
-        plt.figure('INGRID', figsize=(6, 10))
+        plt.figure('INGRID: Patch Diagram', figsize=(6, 10))
         for i in range(len(self.patches)):
             self.patches[i].plot_border('green')
             self.patches[i].fill(colors[i])
@@ -927,6 +923,7 @@ class Ingrid:
         """ Saves the grid as an ascii file """
         # TODO export the points the patches contain, but don't overlap
         # any points
+
         self.concat_grid(self.get_SNL_configuration())
         self.set_gridue()
         self.write_gridue()

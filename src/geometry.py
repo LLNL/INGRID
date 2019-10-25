@@ -258,7 +258,7 @@ class Patch:
 
     """
     
-    def __init__(self, lines, patchType = '', platePatch = False, plateLocation = None, ):
+    def __init__(self, lines, patchName = '', platePatch = False, plateLocation = None, ):
         self.lines = lines
         self.N = lines[0]
         self.E = lines[1]
@@ -271,6 +271,7 @@ class Patch:
 
         self.platePatch = platePatch
         self.plateLocation = plateLocation
+        self.patchName = patchName
         
         # TODO: Populate these attributes when generating subgrid.
         #       Currently this is being done in the concat_grid method.

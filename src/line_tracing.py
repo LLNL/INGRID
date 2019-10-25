@@ -433,7 +433,7 @@ class LineTracing:
         sign_test = np.sign([np.cos(self.eq_psi_theta['N']), np.sin(self.eq_psi_theta['N'])])
         
         self.SNL_CONFIG = 'LSN' if sign_test[1] == 1 else 'USN'
-        print('===============\nGenerating {} grid...\n==================='.format(self.SNL_CONFIG))
+        print('===================\nGenerating {} grid...\n==================='.format(self.SNL_CONFIG))
 
     def draw_line(self, rz_start, rz_end=None, color= 'orange',
                   option=None, direction=None, show_plot=False, text=False):

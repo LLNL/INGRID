@@ -12,7 +12,7 @@ subroutine read_gridue(&
   INTEGER*4 nunit, ix, iy, n
   INTEGER*4 iunit, ios
 
-  fname="gridue"
+  fname = f
   !!runidg="iogridue"
   !!print *, "In Fortran read_gridue..."
 

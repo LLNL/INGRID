@@ -11,7 +11,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import f90nml
-import IngridApp as IA
+import GUI.IngridApp as IA
 
 
 class Ingrid:
@@ -29,11 +29,22 @@ class Ingrid:
     
     """
 
-    def __init__(self, nml = { 'files' : {}, 'grid_params' : {} } ):
+    def __init__(self, nml = { 'files' : {}, 'grid_params' : {}, 'integrator_params' : {} } ):
+        self.set_nml(nml)
+        self.get_nml()
+        print('Welcome to Ingrid!\n')
+
+    def set_nml(self, nml):
+        self.nml = nml
         self.files = nml['files']
         self.grid_params = nml['grid_params']
+        self.integrator_params = nml['integrator_params']
 
-        print('Welcome to Ingrid!\n')
+    def get_nml(self):
+        print('INGRID nml: {}'.format(self.nml))
+        print('INGRID files: {}'.format(self.files))
+        print('INGRID grid_params: {}'.format(self.grid_params))
+        print('INGRID integrator_params: {}'.format(self.integrator_params))
         
     def setup(self):
         """ Add the magnetic axis and the x-point """
@@ -305,8 +316,7 @@ class Ingrid:
         user clicks on the root.
         """
         from line_tracing import LineTracing
-        self.eq = LineTracing(self.psi_norm, self.grid_params,
-                              option='xpt_circ', eps = 1e-3)
+        self.eq = LineTracing(self.psi_norm, self.nml)
         self.eq.find_NSEW(self.xpt1, self.magx)
         self.eq.disconnect()
 
@@ -605,7 +615,7 @@ class Ingrid:
         self.patch_lookup = patch_lookup
 
 
-    def construct_SNL_subgrid(self, num = 10):
+    def construct_SNL_grid(self, np_cells = 2, nr_cells = 2):
         from geometry import Point, Patch, Line
 
         # Straighten up East and West segments of our patches,
@@ -614,8 +624,8 @@ class Ingrid:
         SNL_CONFIG = self.get_SNL_configuration()
         primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
         for patch in self.patches:
-            # print(patch.patchName)
-            patch.make_subgrid(self, num = num)
+            print(patch.patchName)
+            patch.make_subgrid(self, np_cells, nr_cells)
 
             if SNL_CONFIG == 'USN':
                 if patch.patchName == 'IDL':
@@ -659,7 +669,7 @@ class Ingrid:
         plt.figure('INGRID: Subgrid Diagram', figsize=(6,10))
         for patch in self.patches:
             patch.plot_subgrid()
-            # print('patch completed...')
+            print('patch completed...')
         
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
@@ -694,7 +704,7 @@ class Ingrid:
         plt.show() 
 
 
-    def concat_grid(self, config):
+    def concat_SNL_grid(self, config):
         """
         Concatenate all local grids on individual patches into a single 
         array with branch cuts
@@ -702,8 +712,7 @@ class Ingrid:
         Parameters:
         ----------
             config : str
-                Type of grid we are dealing with.
-                Default: 'SNL'
+                Type of SNL grid to concat.
 
         """
         # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
@@ -721,6 +730,8 @@ class Ingrid:
         # local subgrid.
         # NOTE: npol and nrad refer to the actual lines in the subgrid. Because of this, we must add
         #       the value of 1 to the cell number to get the accurate number of lines.
+
+
         for patch in self.patches:
             patch.npol = len(patch.cell_grid[0]) + 1
             patch.nrad = len(patch.cell_grid) + 1
@@ -912,21 +923,21 @@ class Ingrid:
         self.gridue = {'nxm' : nxm, 'nym' : nym, 'ixpt1' : ixpt1, 'ixpt2' : ixpt2, 'iyseptrx1' : iyseparatrix1, \
             'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b}
 
-    def write_gridue(self):
+    def write_gridue(self, fname = 'gridue'):
         import Uegrid.uegrid as uegrid
         g = self.gridue
         status = uegrid.write_gridue(np.int32(g['ixpt1']), np.int32(g['ixpt2']), np.int32(g['iyseptrx1']),\
                 (g['rm'].astype(np.double)), g['zm'].astype(np.double), g['psi'].astype(np.double), g['br'].astype(np.double), g['bz'].astype(np.double),\
-                g['bpol'].astype(np.double), g['bphi'].astype(np.double), g['b'].astype(np.double))
+                g['bpol'].astype(np.double), g['bphi'].astype(np.double), g['b'].astype(np.double), fname)
 
-    def export(self):
+    def export(self, fname = 'gridue'):
         """ Saves the grid as an ascii file """
         # TODO export the points the patches contain, but don't overlap
         # any points
 
-        self.concat_grid(self.get_SNL_configuration())
+        self.concat_SNL_grid(self.get_SNL_configuration())
         self.set_gridue()
-        self.write_gridue()
+        self.write_gridue(fname)
 
 
     def test_interpol(self, option=2, nfine=100, ncrude=10, tag='v'):

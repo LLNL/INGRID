@@ -57,8 +57,7 @@ class IngridApp(tk.Tk):
 
     def __init__(self, master = None, *args, **kwargs):
         
-        self.nml = { 'files' : {} , 'grid_params' : {} }
-        self.IngridSession = Ingrid.Ingrid(self.nml)
+        self.IngridSession = Ingrid.Ingrid()
 
         tk.Tk.__init__(self, *args, **kwargs)
         container = tk.Frame(self)
@@ -74,7 +73,6 @@ class IngridApp(tk.Tk):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-
         self.show_frame(ParamPicker)
 
     def show_frame(self, cont):
@@ -361,6 +359,7 @@ class FilePicker(tk.Frame):
         if valid_path and param_file.suffix == '.nml':
             nml = f90nml.read(str(param_file))
             self.ROOT.nml = nml
+
             self.check_nml(nml)
             self.paramFrame.fileLoaded(param_file)
             self.update_frame_state()
@@ -449,25 +448,41 @@ class ParamPicker(tk.Frame):
 
         # TODO: Create a ParameterFrame Class. This will be useful when we have
         #       multiple X-points to deal with.
+
         self.RF_Container = tk.LabelFrame(self, text = '1.', font = helv_medium, relief = 'groove')
         self.PF_Container = tk.LabelFrame(self, text = '2.', font = helv_medium)
-        self.Controls_Container = tk.LabelFrame(self, text = 'Settings', font = helv_medium)
+        self.Controls_Container = tk.Frame(self)
+        self.Action_Container = tk.LabelFrame(self.Controls_Container, text = 'INGRID', font = helv_medium)
+        self.Settings_Container = tk.LabelFrame(self.Controls_Container, text = 'Settings', font = helv_medium)
 
-        self.RF_Container.grid(row = 1, column = 0, padx = 10, pady = 10, sticky = 'nsew')
+        self.RF_Container.grid(row = 0, column = 0, padx = 10, pady = 10, sticky = 'nsew')
         self.PF_Container.grid(row = 0, rowspan = 2, column = 1, padx = 10, pady = 10, sticky = 'nsew')
-        self.Controls_Container.grid(row = 0, column = 0, padx = 10, pady = 10, sticky = 'NSew')
+        self.Controls_Container.grid(row = 1, column = 0, padx = 0, pady = 20, sticky = 'NSew')
 
-        self.createPatches_Button = tk.Button(self.Controls_Container, text = 'Generate Patches', \
-                                              font = helv_medium, state = 'disabled', \
+        self.Action_Container.grid(row = 0, column = 2, columnspan = 2, padx = 10, pady = 0, sticky = 'nsew')
+        self.Settings_Container.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 0, sticky = 'nsew')
+
+        self.createPatches_Button = tk.Button(self.Action_Container, text = 'Generate Patches', \
+                                              font = helv_medium, state = 'disabled', width = 30, \
                                               command = self.createPatches)
-        self.save_Button = tk.Button(self.Controls_Container, text = 'Save Parameters', \
-                                     font = helv_medium, state = 'disabled', \
+        self.save_Button = tk.Button(self.Settings_Container, text = 'Save Parameters', \
+                                     font = helv_medium, state = 'disabled', width = 30, \
                                      command = self.saveParameters)
-        self.load_Button = tk.Button(self.Controls_Container, text = 'Load Files', font = helv_medium, \
-                                     command = self.load_files)
-        self.createPatches_Button.grid(row = 0, column = 1, padx = 2, pady = 2)
-        self.save_Button.grid(row = 0, column = 2, padx = 2, pady = 2)
-        self.load_Button.grid(row = 0, column = 0, padx = 2, pady = 2)
+        self.load_Button = tk.Button(self.Settings_Container, text = 'Select Files', font = helv_medium, \
+                                     width = 30, command = self.load_files)
+        self.settings_Button = tk.Button(self.Settings_Container, text = 'Grid/Integrator Params', font = helv_medium,\
+                                    width = 30)
+        self.export_Button = tk.Button(self.Action_Container, text = 'Export GRIDUE', font = helv_medium, \
+                                     width = 30, state = 'disabled', command = self.write_gridue)
+        self.createSubgrid_Button = tk.Button(self.Action_Container, text = 'Generate Subgrid', \
+                                    width = 30, font = helv_medium, state = 'disabled', command = self.createSubgrid)
+
+        self.createPatches_Button.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = 'ew')
+        self.save_Button.grid(row = 1, column = 0,  padx = 2, pady = 2, sticky = 'ew')
+        self.load_Button.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = 'ew')
+        self.settings_Button.grid(row = 2, column = 0, padx = 2, pady = 2, sticky = 'ew')
+        self.createSubgrid_Button.grid(row = 1, column = 0, padx = 2, pady = 2, sticky = 'ew')
+        self.export_Button.grid(row = 2, column = 0, padx = 2, pady = 2, sticky = 'ew')
 
         self.MagFrame = RootFinderFrame(self.RF_Container, self, title = 'Magnetic-Axis', style = helv_medium)
         self.XptFrame = RootFinderFrame(self.RF_Container, self, title = 'Primary X-Point', style = helv_medium)
@@ -549,7 +564,6 @@ class ParamPicker(tk.Frame):
         self.controller.nml['grid_params']['zmagx'] = float(self.MagFrame.Z_EntryText.get())
         self.controller.nml['grid_params']['rxpt'] = float(self.XptFrame.R_EntryText.get())
         self.controller.nml['grid_params']['zxpt'] = float(self.XptFrame.Z_EntryText.get())
-        self.controller.nml['grid_params']['step_ratio'] = 0.02
 
         self.MagAxis = (self.controller.nml['grid_params']['rmagx'], self.controller.nml['grid_params']['zmagx'])
         self.Xpt = (self.controller.nml['grid_params']['rxpt'], self.controller.nml['grid_params']['zxpt'])
@@ -581,12 +595,65 @@ class ParamPicker(tk.Frame):
         self.controller.nml['grid_params']['psi_min_pf_r'] = float(self.PsiPrivateFrame.R_EntryText.get())
         self.controller.nml['grid_params']['psi_min_pf_z'] = float(self.PsiPrivateFrame.Z_EntryText.get())
         self.controller.nml['grid_params']['psi_min_pf'] = float(self.PsiPrivateFrame.Psi_EntryText.get())
-        self.controller.nml['grid_params']['step_ratio'] = 0.02
         
         self.unlock_controls()
         self.acceptPF_Button.config(text = 'Entries Saved!', fg = 'lime green')
 
+    def set_INGRID_params(self):
+        
+        self.set_RFValues()
+        self.set_PsiValues()
+
+
     def createPatches(self):
+
+        self.set_INGRID_params()
+        self.controller.IngridSession.magx = self.MagAxis
+        self.controller.IngridSession.xpt1 = self.Xpt
+        self.controller.IngridSession.calc_psinorm()
+
+        self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].paramFrame.FP_EntryText.get()))
+
+        try:
+            np_cells = self.controller.nml['grid_params']['np_cells']
+        except KeyError:
+            np_cells = 2
+            print('NML file did not contain parameter np_cells. Set to default value of 2...')
+
+        try:
+            nr_cells = self.controller.nml['grid_params']['nr_cells']
+        except KeyError:
+            nr_cells = 2
+            print('NML file did not contain parameter nr_cells. Set to default value of 2...')
+
+        self.controller.IngridSession.construct_SNL_patches()
+        self.controller.IngridSession.patch_diagram()
+        
+        self.createSubgrid_Button.config(state = 'normal')
+
+    def createSubgrid(self):
+
+        try:
+            np_cells = self.controller.nml['grid_params']['np_cells']
+        except KeyError:
+            np_cells = 2
+            print('NML file did not contain parameter np_cells. Set to default value of 2...')
+
+        try:
+            nr_cells = self.controller.nml['grid_params']['nr_cells']
+        except KeyError:
+            nr_cells = 2
+            print('NML file did not contain parameter nr_cells. Set to default value of 2...')
+
+        self.controller.IngridSession.construct_SNL_grid(np_cells, nr_cells)
+        self.controller.IngridSession.grid_diagram()
+        self.export_Button.config(state = 'normal')
+
+    def write_gridue(self):
+        fname = tkFD.asksaveasfilename(initialdir = '.', title = 'Save File',defaultextension ='')
+        self.controller.IngridSession.export(fname)
+
+    def INGRID_benchmark(self):
 
         debug = False
 
@@ -600,34 +667,42 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.calc_psinorm()
         self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].eqdskFrame.FP_EntryText.get()))
         
-        patch_time = ti.time()
-        self.controller.IngridSession.construct_SNL_patches()
-        patch_time = ti.time() - patch_time
+        from matplotlib.pyplot import close
 
-        subgrid_time = ti.time()
-        self.controller.IngridSession.construct_SNL_subgrid()
-        subgrid_time = ti.time() - subgrid_time
+        for i in range(24):
+            patch_time = ti.time()
+            self.controller.IngridSession.construct_SNL_patches()
+            patch_time = ti.time() - patch_time
 
-        patchDiagram_time = ti.time()
-        self.controller.IngridSession.patch_diagram()
-        patchDiagram_time = ti.time() - patchDiagram_time
+            subgrid_time = ti.time()
+            self.controller.IngridSession.construct_SNL_subgrid(num = 2 + i)
+            subgrid_time = ti.time() - subgrid_time
 
-        gridDiagram_time = ti.time()
-        self.controller.IngridSession.grid_diagram()
-        gridDiagram_time = ti.time() - gridDiagram_time
+            patchDiagram_time = ti.time()
+            self.controller.IngridSession.patch_diagram()
+            patchDiagram_time = ti.time() - patchDiagram_time
 
-        export_time = ti.time()
-        self.controller.IngridSession.export()
-        export_time = ti.time() - export_time
+            gridDiagram_time = ti.time()
+            self.controller.IngridSession.grid_diagram()
+            gridDiagram_time = ti.time() - gridDiagram_time
 
-        print('========================================================')
-        print('SUMMARY:')
-        print("'construct_SNL_patches' took: {}s".format(patch_time))
-        print("'construct_SNL_subgrid' took: {}s".format(subgrid_time))
-        print("'patch_diagram' took: {}s".format(patchDiagram_time))
-        print("'grid_diagram' took: {}s".format(gridDiagram_time))
-        print("'export' took: {}s".format(export_time))
-        print('========================================================')
+            export_time = ti.time()
+            self.controller.IngridSession.export()
+            export_time = ti.time() - export_time
+
+            print('========================================================')
+            print('SUMMARY:')
+            print('\nnum = {}\n'.format(2 + i))
+            print('Poloidal Cells (no guard cells): {}'.format(6 * (2 + i)))
+            print('Radial Cells (no guard cells): {}'.format(2 * (2 + i)))
+            print('Total Cells (no guard cells): {}\n'.format(6 * (2 + i) * 2 * (2 + i)))
+            print("'construct_SNL_patches' took: {}s".format(patch_time))
+            print("'construct_SNL_subgrid' took: {}s".format(subgrid_time))
+            print("'patch_diagram' took: {}s".format(patchDiagram_time))
+            print("'grid_diagram' took: {}s".format(gridDiagram_time))
+            print("'export' took: {}s".format(export_time))
+            print('========================================================')
+            close('all')
 
 
     def saveParameters(self):
@@ -647,7 +722,12 @@ class ParamPicker(tk.Frame):
                   'psi_max' : self.PsiMaxFrame.Psi_EntryText, 'psi_min_core' : self.PsiMinFrame.Psi_EntryText,\
                   'psi_min_pf' : self.PsiPrivateFrame.Psi_EntryText\
                   }
+
+        ignore = ['config', 'num_xpt', 'np_cells', 'nr_cells']
+
         for param in self.controller.nml['grid_params']:
+            if param in ignore:
+                continue
             try:
                 lookup[param].set('{0:.12f}'.format(self.controller.nml['grid_params'][param]))
             except:

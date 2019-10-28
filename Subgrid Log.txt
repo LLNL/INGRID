@@ -84,8 +84,18 @@ Radial Cells (no guard cells): 18
 Total Cells (no guard cells): 972
 Subgrid Generation took: 33.519499071s
 
+========================================================
+SUMMARY:
+
 num = 10
+
 Poloidal Cells (no guard cells): 60 
 Radial Cells (no guard cells): 20
 Total Cells (no guard cells): 1200
-Subgrid Generation took: 33.519499071s
+
+'construct_SNL_patches' took: 24.0640230178833s
+'construct_SNL_subgrid' took: 148.93990397453308s
+'patch_diagram' took: 0.12286210060119629s
+'grid_diagram' took: 17.44745707511902s
+'export' took: 1.6966907978057861s
+========================================================

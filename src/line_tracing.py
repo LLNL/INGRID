@@ -28,8 +28,7 @@ class LineTracing:
     grid : Setup_Grid_Data.Efit_Data
         The grid object upon which the lines will be drawn.
     params : dict
-        Dictionary of the grid parameters. Should have been read in
-        from a namelist file.
+        Namelist *.nml file containing all INGRID parameters.
     eps : float, optional
         Short for epsilon. Specifies the size of the circle drawn
         around the zero point.
@@ -52,36 +51,50 @@ class LineTracing:
         tracing.
     """
 
-    def __init__(self, grid, params, eps=1e-12, tol=5e-3,
+    def __init__(self, grid, params, eps=1e-5, tol=5e-3,
                  numPoints=25, dt=0.01, option='xpt_circ', direction='cw'):
+        
         self.grid = grid
+        self.option = option
+        self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event', self)
 
-        self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event',
-                                                          self)
-        self.eps = eps
         try:
-            self.tol = params['tol']
-            print('Tol set to {}'.format(self.tol))
+            self.eps = params['integrator_params']['eps']
+        except:
+            self.eps = eps
+        print('eps set to {}'.format(self.eps))
+
+        try:
+            self.tol = params['integrator_params']['tol']
         except:
             self.tol = tol
-        self.numPoints = numPoints
-        self.dt = dt
-        self.option = option
+        print('tol set to {}'.format(self.tol))
+
+        try:
+            self.dt = params['integrator_params']['dt']
+        except:
+            self.dt = dt
+        print('dt set to {}'.format(self.dt))
+
+        try:
+            self.first_step = params['integrator_params']['first_step']
+        except:
+            self.first_step = first_step
+        print('first_step set to {}'.format(self.first_step))
+
+        try:
+            self.step_ratio = params['integrator_params']['step_ratio']
+        except:
+            self.step_ratio = 0.02
+        print('step_ratio set to {}'.format(self.step_ratio))        
+
+        if self.option == 'xpt_circ':
+            self.root = RootFinder(self.grid)
 
         zdim = grid.zmax-grid.zmin
         rdim = grid.rmax-grid.rmin
 
-        if self.option == 'xpt_circ':
-            self.root = RootFinder(self.grid)
-            print('Entering Fuzzy click mode. Click near a zero point.')
-        try:
-            self.max_step = params['step_ratio'] * max(rdim, zdim)
-        except:
-            default_step_ratio = 0.02
-            self.max_step = default_step_ratio * max(rdim, zdim)
-        
-        # TODO: set self.first_step as a parameter
-        self.first_step = 1e-5  # self.max_step
+        self.max_step = self.step_ratio * max(rdim, zdim)
 
         # initialize the function
         self._set_function(option, direction)
@@ -312,14 +325,14 @@ class LineTracing:
                 if (abs(N_path[0][-1] - magx[0]) < self.tol) \
                     and (abs(N_path[1][-1] - magx[1]) < self.tol):
                     # Adjust our flag accordingly.
-                    # print('N_path went to magnetic axis.')
+                    print('N_path went to magnetic axis.')
                     self.is_true_north = True
                     return True
                 # Check if the S_path is converging to magx.
                 elif (abs(S_path[0][-1] - magx[0]) < self.tol) \
                     and (abs(S_path[1][-1] - magx[1]) < self.tol):
                     # Reassigning for code-clarity.
-                    # print('S_path went to magnetic axis.')
+                    print('S_path went to magnetic axis.')
                     self.is_true_north = False
                     return True
                 # We haven't converged.
@@ -494,13 +507,13 @@ class LineTracing:
 
         # check rz_end:
         if rz_end is None:
-            # print('testing for loop completion')
+            print('testing for loop completion')
             test = 'point'
             rz_end = ynot
             xf, yf = rz_end
 
         elif key_list == ['point']:
-            # print('Testing for point convergence')
+            print('Testing for point convergence')
             test = 'point'
             if isinstance(rz_end['point'], geo.Point):
                 xf = rz_end['point'].x
@@ -510,7 +523,7 @@ class LineTracing:
                 yf = rz_end['point'][1]
 
         elif key_list == ['line']:
-            # print('Testing for line convergence')
+            print('Testing for line convergence')
             test = 'line'
             if isinstance(rz_end['line'], geo.Line):
                 # extract
@@ -520,17 +533,17 @@ class LineTracing:
                 endLine = rz_end['line']
 
         elif key_list == ['psi']:
-            # print('Testing for psi convergence')
+            print('Testing for psi convergence')
             test = 'psi'
             psi_test = rz_end['psi']
 
         elif key_list == ['psi_horizontal']:
-            # print('Testing for psi convergence (horizontal trajectory)')
+            print('Testing for psi convergence (horizontal trajectory)')
             test = 'psi_horizontal'
             psi_test = rz_end['psi_horizontal']
 
         elif key_list == ['psi_vertical']:
-            # print('Testing for psi convergence (vertical trajectory)')
+            print('Testing for psi convergence (vertical trajectory)')
             test = 'psi_vertical'
             psi_test = rz_end['psi_vertical']
 
@@ -714,7 +727,7 @@ class LineTracing:
             if count > 0:
                 # plot the line like normal
                 save_line([points[0][0], points[0][-1]], [points[1][0], points[1][-1]])
-                # print('Plotting...')
+                print('Plotting...')
 
             t2 = time()
             self.time_in_converged += t2 - t1

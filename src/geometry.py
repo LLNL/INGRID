@@ -310,7 +310,7 @@ class Patch:
                 #cell.plot_center()
 
 
-    def make_subgrid(self, grid, num = 2):
+    def make_subgrid(self, grid, np_cells = 2, nr_cells = 2):
         """
         Generate a refined grid within a patch.
         This 'refined-grid' within a Patch is a collection
@@ -344,7 +344,8 @@ class Patch:
         # Allocate space for collection of cell objects.
         # Arbitrary 2D container for now.
         cell_grid = []
-        num += 1
+        np_lines = np_cells + 1
+        nr_lines = nr_cells + 1
 
         # Create B-Splines along the North and South boundaries.
         N_vals = self.N.fluff()
@@ -396,7 +397,7 @@ class Patch:
             try:
                 plate_north_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args = (U_spl, plate_north[0], plate_north[1])))]
             except ValueError:
-                # print('brentq failed. attempting fsolve...')
+                print('brentq failed. attempting fsolve...')
                 plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args = (U_spl, plate_north[0], plate_north[1])))]
             try:
                 plate_south_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args = (U_spl, plate_south[0], plate_south[1])))]
@@ -423,17 +424,18 @@ class Patch:
         E_vertices = []
         W_vertices = []
 
-        for i in range(num):
-            _n = splev(i / (num-1), N_spl)
+        for i in range(np_lines):
+            _n = splev(i / (np_lines-1), N_spl)
             N_vertices.append(Point((_n[0], _n[1])))
 
-            _s = splev(i / (num-1), S_spl)
+            _s = splev(i / (np_lines-1), S_spl)
             S_vertices.append(Point((_s[0], _s[1])))
 
-            _e = splev(i / (num-1), E_spl)
+        for i in range(nr_lines):
+            _e = splev(i / (nr_lines-1), E_spl)
             E_vertices.append(Point((_e[0], _e[1])))
 
-            _w = splev(i / (num-1), W_spl)
+            _w = splev(i / (nr_lines-1), W_spl)
             W_vertices.append(Point((_w[0], _w[1])))
 
         """
@@ -456,8 +458,8 @@ class Patch:
             radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s = 0)
             radial_spline = splev(uR, radial_spl)
             vertex_list = []
-            for i in range(num):
-                _r = splev(i / (num - 1), radial_spl)
+            for i in range(np_lines):
+                _r = splev(i / np_cells, radial_spl)
                 vertex_list.append(Point((_r[0], _r[1])))
             radial_vertices.append(vertex_list)
         radial_lines.append(self.S)
@@ -490,77 +492,6 @@ class Patch:
         elif corner == 'SW':
             self.cell_grid[-1][0].vertices[corner] = point
             self.cell_grid[-1][0].vertices[corner] = point
-
-
-    def refine(self, grid):
-        """ Divides a patch into smaller cells based on N and S lines,
-        and the psi levels of E and W lines.
-        
-        Parameters
-        ----------
-        grid : Setup_Grid_Data.Efit_Data
-            Requires the grid the patches were calculated on.
-        """
-        
-        # TODO: need a more universal fit for the function
-        def f(x, a, b, c, d):
-            # fit to a cubic polynomial
-            return a + b*x + c*x**2 + d*x**3
-        
-        # curve fit return optimal Parameters and 
-        # the covariance of those parameters
-        poptN, pcovN = curve_fit(f, self.N.xval, self.N.yval)
-        poptS, pcovS = curve_fit(f, self.S.xval, self.S.yval)
-        
-        x1 = np.linspace(self.N.xval[0], self.N.xval[-1])
-        x2 = np.linspace(self.S.xval[0], self.S.xval[-1])
-        
-        plt.plot(x1, f(x1, *poptN), color='green')
-        plt.plot(x2, f(x2, *poptS), color='magenta')
-        plt.draw()
-        
-        
-        # split horizontally 
-        psiN = self.N.p[0].psi(grid)
-        psiS = self.S.p[-1].psi(grid)
-        
-        alp = .5 # test split at half psi
-        
-        psiAlp = psiS + alp*(psiN - psiS)
-                
-        # TODO in the Ingrid.construct_SNL_patches method there must be some
-        # inconsistency in the definition of lines, on the order isn't being 
-        # maintained, because the below definition for the west endpoints
-        # of the north and south lines is correct for most of the patches
-        # but a few has one point on the wrong end.
-        # these are: IDL, IST, OCB, and OPF
-        x1 = self.S.p[-1].x
-        x2 = self.N.p[0].x
-        y1 = self.S.p[-1].y
-        y2 = self.N.p[0].y
-        
-        plt.plot(x2, y2, 'X', color='blue')  # north
-        plt.plot(x1, y1, 'X', color='red')  # south
-        plt.draw()
-                
-        def fpsi(x):
-            # line in 3d space
-            # must manually calculate y each time we stick it into
-            # the line of interest
-            y = (y2-y1)/(x2-x1)*(x-x1)+y1
-            return grid.psi_norm.get_psi(x, y) - psiAlp
-
-        sol = root_scalar(fpsi, bracket=[x1, x2])
-        r_psi = sol.root
-        z_psi = (y2-y1)/(x2-x1)*(r_psi-x1)+y1
-        
-        plt.plot(r_psi, z_psi, 'x')
-        plt.draw()
-        
-        mid_line = grid.eq.draw_line((r_psi, z_psi), {'line': self.E},option='theta', direction='cw', show_plot=True)
-        
-        self.lines.append(mid_line)
- 
 
 def calc_mid_point(v1, v2):
     """
@@ -679,7 +610,7 @@ def intersect(line1, line2):
         (i, j), (p, q) = test_line
         guess = (np.mean([a, c, i, p]), np.mean([b, d, j, q]))
         sol, infoDict, ier, mesg = fsolve(f, guess, full_output = True)
-        # print('{}: {}'.format(ind, mesg))
+        print('{}: {}'.format(ind, mesg))
         if ier == 1:
             break
     return sol[0], sol[1]
@@ -708,13 +639,13 @@ def segment_intersect(line1, line2):
         try:
             sol = np.linalg.solve(M, r)
         except np.linalg.LinAlgError:
-            # print('Singular matrix...')
+            print('Singular matrix...')
             continue
 
         if (sol[0] <= 1) and (sol[1] <= 1) \
             and (sol[0] >= 0) and (sol[1] >= 0):
             plt.plot(sol[0], sol[1], '+', color = 'purple')
-            # print('INTERSECTION OCCURED')
+            print('INTERSECTION OCCURED')
             return True, [(xc, yc), (xd, yd)]
     return False, [(np.nan, np.nan), (np.nan, np.nan)]
     

@@ -433,8 +433,9 @@ class FilePicker(tk.Frame):
         for item in self.controller.frames[ParamPicker].RF_Frames:
             item.Edit_Button.config(state = 'normal')
         self.controller.frames[ParamPicker].loadParameters()
+        self.controller.frames[ParamPicker].acceptRF_Button.config(state = 'normal')
         self.ROOT.show_frame(ParamPicker)
-        self.ROOT.geometry('805x485')
+        self.ROOT.geometry("830x490")
         if not self.preview_loaded:
             self.preview_data()
         self.ROOT.IngridSession.find_roots(tk_controller = self.controller)
@@ -470,19 +471,21 @@ class ParamPicker(tk.Frame):
                                      command = self.saveParameters)
         self.load_Button = tk.Button(self.Settings_Container, text = 'Select Files', font = helv_medium, \
                                      width = 30, command = self.load_files)
-        self.settings_Button = tk.Button(self.Settings_Container, text = 'Grid/Integrator Params', font = helv_medium,\
-                                    width = 30)
+        self.settings_Button = tk.Button(self.Action_Container, text = 'Grid/Integrator Params', font = helv_medium,\
+                                    width = 30, command = self.settings_window, state = 'disabled')
         self.export_Button = tk.Button(self.Action_Container, text = 'Export GRIDUE', font = helv_medium, \
                                      width = 30, state = 'disabled', command = self.write_gridue)
         self.createSubgrid_Button = tk.Button(self.Action_Container, text = 'Generate Subgrid', \
                                     width = 30, font = helv_medium, state = 'disabled', command = self.createSubgrid)
 
-        self.createPatches_Button.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = 'ew')
-        self.save_Button.grid(row = 1, column = 0,  padx = 2, pady = 2, sticky = 'ew')
+
         self.load_Button.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = 'ew')
-        self.settings_Button.grid(row = 2, column = 0, padx = 2, pady = 2, sticky = 'ew')
-        self.createSubgrid_Button.grid(row = 1, column = 0, padx = 2, pady = 2, sticky = 'ew')
-        self.export_Button.grid(row = 2, column = 0, padx = 2, pady = 2, sticky = 'ew')
+        self.save_Button.grid(row = 2, column = 0,  padx = 2, pady = 2, sticky = 'ew')
+
+        self.settings_Button.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = 'ew')
+        self.createPatches_Button.grid(row = 1, column = 0, padx = 2, pady = 2, sticky = 'ew')
+        self.createSubgrid_Button.grid(row = 2, column = 0, padx = 2, pady = 2, sticky = 'ew')
+        self.export_Button.grid(row = 3, column = 0, padx = 2, pady = 2, sticky = 'ew')
 
         self.MagFrame = RootFinderFrame(self.RF_Container, self, title = 'Magnetic-Axis', style = helv_medium)
         self.XptFrame = RootFinderFrame(self.RF_Container, self, title = 'Primary X-Point', style = helv_medium)
@@ -500,11 +503,11 @@ class ParamPicker(tk.Frame):
             self.All_Frames.append(F)
         
         self.acceptRF_Button = tk.Button(self.RF_Container, text = 'Confirm Entries', font = helv_medium, \
-                                         command = self.set_RFValues)
+                                         state = 'disabled', command = self.set_RFValues)
         self.acceptRF_Button.grid(row = 3, column = 0, columnspan = 1, padx = 10, pady = 10)
 
         self.acceptPF_Button = tk.Button(self.PF_Container, text = 'Confirm Entries', font = helv_medium, \
-                                         command = self.set_PsiValues)
+                                         state = 'disabled', command = self.set_PsiValues)
         self.acceptPF_Button.grid(row = 6, column = 0, columnspan = 1, padx = 10, pady = 10)
 
         self.MagFrame.grid(row = 1, column = 0, padx = 10, pady = 10, sticky = 'nsew')
@@ -539,8 +542,11 @@ class ParamPicker(tk.Frame):
         for F in self.PF_Frames:
             F.Edit_Button.config(state = 'normal')
         self.controller.IngridSession.calc_psinorm()
+        self.controller.IngridSession.init_LineTracing()
+        self.controller.frames[ParamPicker].acceptPF_Button.config(state = 'normal')
 
     def unlock_controls(self):
+        self.settings_Button.config(state = 'normal')
         self.createPatches_Button.config(state = 'normal')
         self.save_Button.config(state = 'normal') 
 
@@ -607,51 +613,64 @@ class ParamPicker(tk.Frame):
 
     def createPatches(self):
 
-        self.set_INGRID_params()
-        self.controller.IngridSession.magx = self.MagAxis
-        self.controller.IngridSession.xpt1 = self.Xpt
-        self.controller.IngridSession.calc_psinorm()
-
-        self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].paramFrame.FP_EntryText.get()))
-
         try:
-            np_cells = self.controller.nml['grid_params']['np_cells']
-        except KeyError:
-            np_cells = 2
-            print('NML file did not contain parameter np_cells. Set to default value of 2...')
+            self.controller.IngridSession.patch_diagram()
+        except:
+            self.set_INGRID_params()
+            self.controller.IngridSession.magx = self.MagAxis
+            self.controller.IngridSession.xpt1 = self.Xpt
+            self.controller.IngridSession.calc_psinorm()
 
-        try:
-            nr_cells = self.controller.nml['grid_params']['nr_cells']
-        except KeyError:
-            nr_cells = 2
-            print('NML file did not contain parameter nr_cells. Set to default value of 2...')
+            self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].paramFrame.FP_EntryText.get()))
 
-        self.controller.IngridSession.construct_SNL_patches()
-        self.controller.IngridSession.patch_diagram()
+            try:
+                np_cells = self.controller.nml['grid_params']['np_cells']
+            except KeyError:
+                np_cells = 1
+                print('NML file did not contain parameter np_cells. Set to default value of 2...')
+
+            try:
+                nr_cells = self.controller.nml['grid_params']['nr_cells']
+            except KeyError:
+                nr_cells = 1
+                print('NML file did not contain parameter nr_cells. Set to default value of 2...')
+
+            self.controller.IngridSession.construct_SNL_patches()
+            self.controller.IngridSession.patch_diagram()
         
         self.createSubgrid_Button.config(state = 'normal')
 
     def createSubgrid(self):
 
         try:
-            np_cells = self.controller.nml['grid_params']['np_cells']
-        except KeyError:
-            np_cells = 2
-            print('NML file did not contain parameter np_cells. Set to default value of 2...')
+            self.controller.IngridSession.grid_diagram()
 
-        try:
-            nr_cells = self.controller.nml['grid_params']['nr_cells']
-        except KeyError:
-            nr_cells = 2
-            print('NML file did not contain parameter nr_cells. Set to default value of 2...')
+        except:
 
-        self.controller.IngridSession.construct_SNL_grid(np_cells, nr_cells)
-        self.controller.IngridSession.grid_diagram()
+            try:
+                np_cells = self.controller.nml['grid_params']['np_cells']
+            except KeyError:
+                np_cells = 1
+                print('NML file did not contain parameter np_cells. Set to default value of 2...')
+
+            try:
+                nr_cells = self.controller.nml['grid_params']['nr_cells']
+            except KeyError:
+                nr_cells = 1
+                print('NML file did not contain parameter nr_cells. Set to default value of 2...')
+
+            self.controller.IngridSession.construct_SNL_grid(np_cells, nr_cells)
+            self.controller.IngridSession.grid_diagram()
         self.export_Button.config(state = 'normal')
 
     def write_gridue(self):
-        fname = tkFD.asksaveasfilename(initialdir = '.', title = 'Save File',defaultextension ='')
-        self.controller.IngridSession.export(fname)
+        fname = tkFD.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='', initialfile = 'gridue')
+        if fname != '':
+            self.controller.IngridSession.export()
+            Path('gridue').rename(fname)
+            print('Saved')
+        else:
+            print('Cancelling export...')
 
     def INGRID_benchmark(self):
 
@@ -733,6 +752,116 @@ class ParamPicker(tk.Frame):
             except:
                 print('Did not find: ' + str(param))
 
+    def settings_window(self):
+
+        def confirm_settings():
+            newWindow.withdraw()
+
+        _gp_default_values = {'num_xpt' : 1, \
+                              'np_cells' : 3, \
+                              'nr_cells' : 2}
+        _integrator_default_values = {'first_step' : self.ROOT.IngridSession.eq.first_step, \
+                                      'step_ratio' : self.ROOT.IngridSession.eq.step_ratio, \
+                                       'eps' : self.ROOT.IngridSession.eq.eps, \
+                                       'tol' : self.ROOT.IngridSession.eq.tol, \
+                                       'dt' : self.ROOT.IngridSession.eq.dt}
+
+        newWindow = tk.Toplevel(self.ROOT)
+        container1 = tk.LabelFrame(newWindow, text = 'Grid Parameters:', font = helv_medium)
+        container2 = tk.LabelFrame(newWindow, text = 'Integrator Parameters:', font = helv_medium)
+        container3 = tk.Frame(newWindow)
+
+        gp_lookup = ['num_xpt', 'np_cells', 'nr_cells']
+        integrator_lookup = ['first_step', 'step_ratio', 'eps', 'tol', 'dt']
+
+        gp_settings = {}
+        integrator_settings = {}
+
+        gp_default = []
+        integratot_default = []
+
+        for item in gp_lookup:
+            try:
+                gp_settings[item] = SettingsFrame(container1, newWindow, \
+                    {'LabelText' : item, 'EntryText' : self.ROOT.nml['grid_params'][item]})
+            except:
+                try:
+                    self.ROOT.nml['grid_params']
+                except KeyError:
+                    self.ROOT.nml.update({'grid_params' : {}})
+                
+                gp_settings[item] = SettingsFrame(container1, newWindow, \
+                    {'LabelText' : item, 'EntryText' : _gp_default_values[item]})
+                
+                self.ROOT.nml['grid_params'].update({item : _gp_default_values[item]})
+
+                print(self.ROOT.nml['grid_params'])
+
+        for item in integrator_lookup:
+            try:
+                integrator_settings[item] = SettingsFrame(container2, newWindow, \
+                    {'LabelText' : item, 'EntryText' : self.ROOT.nml['integrator_params'][item]})
+            except:
+                try:
+                    self.ROOT.nml['integrator_params']
+                except KeyError:
+                    self.ROOT.nml.update({'integrator_params' : {}})
+                
+                integrator_settings[item] = SettingsFrame(container2, newWindow, \
+                        {'LabelText' : item, 'EntryText' : _integrator_default_values[item]})
+
+                self.ROOT.nml['integrator_params'].update({item : _integrator_default_values[item]})
+
+        container1.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
+        container2.grid(row = 1, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
+        container3.grid(row = 2, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
+
+        i = 0
+        for key in gp_settings.keys():
+            gp_settings[key].grid(row = i, column = 0, padx = 5, pady = 5, sticky = 'nsew')
+            i += 1
+        for key in integrator_settings.keys():
+            integrator_settings[key].grid(row = i, column = 0, padx = 5, pady = 5, sticky = 'nsew')
+            i += 1
+
+        confirm = tk.Button(container3, text = 'Confirm', command = confirm_settings)
+        confirm.grid(row = i + 1, column = 0, padx = 10, pady = 5, sticky = 'nsew')
+
+        close = tk.Button(container3, text = 'Close')
+        close.grid(row = i + 1, column = 1, padx = 10, pady = 5, sticky = 'nsew')
+
+
+class SettingsFrame(tk.Frame):
+    def __init__(self, parent, controller, params):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        
+        self.Save_ButtonText = tk.StringVar()
+        self.Save_ButtonText.set('Save')
+
+        self.Edit_ButtonText = tk.StringVar()
+        self.Edit_ButtonText.set('Edit')
+
+        self.Setting_LabelText = tk.StringVar()
+        self.Setting_LabelText.set(params['LabelText'])
+        self.Setting_EntryText = tk.StringVar()
+        self.Setting_EntryText.set(params['EntryText'])
+
+        self.Setting_Label = tk.Label(self, text = self.Setting_LabelText.get())
+
+        self.Setting_Entry = tk.Entry(self, text = self.Setting_EntryText, width = 40, \
+                                 disabledbackground = '#f8f8ff', state = 'disabled')
+        self.Save_Button = tk.Button(self, text = self.Save_ButtonText.get(), width = 20, \
+                                   font = helv_medium)
+        self.Edit_Button = tk.Button(self, text = self.Edit_ButtonText.get(), width = 20, \
+                                   font = helv_medium)
+
+        self.Setting_Label.grid(row = 0, column = 0, padx = 5, pady = 5, sticky = 'NSEW')
+        self.Setting_Entry.grid(row = 0, column = 1, columnspan = 2, padx = 10, pady = 10, sticky = 'NSEW')
+        self.Save_Button.grid(row = 0, column = 3, padx = 10, pady = 10, sticky = 'EW')
+        self.Edit_Button.grid(row = 0, column = 4, padx = 10, pady = 10, sticky = 'EW')
+
+        self.isLoaded = False
 
 class RootFinderFrame(tk.LabelFrame):
 

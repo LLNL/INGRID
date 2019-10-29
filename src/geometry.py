@@ -644,7 +644,6 @@ def segment_intersect(line1, line2):
 
         if (sol[0] <= 1) and (sol[1] <= 1) \
             and (sol[0] >= 0) and (sol[1] >= 0):
-            plt.plot(sol[0], sol[1], '+', color = 'purple')
             print('INTERSECTION OCCURED')
             return True, [(xc, yc), (xd, yd)]
     return False, [(np.nan, np.nan), (np.nan, np.nan)]

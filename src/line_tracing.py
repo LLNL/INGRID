@@ -51,7 +51,7 @@ class LineTracing:
         tracing.
     """
 
-    def __init__(self, grid, params, eps=1e-5, tol=5e-3,
+    def __init__(self, grid, params, eps=1e-5, tol=5e-3, first_step = 1e-5,
                  numPoints=25, dt=0.01, option='xpt_circ', direction='cw'):
         
         self.grid = grid

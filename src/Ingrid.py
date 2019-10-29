@@ -35,10 +35,25 @@ class Ingrid:
         print('Welcome to Ingrid!\n')
 
     def set_nml(self, nml):
-        self.nml = nml
-        self.files = nml['files']
-        self.grid_params = nml['grid_params']
-        self.integrator_params = nml['integrator_params']
+
+        lookup = ['files', 'grid_params', 'integrator_params']
+        temp_nml = {}
+        for key in lookup:
+            try:
+                temp_nml[key] = nml[key]
+            except KeyError:
+                # set defaults
+                print('Could not find "{}" in *.nml file.'.format(key))
+                temp_nml[key] = {}
+            
+            if key == 'files':
+                self.files = temp_nml[key]
+            elif key == 'grid_params':
+                self.grid_params = temp_nml[key]
+            elif key == 'integrator_params':
+                self.integrator_params = temp_nml[key]
+
+        self.nml = temp_nml
 
     def get_nml(self):
         print('INGRID nml: {}'.format(self.nml))
@@ -309,6 +324,9 @@ class Ingrid:
         self.psi_norm.Calculate_PDeriv()
         self.psi_norm.plot_data()
 
+    def init_LineTracing(self):
+        from line_tracing import LineTracing
+        self.eq = LineTracing(self.psi_norm, self.nml)
 
     def compute_eq_psi(self):
         """ Initializes the line tracing class for the construction
@@ -316,7 +334,14 @@ class Ingrid:
         user clicks on the root.
         """
         from line_tracing import LineTracing
-        self.eq = LineTracing(self.psi_norm, self.nml)
+        
+        try:
+            if not self.eq:
+                raise AttributeError
+
+        except AttributeError:
+            self.init_LineTracing()
+
         self.eq.find_NSEW(self.xpt1, self.magx)
         self.eq.disconnect()
 
@@ -367,13 +392,11 @@ class Ingrid:
         LHS_Point = Point(magx[0] - 1e6, magx[1])
         RHS_Point = Point(magx[0] + 1e6, magx[1])
         midLine = Line([LHS_Point, RHS_Point])
-        midLine.plot()
 
         # Generate Vertical Mid-Plane line
         Lower_Point = Point(magx[0], magx[1] - 1e6)
         Upper_Point = Point(magx[0], magx[1] + 1e6)
         topLine = Line([Lower_Point, Upper_Point])
-        topLine.plot()
 
         # Drawing Separatrix
         xptN_psiMinCore = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option = 'rho', direction = 'cw', show_plot = debug)
@@ -610,12 +633,14 @@ class Ingrid:
         self.patches = [IDL, IPF, ISB, ICB, IST, ICT, OST, OCT, OSB, OCB, ODL, OPF]
         names = ['IDL', 'IPF', 'ISB', 'ICB', 'IST', 'ICT', 'OST', 'OCT', 'OSB', 'OCB', 'ODL', 'OPF']
         patch_lookup = {}
-        for i in range(len(names)):
-            patch_lookup[names[i]] = self.patches[i]
+        for patch in self.patches:
+            patch_lookup[patch.patchName] = patch
+            patch.plot_border()
+            patch.fill()
         self.patch_lookup = patch_lookup
 
 
-    def construct_SNL_grid(self, np_cells = 2, nr_cells = 2):
+    def construct_SNL_grid(self, np_cells = 1, nr_cells = 1):
         from geometry import Point, Patch, Line
 
         # Straighten up East and West segments of our patches,
@@ -661,6 +686,9 @@ class Ingrid:
                     patch.adjust_corner(primary_xpt, 'NW')
                 elif patch.patchName == 'ODL':
                     patch.adjust_corner(primary_xpt, 'SW')
+
+        self.concat_SNL_grid(self.get_SNL_configuration())
+        self.set_gridue()
 
     def grid_diagram(self):
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
@@ -920,24 +948,21 @@ class Ingrid:
                     bphi[i][j][k] = _bphi
                     b[i][j][k] = _b
 
-        self.gridue = {'nxm' : nxm, 'nym' : nym, 'ixpt1' : ixpt1, 'ixpt2' : ixpt2, 'iyseptrx1' : iyseparatrix1, \
+        self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'ixpt1' : ixpt1, 'ixpt2' : ixpt2, 'iyseptrx1' : iyseparatrix1, \
             'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b}
 
-    def write_gridue(self, fname = 'gridue'):
+    def write_gridue(self):
         import Uegrid.uegrid as uegrid
-        g = self.gridue
+        g = self.gridue_params
         status = uegrid.write_gridue(np.int32(g['ixpt1']), np.int32(g['ixpt2']), np.int32(g['iyseptrx1']),\
                 (g['rm'].astype(np.double)), g['zm'].astype(np.double), g['psi'].astype(np.double), g['br'].astype(np.double), g['bz'].astype(np.double),\
-                g['bpol'].astype(np.double), g['bphi'].astype(np.double), g['b'].astype(np.double), fname)
+                g['bpol'].astype(np.double), g['bphi'].astype(np.double), g['b'].astype(np.double))
 
-    def export(self, fname = 'gridue'):
+    def export(self):
         """ Saves the grid as an ascii file """
         # TODO export the points the patches contain, but don't overlap
         # any points
-
-        self.concat_SNL_grid(self.get_SNL_configuration())
-        self.set_gridue()
-        self.write_gridue(fname)
+        self.write_gridue()
 
 
     def test_interpol(self, option=2, nfine=100, ncrude=10, tag='v'):
@@ -984,7 +1009,7 @@ def set_params_GUI():
             plt.close('all')
             IngridWindow.destroy()
     IngridWindow = IA.IngridApp()
-    IngridWindow.geometry("805x485")
+    IngridWindow.geometry("830x490")
     IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
     IngridWindow.mainloop()
 

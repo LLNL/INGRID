@@ -613,54 +613,34 @@ class ParamPicker(tk.Frame):
 
     def createPatches(self):
 
-        try:
-            self.controller.IngridSession.patch_diagram()
-        except:
-            self.set_INGRID_params()
-            self.controller.IngridSession.magx = self.MagAxis
-            self.controller.IngridSession.xpt1 = self.Xpt
-            self.controller.IngridSession.calc_psinorm()
+        self.set_INGRID_params()
+        self.controller.IngridSession.magx = self.MagAxis
+        self.controller.IngridSession.xpt1 = self.Xpt
+        self.controller.IngridSession.calc_psinorm()
 
-            self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].paramFrame.FP_EntryText.get()))
+        self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].paramFrame.FP_EntryText.get()))
 
-            try:
-                np_cells = self.controller.nml['grid_params']['np_cells']
-            except KeyError:
-                np_cells = 1
-                print('NML file did not contain parameter np_cells. Set to default value of 2...')
-
-            try:
-                nr_cells = self.controller.nml['grid_params']['nr_cells']
-            except KeyError:
-                nr_cells = 1
-                print('NML file did not contain parameter nr_cells. Set to default value of 2...')
-
-            self.controller.IngridSession.construct_SNL_patches()
-            self.controller.IngridSession.patch_diagram()
-        
+        self.controller.IngridSession.construct_SNL_patches()
+        self.controller.IngridSession.patch_diagram()
+    
         self.createSubgrid_Button.config(state = 'normal')
 
     def createSubgrid(self):
 
         try:
-            self.controller.IngridSession.grid_diagram()
+            np_cells = self.controller.nml['grid_params']['np_global']
+        except KeyError:
+            np_cells = 2
+            print('NML file did not contain parameter np_global. Set to default value of 2...')
 
-        except:
+        try:
+            nr_cells = self.controller.nml['grid_params']['nr_global']
+        except KeyError:
+            nr_cells = 2
+            print('NML file did not contain parameter nr_global. Set to default value of 2...')
 
-            try:
-                np_cells = self.controller.nml['grid_params']['np_cells']
-            except KeyError:
-                np_cells = 1
-                print('NML file did not contain parameter np_cells. Set to default value of 2...')
-
-            try:
-                nr_cells = self.controller.nml['grid_params']['nr_cells']
-            except KeyError:
-                nr_cells = 1
-                print('NML file did not contain parameter nr_cells. Set to default value of 2...')
-
-            self.controller.IngridSession.construct_SNL_grid(np_cells, nr_cells)
-            self.controller.IngridSession.grid_diagram()
+        self.controller.IngridSession.construct_SNL_grid(np_cells, nr_cells)
+        self.controller.IngridSession.grid_diagram()
         self.export_Button.config(state = 'normal')
 
     def write_gridue(self):
@@ -758,8 +738,8 @@ class ParamPicker(tk.Frame):
             newWindow.withdraw()
 
         _gp_default_values = {'num_xpt' : 1, \
-                              'np_cells' : 3, \
-                              'nr_cells' : 2}
+                              'np_global' : 3, \
+                              'nr_global' : 2}
         _integrator_default_values = {'first_step' : self.ROOT.IngridSession.eq.first_step, \
                                       'step_ratio' : self.ROOT.IngridSession.eq.step_ratio, \
                                        'eps' : self.ROOT.IngridSession.eq.eps, \
@@ -771,7 +751,7 @@ class ParamPicker(tk.Frame):
         container2 = tk.LabelFrame(newWindow, text = 'Integrator Parameters:', font = helv_medium)
         container3 = tk.Frame(newWindow)
 
-        gp_lookup = ['num_xpt', 'np_cells', 'nr_cells']
+        gp_lookup = ['num_xpt', 'np_global', 'nr_global']
         integrator_lookup = ['first_step', 'step_ratio', 'eps', 'tol', 'dt']
 
         gp_settings = {}

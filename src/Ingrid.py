@@ -30,13 +30,14 @@ class Ingrid:
     """
 
     def __init__(self, nml = { 'files' : {}, 'grid_params' : {}, 'integrator_params' : {} } ):
+
         self.set_nml(nml)
         self.get_nml()
         print('Welcome to Ingrid!\n')
 
     def set_nml(self, nml):
 
-        lookup = ['files', 'grid_params', 'integrator_params']
+        lookup = ['files', 'grid_params', 'integrator_params', 'plate1_W', 'plate1_E']
         temp_nml = {}
         for key in lookup:
             try:
@@ -52,6 +53,11 @@ class Ingrid:
                 self.grid_params = temp_nml[key]
             elif key == 'integrator_params':
                 self.integrator_params = temp_nml[key]
+            elif key == 'plate1_W':
+                self.plate1_W = temp_nml[key]
+            elif key == 'plate1_E':
+                self.plate1_E = temp_nml[key]
+
 
         self.nml = temp_nml
 
@@ -60,7 +66,7 @@ class Ingrid:
         print('INGRID files: {}'.format(self.files))
         print('INGRID grid_params: {}'.format(self.grid_params))
         print('INGRID integrator_params: {}'.format(self.integrator_params))
-        
+
     def setup(self):
         """ Add the magnetic axis and the x-point """
         self.add_magx(self.grid_params['rmagx'], self.grid_params['zmagx'])
@@ -639,6 +645,13 @@ class Ingrid:
             patch.fill()
         self.patch_lookup = patch_lookup
 
+        p = self.patch_lookup
+        self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
+                        [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
+                        [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
+                        [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
+                        ]
+
 
     def construct_SNL_grid(self, np_cells = 1, nr_cells = 1):
         from geometry import Point, Patch, Line
@@ -748,11 +761,7 @@ class Ingrid:
 
 
         p = self.patch_lookup
-        patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-                        [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
-                        [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
-                        [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
-                        ]
+        patch_matrix = self.patch_matrix
 
         # Get some poloidal and radial information from each patch to attribute to the 
         # local subgrid.

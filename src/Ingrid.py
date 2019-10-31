@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
-import f90nml
+import yaml as _yaml_
 import GUI.IngridApp as IA
 
 
@@ -21,7 +21,7 @@ class Ingrid:
     
     Parameters
     ----------
-    nml : dict
+    yaml : dict
         Params dictionary object contains two dictionaries
         First is 'files' which contains the keys: geqdsk, itp, otp.
         The second is 'grid params' which has: psi_max, psi_min_core,
@@ -29,131 +29,45 @@ class Ingrid:
     
     """
 
-    def __init__(self, nml = { 'files' : {}, 'grid_params' : {}, 'integrator_params' : {} } ):
+    def __init__(self, params = {}):
 
-        self.set_nml(nml)
-        self.get_nml()
-        print('Welcome to Ingrid!\n')
+        # Process params as a YAML file. Ensure ends up as a raw dictionary.s
 
-    def set_nml(self, nml):
+        if not params:
+            params = {"eqdsk" : None, "grid_params" : {}, "integrator_params" : {},  "target_plates" : {} }
 
-        lookup = ['files', 'grid_params', 'integrator_params', 'plate1_W', 'plate1_E']
-        temp_nml = {}
-        for key in lookup:
-            try:
-                temp_nml[key] = nml[key]
-            except KeyError:
-                # set defaults
-                print('Could not find "{}" in *.nml file.'.format(key))
-                temp_nml[key] = {}
-            
-            if key == 'files':
-                self.files = temp_nml[key]
-            elif key == 'grid_params':
-                self.grid_params = temp_nml[key]
-            elif key == 'integrator_params':
-                self.integrator_params = temp_nml[key]
-            elif key == 'plate1_W':
-                self.plate1_W = temp_nml[key]
-            elif key == 'plate1_E':
-                self.plate1_E = temp_nml[key]
+        self.process_yaml(params)
+        self.get_yaml()
 
+    def process_yaml(self, params):
 
-        self.nml = temp_nml
+            yaml_lookup = ['eqdsk', 'grid_params', 'integrator_params', 'target_plates']
 
-    def get_nml(self):
-        print('INGRID nml: {}'.format(self.nml))
-        print('INGRID files: {}'.format(self.files))
-        print('INGRID grid_params: {}'.format(self.grid_params))
-        print('INGRID integrator_params: {}'.format(self.integrator_params))
-
-    def setup(self):
-        """ Add the magnetic axis and the x-point """
-        self.add_magx(self.grid_params['rmagx'], self.grid_params['zmagx'])
-        self.add_xpt1(self.grid_params['rxpt'], self.grid_params['zxpt'])
-
-    # TODO update this method to be able to change parameters.
-    def set_param(self, key=None, value=None):
-        """ Sets the parameters that we want, without
-        adding new and unwanted options.
-        User can pass in new values directly in,
-        or can be prompted.
-        
-        Parameters
-        ----------
-        key : str, optional
-            Keyword for the dictionary object. Specify which value we
-            wish to change. Will be prompted for it if is None.
-        value : varies, optional
-            Value associated with a key. Must match the type of the
-            value currently tied to the key.
-        
-        
-        """
-        def check_key(self, key=None, first_time=True):
-            while True:
+            for key in yaml_lookup:
                 try:
-                    if not first_time:
-                        # defaults to a string
-                        key = raw_input('Enter Key: ')
-                    if key not in self._grid_params:
-                        raise ValueError
-                    print('Key: "{}" is in Params'.format(key))
-                    break
+                    # Check YAML file (if passed into INGRID)
+                    params[key]
+                except KeyError:
+                    # set clean
+                    print('Could not find "{}" in YAML file.'.format(key))
+                    container[key] = None if key == 'eqdsk' else {}
+                
+                if key == 'eqdsk':
+                    self.eqdsk = temp_yaml[key]
+                elif key == 'grid_params':
+                    self.grid_params = temp_yaml[key]
+                elif key == 'integrator_params':
+                    self.integrator_params = temp_yaml[key]
+                elif key == 'target_plates':
+                    self.target_plates = temp_yaml[key]
+        # Store YAML data as dictionary object
+        self.yaml = container
 
-                except ValueError:
-                    print('That key is not in Grid Parameters.')
-                    first_time = False
-            return key
-
-        def check_value(self, key, value=None, first_time=True):
-            while True:
-                try:
-                    if not first_time or value is None:
-                        # Need to preserve the type of the value entered
-                        value = input('Enter Value: ')
-                    if not isinstance(self._grid_params[key],
-                                      type(value)):
-                        raise TypeError
-                    self._grid_params[key] = value
-                    print('New value recorded as "{}".'.format(value))
-                    break
-
-                except TypeError:
-                    print('That value is the wrong type.')
-                    first_time = False
-
-        # in case the user didn't enter the key
-        if key is None:
-            key = check_key(first_time=False)
-            check_value(key, first_time=False)
-
-        # check if the key the user entered is in grid params
-        else:
-            key = check_key(key)
-            check_value(key, value)
-
-    # TODO: update this method.
-    def get_param(self, key=None):
-        """ Returns the value associated with a key. """
-        first_time = True
-        while True:
-            try:
-                if not first_time or key is None:
-                    key = raw_input('Enter Key: ')
-                if key not in self._grid_params:
-                    raise ValueError
-                return self._grid_params[key]
-
-            except ValueError:
-                print('Key not a grid parameter.')
-                first_time = False
-
-    def print_params(self):
-        """ Lists the parameters that the user should know about. """
-        for key, value in self._grid_params.items():
-            print(key, value)
-
+    def get_yaml(self):
+        for item in self.yaml.keys():
+            print('=' * 80)
+            print('INGRID {}: {}'.format(item, self.yaml[item]))
+            print('=' * 80 + '\n')
 
     def OMFIT_read_psi(self):
         """
@@ -164,7 +78,7 @@ class Ingrid:
         from OMFITgeqdsk import OMFITgeqdsk
         from Interpol.Setup_Grid_Data import Efit_Data
 
-        g = OMFITgeqdsk(self.files['geqdsk'])
+        g = OMFITgeqdsk(self.yaml['eqdsk'])
 
         nxefit = g['NW']
         nyefit = g['NH']
@@ -197,84 +111,47 @@ class Ingrid:
                                   rcenter, bcenter, name='Efit Data')
         self.efit_psi.set_v(psi)
 
-
-    def import_psi_data(self):
-        """ Same as OMFIT_read_psi, but calls a fortran function to
-        read in the psi data. Saves and creates the same instance.
-        """
-        import Efit.efit as efit
-        from Interpol.Setup_Grid_Data import Efit_Data
-        efit.readg(self.files['geqdsk'])  # defines the variables
-        # extract dimensions and boundaries
-        nxefit, nyefit, nbdry, nlim = efit.get_nxy()
-
-        fold, fpol, pres, qpsi, \
-            rbdry, zbdry, xlim, ylim, xdim, zdim, \
-            rcentr, rgrid1, zmid, Rmagx, Zmagx, \
-            simagx, sibdry, bcentr = efit.get_psi(nxefit, nyefit,
-                                                  nbdry, nlim)
-        # calc array for r and z
-        rmin = rgrid1
-        rmax = rmin + xdim
-        zmin = (zmid - 0.5 * zdim)
-        zmax = zmin + zdim
-
-        # reproduce efit grid
-        self.efit_psi = Efit_Data(rmin, rmax, nxefit,
-                                  zmin, zmax, nyefit,
-                                  rcentr, bcentr,
-                                  name='Efit Data')
-        self.efit_psi.set_v(fold)  # this is psi
-
-
-    def read_target_plate(self):
+    def read_target_plates(self):
         """ Reads the coordinates for a line defining the inner
         and outer target plates.
         The lines to define target plates end up with the shape ((x,y),(x,y)).
         These files read can contain more complicated lines than this.
         """
 
-        self.itp = []
-        try:
-            with open(self.files['itp']) as f:
-                for line in f:
-                    point = line.strip()
-                    if point.startswith('#'):
-                        # move along to the next iteration
-                        # this simulates a comment
-                        continue
-                    x = float(point.split(',')[0])
-                    y = float(point.split(',')[1])
-                    self.itp.append((x, y))
-            print('Using inner target plate', self.itp)
-        except KeyError:
-            print('No inner target plate file.')
+        target_plates = self.yaml['target_plates']
+        plate_data = {}
 
-        self.otp = []
-        try:
-            with open(self.files['otp']) as f:
-                for line in f:
-                    point = line.strip()
-                    if point.startswith('#'):
-                        # move along to the next iteration
-                        continue
-                    x = float(point.split(',')[0])
-                    y = float(point.split(',')[1])
-                    self.otp.append((x, y))
-            print('Using outer target plate', self.otp)
-        except KeyError:
-            print('No outer target plate file.')
+        for plate in target_plates:
 
+            plate_data[plate] = []
+
+            if not 'name' in target_plates.keys():
+                target_plates.update({'name' : plate})
+
+            try:
+                with open(target_plates[plate]['file']) as f:
+                    for line in f:
+                        point = line.strip()
+                        if point.startswith('#'):
+                            # move along to the next iteration
+                            # this simulates a comment
+                            continue
+                        x = float(point.split(',')[0])
+                        y = float(point.split(',')[1])
+                        plate_data[plate].append((x, y))
+                print('Using target plate "{}": {}'.format(target_plates[plate]['name'], plate_data[plate]))
+            except KeyError:
+                print('No inner target plate file.')
+
+        self.plate_data = plate_data
 
     def plot_target_plate(self):
-        """ Plots the inner and outer target plates on the current figure """
+        """ Plots all target plates on the current figure """
         
-        itp = np.array(self.itp)
-        otp = np.array(self.otp)
-
-        plt.plot(itp[:, 0], itp[:, 1], label='itp')
-        plt.plot(otp[:, 0], otp[:, 1], label='otp')
-        plt.draw()
+        for plate in self.plate_data:
+            coor = np.array(self.plate_data[plate])
+            plt.plot(coor[:, 0], coor[:, 1], label=plate)
+            plt.draw()
 
     def calc_efit_derivs(self):
         """ Calculates the partial derivatives using finite differences.
@@ -332,7 +209,7 @@ class Ingrid:
 
     def init_LineTracing(self):
         from line_tracing import LineTracing
-        self.eq = LineTracing(self.psi_norm, self.nml)
+        self.eq = LineTracing(self.psi_norm, self.yaml)
 
     def compute_eq_psi(self):
         """ Initializes the line tracing class for the construction
@@ -342,6 +219,9 @@ class Ingrid:
         from line_tracing import LineTracing
         
         try:
+            # Check if the LineTracing class has been initialized.
+            # Exception will be thrown if it has not!
+            
             if not self.eq:
                 raise AttributeError
 
@@ -703,7 +583,7 @@ class Ingrid:
         self.concat_SNL_grid(self.get_SNL_configuration())
         self.set_gridue()
 
-    def grid_diagram(self):
+    def SNL_grid_diagram(self):
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
           'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
           'seagreen', 'firebrick', 'saddlebrown']
@@ -725,7 +605,7 @@ class Ingrid:
         import pdb
         pdb.set_trace()
 
-    def patch_diagram(self):
+    def SNL_patch_diagram(self):
         """ Generates the patch diagram for a given configuration. """
         
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
@@ -973,29 +853,11 @@ class Ingrid:
         # any points
         self.write_gridue()
 
+class SNL():
+    def __init__(self, INGRID_Data):
+        pass
+        
 
-    def test_interpol(self, option=2, nfine=100, ncrude=10, tag='v'):
-        """ Provides a demonstration and test of the bicubic interpolation
-        methods used. Wrapper for the real code from another module.
-        
-        Parameters
-        ----------
-        option : int, optional
-            Specify which of a set of function to use as the test.
-            Accepts 1, 11, 12, 13, 2, 3, 4, 5, 51, 52
-            See Test_Functions.get_f for more detail.
-        nfine : int, optional
-            Density of the fine grid we will interpolate onto.
-        ncrude : int, optional
-            Density of the crude grid the sample data will be generated
-            onto.
-        tag : str, optional
-            Specify if it is wanted to test the derivative interpolation
-            methods. Accepts 'v', 'vr', 'vz', 'vrz'.
-        
-        """
-        from Interpol.Test_Interpol import test_interpol
-        test_interpol(option, nfine, ncrude, tag)
 
 def set_params_GUI():
     """
@@ -1022,172 +884,4 @@ def set_params_GUI():
     IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
     IngridWindow.mainloop()
 
-def set_params():
-    """ Interactive mode for Ingrid. Gets the files used, and opens
-    a plot of the Efit data. Prompts the user for magx, xpt, and psi levels.
-    Saves the data in a namelist file."""
-    
-    def paws():
-        # Helps the code to wait for the user to select points
-        raw_input("Press the <ENTER> key to continue...")
-
-    nml = {'files': {}, 'grid_params': {}}
-
-    # get files from the user for data, inner and outer strike plates
-    # This is an acceptable form - also takes full path names
-    #    Geqdsk_file = "../data/SNL/neqdsk"
-    #    Inner_plate_file  = "../data/SNL/itp1"
-    #    Outer_plate_file  = "../data/SNL/itp1"
-    from pathlib2 import Path
-    while True:
-        geqsdk_path = Path(raw_input("Enter the geqsdk filename: ").strip())  # remove any whitespace
-        if geqsdk_path.is_file():
-            break
-        print('Provided geqsdk filename could not be found...')
-    nml['files']['geqdsk'] = str(geqsdk_path)
-    del geqsdk_path
-
-    while True:
-        itp_path = Path(raw_input("Enter the inner strike plate filename: ").strip())  # remove any whitespace
-        if itp_path.is_file():
-            break
-        print('Provided inner strike plate filename could not be found...')
-    nml['files']['itp'] = str(itp_path)
-    del itp_path
-
-    while True:
-        otp_path = Path(raw_input("Enter the outer strike plate filename: ").strip())  # remove any whitespace
-        if otp_path.is_file():
-            break
-        print('Provided outer strike plate filename could not be found...')
-    nml['files']['otp'] = str(otp_path)
-    del otp_path
-
-    # now we can read the data and fine tune our parameters
-    grid = Ingrid(nml)
-    grid.OMFIT_read_psi()
-    grid.read_target_plate()
-    grid.calc_efit_derivs()
-    grid.plot_efit_data()
-    grid.plot_target_plate()
-    grid.find_roots()
-
-    # find the null-point (magnetic axis)
-    print("Click on the magnetic axis") ##-need blocking here!
-    paws()
-    magx = grid.save_root()
-    nml['grid_params']['rmagx'] = magx[0]
-    nml['grid_params']['zmagx'] = magx[1]
-
-    # find the x-point
-    print("Click on the x-point")
-    paws()
-    xpt = grid.save_root()
-    nml['grid_params']['rxpt'] = xpt[0]
-    nml['grid_params']['zxpt'] = xpt[1]
-
-    # enter or click on the location of the psi values
-    psi_magx = grid.efit_psi.get_psi(magx[0], magx[1])
-    psi_xpt1 = grid.efit_psi.get_psi(xpt[0], xpt[1])
-
-    # get max psi level
-    max_psi = raw_input("Enter max psi level, or press <ENTER> to click on the location: ")
-    if max_psi == '':
-        grid.toggle_root_finder()
-        paws()
-        x, y = grid.save_root()
-        psi_efit = grid.efit_psi.get_psi(x, y)
-        psi = (psi_efit - np.full_like(psi_efit, psi_magx))/(psi_xpt1 - psi_magx)
-    else:
-        psi = float(max_psi)
-    nml['grid_params']['psi_max'] = psi
-
-    # get min psi value near the core
-    core_psi = raw_input("Enter min psi level near the core plasma, or press <ENTER> to click on the location: ")
-    if core_psi == '':
-        paws()
-        x, y = grid.save_root()
-        psi_efit = grid.efit_psi.get_psi(x, y)
-        psi = (psi_efit - np.full_like(psi_efit, psi_magx))/(psi_xpt1 - psi_magx)
-    else:
-        psi = float(core_psi)
-    nml['grid_params']['psi_min_core'] = psi
-
-    # get min psi value near pf region
-    pf_psi = raw_input("Enter min psi level near the private flux region, or press <ENTER> to click on the location: ")
-    if pf_psi == '':
-        paws()
-        x, y = grid.save_root()
-        psi_efit = grid.efit_psi.get_psi(x, y)
-        psi = (psi_efit - np.full_like(psi_efit, psi_magx))/(psi_xpt1 - psi_magx)
-    else:
-        psi = float(pf_psi)
-    nml['grid_params']['psi_min_pf'] = psi
-
-    outFile = raw_input("Enter output filename [default is 'grid_params.nml']: ").strip()
-    if outFile == '':
-        outFile = 'grid_params.nml'
-
-    f90nml.write(nml, outFile, force=True)  # force tag is to overwrite the previous file
-    print("Saved parameters to '{}'.".format(outFile))
-    plt.close('Efit Data') # finish with the raw Psi data
-
-
-def run(param_file = None):
-    """ Reads a namelist file containing the parameters for Ingrid, and
-    runs the grid generator for a single null configuration.
-
-    Parameters
-    ----------
-    param_file : str, optional
-        String containing path to a user provided parameter *.nml file.
-        If not provided, user will be prompted to manually enter a path
-        to a parameter file.
-    """
-    from pathlib2 import Path
-    def paws():
-        # Helps the code to wait for the user to select points
-        raw_input("Press the <ENTER> key to continue...")
-
-    test = IA.IngridApp()
-    test.mainloop()
-    if param_file:
-        path_name = Path(param_file)
-        if path_name.is_file() and path_name.suffix == '.nml':
-            nml_file = param_file
-        del path_name
-    else:
-        nml_file = raw_input("Enter params filename [params.nml]: ")
-        if nml_file == '':
-            # default is an example case for snl
-            nml_file = 'params.nml'
-    
-    nml = f90nml.read(nml_file)
-
-    grid = Ingrid(nml)
-    grid.setup()
-    grid.OMFIT_read_psi()
-    grid.read_target_plate()
-    grid.calc_psinorm()
-    grid.plot_target_plate()
-    grid.compute_eq_psi()
-
-    #-construct the patch-map for SNL
-    from time import time
-    start = time()
-    grid.construct_SNL_patches()
-    end = time()
-    
-    # TODO: finish writing the refine patches method.
-    # grid.refine_patches()
-    
-    paws()
-    grid.patch_diagram()
-    paws()
-
-    print("Time for grid: {} seconds.".format(end-start))
-
-
-if __name__ == '__main__':
-    prep_input()
 

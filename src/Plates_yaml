@@ -1,0 +1,38 @@
+eqdsk: /Users/garcia299/Desktop/INGRID/data/SNL/neqdsk
+grid_params:
+  config: LSN
+  np_global: 3
+  nr_global: 2
+  num_xpt: 1
+  psi_max: 1.052334931448
+  psi_max_r: 0.434486471304
+  psi_max_z: -0.46371126299
+  psi_min_core: 0.865883921866
+  psi_min_core_r: 0.604882501638
+  psi_min_core_z: -0.278335361858
+  psi_min_pf: 0.895705449959
+  psi_min_pf_r: 0.541218050744
+  psi_min_pf_z: -0.488053553038
+  rmagx: 0.681827575433
+  rxpt: 0.563043114776
+  zmagx: -0.003614829398
+  zxpt: -0.394986500079
+integrator_params:
+  dt: 0.01
+  eps: 5e-5
+  first_step: 1e-5
+  step_ratio: 0.02
+  tol: 5e-3
+target_plates:
+  plate_E1:
+    file: /Users/garcia299/Desktop/INGRID/src/target_plates/otp5.txt
+    name: plate_E1
+    np_local: 3
+    nr_local: 2
+    poloidal_f: y, y**2
+  plate_W1:
+    file: /Users/garcia299/Desktop/INGRID/src/target_plates/itp5.txt
+    name: SNL_itp
+    np_local: 3
+    nr_local: 2
+    poloidal_f: x, x ** 2

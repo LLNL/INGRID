@@ -325,25 +325,6 @@ class Patch:
                 Number to be used to generate num x num 
                 cells within our Patch.
         """
-        def get_poloidal_func(grid, _func):
-            
-            def make_sympy_func(var, expression):
-                import sympy as sp
-                _f = sp.lambdify(var, expression, 'numpy')
-                return _f
-            
-            f_str_raw = _func
-
-            f_str_raw = f_str_raw.replace(' ', '')
-            delim = f_str_raw.index(',')
-
-            var = f_str_raw[0 : delim]
-            expression = f_str_raw[delim + 1 :]
-
-            _func = make_sympy_func(var, expression)
-
-            return _func
-
         def psi_parameterize(grid, r, z):
             """
             Helper function to be used to generate a 
@@ -365,14 +346,12 @@ class Patch:
         cell_grid = []
 
         if self.platePatch:
-            if self is grid.patch_lookup['IDL'] or self is grid.patch_lookup['IPF']:
-                np_cells = grid.nml['plate1_W']['np_local']
-                nr_cells = grid.nml['plate1_W']['nr_local']
-                _func = grid.nml['plate1_W']['poloidal_f']
-            elif self is grid.patch_lookup['ODL'] or self is grid.patch_lookup['OPF']:
-                np_cells = grid.nml['plate1_E']['np_local']
-                nr_cells = grid.nml['plate1_E']['nr_local']
-                _func = grid.nml['plate1_E']['poloidal_f']
+            if self is grid.patch_matrix[1][1] or self is grid.patch_matrix[1][2]:
+                np_cells = grid.nml['plate_W1']['np_local']
+                nr_cells = grid.nml['plate_W1']['nr_local']
+            if self is grid.patch_matrix[-2][1] or self is grid.patch_matrix[-2][2]:
+                np_cells = grid.nml['plate_E1']['np_local']
+                nr_cells = grid.nml['plate_E1']['nr_local']
 
         np_lines = np_cells + 1
         nr_lines = nr_cells + 1
@@ -454,15 +433,11 @@ class Patch:
         E_vertices = []
         W_vertices = []
 
-        if self.platePatch:
-            _poloidal_f = get_poloidal_func(grid, _func)
-        else:
-            _poloidal_f = lambda x: x
         for i in range(np_lines):
-            _n = splev(_poloidal_f(i / (np_lines-1)), N_spl)
+            _n = splev(i / (np_lines-1), N_spl)
             N_vertices.append(Point((_n[0], _n[1])))
 
-            _s = splev(_poloidal_f(i / (np_lines-1)), S_spl)
+            _s = splev(i / (np_lines-1), S_spl)
             S_vertices.append(Point((_s[0], _s[1])))
 
         for i in range(nr_lines):
@@ -493,7 +468,7 @@ class Patch:
             radial_spline = splev(uR, radial_spl)
             vertex_list = []
             for i in range(np_lines):
-                _r = splev(_poloidal_f(i / np_cells), radial_spl)
+                _r = splev(i / np_cells, radial_spl)
                 vertex_list.append(Point((_r[0], _r[1])))
             radial_vertices.append(vertex_list)
         radial_lines.append(self.S)

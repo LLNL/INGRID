@@ -28,7 +28,7 @@ class LineTracing:
     grid : Setup_Grid_Data.Efit_Data
         The grid object upon which the lines will be drawn.
     params : dict
-        Namelist *.nml file containing all INGRID parameters.
+        YAML file containing all INGRID parameters.
     eps : float, optional
         Short for epsilon. Specifies the size of the circle drawn
         around the zero point.
@@ -58,43 +58,58 @@ class LineTracing:
         self.option = option
         self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event', self)
 
+        if self.option == 'xpt_circ':
+            self.root = RootFinder(self.grid)
+
         try:
-            self.eps = params['integrator_params']['eps']
-        except:
-            self.eps = eps
+            params['integrator_params']['eps']
+        except KeyError:
+            params['integrator_params'].update({'eps' : eps})
+        
+        self.eps = params['integrator_params']['eps']
         print('eps set to {}'.format(self.eps))
 
         try:
-            self.tol = params['integrator_params']['tol']
-        except:
-            self.tol = tol
+            params['integrator_params']['tol']
+        except KeyError:
+            params['integrator_params'].update({'tol' : tol})
+        
+        self.tol = params['integrator_params']['tol']
         print('tol set to {}'.format(self.tol))
 
         try:
-            self.dt = params['integrator_params']['dt']
-        except:
-            self.dt = dt
+            params['integrator_params']['dt']
+        except KeyError:
+            params['integrator_params'].update({'dt' : dt})
+        
+        self.dt = params['integrator_params']['dt']
         print('dt set to {}'.format(self.dt))
 
         try:
-            self.first_step = params['integrator_params']['first_step']
-        except:
-            self.first_step = first_step
+            params['integrator_params']['first_step']
+        except KeyError:
+            params['integrator_params'].update({'first_step' : first_step})
+        
+        self.first_step = params['integrator_params']['first_step']
         print('first_step set to {}'.format(self.first_step))
 
         try:
-            self.step_ratio = params['integrator_params']['step_ratio']
-        except:
-            self.step_ratio = 0.02
-        print('step_ratio set to {}'.format(self.step_ratio))        
-
-        if self.option == 'xpt_circ':
-            self.root = RootFinder(self.grid)
+            params['integrator_params']['step_ratio']
+        except KeyError:
+            params['integrator_params'].update({'step_ratio' : step_ratio})
+        
+        self.eps = params['integrator_params']['step_ratio']
+        print('step_ratio set to {}'.format(self.step_ratio))       
 
         zdim = grid.zmax-grid.zmin
         rdim = grid.rmax-grid.rmin
 
-        self.max_step = self.step_ratio * max(rdim, zdim)
+        try:
+            params['integrator_params']['max_step']
+        except KeyError:
+            params['integrator_params'].update({'max_step' : self.step_ratio * max(rdim, zdim)})
+        self.max_step = params['integrator_params']['max_step']
+        print('step_ratio set to {}'.format(self.step_ratio))   
 
         # initialize the function
         self._set_function(option, direction)
@@ -214,7 +229,7 @@ class LineTracing:
         self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
         self.root.disconnect()
 
-    def find_NSEW(self, xpt, magx):
+    def SNL_find_NSEW(self, xpt, magx):
         """
         Find NSEW based off primary x-point and magnetic axis,
 
@@ -445,8 +460,8 @@ class LineTracing:
         # Determine if these NSEW values give us an USN or LSN configuration.
         sign_test = np.sign([np.cos(self.eq_psi_theta['N']), np.sin(self.eq_psi_theta['N'])])
         
-        self.SNL_CONFIG = 'LSN' if sign_test[1] == 1 else 'USN'
-        print('===================\nGenerating {} grid...\n==================='.format(self.SNL_CONFIG))
+        self.CONFIG = 'LSN' if sign_test[1] == 1 else 'USN'
+        print('===================\nGenerating {} grid...\n==================='.format(self.CONFIG))
 
     def draw_line(self, rz_start, rz_end=None, color= 'orange',
                   option=None, direction=None, show_plot=False, text=False):

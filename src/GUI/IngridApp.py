@@ -15,7 +15,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 from scipy.optimize import root 
 from numpy import full_like
-import f90nml
+import yaml
 
 try:
     from pathlib import Path
@@ -56,14 +56,10 @@ class IngridApp(tk.Tk):
     """
 
     def __init__(self, master = None, *args, **kwargs):
-        
-        self.IngridSession = Ingrid.Ingrid()
-
         tk.Tk.__init__(self, *args, **kwargs)
+        
         container = tk.Frame(self)
-
         container.pack(side="top", fill="both", expand = True)
-
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
@@ -74,6 +70,8 @@ class IngridApp(tk.Tk):
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame(ParamPicker)
+
+        self.IngridSession = Ingrid.Ingrid()
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -161,13 +159,10 @@ class FilePicker(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent) 
         
-        # Quick access to top-level window.
-        # This ROOT is our IngridApp instance.
-        self.ROOT = self.winfo_toplevel()
-
         # TODO: Use controller over self.ROOT. 
         #       Work towards code uniformity.
         self.controller = controller
+        self.parent = parent
 
         self.preview_loaded = False
         
@@ -193,7 +188,7 @@ class FilePicker(tk.Frame):
             })
         self.paramFrame = FilePickerFrame(self, controller,\
             {'ButtonText' : 'Load Parameter File', \
-             'EntryText'  : 'Select a pre-existing *.nml file.', \
+             'EntryText'  : 'Select a pre-existing YAML format file.', \
              'ButtonCommand' : self.load_param_file \
              })
 
@@ -267,16 +262,14 @@ class FilePicker(tk.Frame):
         if showFileDialog:
             eqdsk_file, valid_path = self.get_file()
             if valid_path:
-                print(self.ROOT.nml)
-                self.ROOT.nml['files']['geqdsk'] = str(eqdsk_file)
+                self.controller.IngridSession.yaml['eqdsk'] = str(eqdsk_file)
                 self.eqdskFrame.fileLoaded(eqdsk_file)
                 self.update_frame_state()
         elif not showFileDialog:
             eqdsk_file = Path(toLoad)
             valid_path = eqdsk_file.is_file()
             if valid_path:
-                print(self.ROOT.nml)
-                self.ROOT.nml['files']['geqdsk'] = str(eqdsk_file)
+                self.controller.IngridSession.yaml['eqdsk'] = str(eqdsk_file)
                 self.eqdskFrame.fileLoaded(eqdsk_file)
                 self.update_frame_state()
             elif not valid_path:
@@ -296,7 +289,7 @@ class FilePicker(tk.Frame):
         if showFileDialog:
             itp_file, valid_path = self.get_file()
             if valid_path and itp_file.suffix == '.txt':
-                self.ROOT.nml['files']['itp'] = str(itp_file)
+                self.ROOT.yaml['files']['itp'] = str(itp_file)
                 self.itpFrame.fileLoaded(itp_file)
                 self.update_frame_state()
             elif not valid_path:
@@ -307,7 +300,7 @@ class FilePicker(tk.Frame):
             itp_file = Path(toLoad)
             valid_path = itp_file.is_file()
             if valid_path and itp_file.suffix == '.txt':
-                self.ROOT.nml['files']['itp'] = str(itp_file)
+                self.ROOT.yaml['files']['itp'] = str(itp_file)
                 self.itpFrame.fileLoaded(itp_file)
                 self.update_frame_state()            
     def load_otp_file(self, showFileDialog = True, toLoad=None):
@@ -323,7 +316,7 @@ class FilePicker(tk.Frame):
         if showFileDialog:
             otp_file, valid_path = self.get_file()
             if valid_path and otp_file.suffix == '.txt':
-                self.ROOT.nml['files']['otp'] = str(otp_file)
+                self.ROOT.yaml['files']['otp'] = str(otp_file)
                 self.otpFrame.fileLoaded(otp_file)
                 self.update_frame_state()
             elif not valid_path:
@@ -334,45 +327,45 @@ class FilePicker(tk.Frame):
             otp_file = Path(toLoad)
             valid_path = otp_file.is_file()
             if valid_path and otp_file.suffix == '.txt':
-                self.ROOT.nml['files']['otp'] = str(otp_file)
+                self.ROOT.yaml['files']['otp'] = str(otp_file)
                 self.otpFrame.fileLoaded(otp_file)
                 self.update_frame_state()  
 
     def load_param_file(self):
         """
-        Loads *.nml file containing INGRID parameters.
-        Said *.nml contains session settings.
+        Loads *.yaml file containing INGRID parameters.
+        Said *.yaml contains session settings.
 
         Post-Call:
         ----------
             Updates param_loaded flag to True if
-            a *.nml file was loaded successfully.
+            a *.yaml file was loaded successfully.
 
         TODO:
         -----
-            Check whether the *.nml file actually
+            Check whether the *.yaml file actually
             contained all the required files. This
-            can be done by inspecting the nml object.
+            can be done by inspecting the yaml object.
 
         """
         param_file, valid_path = self.get_file()
-        if valid_path and param_file.suffix == '.nml':
-            nml = f90nml.read(str(param_file))
-            self.ROOT.nml = nml
+        if valid_path and param_file.suffix == '.yaml':
+            yaml = yaml.load(str(param_file))
+            self.ROOT.yaml = yaml
 
-            self.check_nml(nml)
+            self.check_yaml(yaml)
             self.paramFrame.fileLoaded(param_file)
             self.update_frame_state()
 
-    def check_nml(self, nml):
+    def check_yaml(self, yaml):
             lookup = { \
                 'geqdsk' : self.load_eqdsk_file, \
                 'itp' : self.load_itp_file, \
                 'otp' : self.load_otp_file \
                 }
             try:
-                for file in nml['files']:
-                    lookup[file](showFileDialog = False, toLoad = nml['files'][file])
+                for file in yaml['files']:
+                    lookup[file](showFileDialog = False, toLoad = yaml['files'][file])
             except:
                 print('Did not find file: ' + file)
 
@@ -416,7 +409,7 @@ class FilePicker(tk.Frame):
 
     def preview_data(self):
         
-        self.ROOT.IngridSession = Ingrid.Ingrid(nml = self.ROOT.nml)
+        self.ROOT.IngridSession = Ingrid.Ingrid(yaml = self.ROOT.yaml)
         self.ROOT.IngridSession.OMFIT_read_psi()
 
         if self.itpFrame.isLoaded:
@@ -566,13 +559,13 @@ class ParamPicker(tk.Frame):
             self.ActiveFrame[0].Psi_EntryText.set('{0:.12f}'.format(psi))
 
     def set_RFValues(self):
-        self.controller.nml['grid_params']['rmagx'] = float(self.MagFrame.R_EntryText.get())
-        self.controller.nml['grid_params']['zmagx'] = float(self.MagFrame.Z_EntryText.get())
-        self.controller.nml['grid_params']['rxpt'] = float(self.XptFrame.R_EntryText.get())
-        self.controller.nml['grid_params']['zxpt'] = float(self.XptFrame.Z_EntryText.get())
+        self.controller.yaml['grid_params']['rmagx'] = float(self.MagFrame.R_EntryText.get())
+        self.controller.yaml['grid_params']['zmagx'] = float(self.MagFrame.Z_EntryText.get())
+        self.controller.yaml['grid_params']['rxpt'] = float(self.XptFrame.R_EntryText.get())
+        self.controller.yaml['grid_params']['zxpt'] = float(self.XptFrame.Z_EntryText.get())
 
-        self.MagAxis = (self.controller.nml['grid_params']['rmagx'], self.controller.nml['grid_params']['zmagx'])
-        self.Xpt = (self.controller.nml['grid_params']['rxpt'], self.controller.nml['grid_params']['zxpt'])
+        self.MagAxis = (self.controller.yaml['grid_params']['rmagx'], self.controller.yaml['grid_params']['zmagx'])
+        self.Xpt = (self.controller.yaml['grid_params']['rxpt'], self.controller.yaml['grid_params']['zxpt'])
 
         self.controller.IngridSession.magx = self.MagAxis
         self.controller.IngridSession.xpt1 = self.Xpt
@@ -590,17 +583,17 @@ class ParamPicker(tk.Frame):
             if F.Z_EntryText.get() == '':
                 F.Z_EntryText.set('0.0')
 
-        self.controller.nml['grid_params']['psi_max_r'] = float(self.PsiMaxFrame.R_EntryText.get())
-        self.controller.nml['grid_params']['psi_max_z'] = float(self.PsiMaxFrame.Z_EntryText.get())
-        self.controller.nml['grid_params']['psi_max'] = float(self.PsiMaxFrame.Psi_EntryText.get())
+        self.controller.yaml['grid_params']['psi_max_r'] = float(self.PsiMaxFrame.R_EntryText.get())
+        self.controller.yaml['grid_params']['psi_max_z'] = float(self.PsiMaxFrame.Z_EntryText.get())
+        self.controller.yaml['grid_params']['psi_max'] = float(self.PsiMaxFrame.Psi_EntryText.get())
 
-        self.controller.nml['grid_params']['psi_min_core_r'] = float(self.PsiMinFrame.R_EntryText.get())
-        self.controller.nml['grid_params']['psi_min_core_z'] = float(self.PsiMinFrame.Z_EntryText.get())
-        self.controller.nml['grid_params']['psi_min_core'] = float(self.PsiMinFrame.Psi_EntryText.get())
+        self.controller.yaml['grid_params']['psi_min_core_r'] = float(self.PsiMinFrame.R_EntryText.get())
+        self.controller.yaml['grid_params']['psi_min_core_z'] = float(self.PsiMinFrame.Z_EntryText.get())
+        self.controller.yaml['grid_params']['psi_min_core'] = float(self.PsiMinFrame.Psi_EntryText.get())
 
-        self.controller.nml['grid_params']['psi_min_pf_r'] = float(self.PsiPrivateFrame.R_EntryText.get())
-        self.controller.nml['grid_params']['psi_min_pf_z'] = float(self.PsiPrivateFrame.Z_EntryText.get())
-        self.controller.nml['grid_params']['psi_min_pf'] = float(self.PsiPrivateFrame.Psi_EntryText.get())
+        self.controller.yaml['grid_params']['psi_min_pf_r'] = float(self.PsiPrivateFrame.R_EntryText.get())
+        self.controller.yaml['grid_params']['psi_min_pf_z'] = float(self.PsiPrivateFrame.Z_EntryText.get())
+        self.controller.yaml['grid_params']['psi_min_pf'] = float(self.PsiPrivateFrame.Psi_EntryText.get())
         
         self.unlock_controls()
         self.acceptPF_Button.config(text = 'Entries Saved!', fg = 'lime green')
@@ -618,7 +611,7 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.xpt1 = self.Xpt
         self.controller.IngridSession.calc_psinorm()
 
-        self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].paramFrame.FP_EntryText.get()))
+        self.winfo_toplevel().yaml = yaml.read(str(self.winfo_toplevel().frames[FilePicker].paramFrame.FP_EntryText.get()))
 
         self.controller.IngridSession.construct_SNL_patches()
         self.controller.IngridSession.patch_diagram()
@@ -628,16 +621,16 @@ class ParamPicker(tk.Frame):
     def createSubgrid(self):
 
         try:
-            np_cells = self.controller.nml['grid_params']['np_global']
+            np_cells = self.controller.yaml['grid_params']['np_global']
         except KeyError:
             np_cells = 2
-            print('NML file did not contain parameter np_global. Set to default value of 2...')
+            print('yaml file did not contain parameter np_global. Set to default value of 2...')
 
         try:
-            nr_cells = self.controller.nml['grid_params']['nr_global']
+            nr_cells = self.controller.yaml['grid_params']['nr_global']
         except KeyError:
             nr_cells = 2
-            print('NML file did not contain parameter nr_global. Set to default value of 2...')
+            print('yaml file did not contain parameter nr_global. Set to default value of 2...')
 
         self.controller.IngridSession.construct_SNL_grid(np_cells, nr_cells)
         self.controller.IngridSession.grid_diagram()
@@ -658,13 +651,13 @@ class ParamPicker(tk.Frame):
 
         import time as ti
 
-        print(self.ROOT.nml)
+        print(self.ROOT.yaml)
         self.set_RFValues()
         self.set_PsiValues()
         self.controller.IngridSession.magx = self.MagAxis
         self.controller.IngridSession.xpt1 = self.Xpt
         self.controller.IngridSession.calc_psinorm()
-        self.winfo_toplevel().nml = f90nml.read(str(self.winfo_toplevel().frames[FilePicker].eqdskFrame.FP_EntryText.get()))
+        self.winfo_toplevel().yaml = yaml.read(str(self.winfo_toplevel().frames[FilePicker].eqdskFrame.FP_EntryText.get()))
         
         from matplotlib.pyplot import close
 
@@ -707,9 +700,9 @@ class ParamPicker(tk.Frame):
     def saveParameters(self):
         self.set_RFValues()
         self.set_PsiValues()
-        fname = tkFD.asksaveasfilename(initialdir = '.', title = 'Save File',defaultextension ='.nml')
+        fname = tkFD.asksaveasfilename(initialdir = '.', title = 'Save File',defaultextension ='.yaml')
         print(fname)
-        f90nml.write(self.controller.nml, fname, force=True)  # force tag is to overwrite the previous file
+        yaml.write(self.controller.yaml, fname, force=True)  # force tag is to overwrite the previous file
         print("Saved parameters to '{}'.".format(fname))
 
     def loadParameters(self):
@@ -724,11 +717,11 @@ class ParamPicker(tk.Frame):
 
         ignore = ['config', 'num_xpt', 'np_cells', 'nr_cells']
 
-        for param in self.controller.nml['grid_params']:
+        for param in self.controller.yaml['grid_params']:
             if param in ignore:
                 continue
             try:
-                lookup[param].set('{0:.12f}'.format(self.controller.nml['grid_params'][param]))
+                lookup[param].set('{0:.12f}'.format(self.controller.yaml['grid_params'][param]))
             except:
                 print('Did not find: ' + str(param))
 
@@ -763,34 +756,34 @@ class ParamPicker(tk.Frame):
         for item in gp_lookup:
             try:
                 gp_settings[item] = SettingsFrame(container1, newWindow, \
-                    {'LabelText' : item, 'EntryText' : self.ROOT.nml['grid_params'][item]})
+                    {'LabelText' : item, 'EntryText' : self.ROOT.yaml['grid_params'][item]})
             except:
                 try:
-                    self.ROOT.nml['grid_params']
+                    self.ROOT.yaml['grid_params']
                 except KeyError:
-                    self.ROOT.nml.update({'grid_params' : {}})
+                    self.ROOT.yaml.update({'grid_params' : {}})
                 
                 gp_settings[item] = SettingsFrame(container1, newWindow, \
                     {'LabelText' : item, 'EntryText' : _gp_default_values[item]})
                 
-                self.ROOT.nml['grid_params'].update({item : _gp_default_values[item]})
+                self.ROOT.yaml['grid_params'].update({item : _gp_default_values[item]})
 
-                print(self.ROOT.nml['grid_params'])
+                print(self.ROOT.yaml['grid_params'])
 
         for item in integrator_lookup:
             try:
                 integrator_settings[item] = SettingsFrame(container2, newWindow, \
-                    {'LabelText' : item, 'EntryText' : self.ROOT.nml['integrator_params'][item]})
+                    {'LabelText' : item, 'EntryText' : self.ROOT.yaml['integrator_params'][item]})
             except:
                 try:
-                    self.ROOT.nml['integrator_params']
+                    self.ROOT.yaml['integrator_params']
                 except KeyError:
-                    self.ROOT.nml.update({'integrator_params' : {}})
+                    self.ROOT.yaml.update({'integrator_params' : {}})
                 
                 integrator_settings[item] = SettingsFrame(container2, newWindow, \
                         {'LabelText' : item, 'EntryText' : _integrator_default_values[item]})
 
-                self.ROOT.nml['integrator_params'].update({item : _integrator_default_values[item]})
+                self.ROOT.yaml['integrator_params'].update({item : _integrator_default_values[item]})
 
         container1.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
         container2.grid(row = 1, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')

@@ -1,14 +1,14 @@
 import Ingrid
 import numpy as np
-import f90nml
+import yaml
 
 class v():
 
     def __init__(self):
-        self.nml = f90nml.read('../test_params/params3.nml')
-        self.xpt = np.array([self.nml['grid_params']['rxpt'], self.nml['grid_params']['zxpt']])
-        self.mag = np.array([self.nml['grid_params']['rmagx'], self.nml['grid_params']['zmagx']])
-        self.grid = Ingrid.Ingrid(self.nml)
+        self.yaml = yaml.read('../test_params/params3.yaml')
+        self.xpt = np.array([self.yaml['grid_params']['rxpt'], self.yaml['grid_params']['zxpt']])
+        self.mag = np.array([self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx']])
+        self.grid = Ingrid.Ingrid(self.yaml)
         self.grid.setup()
         self.grid.OMFIT_read_psi()
         self.grid.calc_psinorm()

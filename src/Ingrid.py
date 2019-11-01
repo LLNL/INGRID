@@ -14,11 +14,12 @@ import yaml as _yaml_
 import GUI.IngridApp as IA
 import Uegrid.uegrid as uegrid
 
-from Root_Finder import RootFinder
-from geometry import Point, Patch, Line
 from OMFITgeqdsk import OMFITgeqdsk
 from Interpol.Setup_Grid_Data import Efit_Data
 from line_tracing import LineTracing
+from Root_Finder import RootFinder
+from geometry import Point, Line, SNL_Patch
+
 
 class Ingrid:
     """ An interactive grid generator for edge plasmas in a tokamak
@@ -58,9 +59,6 @@ class Ingrid:
             'plate_W1' : {'file' : '', 'name' : '', 'np_local' : 3, 'nr_local' : 2, 'poloidal_f' : 'x, x'}
         }
         # Process params as a YAML file. Ensure ends up as a raw dictionary.s
-        import pdb
-        pdb.set_trace()
-
         self.process_yaml(params)
         self.get_yaml()
 
@@ -231,6 +229,7 @@ class Ingrid:
         """ Uses magx and xpt1 to normalize the psi data. Furthur calculations
         will use this information """
         from Interpol.Setup_Grid_Data import Efit_Data
+
         # use the same bounds as the efit data
         self.psi_norm = Efit_Data(self.efit_psi.rmin, self.efit_psi.rmax,
                                   self.efit_psi.nr, self.efit_psi.zmin,
@@ -261,14 +260,39 @@ class Ingrid:
 
         self.eq.disconnect()
 
-    def classify_gridtype(self):
-        self.
+    def _get_configuration(self):
+        return self.eq.config
+
+    def _classify_gridtype(self):
+        if self.yaml['grid_params']['num_xpt'] == 1:
+            self.eq.SNL_find_NSEW(self.xpt1, self.magx)
+        elif self.yaml['grid_params']['num_xpt'] == 2:
+            print('Double null configurations not yet supported...')
+
+        self.yaml['grid_params']['config'] = self.eq.config
+
+        return self.yaml['grid_params']['config']
+
+    def _analyze_topology(self):
+        
+        config = self._classify_gridtype()
+        if config == 'LSN':
+            ingrid_topology = LSN(self)
+        elif config == 'USN':
+            ingrid_topology = USN(self)
+
+        self.current_topology = ingrid_topology
 
 class SNL(Ingrid):
 
     def __init__(self, INGRID_object):
         super().__init__(params = INGRID_object.yaml)
-    
+        self.efit_psi = INGRID_object.efit_psi
+        self.psi_norm = INGRID_object.psi_norm
+        self.eq = INGRID_object.eq
+
+        self.plate_data = INGRID_object.plate_data
+
     def construct_patches(self):
         print('SNL patches')
 
@@ -276,6 +300,12 @@ class SNL(Ingrid):
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
           'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
           'seagreen', 'firebrick', 'saddlebrown']
+
+        try:
+            plt.close('INGRID: Subgrid Diagram')
+        except:
+            pass
+
         plt.figure('INGRID: Subgrid Diagram', figsize=(6,10))
         for patch in self.patches:
             patch.plot_subgrid()
@@ -296,16 +326,23 @@ class SNL(Ingrid):
                   'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
                   'seagreen', 'firebrick', 'saddlebrown']
 
+        try:
+            plt.close('INGRID: Patch Diagram')
+        except:
+            pass
+
         plt.figure('INGRID: Patch Diagram', figsize=(6, 10))
-        for i in range(len(self.patches)):
-            self.patches[i].plot_border('green')
-            self.patches[i].fill(colors[i])
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
         plt.gca().set_aspect('equal', adjustable='box')
         plt.xlabel('R')
         plt.ylabel('Z')
-        plt.title('SNL Patch')
+        plt.title('SNL Patch Diagram')
+
+        for i in range(len(self.patches)):
+            self.patches[i].plot_border('green')
+            self.patches[i].fill(colors[i])
+
         plt.show() 
 
     def get_configuration(self):
@@ -374,11 +411,35 @@ class SNL(Ingrid):
         # any points
         self.write_gridue()
 
+    def animate_grid(self):
+
+        try:
+            plt.close('Test Plot')
+        except:
+            pass
+        plt.figure('Test Plot', figsize=(6, 10))
+        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
+        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.xlabel('R')
+        plt.ylabel('Z')
+        plt.title('SNL Patch Diagram')
+
+        k = [1,2,4,3,1]
+
+        for i in range(len(self.rm)):
+            for j in range(len(self.rm[0])):
+                plt.plot(self.rm[i][j][k], self.zm[i][j][k])
+                plt.pause(0.05)
+
 class LSN(SNL, Ingrid):
 
     def __init__(self, INGRID_object):
-        self.config = 'LSN'
         super().__init__(INGRID_object)
+        self.config = 'LSN'
+        print('=' * 80)
+        print('LSN Object!')
+        print('=' * 80 + '\n')
     
     def construct_patches(self):
         """
@@ -397,13 +458,8 @@ class LSN(SNL, Ingrid):
         # TODO: Create a 'lookup' procedure for determining line drawing
         #       orientations and inner-outer locations.
     
-        debug = True
+        debug = False
 
-        # Get starting directions from primary x-point
-        self.compute_eq_psi()
-        # Sign check to determine if Upper Single Null or Lower Single Null
-        # These coordinates tell us which quadrant in a 2D cartesian plane
-        # our 'N' unit vector points towards.
         self.itp = self.plate_data['plate_W1']
         self.otp = self.plate_data['plate_E1']
 
@@ -471,7 +527,7 @@ class LSN(SNL, Ingrid):
         IDL_E = xptW_psiMax.reverse_copy()
         IDL_W = ITP.reverse_copy()
         location = 'W'
-        IDL = Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
+        IDL = SNL_Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
         # IPF Patch
         IPF_N = IDL_S.reverse_copy()
@@ -479,35 +535,35 @@ class LSN(SNL, Ingrid):
         IPF_E = xptS_psiMinPF
         IPF_W = ITP.reverse_copy()
         location = 'W'
-        IPF = Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
+        IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # ISB Patch
         ISB_N = self.eq.draw_line(IDL_N.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug)
         ISB_S = xptNW_midLine.reverse_copy()
         ISB_E = Line([ISB_N.p[-1], ISB_S.p[0]])
         ISB_W = xptW_psiMax
-        ISB = Patch([ISB_N, ISB_E, ISB_S, ISB_W], patchName = 'ISB')
+        ISB = SNL_Patch([ISB_N, ISB_E, ISB_S, ISB_W], patchName = 'ISB')
 
         # ICB Patch
         ICB_N = ISB_S.reverse_copy()
         ICB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug).reverse_copy()
         ICB_E = Line([ICB_N.p[-1], ICB_S.p[0]])
         ICB_W = xptN_psiMinCore.reverse_copy()
-        ICB = Patch([ICB_N, ICB_E, ICB_S, ICB_W], patchName = 'ICB')
+        ICB = SNL_Patch([ICB_N, ICB_E, ICB_S, ICB_W], patchName = 'ICB')
 
         # IST Patch
         IST_N = self.eq.draw_line(ISB_N.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug)
         IST_S = imidLine_topLine.reverse_copy()
         IST_E = Line([IST_N.p[-1], IST_S.p[0]])
         IST_W = Line([IST_S.p[-1], IST_N.p[0]])
-        IST = Patch([IST_N, IST_E, IST_S, IST_W], patchName = 'IST')
+        IST = SNL_Patch([IST_N, IST_E, IST_S, IST_W], patchName = 'IST')
 
         # ICT Patch
         ICT_N = IST_S.reverse_copy()
         ICT_S = self.eq.draw_line(ICB_S.p[0], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug).reverse_copy()
         ICT_E = Line([ICT_N.p[-1], ICT_S.p[0]])
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
-        ICT = Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
+        ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
 
         # ODL Patch 
         ODL_N = oPsiMax_TP
@@ -515,7 +571,7 @@ class LSN(SNL, Ingrid):
         ODL_E = OTP.reverse_copy()
         ODL_W = xptE_psiMax
         location = 'E'
-        ODL = Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchName = 'ODL', platePatch = True, plateLocation = location)
+        ODL = SNL_Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchName = 'ODL', platePatch = True, plateLocation = location)
 
         # OPF Patch
         OPF_N = ODL_S.reverse_copy()
@@ -523,35 +579,35 @@ class LSN(SNL, Ingrid):
         OPF_E = OTP.reverse_copy()
         OPF_W = xptS_psiMinPF.reverse_copy()
         location = 'E'
-        OPF = Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
+        OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
         # OSB Patch 
         OSB_N = self.eq.draw_line(ODL_N.p[0], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug).reverse_copy()
         OSB_S = xptNE_midLine
         OSB_E = xptE_psiMax.reverse_copy()
         OSB_W = Line([OSB_S.p[-1], OSB_N.p[0]])
-        OSB = Patch([OSB_N, OSB_E, OSB_S, OSB_W], patchName = 'OSB')
+        OSB = SNL_Patch([OSB_N, OSB_E, OSB_S, OSB_W], patchName = 'OSB')
 
         # OCB Patch
         OCB_N = OSB_S.reverse_copy()
         OCB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug)
         OCB_E = xptN_psiMinCore
         OCB_W = Line([OCB_S.p[-1], OCB_N.p[0]])
-        OCB = Patch([OCB_N, OCB_E, OCB_S, OCB_W], patchName = 'OCB')
+        OCB = SNL_Patch([OCB_N, OCB_E, OCB_S, OCB_W], patchName = 'OCB')
 
         # OST Patch
         OST_N = self.eq.draw_line(OSB_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug).reverse_copy()
         OST_S = omidLine_topLine
         OST_E = Line([OST_N.p[-1], OST_S.p[0]])
         OST_W = Line([OST_S.p[-1], OST_N.p[0]])
-        OST = Patch([OST_N, OST_E, OST_S, OST_W], patchName = 'OST')
+        OST = SNL_Patch([OST_N, OST_E, OST_S, OST_W], patchName = 'OST')
 
         # OCT Patch
         OCT_N = OST_S.reverse_copy()
         OCT_S = self.eq.draw_line(OCB_S.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug)
         OCT_E = Line([OCT_N.p[-1], OCT_S.p[0]])
         OCT_W = Line([OCT_S.p[-1], OCT_N.p[0]])
-        OCT = Patch([OCT_N, OCT_E, OCT_S, OCT_W], patchName = 'OCT')
+        OCT = SNL_Patch([OCT_N, OCT_E, OCT_S, OCT_W], patchName = 'OCT')
 
         self.patches = [IDL, IPF, ISB, ICB, IST, ICT, OST, OCT, OSB, OCB, ODL, OPF]
         names = ['IDL', 'IPF', 'ISB', 'ICB', 'IST', 'ICT', 'OST', 'OCT', 'OSB', 'OCB', 'ODL', 'OPF']
@@ -575,7 +631,6 @@ class LSN(SNL, Ingrid):
         # Plot borders and fill patches.
         primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
         for patch in self.patches:
-            print(patch.patchName)
             patch.make_subgrid(self, np_cells, nr_cells)
 
             if patch.patchName == 'IDL':
@@ -605,43 +660,23 @@ class LSN(SNL, Ingrid):
             # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
             # Edit the code to reflect this at some point so the next reader is not overwhelmed.
             if boundary == 'left':
-
-                if config == 'LSN':
-                    ixn = ix + 1
-                    iyn = iy
-                    cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
-                    cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
-                    cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
-                    cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
-                    cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-                elif config == 'USN':
-                    ixn = ix - 1
-                    iyn = iy
-                    cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
-                    cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
-                    cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
-                    cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
-                    cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+                ixn = ix + 1
+                iyn = iy
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
 
             elif boundary == 'right':
-
-                if config == 'LSN':
-                    ixn = ix - 1
-                    iyn = iy
-                    cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
-                    cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
-                    cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
-                    cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
-                    cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-                elif config == 'USN':
-                    ixn = ix + 1
-                    iyn = iy
-                    cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
-                    cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
-                    cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
-                    cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
-                    cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
+                ixn = ix - 1
+                iyn = iy
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+            
             elif boundary == 'bottom':
                 ixn = ix
                 iyn = iy + 1
@@ -744,9 +779,14 @@ class LSN(SNL, Ingrid):
         self.rm = self.add_guardc(rm, ixlb, ixrb, config)
         self.zm = self.add_guardc(zm, ixlb, ixrb, config)
 
+        self.animate_grid()
+
 class USN(SNL, Ingrid):
     def __init__(self, INGRID_object):
         self.config = 'USN'
+        print('=' * 80)
+        print('USN Object!')
+        print('=' * 80 + '\n')
         super().__init__(INGRID_object)
     
     def construct_patches(self):
@@ -768,13 +808,7 @@ class USN(SNL, Ingrid):
     
 
 
-        debug = True
-
-        # Get starting directions from primary x-point
-        self.compute_eq_psi()
-        # Sign check to determine if Upper Single Null or Lower Single Null
-        # These coordinates tell us which quadrant in a 2D cartesian plane
-        # our 'N' unit vector points towards.
+        debug = False
 
         self.itp = self.plate_data['plate_W1']
         self.otp = self.plate_data['plate_E1']
@@ -842,7 +876,7 @@ class USN(SNL, Ingrid):
         IDL_E = Line([IDL_N.p[-1], IDL_S.p[0]])
         IDL_W = xptE_psiMax
         location = 'E'
-        IDL = Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
+        IDL = SNL_Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
         # IPF Patch
         IPF_N = IDL_S.reverse_copy()
@@ -850,35 +884,35 @@ class USN(SNL, Ingrid):
         IPF_E = Line([IPF_N.p[-1], IPF_S.p[0]])
         IPF_W = xptS_psiMinPF.reverse_copy()
         location = 'E'
-        IPF = Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
+        IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # ISB Patch
         ISB_N = self.eq.draw_line(IDL_N.p[0], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug).reverse_copy()
         ISB_S = xptNE_midLine
         ISB_E = xptE_psiMax.reverse_copy()
         ISB_W = Line([ISB_S.p[-1], ISB_N.p[0]])
-        ISB = Patch([ISB_N, ISB_E, ISB_S, ISB_W], patchName = 'ISB')
+        ISB = SNL_Patch([ISB_N, ISB_E, ISB_S, ISB_W], patchName = 'ISB')
 
         # ICB Patch
         ICB_N = ISB_S.reverse_copy()
         ICB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug)
         ICB_E = xptN_psiMinCore
         ICB_W = Line([ICB_S.p[-1], ICB_N.p[0]])
-        ICB = Patch([ICB_N, ICB_E, ICB_S, ICB_W], patchName = 'ICB')
+        ICB = SNL_Patch([ICB_N, ICB_E, ICB_S, ICB_W], patchName = 'ICB')
 
         # IST Patch
         IST_N = self.eq.draw_line(ISB_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug).reverse_copy()
         IST_S = imidLine_topLine
         IST_E = Line([IST_N.p[-1], IST_S.p[0]])
         IST_W = Line([IST_S.p[-1], IST_N.p[0]])
-        IST = Patch([IST_N, IST_E, IST_S, IST_W], patchName = 'IST')
+        IST = SNL_Patch([IST_N, IST_E, IST_S, IST_W], patchName = 'IST')
 
         # ICT Patch
         ICT_N = IST_S.reverse_copy()
         ICT_S = self.eq.draw_line(ICB_S.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug)
         ICT_E = Line([ICT_N.p[-1], ICT_S.p[0]])
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
-        ICT = Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
+        ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
 
         # ODL Patch
         ODL_N = oPsiMax_TP.reverse_copy()
@@ -886,7 +920,7 @@ class USN(SNL, Ingrid):
         ODL_E = xptW_psiMax.reverse_copy()
         ODL_W = Line([ODL_S.p[-1], ODL_N.p[0]])
         location = 'W'
-        ODL = Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchName = 'ODL', platePatch = True, plateLocation = location)
+        ODL = SNL_Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchName = 'ODL', platePatch = True, plateLocation = location)
 
         # OPF Patch
         OPF_N = ODL_S.reverse_copy()
@@ -894,38 +928,37 @@ class USN(SNL, Ingrid):
         OPF_E = xptS_psiMinPF
         OPF_W = Line([OPF_S.p[-1], OPF_N.p[0]])
         location = 'W'
-        OPF = Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
+        OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
         # OSB Patch
         OSB_N = self.eq.draw_line(ODL_N.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug)
         OSB_S = xptNW_midLine.reverse_copy()
         OSB_E = Line([OSB_N.p[-1], OSB_S.p[0]])
         OSB_W = xptW_psiMax
-        OSB = Patch([OSB_N, OSB_E, OSB_S, OSB_W], patchName = 'OSB')
+        OSB = SNL_Patch([OSB_N, OSB_E, OSB_S, OSB_W], patchName = 'OSB')
 
         # OCB Patch
         OCB_N = OSB_S.reverse_copy()
         OCB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug).reverse_copy()
         OCB_E = Line([OCB_N.p[-1], OCB_S.p[0]])
         OCB_W = xptN_psiMinCore.reverse_copy()
-        OCB = Patch([OCB_N, OCB_E, OCB_S, OCB_W], patchName = 'OCB')
+        OCB = SNL_Patch([OCB_N, OCB_E, OCB_S, OCB_W], patchName = 'OCB')
 
         # OST Patch
         OST_N = self.eq.draw_line(OSB_N.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug)
         OST_S = omidLine_topLine.reverse_copy()
         OST_E = Line([OST_N.p[-1], OST_S.p[0]])
         OST_W = Line([OST_S.p[-1], OST_N.p[0]])
-        OST = Patch([OST_N, OST_E, OST_S, OST_W], patchName = 'OST')
+        OST = SNL_Patch([OST_N, OST_E, OST_S, OST_W], patchName = 'OST')
 
         # OCT Patch
         OCT_N = OST_S.reverse_copy()
         OCT_S = self.eq.draw_line(OCB_S.p[0], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug).reverse_copy()
         OCT_E = Line([OCT_N.p[-1], OCT_S.p[0]])
         OCT_W = Line([OCT_S.p[-1], OCT_N.p[0]])
-        OCT = Patch([OCT_N, OCT_E, OCT_S, OCT_W], patchName = 'OCT')
+        OCT = SNL_Patch([OCT_N, OCT_E, OCT_S, OCT_W], patchName = 'OCT')
 
-        self.patches = [IDL, IPF, ISB, ICB, IST, ICT, OST, OCT, OSB, OCB, ODL, OPF]
-        names = ['IDL', 'IPF', 'ISB', 'ICB', 'IST', 'ICT', 'OST', 'OCT', 'OSB', 'OCB', 'ODL', 'OPF']
+        self.patches = [OPF, ODL, OCB, OSB, OCT, OST, ICT, IST, ICB, ISB, IPF, IDL]
         patch_lookup = {}
         for patch in self.patches:
             patch_lookup[patch.patchName] = patch
@@ -935,8 +968,8 @@ class USN(SNL, Ingrid):
 
         p = self.patch_lookup
         self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-                        [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
-                        [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
+                        [[None], p['ODL'], p['OSB'], p['OST'], p['IST'], p['ISB'], p['IDL'], [None]], \
+                        [[None], p['OPF'], p['OCB'], p['OCT'], p['ICT'], p['ICB'], p['IPF'], [None]], \
                         [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
                         ]
 
@@ -945,7 +978,6 @@ class USN(SNL, Ingrid):
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
 
-        SNL_CONFIG = self.get_SNL_configuration()
         primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
         for patch in self.patches:
             print(patch.patchName)
@@ -971,7 +1003,197 @@ class USN(SNL, Ingrid):
         self.concat_grid(self.get_configuration())
         self.set_gridue()
 
+
+    def add_guardc(self, cell_map, ixlb, ixrb, config, nxpt = 1, eps = 1e-3):
+
+        def set_guard(cell_map, ix, iy, eps, config, boundary):
+
+            # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
+            # Edit the code to reflect this at some point so the next reader is not overwhelmed.
+            if boundary == 'left':
+                ixn = ix + 1
+                iyn = iy
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            elif boundary == 'right':
+                ixn = ix - 1
+                iyn = iy
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+            
+            elif boundary == 'bottom':
+                ixn = ix
+                iyn = iy + 1
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+            elif boundary == 'top':
+                ixn = ix
+                iyn = iy - 1
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            return cell_map
+
+        np = len(cell_map) - 2
+        nr = len(cell_map[0]) - 2
+
+        for iy in range(1, nr + 1):
+            ix = ixlb
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'left')
+            ix = ixrb + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'right')
+
+        for ix in range(np + 2):
+            iy = 0
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'bottom')
+            iy = nr + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'top')
+
+        return cell_map
+
+    def _add_guardc(self, cell_map, ixlb, ixrb, config, nxpt = 1, eps = 1e-3):
+
+        def _set_guard(cell_map, ix, iy, eps, config, boundary):
+
+            # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
+            # Edit the code to reflect this at some point so the next reader is not overwhelmed.
+            if boundary == 'left':
+                ixn = ix - 1
+                iyn = iy
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            elif boundary == 'right':
+                ixn = ix + 1
+                iyn = iy
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            elif boundary == 'bottom':
+                ixn = ix
+                iyn = iy + 1
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            elif boundary == 'top':
+                ixn = ix
+                iyn = iy - 1
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            return cell_map
+
+        np = len(cell_map) - 2
+        nr = len(cell_map[0]) - 2
+
+        for iy in range(1, nr + 1):
+            ix = ixlb
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'left')
+            ix = ixrb + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'right')
+
+        for ix in range(np + 2):
+            iy = 0
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'bottom')
+            iy = nr + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'top')
+
+        return cell_map    
+
     def concat_grid(self, config):
+        """
+        Concatenate all local grids on individual patches into a single 
+        array with branch cuts
+
+        Parameters:
+        ----------
+            config : str
+                Type of SNL grid to concat.
+
+        """
+        # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
+
+
+        p = self.patch_lookup
+        patch_matrix = self.patch_matrix
+
+        # Get some poloidal and radial information from each patch to attribute to the 
+        # local subgrid.
+        # NOTE: npol and nrad refer to the actual lines in the subgrid. Because of this, we must add
+        #       the value of 1 to the cell number to get the accurate number of lines.
+
+
+        for patch in self.patches:
+            patch.npol = len(patch.cell_grid[0]) + 1
+            patch.nrad = len(patch.cell_grid) + 1
+
+        # Number of Poloidal patch indices with guard patches
+        np_patch = len(patch_matrix[0])
+        # Number of Radial patch indices with guard patches
+        nr_patch = len(patch_matrix)
+
+        # Total number of poloidal indices in subgrid.
+        np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
+        nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
+
+        rm = np.zeros((np_total, nr_total, 5), order = 'F')
+        zm = np.zeros((np_total, nr_total, 5), order = 'F')
+
+        ixcell = 0
+        jycell = 0
+
+        pol_const = patch_matrix[1][1].npol - 1
+        rad_const = patch_matrix[1][1].nrad - 1
+
+        for ixp in range(1, np_patch - 1):
+            for jyp in range(1, nr_patch - 1):
+
+                for ixl in range(patch_matrix[jyp][ixp].npol - 1):
+                    for jyl in range(patch_matrix[jyp][ixp].nrad - 1):
+
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) - pol_const + ixl + 1
+                        jycell = int(np.sum([patch.nrad - 1 for patch in patch_matrix[1][1:jyp+1]])) - rad_const + jyl + 1
+
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm[ixcell][nr_total - jycell - 1][ind] = patch_matrix[jyp][ixp].cell_grid[jyl][ixl].vertices[coor].x
+                            zm[ixcell][nr_total - jycell - 1][ind] = patch_matrix[jyp][ixp].cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
+
+        # Add guard cells to the concatenated grid.
+        ixrb = len(rm) - 2
+        ixlb = 0
+        self.rm = self.add_guardc(rm, ixlb, ixrb, config)
+        self.zm = self.add_guardc(zm, ixlb, ixrb, config)
+
+        self.animate_grid()
+
+    def _concat_grid(self, config):
         """
         Concatenate all local grids on individual patches into a single 
         array with branch cuts
@@ -1038,6 +1260,8 @@ class USN(SNL, Ingrid):
         self.zm = self.add_guardc(zm, ixlb, ixrb, config)
         
 
+        self.animate_grid()
+
 
 def set_params_GUI():
     """
@@ -1063,5 +1287,3 @@ def set_params_GUI():
     IngridWindow.geometry("830x490")
     IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
     IngridWindow.mainloop()
-
-

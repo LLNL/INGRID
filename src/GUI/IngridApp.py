@@ -12,6 +12,7 @@ from sys import platform as sys_pf
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.pyplot import close as _close_figs
 from matplotlib.figure import Figure
 from scipy.optimize import root 
 from numpy import full_like
@@ -72,13 +73,6 @@ class IngridApp(tk.Tk):
         self.show_frame(ParamPicker)
 
         self.IngridSession = Ingrid.Ingrid()
-        _snl = Ingrid.SNL(self.IngridSession)
-        _lsn = Ingrid.LSN(self.IngridSession)
-        _usn = Ingrid.USN(self.IngridSession)
-
-        _snl.construct_patches()
-        _lsn.construct_patches()
-        _usn.construct_patches()
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -87,6 +81,11 @@ class IngridApp(tk.Tk):
     def reset_data(self):
         if tkMB.askyesno('', 'Are you sure you want to reset?'):
             self.frames = {}
+
+            try:
+                _close_figs('all')
+            except:
+                pass
 
             for F in (FilePicker, ParamPicker):
                 frame = F(self.container, self)
@@ -299,8 +298,11 @@ class FilePicker(tk.Frame):
             valid_path = eqdsk_file.is_file()
             if valid_path:
                 print('In load_eqdsk_file:')
+                print(self.controller)
+                print(self.parent)
+                print(self)
                 self.controller.IngridSession.yaml['eqdsk'] = str(eqdsk_file)
-                print(yaml.dump(self.controller.IngridSession.yaml))
+                print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.eqdskFrame.fileLoaded(eqdsk_file)
                 self.update_frame_state()
             elif not valid_path:
@@ -322,7 +324,7 @@ class FilePicker(tk.Frame):
             if valid_path and itp_file.suffix == '.txt':
                 self.controller.IngridSession
                 self.controller.IngridSession.yaml['target_plates']['plate_W1']['file'] = str(itp_file)
-                print(yaml.dump(self.controller.IngridSession.yaml))
+                print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.itpFrame.fileLoaded(itp_file)
                 self.update_frame_state()
             elif not valid_path:
@@ -336,7 +338,7 @@ class FilePicker(tk.Frame):
                 print('In load_itp:')
                 
                 self.controller.IngridSession.yaml['target_plates']['plate_W1']['file'] = str(itp_file)
-                print(yaml.dump(self.controller.IngridSession.yaml))
+                print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.itpFrame.fileLoaded(itp_file)
                 self.update_frame_state()            
     def load_otp_file(self, showFileDialog = True, toLoad=None):
@@ -366,7 +368,7 @@ class FilePicker(tk.Frame):
             if valid_path and otp_file.suffix == '.txt':
                 print('In load_otp:')
                 self.controller.IngridSession.yaml['target_plates']['plate_E1']['file'] = str(otp_file)
-                print(yaml.dump(self.controller.IngridSession.yaml))
+                print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.otpFrame.fileLoaded(otp_file)
                 self.update_frame_state()  
 
@@ -388,12 +390,14 @@ class FilePicker(tk.Frame):
 
         """
         param_file, valid_path = self.get_file()
-        if valid_path and (param_file.suffix == '.txt' or param_file.suffix == '.yaml' or param_file.suffix == ''):
+        suffix_list = ['.txt',  '.yml', '.yaml', '']
+        if valid_path and param_file.suffix in suffix_list:
             _yaml = yaml.load(param_file.read_text())
-            print(yaml.dump(_yaml))
+            print(yaml.dump(_yaml, indent = 4))
             self.parse_yaml(_yaml)
             self.paramFrame.fileLoaded(param_file)
             self.update_frame_state()
+            print(self.controller.IngridSession.yaml)
 
     def parse_yaml(self, _yaml):
             lookup = { \
@@ -407,6 +411,9 @@ class FilePicker(tk.Frame):
                 elif item == 'target_plates':
                     for sub_item in _yaml[item]:
                         lookup[item][sub_item](showFileDialog = False, toLoad = _yaml[item][sub_item]['file'])
+
+            import pdb
+            pdb.set_trace()
 
             self.controller.IngridSession.yaml = _yaml
     def update_frame_state(self):
@@ -660,21 +667,37 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.integrator_params = self.controller.IngridSession.yaml['integrator_params']
         self.controller.IngridSession.target_plates = self.controller.IngridSession.yaml['target_plates']
 
+    def refresh_yaml(self):
+        if self.controller.frames[FilePicker].paramFrame.isLoaded:
+            f = Path(self.controller.frames[FilePicker].paramFrame.FP_EntryText.get())
+            self.controller.IngridSession.yaml = yaml.load(f.read_text())
+
     def createPatches(self):
+        
+        self.set_INGRID_params()
+        self.controller.IngridSession._analyze_topology()
 
-        self.controller.IngridSession = Ingrid.SNL(self.controller.IngridSession.yaml)
-        self.controller.IngridSession.magx = self.MagAxis
-        self.controller.IngridSession.xpt1 = self.Xpt
-        self.controller.IngridSession.calc_psinorm()
+        import pdb
+        pdb.set_trace()
 
-        # self.winfo_toplevel().yaml = yaml.read(str(self.winfo_toplevel().frames[FilePicker].paramFrame.FP_EntryText.get()))
+        self.Grid = self.controller.IngridSession.current_topology
+        self.refresh_yaml()
+        self.Grid.yaml = self.controller.IngridSession.yaml
 
-        self.controller.IngridSession.construct_SNL_patches()
-        self.controller.IngridSession.SNL_patch_diagram()
+
+        if isinstance(self.Grid, Ingrid.SNL):
+            self.Grid.magx = self.MagAxis
+            self.Grid.xpt1 = self.Xpt
+
+        self.Grid.calc_psinorm()
+        self.Grid.construct_patches()
+        self.Grid.patch_diagram()
     
         self.createSubgrid_Button.config(state = 'normal')
 
     def createSubgrid(self):
+
+        self.Grid = self.controller.IngridSession.current_topology
 
         try:
             np_cells = self.controller.IngridSession.yaml['grid_params']['np_global']
@@ -688,8 +711,20 @@ class ParamPicker(tk.Frame):
             nr_cells = 2
             print('yaml file did not contain parameter nr_global. Set to default value of 2...')
 
-        self.controller.IngridSession.construct_SNL_grid(np_cells, nr_cells)
-        self.controller.IngridSession.SNL_grid_diagram()
+
+        import pdb
+        pdb.set_trace()
+
+        print('Value Check for local plates:')
+        _i = self.Grid.yaml['target_plates']
+        for plate in _i:
+            print('Name: {}\n np_local: {}\n nr_local: {}\n'.format(_i[plate]['name'], _i[plate]['np_local'], _i[plate]['nr_local']))
+
+        self.refresh_yaml()
+        self.Grid.yaml = self.controller.IngridSession.yaml
+        self.Grid.construct_grid(np_cells, nr_cells)
+        self.Grid.grid_diagram()
+
         self.export_Button.config(state = 'normal')
 
     def write_gridue(self):
@@ -701,62 +736,10 @@ class ParamPicker(tk.Frame):
         else:
             print('Cancelling export...')
 
-    def INGRID_benchmark(self):
-
-        debug = False
-
-        import time as ti
-
-        print(self.ROOT.yaml)
-        self.set_RFValues()
-        self.set_PsiValues()
-        self.controller.IngridSession.magx = self.MagAxis
-        self.controller.IngridSession.xpt1 = self.Xpt
-        self.controller.IngridSession.calc_psinorm()
-        self.winfo_toplevel().yaml = yaml.read(str(self.winfo_toplevel().frames[FilePicker].eqdskFrame.FP_EntryText.get()))
-        
-        from matplotlib.pyplot import close
-
-        for i in range(24):
-            patch_time = ti.time()
-            self.controller.IngridSession.construct_SNL_patches()
-            patch_time = ti.time() - patch_time
-
-            subgrid_time = ti.time()
-            self.controller.IngridSession.construct_SNL_subgrid(num = 2 + i)
-            subgrid_time = ti.time() - subgrid_time
-
-            patchDiagram_time = ti.time()
-            self.controller.IngridSession.patch_diagram()
-            patchDiagram_time = ti.time() - patchDiagram_time
-
-            gridDiagram_time = ti.time()
-            self.controller.IngridSession.grid_diagram()
-            gridDiagram_time = ti.time() - gridDiagram_time
-
-            export_time = ti.time()
-            self.controller.IngridSession.export()
-            export_time = ti.time() - export_time
-
-            print('========================================================')
-            print('SUMMARY:')
-            print('\nnum = {}\n'.format(2 + i))
-            print('Poloidal Cells (no guard cells): {}'.format(6 * (2 + i)))
-            print('Radial Cells (no guard cells): {}'.format(2 * (2 + i)))
-            print('Total Cells (no guard cells): {}\n'.format(6 * (2 + i) * 2 * (2 + i)))
-            print("'construct_SNL_patches' took: {}s".format(patch_time))
-            print("'construct_SNL_subgrid' took: {}s".format(subgrid_time))
-            print("'patch_diagram' took: {}s".format(patchDiagram_time))
-            print("'grid_diagram' took: {}s".format(gridDiagram_time))
-            print("'export' took: {}s".format(export_time))
-            print('========================================================')
-            close('all')
-
-
     def saveParameters(self):
         self.set_INGRID_params()
-        fname = Path(tkFD.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='.txt'))
-        fname.write_text(yaml.dump(self.controller.IngridSession.yaml))  # force tag is to overwrite the previous file
+        fname = Path(tkFD.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='.yml'))
+        fname.write_text(yaml.dump(self.controller.IngridSession.yaml, indent = 4))  # force tag is to overwrite the previous file
         print("Saved parameters to '{}'.".format(fname))
 
     def load_frame_entries(self):
@@ -784,6 +767,10 @@ class ParamPicker(tk.Frame):
 
         def confirm_settings():
             newWindow.withdraw()
+
+        if self.controller.frames[FilePicker].paramFrame.isLoaded:
+            f = Path(self.controller.frames[FilePicker].paramFrame.FP_EntryText.get())
+            self.controller.frames[FilePicker].parse_yaml(yaml.load(f.read_text()))
 
         _gp_default_values = self.controller.IngridSession.default_grid_params
         _integrator_default_values = self.controller.IngridSession.default_integrator_params

@@ -258,7 +258,7 @@ class Patch:
 
     """
     
-    def __init__(self, lines, patchName = '', platePatch = False, plateLocation = None, ):
+    def __init__(self, lines, patchName = '', platePatch = False, plateLocation = None):
         self.lines = lines
         self.N = lines[0]
         self.E = lines[1]
@@ -310,6 +310,10 @@ class Patch:
                 #cell.plot_center()
 
 
+class SNL_Patch(Patch):
+    def __init__(self, lines, patchName = '', platePatch = False, plateLocation = None):
+        super().__init__(lines, patchName, platePatch, plateLocation)
+
     def make_subgrid(self, grid, np_cells = 2, nr_cells = 2):
         """
         Generate a refined grid within a patch.
@@ -346,12 +350,15 @@ class Patch:
         cell_grid = []
 
         if self.platePatch:
+            print('PLATE PATCH!')
             if self is grid.patch_matrix[1][1] or self is grid.patch_matrix[1][2]:
-                np_cells = grid.nml['plate_W1']['np_local']
-                nr_cells = grid.nml['plate_W1']['nr_local']
+                np_cells = grid.yaml['target_plates']['plate_W1']['np_local']
+                nr_cells = grid.yaml['target_plates']['plate_W1']['nr_local']
             if self is grid.patch_matrix[-2][1] or self is grid.patch_matrix[-2][2]:
-                np_cells = grid.nml['plate_E1']['np_local']
-                nr_cells = grid.nml['plate_E1']['nr_local']
+                np_cells = grid.yaml['target_plates']['plate_E1']['np_local']
+                nr_cells = grid.yaml['target_plates']['plate_E1']['nr_local']
+
+        print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(self.patchName, np_cells, nr_cells))
 
         np_lines = np_cells + 1
         nr_lines = nr_cells + 1

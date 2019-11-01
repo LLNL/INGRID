@@ -1,0 +1,39 @@
+eqdsk: /Users/garcia299/Desktop/g162940_02944_670
+grid_params:
+    config: ''
+    np_global: 3
+    nr_global: 2
+    num_xpt: 1
+    psi_max: 1.019281813912
+    psi_max_r: 1.168441558442
+    psi_max_z: 1.080519480519
+    psi_min_core: 0.905936411357
+    psi_min_core_r: 1.446883116883
+    psi_min_core_z: 0.897662337662
+    psi_min_pf: 0.982631485112
+    psi_min_pf_r: 1.180909090909
+    psi_min_pf_z: 1.284155844156
+    rmagx: 1.732095523363
+    rxpt: 1.266729491758
+    zmagx: 0.011571896776
+    zxpt: 1.172135960057
+integrator_params:
+    dt: 0.01
+    eps: 5.0e-05
+    first_step: 1.0e-05
+    max_step: 0.064
+    step_ratio: 0.02
+    tol: 0.005
+target_plates:
+    plate_E1:
+        file: /Users/garcia299/Desktop/INGRID/src/target_plates/otp4.txt
+        name: plate_E1
+        np_local: 5
+        nr_local: 2
+        poloidal_f: x, x
+    plate_W1:
+        file: /Users/garcia299/Desktop/INGRID/src/target_plates/itp4.txt
+        name: plate_W1
+        np_local: 3
+        nr_local: 2
+        poloidal_f: x, x

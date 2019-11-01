@@ -55,6 +55,7 @@ class LineTracing:
                  numPoints=25, dt=0.01, option='xpt_circ', direction='cw'):
         
         self.grid = grid
+        self.params = params
         self.option = option
         self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event', self)
 
@@ -461,7 +462,7 @@ class LineTracing:
         sign_test = np.sign([np.cos(self.eq_psi_theta['N']), np.sin(self.eq_psi_theta['N'])])
         
         self.config = 'LSN' if sign_test[1] == 1 else 'USN'
-        print('===================\nGenerating {} grid...\n==================='.format(self.CONFIG))
+        print('===================\nGenerating {} grid...\n==================='.format(self.config))
 
     def draw_line(self, rz_start, rz_end=None, color= 'orange',
                   option=None, direction=None, show_plot=False, text=False):
@@ -742,7 +743,7 @@ class LineTracing:
             if count > 0:
                 # plot the line like normal
                 save_line([points[0][0], points[0][-1]], [points[1][0], points[1][-1]])
-                print('Plotting...')
+                # print('Plotting...')
 
             t2 = time()
             self.time_in_converged += t2 - t1

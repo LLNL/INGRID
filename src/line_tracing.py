@@ -98,7 +98,7 @@ class LineTracing:
         except KeyError:
             params['integrator_params'].update({'step_ratio' : step_ratio})
         
-        self.eps = params['integrator_params']['step_ratio']
+        self.step_ratio = params['integrator_params']['step_ratio']
         print('step_ratio set to {}'.format(self.step_ratio))       
 
         zdim = grid.zmax-grid.zmin
@@ -109,7 +109,7 @@ class LineTracing:
         except KeyError:
             params['integrator_params'].update({'max_step' : self.step_ratio * max(rdim, zdim)})
         self.max_step = params['integrator_params']['max_step']
-        print('step_ratio set to {}'.format(self.step_ratio))   
+        print('max_step set to {}'.format(self.max_step))   
 
         # initialize the function
         self._set_function(option, direction)
@@ -460,7 +460,7 @@ class LineTracing:
         # Determine if these NSEW values give us an USN or LSN configuration.
         sign_test = np.sign([np.cos(self.eq_psi_theta['N']), np.sin(self.eq_psi_theta['N'])])
         
-        self.CONFIG = 'LSN' if sign_test[1] == 1 else 'USN'
+        self.config = 'LSN' if sign_test[1] == 1 else 'USN'
         print('===================\nGenerating {} grid...\n==================='.format(self.CONFIG))
 
     def draw_line(self, rz_start, rz_end=None, color= 'orange',

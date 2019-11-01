@@ -18,11 +18,11 @@ grid_params:
   zmagx: -0.003614829398
   zxpt: -0.394986500079
 integrator_params:
-  dt: 0.01
-  eps: 5e-5
-  first_step: 1e-5
-  step_ratio: 0.02
-  tol: 5e-3
+  dt: !!python/float 0.01
+  eps: !!python/float 5.0e-5
+  first_step: !!python/float 1.0e-5
+  step_ratio: !!python/float 0.02
+  tol: !!python/float 5e-3
 target_plates:
   plate_E1:
     file: /Users/garcia299/Desktop/INGRID/src/target_plates/otp5.txt

@@ -1,7 +1,7 @@
 eqdsk: /Users/garcia299/Desktop/INGRID/data/SNL/neqdsk
 grid_params:
   config: LSN
-  np_global: 3
+  np_global: 2
   nr_global: 2
   num_xpt: 1
   psi_max: 1.052334931448
@@ -27,12 +27,12 @@ target_plates:
   plate_E1:
     file: /Users/garcia299/Desktop/INGRID/src/target_plates/otp5.txt
     name: plate_E1
-    np_local: 5
-    nr_local: 4
+    np_local: 3
+    nr_local: 2
     poloidal_f: x, x
   plate_W1:
     file: /Users/garcia299/Desktop/INGRID/src/target_plates/itp5.txt
     name: LSN_itp
-    np_local: 5
-    nr_local: 4
+    np_local: 3
+    nr_local: 2
     poloidal_f: x, x

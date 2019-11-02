@@ -430,7 +430,7 @@ class SNL(Ingrid):
         for i in range(len(self.rm)):
             for j in range(len(self.rm[0])):
                 plt.plot(self.rm[i][j][k], self.zm[i][j][k])
-                plt.pause(0.05)
+                plt.pause(0.01)
 
 class LSN(SNL, Ingrid):
 
@@ -740,6 +740,8 @@ class LSN(SNL, Ingrid):
             patch.npol = len(patch.cell_grid[0]) + 1
             patch.nrad = len(patch.cell_grid) + 1
 
+            print('"{}" has ({}, {})'.format(patch.patchName, patch.npol, patch.nrad))
+
         # Number of Poloidal patch indices with guard patches
         np_patch = len(patch_matrix[0])
         # Number of Radial patch indices with guard patches
@@ -755,27 +757,37 @@ class LSN(SNL, Ingrid):
         ixcell = 0
         jycell = 0
 
+        import pdb
+        pdb.set_trace()
+
         pol_const = patch_matrix[1][1].npol - 1
         rad_const = patch_matrix[1][1].nrad - 1
 
         for ixp in range(1, np_patch - 1):
             for jyp in range(1, nr_patch - 1):
 
-                for ixl in range(patch_matrix[jyp][ixp].npol - 1):
-                    for jyl in range(patch_matrix[jyp][ixp].nrad - 1):
+                local_patch = patch_matrix[jyp][ixp]
+
+                for ixl in range(local_patch.npol - 1):
+                    for jyl in range(local_patch.nrad - 1):
 
                         ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) - pol_const + ixl + 1
                         jycell = int(np.sum([patch.nrad - 1 for patch in patch_matrix[1][1:jyp+1]])) - rad_const + jyl + 1
 
                         ind = 0
+
+
                         for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm[ixcell][nr_total - jycell - 1][ind] = patch_matrix[jyp][ixp].cell_grid[jyl][ixl].vertices[coor].x
-                            zm[ixcell][nr_total - jycell - 1][ind] = patch_matrix[jyp][ixp].cell_grid[jyl][ixl].vertices[coor].y
+                            rm[ixcell][nr_total - jycell - 1][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm[ixcell][nr_total - jycell - 1][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
                             ind += 1
 
         # Add guard cells to the concatenated grid.
         ixrb = len(rm) - 2
         ixlb = 0
+
+        import pdb
+        pdb.set_trace()
         self.rm = self.add_guardc(rm, ixlb, ixrb, config)
         self.zm = self.add_guardc(zm, ixlb, ixrb, config)
 

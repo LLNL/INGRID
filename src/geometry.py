@@ -351,12 +351,22 @@ class SNL_Patch(Patch):
 
         if self.platePatch:
             print('PLATE PATCH!')
-            if self is grid.patch_matrix[1][1] or self is grid.patch_matrix[1][2]:
-                np_cells = grid.yaml['target_plates']['plate_W1']['np_local']
-                nr_cells = grid.yaml['target_plates']['plate_W1']['nr_local']
-            if self is grid.patch_matrix[-2][1] or self is grid.patch_matrix[-2][2]:
-                np_cells = grid.yaml['target_plates']['plate_E1']['np_local']
-                nr_cells = grid.yaml['target_plates']['plate_E1']['nr_local']
+
+            if grid.config == 'LSN':
+                if self.plateLocation == 'W':
+                    np_cells = grid.yaml['target_plates']['plate_W1']['np_local']
+                    nr_cells = grid.yaml['target_plates']['plate_W1']['nr_local']
+                elif self.plateLocation == 'E':
+                    np_cells = grid.yaml['target_plates']['plate_E1']['np_local']
+                    nr_cells = grid.yaml['target_plates']['plate_E1']['nr_local']
+            if grid.config == 'USN':
+                if self.plateLocation == 'E':
+                    np_cells = grid.yaml['target_plates']['plate_W1']['np_local']
+                    nr_cells = grid.yaml['target_plates']['plate_W1']['nr_local']
+                elif self.plateLocation == 'W':
+                    np_cells = grid.yaml['target_plates']['plate_E1']['np_local']
+                    nr_cells = grid.yaml['target_plates']['plate_E1']['nr_local']             
+
 
         print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(self.patchName, np_cells, nr_cells))
 
@@ -655,12 +665,12 @@ def segment_intersect(line1, line2):
         try:
             sol = np.linalg.solve(M, r)
         except np.linalg.LinAlgError:
-            print('Singular matrix...')
+            print('~ Searching for intersection...')
             continue
 
         if (sol[0] <= 1) and (sol[1] <= 1) \
             and (sol[0] >= 0) and (sol[1] >= 0):
-            print('INTERSECTION OCCURED')
+            print('~ Intersection occurred!')
             return True, [(xc, yc), (xd, yd)]
     return False, [(np.nan, np.nan), (np.nan, np.nan)]
     

@@ -412,9 +412,6 @@ class FilePicker(tk.Frame):
                     for sub_item in _yaml[item]:
                         lookup[item][sub_item](showFileDialog = False, toLoad = _yaml[item][sub_item]['file'])
 
-            import pdb
-            pdb.set_trace()
-
             self.controller.IngridSession.yaml = _yaml
     def update_frame_state(self):
         """
@@ -677,9 +674,6 @@ class ParamPicker(tk.Frame):
         self.set_INGRID_params()
         self.controller.IngridSession._analyze_topology()
 
-        import pdb
-        pdb.set_trace()
-
         self.Grid = self.controller.IngridSession.current_topology
         self.refresh_yaml()
         self.Grid.yaml = self.controller.IngridSession.yaml
@@ -711,16 +705,13 @@ class ParamPicker(tk.Frame):
             nr_cells = 2
             print('yaml file did not contain parameter nr_global. Set to default value of 2...')
 
-
-        import pdb
-        pdb.set_trace()
+        self.refresh_yaml()
 
         print('Value Check for local plates:')
         _i = self.Grid.yaml['target_plates']
         for plate in _i:
             print('Name: {}\n np_local: {}\n nr_local: {}\n'.format(_i[plate]['name'], _i[plate]['np_local'], _i[plate]['nr_local']))
 
-        self.refresh_yaml()
         self.Grid.yaml = self.controller.IngridSession.yaml
         self.Grid.construct_grid(np_cells, nr_cells)
         self.Grid.grid_diagram()

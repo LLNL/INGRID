@@ -34,6 +34,6 @@ target_plates:
     plate_W1:
         file: /Users/garcia299/Desktop/INGRID/src/target_plates/itp4.txt
         name: plate_W1
-        np_local: 3
+        np_local: 4
         nr_local: 2
         poloidal_f: x, x

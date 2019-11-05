@@ -12,7 +12,6 @@ matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import yaml as _yaml_
 import GUI.IngridApp as IA
-import Uegrid.uegrid as uegrid
 
 from OMFITgeqdsk import OMFITgeqdsk
 from Interpol.Setup_Grid_Data import Efit_Data
@@ -289,11 +288,51 @@ class Ingrid:
 
         self.current_topology = ingrid_topology
 
-    def export(self):
+    def export(self, fname = 'gridue'):
         """ Saves the grid as an ascii file """
-        # TODO export the points the patches contain, but don't overlap
-        # any points
-        self.current_topology.write_gridue()
+        self.write_gridue(self.current_topology.gridue_params, fname)
+
+    def write_gridue(self, gridue_params, fname = 'gridue'):
+        
+        def format_header(gridue):
+            header_items = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
+            header = ''
+            for item in header_items:
+                header += '{}'.format(gridue[item]).rjust(4)
+
+            return header
+
+        def format_body(data):
+
+            delim_val = 0
+            delim_char = ''
+            body = '\n'
+
+            for n in range(5):
+                for j in range(len(data[0])):
+                    for i in range(len(data)):
+                        delim_val += 1
+                        val = np.format_float_scientific(data[i][j][n], precision = 15, unique = False).rjust(23).replace('e', 'D')
+                        if delim_val == 3:
+                            delim_val = 0
+                            delim_char = '\n'
+                        body += val + delim_char
+                        delim_char = ''
+            return body
+
+        try:
+            f = open(fname, mode = 'r+')
+        except: 
+            f = open(fname, mode = 'x+')
+
+        runidg = 'iogridue'
+        body_items = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
+
+        f.write(format_header(gridue_params) + '\n')
+        for item in body_items:
+            f.write(format_body(gridue_params[item]))
+        f.write(runidg + '\n')
+        f.close()
 
 class SNL(Ingrid):
 
@@ -491,14 +530,6 @@ class SNL(Ingrid):
 
         return cell_map
 
-
-    def write_gridue(self):
-        g = self.gridue_params
-        import pdb
-        pdb.set_trace()
-        status = uegrid.write_gridue(np.int32(g['ixpt1']), np.int32(g['ixpt2']), np.int32(g['iyseptrx1']),\
-                (g['rm'].astype(np.double)), g['zm'].astype(np.double), g['psi'].astype(np.double), g['br'].astype(np.double), g['bz'].astype(np.double),\
-                g['bpol'].astype(np.double), g['bphi'].astype(np.double), g['b'].astype(np.double))
 
     def animate_grid(self):
 

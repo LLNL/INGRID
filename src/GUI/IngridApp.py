@@ -732,9 +732,8 @@ class ParamPicker(tk.Frame):
     def write_gridue(self):
         fname = tkFD.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='', initialfile = 'gridue')
         if fname != '':
-            self.controller.IngridSession.export()
-            Path('gridue').rename(fname)
-            print('Saved')
+            self.controller.IngridSession.export(fname)
+            print('Saved gridue file as "{}"'.format(fname))
         else:
             print('Cancelling export...')
 

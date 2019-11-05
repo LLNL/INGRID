@@ -186,9 +186,8 @@ end subroutine test_shape
 
 subroutine write_gridue (&
      nxm,nym,ixpt1,ixpt2,iysptrx1,&
-     rm,zm,psi,br,bz,bpol,bphi,b)
+     rm,zm,psi,br,bz,bpol,bphi,b) 
 
-  print *, "In Fortran!!!"
   implicit none
 
   character*80 fname

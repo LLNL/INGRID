@@ -26,9 +26,10 @@ class RootFinder:
         to find the roots.
     
     """
-    def __init__(self, grid, active=True, controller=None):
+    def __init__(self, grid, active=True, mode = 'root_finder', controller=None):
         self.grid = grid
-        self.root_finding = True
+        self.root_finding = True if mode == 'root_finder' else False
+        self.psi_finding = True if mode == 'psi_finder' else False
         self.controller = controller
 
         self.curr_x = 0.0
@@ -76,6 +77,8 @@ class RootFinder:
         self.curr_x, self.curr_y = event.xdata, event.ydata
         if self.root_finding: 
             self.find_root(self.curr_x, self.curr_y)
+        elif self.psi_finding:
+            self.plot_psi(self.curr_x, self.curr_y)
         else:
             print("You chose ({0:.5f}, {1:.5f}). ".format(self.curr_x, self.curr_y))
             self.final_root = (self.curr_x, self.curr_y)
@@ -113,8 +116,10 @@ class RootFinder:
             y or z value for the guess
 
         """
-        plt.plot(x, y, 'x')
-        plt.draw()
+        plt.cla()
+        self.controller.IngridSession.plot_efit_data()
+        self.controller.IngridSession.plot_target_plates()
+        plt.plot(x, y, '*', color = 'blue')
         sol = root(self.func, [x, y])
         r, z = sol.x[0], sol.x[1]
 
@@ -132,6 +137,15 @@ class RootFinder:
             self.controller.frames[IngridApp.ParamPicker].curr_click = (x, y)
             # self.controller.curr_root = self.final_root
             self.controller.frames[IngridApp.ParamPicker].update_root_finder()
+
+    def plot_psi(self, x, y):
+        plt.cla()
+        self.grid.plot_data()
+        self.controller.IngridSession.plot_target_plates()
+        plt.contour(self.grid.r, self.grid.z, self.grid.v, [self.grid.get_psi(x,y)], label = 'psi_line')
+        self.controller.frames[IngridApp.ParamPicker].curr_click = (x, y)
+        self.controller.frames[IngridApp.ParamPicker].update_root_finder()
+
 
 if __name__ == "__main__":
 #    from Interpol.Setup_Grid_Data import Efit_Data

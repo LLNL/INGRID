@@ -1,6 +1,6 @@
-eqdsk: /Users/garcia299/Desktop/g162940_02944_670
+eqdsk: ../data/SNL/USN/g162940.02944_670
 grid_params:
-    config: ''
+    config: 'USN'
     np_global: 3
     nr_global: 2
     num_xpt: 1
@@ -26,14 +26,14 @@ integrator_params:
     tol: 0.005
 target_plates:
     plate_E1:
-        file: /Users/garcia299/Desktop/INGRID/src/target_plates/otp4.txt
+        file: ../data/SNL/USN/itp4.txt
         name: plate_E1
         np_local: 5
         nr_local: 2
         poloidal_f: x, x
     plate_W1:
-        file: /Users/garcia299/Desktop/INGRID/src/target_plates/itp4.txt
+        file: ../data/SNL/USN/otp4.txt
         name: plate_W1
-        np_local: 4
+        np_local: 3
         nr_local: 2
         poloidal_f: x, x

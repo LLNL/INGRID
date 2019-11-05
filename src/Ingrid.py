@@ -242,7 +242,13 @@ class Ingrid:
         psinorm = (psi - np.full_like(psi, psi_magx))/(psi_xpt1 - psi_magx)
         self.psi_norm.set_v(psinorm)
         self.psi_norm.Calculate_PDeriv()
+
+    def plot_psinorm(self):
         self.psi_norm.plot_data()
+        self.plot_target_plates()
+
+    def find_psi_lines(self, tk_controller = None):
+        self.psi_finder = RootFinder(self.psi_norm, mode = 'psi_finder', controller = tk_controller)
 
     def init_LineTracing(self):
         """ 
@@ -283,6 +289,12 @@ class Ingrid:
 
         self.current_topology = ingrid_topology
 
+    def export(self):
+        """ Saves the grid as an ascii file """
+        # TODO export the points the patches contain, but don't overlap
+        # any points
+        self.current_topology.write_gridue()
+
 class SNL(Ingrid):
 
     def __init__(self, INGRID_object):
@@ -293,20 +305,17 @@ class SNL(Ingrid):
 
         self.plate_data = INGRID_object.plate_data
 
-    def construct_patches(self):
-        print('SNL patches')
-
     def grid_diagram(self):
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
           'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
           'seagreen', 'firebrick', 'saddlebrown']
 
         try:
-            plt.close('INGRID: Subgrid Diagram')
+            plt.close('INGRID: Grid')
         except:
             pass
 
-        plt.figure('INGRID: Subgrid Diagram', figsize=(6,10))
+        plt.figure('INGRID: Grid', figsize=(6,10))
         for patch in self.patches:
             patch.plot_subgrid()
             print('patch completed...')
@@ -327,11 +336,11 @@ class SNL(Ingrid):
                   'seagreen', 'firebrick', 'saddlebrown']
 
         try:
-            plt.close('INGRID: Patch Diagram')
+            plt.close('INGRID: Patch Map')
         except:
             pass
 
-        plt.figure('INGRID: Patch Diagram', figsize=(6, 10))
+        plt.figure('INGRID: Patch Map', figsize=(6, 10))
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
         plt.gca().set_aspect('equal', adjustable='box')
@@ -351,79 +360,159 @@ class SNL(Ingrid):
         """
         return self.config
 
-    def set_gridue(self):
+    def concat_grid(self, config):
         """
-        Prepare the relevant arrays for writing to GRIDUE.
+        Concatenate all local grids on individual patches into a single 
+        array with branch cuts
+
+        Parameters:
+        ----------
+            config : str
+                Type of SNL grid to concat.
+
         """
+        # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
+        patch_matrix = self.patch_matrix
 
-        # RECALL: self.rm has FORTRAN style ordering (columns are accessed via the first entry)
-        # Getting relevant values for gridue file
-        ixrb = len(self.rm) - 2
-        ixpt1 = self.patch_lookup['IDL'].npol - 1
-        ixpt2 = ixrb - self.patch_lookup['ODL'].npol + 1
-        iyseparatrix1 = self.patch_lookup['IDL'].nrad - 1
-        nxm = len(self.rm) - 2
-        nym = len(self.rm[0]) - 2
+        # Get some poloidal and radial information from each patch to attribute to the 
+        # local subgrid.
+        # NOTE: npol and nrad refer to the actual lines in the subgrid. Because of this, we must add
+        #       the value of 1 to the cell number to get the accurate number of lines.
 
-        psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-        br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-        bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-        bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-        bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-        b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
 
-        rm = self.rm
-        zm = self.zm
-        rb_prod = self.psi_norm.rcenter * self.psi_norm.bcenter
+        for patch in self.patches:
+            patch.npol = len(patch.cell_grid[0]) + 1
+            patch.nrad = len(patch.cell_grid) + 1
 
-        for i in range(len(b)):
-            for j in range(len(b[0])):
-                for k in range(5):
-                    _r = rm[i][j][k]
-                    _z = zm[i][j][k]
+        # Total number of poloidal indices in subgrid.
+        np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
+        nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
 
-                    _psi = self.psi_norm.get_psi(_r, _z)
-                    _br = self.psi_norm.get_psi(_r, _z, tag = 'vz') / _r
-                    _bz = self.psi_norm.get_psi(_r, _z, tag = 'vr') / _r
-                    _bpol = np.sqrt(_br ** 2 + _bz ** 2)
-                    _bphi = rb_prod / _r
-                    _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
+        rm = np.zeros((np_total, nr_total, 5), order = 'F')
+        zm = np.zeros((np_total, nr_total, 5), order = 'F')
 
-                    psi[i][j][k] = _psi
-                    br[i][j][k] = _br
-                    bz[i][j][k] = _bz
-                    bpol[i][j][k] = _bpol
-                    bphi[i][j][k] = _bphi
-                    b[i][j][k] = _b
+        ixcell = 0
+        jycell = 0
 
-        self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'ixpt1' : ixpt1, 'ixpt2' : ixpt2, 'iyseptrx1' : iyseparatrix1, \
-            'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b}
+        np_patches = len(patch_matrix[0])
+        nr_patches = len(patch_matrix)
+
+        # Iterate over all the patches in our SNL configuration (we exclude guard cells denoted by '[None]')
+        for ixp in range(1, np_patches - 1):
+            for jyp in range(1, nr_patches - 1):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
+
+                # Access the grid that is contained within this local_patch. 
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
+
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
+                                - len(local_patch.cell_grid[0]) + ixl + 1
+                        jycell = int(np.sum([patch.nrad - 1 for patch in patch_matrix[1][1:jyp+1]])) \
+                                - len(local_patch.cell_grid) + jyl + 1
+
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm[ixcell][nr_total - jycell - 1][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm[ixcell][nr_total - jycell - 1][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
+                        print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, nr_total - jycell - 1, jyl, ixl, local_patch.patchName))
+
+        # Add guard cells to the concatenated grid.
+        ixrb = len(rm) - 2
+        ixlb = 0
+
+        self.rm = self.add_guardc(rm, ixlb, ixrb, config)
+        self.zm = self.add_guardc(zm, ixlb, ixrb, config)
+
+        self.animate_grid()
+
+
+    def add_guardc(self, cell_map, ixlb, ixrb, config, nxpt = 1, eps = 1e-3):
+
+        def set_guard(cell_map, ix, iy, eps, config, boundary):
+
+            # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
+            # Edit the code to reflect this at some point so the next reader is not overwhelmed.
+            if boundary == 'left':
+                ixn = ix + 1
+                iyn = iy
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            elif boundary == 'right':
+                ixn = ix - 1
+                iyn = iy
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+            
+            elif boundary == 'bottom':
+                ixn = ix
+                iyn = iy + 1
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+            elif boundary == 'top':
+                ixn = ix
+                iyn = iy - 1
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            return cell_map
+
+        np = len(cell_map) - 2
+        nr = len(cell_map[0]) - 2
+
+        for iy in range(1, nr + 1):
+            ix = ixlb
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'left')
+            ix = ixrb + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'right')
+
+        for ix in range(np + 2):
+            iy = 0
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'bottom')
+            iy = nr + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'top')
+
+        return cell_map
+
 
     def write_gridue(self):
         g = self.gridue_params
+        import pdb
+        pdb.set_trace()
         status = uegrid.write_gridue(np.int32(g['ixpt1']), np.int32(g['ixpt2']), np.int32(g['iyseptrx1']),\
                 (g['rm'].astype(np.double)), g['zm'].astype(np.double), g['psi'].astype(np.double), g['br'].astype(np.double), g['bz'].astype(np.double),\
                 g['bpol'].astype(np.double), g['bphi'].astype(np.double), g['b'].astype(np.double))
 
-    def export(self):
-        """ Saves the grid as an ascii file """
-        # TODO export the points the patches contain, but don't overlap
-        # any points
-        self.write_gridue()
-
     def animate_grid(self):
 
         try:
-            plt.close('Test Plot')
+            plt.close('INGRID: Debug')
         except:
             pass
-        plt.figure('Test Plot', figsize=(6, 10))
+        plt.figure('INGRID: Debug', figsize=(6, 10))
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
         plt.gca().set_aspect('equal', adjustable='box')
         plt.xlabel('R')
         plt.ylabel('Z')
-        plt.title('SNL Patch Diagram')
+        plt.title('visualize gridue')
 
         k = [1,2,4,3,1]
 
@@ -440,6 +529,34 @@ class LSN(SNL, Ingrid):
         print('=' * 80)
         print('LSN Object!')
         print('=' * 80 + '\n')
+
+    def construct_grid(self, np_cells = 1, nr_cells = 1):
+
+        # Straighten up East and West segments of our patches,
+        # Plot borders and fill patches.
+        primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
+        for patch in self.patches:
+            patch.make_subgrid(self, np_cells, nr_cells)
+
+            if patch.patchName == 'IDL':
+                patch.adjust_corner(primary_xpt, 'SE')
+            elif patch.patchName == 'IPF':
+                patch.adjust_corner(primary_xpt, 'NE')
+            elif patch.patchName == 'ISB':
+                patch.adjust_corner(primary_xpt, 'SW')
+            elif patch.patchName == 'ICB':
+                patch.adjust_corner(primary_xpt, 'NW')
+            elif patch.patchName == 'OCB':
+                patch.adjust_corner(primary_xpt, 'NE')
+            elif patch.patchName == 'OSB':
+                patch.adjust_corner(primary_xpt, 'SE')
+            elif patch.patchName == 'OPF':
+                patch.adjust_corner(primary_xpt, 'NW')
+            elif patch.patchName == 'ODL':
+                patch.adjust_corner(primary_xpt, 'SW')
+
+        self.concat_grid(self.get_configuration())
+        self.set_gridue()
     
     def construct_patches(self):
         """
@@ -625,173 +742,54 @@ class LSN(SNL, Ingrid):
                         [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
                         ]
 
-    def construct_grid(self, np_cells = 1, nr_cells = 1):
 
-        # Straighten up East and West segments of our patches,
-        # Plot borders and fill patches.
-        primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
-        for patch in self.patches:
-            patch.make_subgrid(self, np_cells, nr_cells)
-
-            if patch.patchName == 'IDL':
-                patch.adjust_corner(primary_xpt, 'SE')
-            elif patch.patchName == 'IPF':
-                patch.adjust_corner(primary_xpt, 'NE')
-            elif patch.patchName == 'ISB':
-                patch.adjust_corner(primary_xpt, 'SW')
-            elif patch.patchName == 'ICB':
-                patch.adjust_corner(primary_xpt, 'NW')
-            elif patch.patchName == 'OCB':
-                patch.adjust_corner(primary_xpt, 'NE')
-            elif patch.patchName == 'OSB':
-                patch.adjust_corner(primary_xpt, 'SE')
-            elif patch.patchName == 'OPF':
-                patch.adjust_corner(primary_xpt, 'NW')
-            elif patch.patchName == 'ODL':
-                patch.adjust_corner(primary_xpt, 'SW')
-
-        self.concat_grid(self.get_configuration())
-        self.set_gridue()
-
-    def add_guardc(self, cell_map, ixlb, ixrb, config, nxpt = 1, eps = 1e-3):
-
-        def set_guard(cell_map, ix, iy, eps, config, boundary):
-
-            # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
-            # Edit the code to reflect this at some point so the next reader is not overwhelmed.
-            if boundary == 'left':
-                ixn = ix + 1
-                iyn = iy
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-            elif boundary == 'right':
-                ixn = ix - 1
-                iyn = iy
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-            
-            elif boundary == 'bottom':
-                ixn = ix
-                iyn = iy + 1
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-            elif boundary == 'top':
-                ixn = ix
-                iyn = iy - 1
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-            return cell_map
-
-        np = len(cell_map) - 2
-        nr = len(cell_map[0]) - 2
-
-        for iy in range(1, nr + 1):
-            ix = ixlb
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'left')
-            ix = ixrb + 1
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'right')
-
-        for ix in range(np + 2):
-            iy = 0
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'bottom')
-            iy = nr + 1
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'top')
-
-        return cell_map
-
-    def concat_grid(self, config):
+    def set_gridue(self):
         """
-        Concatenate all local grids on individual patches into a single 
-        array with branch cuts
-
-        Parameters:
-        ----------
-            config : str
-                Type of SNL grid to concat.
-
+        Prepare the relevant arrays for writing to GRIDUE.
         """
-        # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
 
+        # RECALL: self.rm has FORTRAN style ordering (columns are accessed via the first entry)
+        # Getting relevant values for gridue file
+        ixrb = len(self.rm) - 2
+        ixpt1 = self.patch_lookup['IDL'].npol - 1
+        ixpt2 = ixrb - self.patch_lookup['ODL'].npol + 1
+        iyseparatrix1 = self.patch_lookup['IDL'].nrad - 1
+        nxm = len(self.rm) - 2
+        nym = len(self.rm[0]) - 2
 
-        p = self.patch_lookup
-        patch_matrix = self.patch_matrix
+        psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
 
-        # Get some poloidal and radial information from each patch to attribute to the 
-        # local subgrid.
-        # NOTE: npol and nrad refer to the actual lines in the subgrid. Because of this, we must add
-        #       the value of 1 to the cell number to get the accurate number of lines.
+        rm = self.rm
+        zm = self.zm
+        rb_prod = self.psi_norm.rcenter * self.psi_norm.bcenter
 
+        for i in range(len(b)):
+            for j in range(len(b[0])):
+                for k in range(5):
+                    _r = rm[i][j][k]
+                    _z = zm[i][j][k]
 
-        for patch in self.patches:
-            patch.npol = len(patch.cell_grid[0]) + 1
-            patch.nrad = len(patch.cell_grid) + 1
+                    _psi = self.psi_norm.get_psi(_r, _z)
+                    _br = self.psi_norm.get_psi(_r, _z, tag = 'vz') / _r
+                    _bz = self.psi_norm.get_psi(_r, _z, tag = 'vr') / _r
+                    _bpol = np.sqrt(_br ** 2 + _bz ** 2)
+                    _bphi = rb_prod / _r
+                    _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
 
-            print('"{}" has ({}, {})'.format(patch.patchName, patch.npol, patch.nrad))
+                    psi[i][j][k] = _psi
+                    br[i][j][k] = _br
+                    bz[i][j][k] = _bz
+                    bpol[i][j][k] = _bpol
+                    bphi[i][j][k] = _bphi
+                    b[i][j][k] = _b
 
-        # Number of Poloidal patch indices with guard patches
-        np_patch = len(patch_matrix[0])
-        # Number of Radial patch indices with guard patches
-        nr_patch = len(patch_matrix)
-
-        # Total number of poloidal indices in subgrid.
-        np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
-        nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
-
-        rm = np.zeros((np_total, nr_total, 5), order = 'F')
-        zm = np.zeros((np_total, nr_total, 5), order = 'F')
-
-        ixcell = 0
-        jycell = 0
-
-        import pdb
-        pdb.set_trace()
-
-        pol_const = patch_matrix[1][1].npol - 1
-        rad_const = patch_matrix[1][1].nrad - 1
-
-        for ixp in range(1, np_patch - 1):
-            for jyp in range(1, nr_patch - 1):
-
-                local_patch = patch_matrix[jyp][ixp]
-
-                for ixl in range(local_patch.npol - 1):
-                    for jyl in range(local_patch.nrad - 1):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) - pol_const + ixl + 1
-                        jycell = int(np.sum([patch.nrad - 1 for patch in patch_matrix[1][1:jyp+1]])) - rad_const + jyl + 1
-
-                        ind = 0
-
-
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm[ixcell][nr_total - jycell - 1][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                            zm[ixcell][nr_total - jycell - 1][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-
-        # Add guard cells to the concatenated grid.
-        ixrb = len(rm) - 2
-        ixlb = 0
-
-        import pdb
-        pdb.set_trace()
-        self.rm = self.add_guardc(rm, ixlb, ixrb, config)
-        self.zm = self.add_guardc(zm, ixlb, ixrb, config)
-
-        self.animate_grid()
+        self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'ixpt1' : ixpt1, 'ixpt2' : ixpt2, 'iyseptrx1' : iyseparatrix1, \
+            'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b}
 
 class USN(SNL, Ingrid):
     def __init__(self, INGRID_object):
@@ -800,6 +798,34 @@ class USN(SNL, Ingrid):
         print('USN Object!')
         print('=' * 80 + '\n')
         super().__init__(INGRID_object)
+
+    def construct_grid(self, np_cells = 1, nr_cells = 1):
+
+        # Straighten up East and West segments of our patches,
+        # Plot borders and fill patches.
+        primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
+        for patch in self.patches:
+            patch.make_subgrid(self, np_cells, nr_cells)
+
+            if patch.patchName == 'ODL':
+                patch.adjust_corner(primary_xpt, 'SE')
+            elif patch.patchName == 'OPF':
+                patch.adjust_corner(primary_xpt, 'NE')
+            elif patch.patchName == 'OSB':
+                patch.adjust_corner(primary_xpt, 'SW')
+            elif patch.patchName == 'OCB':
+                patch.adjust_corner(primary_xpt, 'NW')
+            elif patch.patchName == 'ICB':
+                patch.adjust_corner(primary_xpt, 'NE')
+            elif patch.patchName == 'ISB':
+                patch.adjust_corner(primary_xpt, 'SE')
+            elif patch.patchName == 'IPF':
+                patch.adjust_corner(primary_xpt, 'NW')
+            elif patch.patchName == 'IDL':
+                patch.adjust_corner(primary_xpt, 'SW')
+
+        self.concat_grid(self.get_configuration())
+        self.set_gridue()
     
     def construct_patches(self):
         """
@@ -822,8 +848,8 @@ class USN(SNL, Ingrid):
 
         debug = False
 
-        self.itp = self.plate_data['plate_W1']
-        self.otp = self.plate_data['plate_E1']
+        self.itp = self.plate_data['plate_E1']
+        self.otp = self.plate_data['plate_W1']
 
         xpt = self.eq.eq_psi
         magx = np.array([self.grid_params['rmagx'], self.grid_params['zmagx']])
@@ -985,294 +1011,53 @@ class USN(SNL, Ingrid):
                         [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
                         ]
 
-    def construct_grid(self, np_cells = 1, nr_cells = 1):
-
-        # Straighten up East and West segments of our patches,
-        # Plot borders and fill patches.
-
-        primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
-        for patch in self.patches:
-            print(patch.patchName)
-            patch.make_subgrid(self, np_cells, nr_cells)
-
-            if patch.patchName == 'IDL':
-                patch.adjust_corner(primary_xpt, 'SW')
-            elif patch.patchName == 'IPF':
-                patch.adjust_corner(primary_xpt, 'NW')
-            elif patch.patchName == 'ISB':
-                patch.adjust_corner(primary_xpt, 'SE')
-            elif patch.patchName == 'ICB':
-                patch.adjust_corner(primary_xpt, 'NE')
-            elif patch.patchName == 'OCB':
-                patch.adjust_corner(primary_xpt, 'NW')
-            elif patch.patchName == 'OSB':
-                patch.adjust_corner(primary_xpt, 'SW')
-            elif patch.patchName == 'OPF':
-                patch.adjust_corner(primary_xpt, 'NE')
-            elif patch.patchName == 'ODL':
-                patch.adjust_corner(primary_xpt, 'SE')
-
-        self.concat_grid(self.get_configuration())
-        self.set_gridue()
-
-
-    def add_guardc(self, cell_map, ixlb, ixrb, config, nxpt = 1, eps = 1e-3):
-
-        def set_guard(cell_map, ix, iy, eps, config, boundary):
-
-            # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
-            # Edit the code to reflect this at some point so the next reader is not overwhelmed.
-            if boundary == 'left':
-                ixn = ix + 1
-                iyn = iy
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-            elif boundary == 'right':
-                ixn = ix - 1
-                iyn = iy
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-            
-            elif boundary == 'bottom':
-                ixn = ix
-                iyn = iy + 1
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-            elif boundary == 'top':
-                ixn = ix
-                iyn = iy - 1
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-            return cell_map
-
-        np = len(cell_map) - 2
-        nr = len(cell_map[0]) - 2
-
-        for iy in range(1, nr + 1):
-            ix = ixlb
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'left')
-            ix = ixrb + 1
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'right')
-
-        for ix in range(np + 2):
-            iy = 0
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'bottom')
-            iy = nr + 1
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'top')
-
-        return cell_map
-
-    def _add_guardc(self, cell_map, ixlb, ixrb, config, nxpt = 1, eps = 1e-3):
-
-        def _set_guard(cell_map, ix, iy, eps, config, boundary):
-
-            # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
-            # Edit the code to reflect this at some point so the next reader is not overwhelmed.
-            if boundary == 'left':
-                ixn = ix - 1
-                iyn = iy
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-            elif boundary == 'right':
-                ixn = ix + 1
-                iyn = iy
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-            elif boundary == 'bottom':
-                ixn = ix
-                iyn = iy + 1
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-            elif boundary == 'top':
-                ixn = ix
-                iyn = iy - 1
-                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
-                cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
-                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
-                cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
-                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-            return cell_map
-
-        np = len(cell_map) - 2
-        nr = len(cell_map[0]) - 2
-
-        for iy in range(1, nr + 1):
-            ix = ixlb
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'left')
-            ix = ixrb + 1
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'right')
-
-        for ix in range(np + 2):
-            iy = 0
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'bottom')
-            iy = nr + 1
-            cell_map = set_guard(cell_map, ix, iy, eps, config = config, boundary = 'top')
-
-        return cell_map    
-
-    def concat_grid(self, config):
+    def set_gridue(self):
         """
-        Concatenate all local grids on individual patches into a single 
-        array with branch cuts
-
-        Parameters:
-        ----------
-            config : str
-                Type of SNL grid to concat.
-
+        Prepare the relevant arrays for writing to GRIDUE.
         """
-        # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
 
+        # RECALL: self.rm has FORTRAN style ordering (columns are accessed via the first entry)
+        # Getting relevant values for gridue file
+        ixrb = len(self.rm) - 2
+        ixpt1 = self.patch_lookup['ODL'].npol - 1
+        ixpt2 = ixrb - self.patch_lookup['IDL'].npol + 1
+        iyseparatrix1 = self.patch_lookup['ODL'].nrad - 1
+        nxm = len(self.rm) - 2
+        nym = len(self.rm[0]) - 2
 
-        p = self.patch_lookup
-        patch_matrix = self.patch_matrix
+        psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
 
-        # Get some poloidal and radial information from each patch to attribute to the 
-        # local subgrid.
-        # NOTE: npol and nrad refer to the actual lines in the subgrid. Because of this, we must add
-        #       the value of 1 to the cell number to get the accurate number of lines.
+        rm = self.rm
+        zm = self.zm
+        rb_prod = self.psi_norm.rcenter * self.psi_norm.bcenter
 
+        for i in range(len(b)):
+            for j in range(len(b[0])):
+                for k in range(5):
+                    _r = rm[i][j][k]
+                    _z = zm[i][j][k]
 
-        for patch in self.patches:
-            patch.npol = len(patch.cell_grid[0]) + 1
-            patch.nrad = len(patch.cell_grid) + 1
+                    _psi = self.psi_norm.get_psi(_r, _z)
+                    _br = self.psi_norm.get_psi(_r, _z, tag = 'vz') / _r
+                    _bz = self.psi_norm.get_psi(_r, _z, tag = 'vr') / _r
+                    _bpol = np.sqrt(_br ** 2 + _bz ** 2)
+                    _bphi = rb_prod / _r
+                    _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
 
-        # Number of Poloidal patch indices with guard patches
-        np_patch = len(patch_matrix[0])
-        # Number of Radial patch indices with guard patches
-        nr_patch = len(patch_matrix)
+                    psi[i][j][k] = _psi
+                    br[i][j][k] = _br
+                    bz[i][j][k] = _bz
+                    bpol[i][j][k] = _bpol
+                    bphi[i][j][k] = _bphi
+                    b[i][j][k] = _b
 
-        # Total number of poloidal indices in subgrid.
-        np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
-        nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
-
-        rm = np.zeros((np_total, nr_total, 5), order = 'F')
-        zm = np.zeros((np_total, nr_total, 5), order = 'F')
-
-        ixcell = 0
-        jycell = 0
-
-        pol_const = patch_matrix[1][1].npol - 1
-        rad_const = patch_matrix[1][1].nrad - 1
-
-        for ixp in range(1, np_patch - 1):
-            for jyp in range(1, nr_patch - 1):
-
-                for ixl in range(patch_matrix[jyp][ixp].npol - 1):
-                    for jyl in range(patch_matrix[jyp][ixp].nrad - 1):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) - pol_const + ixl + 1
-                        jycell = int(np.sum([patch.nrad - 1 for patch in patch_matrix[1][1:jyp+1]])) - rad_const + jyl + 1
-
-                        ind = 0
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm[ixcell][nr_total - jycell - 1][ind] = patch_matrix[jyp][ixp].cell_grid[jyl][ixl].vertices[coor].x
-                            zm[ixcell][nr_total - jycell - 1][ind] = patch_matrix[jyp][ixp].cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-
-        # Add guard cells to the concatenated grid.
-        ixrb = len(rm) - 2
-        ixlb = 0
-        self.rm = self.add_guardc(rm, ixlb, ixrb, config)
-        self.zm = self.add_guardc(zm, ixlb, ixrb, config)
-
-        self.animate_grid()
-
-    def _concat_grid(self, config):
-        """
-        Concatenate all local grids on individual patches into a single 
-        array with branch cuts
-
-        Parameters:
-        ----------
-            config : str
-                Type of SNL grid to concat.
-
-        """
-        # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
-
-
-        p = self.patch_lookup
-        patch_matrix = self.patch_matrix
-
-        # Get some poloidal and radial information from each patch to attribute to the 
-        # local subgrid.
-        # NOTE: npol and nrad refer to the actual lines in the subgrid. Because of this, we must add
-        #       the value of 1 to the cell number to get the accurate number of lines.
-
-
-        for patch in self.patches:
-            patch.npol = len(patch.cell_grid[0]) + 1
-            patch.nrad = len(patch.cell_grid) + 1
-
-        # Number of Poloidal patch indices with guard patches
-        np_patch = len(patch_matrix[0])
-        # Number of Radial patch indices with guard patches
-        nr_patch = len(patch_matrix)
-
-        # Total number of poloidal indices in subgrid.
-        np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
-        nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
-
-        rm = np.zeros((np_total, nr_total, 5), order = 'F')
-        zm = np.zeros((np_total, nr_total, 5), order = 'F')
-
-        ixcell = 0
-        jycell = 0
-
-        pol_const = patch_matrix[1][1].npol - 1
-        rad_const = patch_matrix[1][1].nrad - 1
-
-        for ixp in range(1, np_patch - 1):
-            for jyp in range(1, nr_patch - 1):
-
-                for ixl in range(patch_matrix[jyp][ixp].npol - 1):
-                    for jyl in range(patch_matrix[jyp][ixp].nrad - 1):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) - ixl
-                        jycell = int(np.sum([patch.nrad - 1 for patch in patch_matrix[1][1:jyp+1]])) - rad_const + jyl + 1
-
-                        ind = 0
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm[ixcell][nr_total - jycell - 1][ind] = patch_matrix[jyp][ixp].cell_grid[jyl][ixl].vertices[coor].x
-                            zm[ixcell][nr_total - jycell - 1][ind] = patch_matrix[jyp][ixp].cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-
-        # Add guard cells to the concatenated grid.
-        ixrb = len(rm) - 2
-        ixlb = 0
-        self.rm = self.add_guardc(rm, ixlb, ixrb, config)
-        self.zm = self.add_guardc(zm, ixlb, ixrb, config)
-        
-
-        self.animate_grid()
+        self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'ixpt1' : ixpt1, 'ixpt2' : ixpt2, 'iyseptrx1' : iyseparatrix1, \
+            'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b}
 
 
 def set_params_GUI():

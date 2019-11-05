@@ -12,7 +12,7 @@ from sys import platform as sys_pf
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from matplotlib.pyplot import close as _close_figs
+from matplotlib.pyplot import close
 from matplotlib.figure import Figure
 from scipy.optimize import root 
 from numpy import full_like
@@ -83,7 +83,8 @@ class IngridApp(tk.Tk):
             self.frames = {}
 
             try:
-                _close_figs('all')
+                # Close all open figures
+                close('all')
             except:
                 pass
 
@@ -227,7 +228,7 @@ class FilePicker(tk.Frame):
         self.ControlPanel = tk.Frame(self)
         self.ControlPanel.grid(row = len(self.FP_Frames) + 1, column = 0, \
                 padx = 10, pady = 5, sticky = 'NSEW')
-        self.previewButton = tk.Button(self.ControlPanel, text = 'Preview Loaded Files', \
+        self.previewButton = tk.Button(self.ControlPanel, text = 'Preview Loaded Data', \
             font = helv_medium, state = 'disabled', command = self.preview_data)
         self.confirmButton = tk.Button(self.ControlPanel, text = 'Confirm', \
             font = helv_medium, state = 'disabled', command = self.confirm_data)
@@ -340,7 +341,8 @@ class FilePicker(tk.Frame):
                 self.controller.IngridSession.yaml['target_plates']['plate_W1']['file'] = str(itp_file)
                 print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.itpFrame.fileLoaded(itp_file)
-                self.update_frame_state()            
+                self.update_frame_state()
+
     def load_otp_file(self, showFileDialog = True, toLoad=None):
         """
         Loads *.txt file containing OTP geometry.
@@ -559,6 +561,9 @@ class ParamPicker(tk.Frame):
         # Use push/pop system for keeping track. Initially all inactive
         self.ActiveFrame = []
         self.curr_click = ()
+
+        self.efit_loaded = False
+        self.psinorm_loaded = False
     
     def refine(self):
         sol = root(self.controller.IngridSession.root_finder.func, \
@@ -577,14 +582,24 @@ class ParamPicker(tk.Frame):
         calling_frame.enable_frame()
         self.ActiveFrame.append(calling_frame)
         self.ActiveFrame[0].toggle_mouse()
+        if calling_frame in self.RF_Frames:
+            self.efit_loaded = True
+        if calling_frame in self.PF_Frames:
+            self.psinorm_loaded = True
 
     def unlock_PF_Frame(self):
+        try:
+            close(self.controller.IngridSession.efit_psi.name)
+        except:
+            pass
+
         for F in self.PF_Frames:
             F.Edit_Button.config(state = 'normal')
         self.controller.IngridSession.calc_psinorm()
+        self.controller.IngridSession.plot_psinorm()
+        self.controller.IngridSession.find_psi_lines(tk_controller = self.controller)
         self.controller.IngridSession.init_LineTracing()
         self.controller.frames[ParamPicker].acceptPF_Button.config(state = 'normal')
-        self.controller.frames[ParamPicker].PsiMaxFrame.toggle_edit()
 
     def unlock_controls(self):
         self.settings_Button.config(state = 'normal')
@@ -600,10 +615,7 @@ class ParamPicker(tk.Frame):
         self.ActiveFrame[0].R_EntryText.set('{0:.12f}'.format(self.curr_click[0]))
         self.ActiveFrame[0].Z_EntryText.set('{0:.12f}'.format(self.curr_click[1]))
         if self.ActiveFrame[0] in self.PF_Frames:
-            psi_magx = self.controller.IngridSession.efit_psi.get_psi(self.MagAxis[0], self.MagAxis[1])
-            psi_xpt = self.controller.IngridSession.efit_psi.get_psi(self.Xpt[0], self.Xpt[1])
-            psi_efit = self.controller.IngridSession.efit_psi.get_psi(self.curr_click[0],self.curr_click[1])
-            psi = (psi_efit - full_like(psi_efit, psi_magx))/(psi_xpt - psi_magx)
+            psi = self.controller.IngridSession.psi_norm.get_psi(self.curr_click[0],self.curr_click[1])
             self.ActiveFrame[0].Psi_EntryText.set('{0:.12f}'.format(psi))
 
     def set_RFValues(self):
@@ -625,7 +637,9 @@ class ParamPicker(tk.Frame):
         # TODO: Exception handling behind the scenes for ensuring PF_Frame is indeed ready.
         
         self.acceptRF_Button.config(text = 'Entries Saved!', fg = 'lime green')
+        # plt.close('all')        
         self.unlock_PF_Frame()
+
     
     def set_PsiValues(self):
         
@@ -649,8 +663,6 @@ class ParamPicker(tk.Frame):
         
         self.unlock_controls()
         self.acceptPF_Button.config(text = 'Entries Saved!', fg = 'lime green')
-
-        self.set_RFValues()
         self.controller.IngridSession.grid_params = self.controller.IngridSession.yaml['grid_params']
         self.controller.IngridSession.integrator_params = self.controller.IngridSession.yaml['integrator_params']
         self.controller.IngridSession.target_plates = self.controller.IngridSession.yaml['target_plates']
@@ -683,7 +695,6 @@ class ParamPicker(tk.Frame):
             self.Grid.magx = self.MagAxis
             self.Grid.xpt1 = self.Xpt
 
-        self.Grid.calc_psinorm()
         self.Grid.construct_patches()
         self.Grid.patch_diagram()
     
@@ -1028,10 +1039,10 @@ class PsiFinderFrame(tk.LabelFrame):
 
     def toggle_mouse(self):
         if self.active_mouse.get() is True:
-            self.controller.controller.IngridSession.root_finder.connect()
+            self.controller.controller.IngridSession.psi_finder.connect()
             print('Connected')
         else:
-            self.controller.controller.IngridSession.root_finder.disconnect()
+            self.controller.controller.IngridSession.psi_finder.disconnect()
             print('Disconnected')
 
     def toggle_edit(self):

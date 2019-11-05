@@ -329,6 +329,26 @@ class SNL_Patch(Patch):
                 Number to be used to generate num x num 
                 cells within our Patch.
         """
+
+        def get_poloidal_func(grid, _func):
+
+            def make_sympy_func(var, expression):
+                import sympy as sp
+                _f = sp.lambdify(var, expression, 'numpy')
+                return _f
+
+            f_str_raw = _func
+
+            f_str_raw = f_str_raw.replace(' ', '')
+            delim = f_str_raw.index(',')
+
+            var = f_str_raw[0 : delim]
+            expression = f_str_raw[delim + 1 :]
+
+            _func = make_sympy_func(var, expression)
+
+            return _func
+
         def psi_parameterize(grid, r, z):
             """
             Helper function to be used to generate a 
@@ -356,16 +376,25 @@ class SNL_Patch(Patch):
                 if self.plateLocation == 'W':
                     np_cells = grid.yaml['target_plates']['plate_W1']['np_local']
                     nr_cells = grid.yaml['target_plates']['plate_W1']['nr_local']
+                    _func = grid.yaml['target_plates']['plate_W1']['poloidal_f']
                 elif self.plateLocation == 'E':
                     np_cells = grid.yaml['target_plates']['plate_E1']['np_local']
                     nr_cells = grid.yaml['target_plates']['plate_E1']['nr_local']
+                    _func = grid.yaml['target_plates']['plate_E1']['poloidal_f']                    
             if grid.config == 'USN':
                 if self.plateLocation == 'E':
                     np_cells = grid.yaml['target_plates']['plate_W1']['np_local']
                     nr_cells = grid.yaml['target_plates']['plate_W1']['nr_local']
+                    _func = grid.yaml['target_plates']['plate_W1']['poloidal_f']                    
                 elif self.plateLocation == 'W':
                     np_cells = grid.yaml['target_plates']['plate_E1']['np_local']
-                    nr_cells = grid.yaml['target_plates']['plate_E1']['nr_local']             
+                    nr_cells = grid.yaml['target_plates']['plate_E1']['nr_local']
+                    _func = grid.yaml['target_plates']['plate_E1']['poloidal_f']
+
+            _poloidal_f = get_poloidal_func(grid, _func)
+
+        else:
+            _poloidal_f = lambda x: x
 
 
         print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(self.patchName, np_cells, nr_cells))
@@ -451,10 +480,10 @@ class SNL_Patch(Patch):
         W_vertices = []
 
         for i in range(np_lines):
-            _n = splev(i / (np_lines-1), N_spl)
+            _n = splev(_poloidal_f(i / (np_lines-1)), N_spl)
             N_vertices.append(Point((_n[0], _n[1])))
 
-            _s = splev(i / (np_lines-1), S_spl)
+            _s = splev(_poloidal_f(i / (np_lines-1)), S_spl)
             S_vertices.append(Point((_s[0], _s[1])))
 
         for i in range(nr_lines):
@@ -485,7 +514,7 @@ class SNL_Patch(Patch):
             radial_spline = splev(uR, radial_spl)
             vertex_list = []
             for i in range(np_lines):
-                _r = splev(i / np_cells, radial_spl)
+                _r = splev(_poloidal_f(i / (np_lines-1)), radial_spl)
                 vertex_list.append(Point((_r[0], _r[1])))
             radial_vertices.append(vertex_list)
         radial_lines.append(self.S)

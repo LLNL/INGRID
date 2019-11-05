@@ -29,7 +29,7 @@ target_plates:
     name: LSN_otp
     np_local: 5
     nr_local: 2
-    poloidal_f: x, x
+    poloidal_f: x, x ** 2
   plate_W1:
     file: ../data/SNL/itp5.txt
     name: LSN_itp

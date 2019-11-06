@@ -142,7 +142,7 @@ class RootFinder:
         plt.cla()
         self.grid.plot_data()
         self.controller.IngridSession.plot_target_plates()
-        plt.contour(self.grid.r, self.grid.z, self.grid.v, [self.grid.get_psi(x,y)], label = 'psi_line')
+        plt.contour(self.grid.r, self.grid.z, self.grid.v, [self.grid.get_psi(x,y)], colors = 'red', label = 'psi_line')
         self.controller.frames[IngridApp.ParamPicker].curr_click = (x, y)
         self.controller.frames[IngridApp.ParamPicker].update_root_finder()
 

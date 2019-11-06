@@ -314,7 +314,7 @@ class SNL_Patch(Patch):
     def __init__(self, lines, patchName = '', platePatch = False, plateLocation = None):
         super().__init__(lines, patchName, platePatch, plateLocation)
 
-    def make_subgrid(self, grid, np_cells = 2, nr_cells = 2):
+    def make_subgrid(self, grid, np_cells = 2, nr_cells = 2, verbose = False, visual = False):
         """
         Generate a refined grid within a patch.
         This 'refined-grid' within a Patch is a collection
@@ -396,8 +396,8 @@ class SNL_Patch(Patch):
         else:
             _poloidal_f = lambda x: x
 
-
-        print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(self.patchName, np_cells, nr_cells))
+        if verbose:
+            print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(self.patchName, np_cells, nr_cells))
 
         np_lines = np_cells + 1
         nr_lines = nr_cells + 1
@@ -445,21 +445,33 @@ class SNL_Patch(Patch):
                 plate_north = [N_vals[0][-1], N_vals[1][-1]]
                 plate_south = [S_vals[0][-1], S_vals[1][-1]]
 
-            # print(_u)
+            if verbose:
+                print('=' * 80 + '\n')
+                print('Parameterization of Target Plate in PSI:')
+                print(_u)
+                print('=' * 80 + '\n')
+
             lookup = {}
             for i in range(len(_u)):
                 lookup[_u[i]] = i
             try:
                 plate_north_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args = (U_spl, plate_north[0], plate_north[1])))]
             except ValueError:
-                print('brentq failed. attempting fsolve...')
-                plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args = (U_spl, plate_north[0], plate_north[1])))]
+                print('NorthIndex: brentq failed. attempting fsolve...')
+                try:
+                    plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args = (U_spl, plate_north[0], plate_north[1])))]
+                    print('NorthIndex: ...fsolve success!')
+                except:
+                    print('NorthIndex: ERROR IN PARAMETERIZATION IN PSI')
             try:
                 plate_south_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args = (U_spl, plate_south[0], plate_south[1])))]
             except ValueError:
-                print('brentq failed. attempting fsolve...')
-                plate_south_index = lookup[find_nearest(_u, fsolve(f, 0, args = (U_spl, plate_south[0], plate_south[1])))]
-
+                print('SouthIndex: brentq failed. attempting fsolve...')
+                try:
+                    plate_south_index = lookup[find_nearest(_u, fsolve(f, 0, args = (U_spl, plate_south[0], plate_south[1])))]
+                    print('SouthIndex: ...fsolve success!')
+                except:
+                    print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
             U_vals = [U_vals[0][plate_north_index:plate_south_index], U_vals[1][plate_north_index:plate_south_index]]
             U_spl, _u = splprep([U_vals[0], U_vals[1]], u = psi_parameterize(grid, U_vals[0], U_vals[1]), s = 0)
 
@@ -493,11 +505,10 @@ class SNL_Patch(Patch):
             _w = splev(i / (nr_lines-1), W_spl)
             W_vertices.append(Point((_w[0], _w[1])))
 
-        """
-        for vertices in [W_vertices, E_vertices, N_vertices, S_vertices]:
-            for p in vertices:
-                plt.plot(p.x, p.y, '.', color = 'black')
-        """
+        if visual:
+            for vertices in [W_vertices, E_vertices, N_vertices, S_vertices]:
+                for p in vertices:
+                    plt.plot(p.x, p.y, '.', color = 'black')
         # Radial lines of Psi surfaces. Ordered with increasing magnitude, starting with
         # the South boundary of the current Patch, and ending with the North boundary of
         # this current Patch. These will serve as delimiters when constructing cells.
@@ -506,9 +517,7 @@ class SNL_Patch(Patch):
 
         # Interpolate radial lines between North and South patch boundaries.
         for i in range(len(W_vertices) - 2):
-            # plt.plot(W_vertices[i+1].x, W_vertices[i+1].y, '.', color = 'blue')
-            # plt.plot(E_vertices[i+1].x, E_vertices[i+1].y, '.', color = 'black')
-            radial_lines.append(grid.eq.draw_line(W_vertices[i + 1], {'point' : E_vertices[i + 1]}, option = 'theta', direction = 'cw', show_plot = False))
+            radial_lines.append(grid.eq.draw_line(W_vertices[i + 1], {'point' : E_vertices[i + 1]}, option = 'theta', direction = 'cw', show_plot = visual))
             radial_vals = radial_lines[i + 1].fluff()
             radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s = 0)
             radial_spline = splev(uR, radial_spl)
@@ -623,7 +632,7 @@ def test2points(p1, p2, line):
     return False
 
 
-def intersect(line1, line2):
+def intersect(line1, line2, verbose = False):
     """ Finds the intersection of two line segments
     
     
@@ -665,12 +674,13 @@ def intersect(line1, line2):
         (i, j), (p, q) = test_line
         guess = (np.mean([a, c, i, p]), np.mean([b, d, j, q]))
         sol, infoDict, ier, mesg = fsolve(f, guess, full_output = True)
-        print('{}: {}'.format(ind, mesg))
+        if verbose:
+            print('{}: {}'.format(ind, mesg))
         if ier == 1:
             break
     return sol[0], sol[1]
 
-def segment_intersect(line1, line2):
+def segment_intersect(line1, line2, verbose = False):
     """ Finds the intersection of two FINITE line segments.
     Parameters
     ----------
@@ -694,12 +704,14 @@ def segment_intersect(line1, line2):
         try:
             sol = np.linalg.solve(M, r)
         except np.linalg.LinAlgError:
-            print('~ Searching for intersection...')
+            if verbose:
+                print('Searching for intersection...')
             continue
 
         if (sol[0] <= 1) and (sol[1] <= 1) \
             and (sol[0] >= 0) and (sol[1] >= 0):
-            print('~ Intersection occurred!')
+            if verbose:
+                print('~ Intersection occurred!')
             return True, [(xc, yc), (xd, yd)]
     return False, [(np.nan, np.nan), (np.nan, np.nan)]
     

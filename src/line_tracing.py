@@ -230,7 +230,7 @@ class LineTracing:
         self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
         self.root.disconnect()
 
-    def SNL_find_NSEW(self, xpt, magx):
+    def SNL_find_NSEW(self, xpt, magx, visual = False):
         """
         Find NSEW based off primary x-point and magnetic axis,
 
@@ -616,7 +616,7 @@ class LineTracing:
                     print('The line went over the boundary')
                     if text:
                         success('edge')
-                    r, z = geo.intersect((p1, p2), edge)
+                    r, z = geo.intersect((p1, p2), edge, text)
                     save_line([p1[0], r], [p1[1], z])
                     return True
 
@@ -645,12 +645,12 @@ class LineTracing:
                 # p2 = ( x2, y2 )
                 p2 = (points[0][-1], points[1][-1])
                 result = geo.test2points(p1, p2, endLine)
-                intersected, segment = geo.segment_intersect((p1, p2), endLine)
+                intersected, segment = geo.segment_intersect((p1, p2), endLine, text)
                 if result and intersected:
                     if text:
                         success('line crossing')
                     segment = geo.Line([geo.Point(segment[0]), geo.Point(segment[-1])])
-                    r, z = geo.intersect((p1, p2), segment)
+                    r, z = geo.intersect((p1, p2), segment, text)
                     save_line([p1[0], r], [p1[1], z])
                     return True
 
@@ -663,7 +663,8 @@ class LineTracing:
                 
 
                 if (psi1 - psi_test)*(psi2 - psi_test) < 0:
-                    if text: success('psi test')
+                    if text: 
+                        success('psi test')
                     # need to find coords for the value of psi that we want
                     def f(x):
                         # must manually calculate y each time we stick it into

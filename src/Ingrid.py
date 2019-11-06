@@ -57,13 +57,18 @@ class Ingrid:
             'plate_E1' : {'file' : '', 'name' : '', 'np_local' : 3, 'nr_local' : 2, 'poloidal_f' : 'x, x'}, \
             'plate_W1' : {'file' : '', 'name' : '', 'np_local' : 3, 'nr_local' : 2, 'poloidal_f' : 'x, x'}
         }
+
+        self.default_DEBUG_params = { \
+            'visual' : {'find_NSEW' : False, 'patch_map' : False, 'subgrid' : False, 'gridue' : False}, \
+            'verbose' : {'target_plates' : False, 'patch_generation' : False, 'grid_generation' : False} 
+        }
         # Process params as a YAML file. Ensure ends up as a raw dictionary.s
         self.process_yaml(params)
         self.get_yaml()
 
     def process_yaml(self, params):
 
-            yaml_lookup = ['eqdsk', 'grid_params', 'integrator_params', 'target_plates']
+            yaml_lookup = ['eqdsk', 'grid_params', 'integrator_params', 'target_plates', 'DEBUG']
 
             for key in yaml_lookup:
                 try:
@@ -82,6 +87,8 @@ class Ingrid:
                     self.integrator_params = params[key]
                 elif key == 'target_plates':
                     self.target_plates = params[key]
+                elif key == 'DEBUG':
+                    self.DEBUG = params[key]
 
         # Store YAML data as dictionary object
             self.yaml = params
@@ -149,6 +156,13 @@ class Ingrid:
         The lines to define target plates end up with the shape ((x,y),(x,y)).
         These files read can contain more complicated lines than this.
         """
+        try:
+            import pdb
+            pdb.set_trace()
+            
+            debug = self.yaml['DEBUG']['verbose']['target_plates']
+        except:
+            debug = False
 
         target_plates = self.yaml['target_plates']
         plate_data = {}
@@ -174,7 +188,8 @@ class Ingrid:
                         x = float(point.split(',')[0])
                         y = float(point.split(',')[1])
                         plate_data[plate].append((x, y))
-                print('Using target plate "{}": {}'.format(target_plates[plate]['name'], plate_data[plate]))
+                if debug:
+                    print('Using target plate "{}": {}'.format(target_plates[plate]['name'], plate_data[plate]))
             except KeyError:
                 print('No inner target plate file.')
             except FileNotFoundError:
@@ -269,8 +284,13 @@ class Ingrid:
         return self.eq.config
 
     def _classify_gridtype(self):
+        try:
+            debug = self.yaml['DEBUG']['visual']['find_NSEW']
+        except:
+            debug = False
+
         if self.yaml['grid_params']['num_xpt'] == 1:
-            self.eq.SNL_find_NSEW(self.xpt1, self.magx)
+            self.eq.SNL_find_NSEW(self.xpt1, self.magx, debug)
         elif self.yaml['grid_params']['num_xpt'] == 2:
             print('Double null configurations not yet supported...')
 
@@ -467,7 +487,13 @@ class SNL(Ingrid):
         self.rm = self.add_guardc(rm, ixlb, ixrb, config)
         self.zm = self.add_guardc(zm, ixlb, ixrb, config)
 
-        self.animate_grid()
+        try:
+            debug = self.yaml['DEBUG']['visual']['gridue']
+        except:
+            debug = False
+        
+        if debug:
+            self.animate_grid()
 
 
     def add_guardc(self, cell_map, ixlb, ixrb, config, nxpt = 1, eps = 1e-3):
@@ -565,9 +591,19 @@ class LSN(SNL, Ingrid):
 
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
+
+        try:
+            visual = self.yaml['DEBUG']['visual']['subgrid']
+        except:
+            visual = False
+        try:
+            verbose = self.yaml['DEBUG']['verbose']['grid_generation']
+        except:
+            verbose = False
+
         primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
         for patch in self.patches:
-            patch.make_subgrid(self, np_cells, nr_cells)
+            patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
 
             if patch.patchName == 'IDL':
                 patch.adjust_corner(primary_xpt, 'SE')
@@ -605,8 +641,15 @@ class LSN(SNL, Ingrid):
         """
         # TODO: Create a 'lookup' procedure for determining line drawing
         #       orientations and inner-outer locations.
-    
-        debug = False
+
+        try:
+            visual = self.yaml['DEBUG']['visual']['patch_map']
+        except:
+            visual = False
+        try:
+            verbose = self.yaml['DEBUG']['verbose']['patch_generation']
+        except:
+            verbose = False
 
         self.itp = self.plate_data['plate_W1']
         self.otp = self.plate_data['plate_E1']
@@ -631,43 +674,43 @@ class LSN(SNL, Ingrid):
         topLine = Line([Lower_Point, Upper_Point])
 
         # Drawing Separatrix
-        xptN_psiMinCore = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option = 'rho', direction = 'cw', show_plot = debug)
-        xptNW_midLine = self.eq.draw_line(xpt['NW'], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug)
-        xptNE_midLine = self.eq.draw_line(xpt['NE'], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug)
+        xptN_psiMinCore = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        xptNW_midLine = self.eq.draw_line(xpt['NW'], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xptNE_midLine = self.eq.draw_line(xpt['NE'], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         
         # Drawing Lower-SNL region
-        xptW_psiMax = self.eq.draw_line(xpt['W'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = debug)
-        xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = debug)
-        xptS_psiMinPF = self.eq.draw_line(xpt['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = debug)        
+        xptW_psiMax = self.eq.draw_line(xpt['W'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+        xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+        xptS_psiMinPF = self.eq.draw_line(xpt['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)        
 
 
-        iPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = debug)
-        oPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = debug)
+        iPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        oPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
 
-        imidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug)
-        omidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug)
+        imidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        omidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
 
-        xpt_ITP = self.eq.draw_line(xpt['SW'], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = debug)
-        xpt_OTP = self.eq.draw_line(xpt['SE'], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = debug)
+        xpt_ITP = self.eq.draw_line(xpt['SW'], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt_OTP = self.eq.draw_line(xpt['SE'], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         
         # Integrating horizontally along mid-line towards psiMax and psiMinCore
         imidLine_psiMax = self.eq.draw_line(xptNW_midLine.p[-1], {'psi_horizontal' : psi_max}, option = 'z_const', \
-                direction = 'ccw', show_plot = debug)
+                direction = 'ccw', show_plot = visual, text = verbose)
         imidLine_psiMinCore = self.eq.draw_line(xptNW_midLine.p[-1], {'psi_horizontal' : psi_min_core}, option = 'z_const', \
-                direction = 'cw', show_plot = debug)
+                direction = 'cw', show_plot = visual, text = verbose)
         omidLine_psiMax = self.eq.draw_line(xptNE_midLine.p[-1], {'psi_horizontal' : psi_max}, option = 'z_const', \
-                direction = 'cw', show_plot = debug)
+                direction = 'cw', show_plot = visual, text = verbose)
         omidLine_psiMinCore = self.eq.draw_line(xptNE_midLine.p[-1], {'psi_horizontal' : psi_min_core}, option = 'z_const', \
-                direction = 'ccw', show_plot = debug)
+                direction = 'ccw', show_plot = visual, text = verbose)
         
         # Integrating vertically along top-line towards psiMax and psiMinCore
         topLine_psiMax = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_max}, option = 'r_const', \
-                direction = 'cw', show_plot = debug)
+                direction = 'cw', show_plot = visual, text = verbose)
         topLine_psiMinCore = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_min_core}, option = 'r_const', \
-                direction = 'ccw', show_plot = debug)
+                direction = 'ccw', show_plot = visual, text = verbose)
 
-        psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : ITP},option = 'theta', direction = 'ccw', show_plot = debug)
-        psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = debug)
+        psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : ITP},option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         
         # IDL Patch
         IDL_N = iPsiMax_TP.reverse_copy()
@@ -686,7 +729,7 @@ class LSN(SNL, Ingrid):
         IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # ISB Patch
-        ISB_N = self.eq.draw_line(IDL_N.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug)
+        ISB_N = self.eq.draw_line(IDL_N.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         ISB_S = xptNW_midLine.reverse_copy()
         ISB_E = Line([ISB_N.p[-1], ISB_S.p[0]])
         ISB_W = xptW_psiMax
@@ -694,13 +737,13 @@ class LSN(SNL, Ingrid):
 
         # ICB Patch
         ICB_N = ISB_S.reverse_copy()
-        ICB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug).reverse_copy()
+        ICB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose).reverse_copy()
         ICB_E = Line([ICB_N.p[-1], ICB_S.p[0]])
         ICB_W = xptN_psiMinCore.reverse_copy()
         ICB = SNL_Patch([ICB_N, ICB_E, ICB_S, ICB_W], patchName = 'ICB')
 
         # IST Patch
-        IST_N = self.eq.draw_line(ISB_N.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug)
+        IST_N = self.eq.draw_line(ISB_N.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         IST_S = imidLine_topLine.reverse_copy()
         IST_E = Line([IST_N.p[-1], IST_S.p[0]])
         IST_W = Line([IST_S.p[-1], IST_N.p[0]])
@@ -708,7 +751,7 @@ class LSN(SNL, Ingrid):
 
         # ICT Patch
         ICT_N = IST_S.reverse_copy()
-        ICT_S = self.eq.draw_line(ICB_S.p[0], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug).reverse_copy()
+        ICT_S = self.eq.draw_line(ICB_S.p[0], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose).reverse_copy()
         ICT_E = Line([ICT_N.p[-1], ICT_S.p[0]])
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
@@ -730,7 +773,7 @@ class LSN(SNL, Ingrid):
         OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
         # OSB Patch 
-        OSB_N = self.eq.draw_line(ODL_N.p[0], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug).reverse_copy()
+        OSB_N = self.eq.draw_line(ODL_N.p[0], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         OSB_S = xptNE_midLine
         OSB_E = xptE_psiMax.reverse_copy()
         OSB_W = Line([OSB_S.p[-1], OSB_N.p[0]])
@@ -738,13 +781,13 @@ class LSN(SNL, Ingrid):
 
         # OCB Patch
         OCB_N = OSB_S.reverse_copy()
-        OCB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug)
+        OCB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         OCB_E = xptN_psiMinCore
         OCB_W = Line([OCB_S.p[-1], OCB_N.p[0]])
         OCB = SNL_Patch([OCB_N, OCB_E, OCB_S, OCB_W], patchName = 'OCB')
 
         # OST Patch
-        OST_N = self.eq.draw_line(OSB_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug).reverse_copy()
+        OST_N = self.eq.draw_line(OSB_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         OST_S = omidLine_topLine
         OST_E = Line([OST_N.p[-1], OST_S.p[0]])
         OST_W = Line([OST_S.p[-1], OST_N.p[0]])
@@ -752,7 +795,7 @@ class LSN(SNL, Ingrid):
 
         # OCT Patch
         OCT_N = OST_S.reverse_copy()
-        OCT_S = self.eq.draw_line(OCB_S.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug)
+        OCT_S = self.eq.draw_line(OCB_S.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         OCT_E = Line([OCT_N.p[-1], OCT_S.p[0]])
         OCT_W = Line([OCT_S.p[-1], OCT_N.p[0]])
         OCT = SNL_Patch([OCT_N, OCT_E, OCT_S, OCT_W], patchName = 'OCT')
@@ -835,8 +878,18 @@ class USN(SNL, Ingrid):
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
         primary_xpt = Point([self.grid_params['rxpt'], self.grid_params['zxpt']])
+
+        try:
+            visual = self.yaml['DEBUG']['visual']['subgrid']
+        except:
+            visual = False
+        try:
+            verbose = self.yaml['DEBUG']['verbose']['grid_generation']
+        except:
+            verbose = False
+
         for patch in self.patches:
-            patch.make_subgrid(self, np_cells, nr_cells)
+            patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
 
             if patch.patchName == 'ODL':
                 patch.adjust_corner(primary_xpt, 'SE')
@@ -876,8 +929,14 @@ class USN(SNL, Ingrid):
         #       orientations and inner-outer locations.
     
 
-
-        debug = False
+        try:
+            visual = self.yaml['DEBUG']['visual']['patch_map']
+        except:
+            visual = False
+        try:
+            verbose = self.yaml['DEBUG']['verbose']['patch_generation']
+        except:
+            verbose = False
 
         self.itp = self.plate_data['plate_E1']
         self.otp = self.plate_data['plate_W1']
@@ -902,42 +961,42 @@ class USN(SNL, Ingrid):
         topLine = Line([Lower_Point, Upper_Point])
 
         # Drawing Separatrix
-        xptN_psiMinCore = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option = 'rho', direction = 'cw', show_plot = debug)
-        xptNW_midLine = self.eq.draw_line(xpt['NW'], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug)
-        xptNE_midLine = self.eq.draw_line(xpt['NE'], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug)
+        xptN_psiMinCore = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        xptNW_midLine = self.eq.draw_line(xpt['NW'], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xptNE_midLine = self.eq.draw_line(xpt['NE'], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         
         # Drawing Lower-SNL region
-        xptW_psiMax = self.eq.draw_line(xpt['W'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = debug)
-        xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = debug)
-        xptS_psiMinPF = self.eq.draw_line(xpt['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = debug)        
+        xptW_psiMax = self.eq.draw_line(xpt['W'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+        xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+        xptS_psiMinPF = self.eq.draw_line(xpt['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)        
 
-        iPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : self.itp}, option = 'theta', direction = 'cw', show_plot = debug)
-        oPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = debug)
+        iPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : self.itp}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        oPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
 
-        imidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug)
-        omidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug)
+        imidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        omidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
 
-        xpt_ITP = self.eq.draw_line(xpt['SE'], {'line' : self.itp}, option = 'theta', direction = 'cw', show_plot = debug)
-        xpt_OTP = self.eq.draw_line(xpt['SW'], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = debug)
+        xpt_ITP = self.eq.draw_line(xpt['SE'], {'line' : self.itp}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt_OTP = self.eq.draw_line(xpt['SW'], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
 
         # Integrating horizontally along mid-line towards psiMax and psiMinCore
         omidLine_psiMax = self.eq.draw_line(xptNW_midLine.p[-1], {'psi_horizontal' : psi_max}, option = 'z_const', \
-                direction = 'cw', show_plot = debug)
+                direction = 'cw', show_plot = visual, text = verbose)
         omidLine_psiMinCore = self.eq.draw_line(xptNW_midLine.p[-1], {'psi_horizontal' : psi_min_core}, option = 'z_const', \
-                direction = 'ccw', show_plot = debug)
+                direction = 'ccw', show_plot = visual, text = verbose)
         imidLine_psiMax = self.eq.draw_line(xptNE_midLine.p[-1], {'psi_horizontal' : psi_max}, option = 'z_const', \
-                direction = 'ccw', show_plot = debug)
+                direction = 'ccw', show_plot = visual, text = verbose)
         imidLine_psiMinCore = self.eq.draw_line(xptNE_midLine.p[-1], {'psi_horizontal' : psi_min_core}, option = 'z_const', \
-                direction = 'cw', show_plot = debug)
+                direction = 'cw', show_plot = visual, text = verbose)
         
         # Integrating vertically along top-line towards psiMax and psiMinCore
         topLine_psiMax = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_max}, option = 'r_const', \
-                direction = 'ccw', show_plot = debug)
+                direction = 'ccw', show_plot = visual, text = verbose)
         topLine_psiMinCore = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_min_core}, option = 'r_const', \
-                direction = 'cw', show_plot = debug)
+                direction = 'cw', show_plot = visual, text = verbose)
         
-        psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.itp},option = 'theta', direction = 'cw', show_plot = debug)
-        psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = debug)
+        psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.itp},option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         
         # IDL Patch
         IDL_N = iPsiMax_TP
@@ -956,7 +1015,7 @@ class USN(SNL, Ingrid):
         IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # ISB Patch
-        ISB_N = self.eq.draw_line(IDL_N.p[0], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug).reverse_copy()
+        ISB_N = self.eq.draw_line(IDL_N.p[0], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         ISB_S = xptNE_midLine
         ISB_E = xptE_psiMax.reverse_copy()
         ISB_W = Line([ISB_S.p[-1], ISB_N.p[0]])
@@ -964,13 +1023,13 @@ class USN(SNL, Ingrid):
 
         # ICB Patch
         ICB_N = ISB_S.reverse_copy()
-        ICB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = debug)
+        ICB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         ICB_E = xptN_psiMinCore
         ICB_W = Line([ICB_S.p[-1], ICB_N.p[0]])
         ICB = SNL_Patch([ICB_N, ICB_E, ICB_S, ICB_W], patchName = 'ICB')
 
         # IST Patch
-        IST_N = self.eq.draw_line(ISB_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug).reverse_copy()
+        IST_N = self.eq.draw_line(ISB_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         IST_S = imidLine_topLine
         IST_E = Line([IST_N.p[-1], IST_S.p[0]])
         IST_W = Line([IST_S.p[-1], IST_N.p[0]])
@@ -978,7 +1037,7 @@ class USN(SNL, Ingrid):
 
         # ICT Patch
         ICT_N = IST_S.reverse_copy()
-        ICT_S = self.eq.draw_line(ICB_S.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = debug)
+        ICT_S = self.eq.draw_line(ICB_S.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         ICT_E = Line([ICT_N.p[-1], ICT_S.p[0]])
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
@@ -1000,7 +1059,7 @@ class USN(SNL, Ingrid):
         OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
         # OSB Patch
-        OSB_N = self.eq.draw_line(ODL_N.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug)
+        OSB_N = self.eq.draw_line(ODL_N.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         OSB_S = xptNW_midLine.reverse_copy()
         OSB_E = Line([OSB_N.p[-1], OSB_S.p[0]])
         OSB_W = xptW_psiMax
@@ -1008,13 +1067,13 @@ class USN(SNL, Ingrid):
 
         # OCB Patch
         OCB_N = OSB_S.reverse_copy()
-        OCB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = debug).reverse_copy()
+        OCB_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose).reverse_copy()
         OCB_E = Line([OCB_N.p[-1], OCB_S.p[0]])
         OCB_W = xptN_psiMinCore.reverse_copy()
         OCB = SNL_Patch([OCB_N, OCB_E, OCB_S, OCB_W], patchName = 'OCB')
 
         # OST Patch
-        OST_N = self.eq.draw_line(OSB_N.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug)
+        OST_N = self.eq.draw_line(OSB_N.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         OST_S = omidLine_topLine.reverse_copy()
         OST_E = Line([OST_N.p[-1], OST_S.p[0]])
         OST_W = Line([OST_S.p[-1], OST_N.p[0]])
@@ -1022,7 +1081,7 @@ class USN(SNL, Ingrid):
 
         # OCT Patch
         OCT_N = OST_S.reverse_copy()
-        OCT_S = self.eq.draw_line(OCB_S.p[0], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = debug).reverse_copy()
+        OCT_S = self.eq.draw_line(OCB_S.p[0], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose).reverse_copy()
         OCT_E = Line([OCT_N.p[-1], OCT_S.p[0]])
         OCT_W = Line([OCT_S.p[-1], OCT_N.p[0]])
         OCT = SNL_Patch([OCT_N, OCT_E, OCT_S, OCT_W], patchName = 'OCT')

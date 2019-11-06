@@ -620,9 +620,6 @@ class ParamPicker(tk.Frame):
 
     def set_RFValues(self):
 
-        for item in self.RF_Frames:
-            self.activate_frame(item)
-            self.refine()
         self.controller.IngridSession.yaml['grid_params']['rmagx'] = float(self.MagFrame.R_EntryText.get())
         self.controller.IngridSession.yaml['grid_params']['zmagx'] = float(self.MagFrame.Z_EntryText.get())
         self.controller.IngridSession.yaml['grid_params']['rxpt'] = float(self.XptFrame.R_EntryText.get())
@@ -909,7 +906,7 @@ class RootFinderFrame(tk.LabelFrame):
 
         self.Refine_Button = tk.Button(self, text = 'Refine ' + self.title, font = helv_medium, \
                                        command = controller.refine, width = 20)
-        self.Edit_Button = tk.Button(self, text = 'Set ' + self.title, font = helv_medium, \
+        self.Edit_Button = tk.Button(self, text = 'Edit ' + self.title, font = helv_medium, \
                 command = lambda : self.toggle_edit(parent, controller), width = 20)
         self.All_Buttons = (self.Refine_Button, self.Edit_Button)
 
@@ -944,10 +941,12 @@ class RootFinderFrame(tk.LabelFrame):
 
     def toggle_edit(self, parent, controller):
         self.config(text = 'Editing ' + self.title, fg = 'blue')
+        self.Edit_Button.config(text = 'Editing ' + self.title, fg = 'blue')        
         controller.activate_frame(self)
         for F in controller.All_Frames:
             if F != self:
                 F.config(text = F.title, fg = 'black')
+                F.Edit_Button.config(text = 'Edit ' + F.title, fg = 'black')
 
     def toggle_mouse(self):
         if self.active_mouse.get() is True:
@@ -1003,7 +1002,7 @@ class PsiFinderFrame(tk.LabelFrame):
         self.Psi_Entry = tk.Entry(self, text = self.Psi_EntryText, disabledbackground = '#eee9e9')
         self.All_Entries = [self.R_Entry, self.Z_Entry, self.Psi_Entry]
 
-        self.Edit_Button = tk.Button(self, text = 'Set ' + self.title, font = helv_medium, \
+        self.Edit_Button = tk.Button(self, text = 'Edit ' + self.title, font = helv_medium, \
                 command = self.toggle_edit, width = 20)
 
         self.All_Buttons = [self.Edit_Button]
@@ -1027,8 +1026,10 @@ class PsiFinderFrame(tk.LabelFrame):
         self.R_Entry.grid(row = 0, column = 1, sticky = 'nsew', padx = 2, pady = 2)
         self.Z_Entry.grid(row = 1, column = 1, sticky = 'nsew', padx = 2, pady = 2)
         self.Psi_Entry.grid(row = 2, column = 1, sticky = 'nswe', padx = 2, pady = 2)
+        self.Psi_Entry.bind('<Return>', self.plot_level)
 
         self.Edit_Button.grid(row = 2, column = 2, columnspan = 1, sticky = 'we', padx = 2, pady = 2)
+        
 
         rbWrapper.grid(row = 0, rowspan = 2, column = 2, columnspan = 1, sticky = 'ns', padx = 10, pady = 5)
         self.On_Radiobutton.grid(row = 1, column = 2, sticky = 'we', padx = 2, pady = 2)
@@ -1046,10 +1047,12 @@ class PsiFinderFrame(tk.LabelFrame):
 
     def toggle_edit(self):
         self.config(text = 'Editing ' + self.title, fg = 'blue')
+        self.Edit_Button.config(text = 'Editing ' + self.title, fg = 'blue')        
         self.controller.activate_frame(self)
         for F in self.controller.All_Frames:
             if F != self:
                 F.config(text = F.title, fg = 'black')
+                F.Edit_Button.config(text = 'Edit ' + F.title, fg = 'black')        
 
     def disable_frame(self):
         self.active_frame = False
@@ -1067,4 +1070,7 @@ class PsiFinderFrame(tk.LabelFrame):
             entry.config(state = 'normal')
         for rb in self.All_Radiobuttons:
             rb.config(state = 'normal')
+
+    def plot_level(self, event = None):
+        self.controller.controller.IngridSession.psi_finder._level()
 

@@ -165,10 +165,11 @@ target_plates:
 DEBUG:
   visual:
     find_NSEW: 1
-    patch_map: 1
-    subgrid: 1
-    gridue: 1
+    patch_map: False
+    subgrid: 0
+    gridue: True
   verbose:
     target_plates: 0
     patch_generation: 1
     grid_generation: 1
+

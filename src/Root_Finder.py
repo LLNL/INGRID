@@ -78,7 +78,7 @@ class RootFinder:
         if self.root_finding: 
             self.find_root(self.curr_x, self.curr_y)
         elif self.psi_finding:
-            self.plot_psi(self.curr_x, self.curr_y)
+            self.find_psi(self.curr_x, self.curr_y)
         else:
             print("You chose ({0:.5f}, {1:.5f}). ".format(self.curr_x, self.curr_y))
             self.final_root = (self.curr_x, self.curr_y)
@@ -138,14 +138,23 @@ class RootFinder:
             # self.controller.curr_root = self.final_root
             self.controller.frames[IngridApp.ParamPicker].update_root_finder()
 
-    def plot_psi(self, x, y):
+    def find_psi(self, x, y):
+        self.controller.frames[IngridApp.ParamPicker].curr_click = (x, y)
+        self.controller.frames[IngridApp.ParamPicker].update_root_finder()
+
         plt.cla()
         self.grid.plot_data()
         self.controller.IngridSession.plot_target_plates()
         plt.contour(self.grid.r, self.grid.z, self.grid.v, [self.grid.get_psi(x,y)], colors = 'red', label = 'psi_line')
-        self.controller.frames[IngridApp.ParamPicker].curr_click = (x, y)
-        self.controller.frames[IngridApp.ParamPicker].update_root_finder()
 
+    def _level(self):
+
+        level = float(self.controller.frames[IngridApp.ParamPicker].ActiveFrame[0].Psi_EntryText.get())
+
+        plt.cla()
+        self.grid.plot_data()
+        self.controller.IngridSession.plot_target_plates()
+        plt.contour(self.grid.r, self.grid.z, self.grid.v, [level], colors = 'red', label = 'psi_line')
 
 if __name__ == "__main__":
 #    from Interpol.Setup_Grid_Data import Efit_Data

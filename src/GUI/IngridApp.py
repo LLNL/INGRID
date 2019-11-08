@@ -681,6 +681,11 @@ class ParamPicker(tk.Frame):
     def createPatches(self):
         
         self.set_INGRID_params()
+        result = self.check_psi_validity()
+
+        if not result['psi_valid']:
+            tkMB.showerror("Psi Value Error", result['message'])
+            return
         self.controller.IngridSession._analyze_topology()
 
         self.Grid = self.controller.IngridSession.current_topology
@@ -696,6 +701,42 @@ class ParamPicker(tk.Frame):
         self.Grid.patch_diagram()
     
         self.createSubgrid_Button.config(state = 'normal')
+
+    def check_psi_validity(self):
+        result = {'psi_valid' : True, 'message' : 'Success'}
+
+        i_ptr = self.controller.IngridSession
+
+        E1_max = i_ptr.plate_vmax['plate_E1']
+        E1_min = i_ptr.plate_vmin['plate_E1']
+
+        W1_max = i_ptr.plate_vmax['plate_W1']
+        W1_min = i_ptr.plate_vmin['plate_W1']
+
+        psi_list = ['psi_max', 'psi_min_pf']
+        psi_error = {'psi_max' : False, 'psi_min_pf' : False}
+        E1_error = False
+        W1_error = False
+
+        error_message = 'The do not intersect a target plate: \n'
+        for v in psi_list:
+            if i_ptr.yaml['grid_params'][v] > E1_max or \
+                i_ptr.yaml['grid_params'][v] < E1_min:
+                psi_error[v] = True
+                E1_error = True
+                error_message += '"' + v + '"' + ' at plate_E1' + '\n'
+            if i_ptr.yaml['grid_params'][v] > W1_max or \
+                i_ptr.yaml['grid_params'][v] < W1_min:
+                psi_error[v] = True
+                W1_error = True
+                error_message += '"' + v + '"' + ' at plate_W1' + '\n'
+        if E1_error or W1_error:
+            result['message'] = error_message
+            result['psi_valid'] = False
+
+        return result
+
+
 
     def createSubgrid(self):
 

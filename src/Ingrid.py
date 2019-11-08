@@ -157,15 +157,15 @@ class Ingrid:
         These files read can contain more complicated lines than this.
         """
         try:
-            import pdb
-            pdb.set_trace()
-            
             debug = self.yaml['DEBUG']['verbose']['target_plates']
         except:
             debug = False
 
         target_plates = self.yaml['target_plates']
         plate_data = {}
+        plate_vmin = {}
+        plate_vmax = {}
+
 
         for plate in target_plates:
 
@@ -196,6 +196,7 @@ class Ingrid:
                 pass
 
         self.plate_data = plate_data
+
 
     def plot_target_plates(self):
         """ Plots all target plates on the current figure """
@@ -256,6 +257,20 @@ class Ingrid:
         psinorm = (psi - np.full_like(psi, psi_magx))/(psi_xpt1 - psi_magx)
         self.psi_norm.set_v(psinorm)
         self.psi_norm.Calculate_PDeriv()
+        self.plate_psi_limits(self.psi_norm)
+    
+    def plate_psi_limits(self, grid):
+
+        plate_vmax = {}
+        plate_vmin = {}
+
+        for plate in self.yaml['target_plates']:
+            v1 = grid.get_psi(self.plate_data[plate][0][0], self.plate_data[plate][0][1])
+            v2 = grid.get_psi(self.plate_data[plate][-1][0], self.plate_data[plate][-1][1])
+            plate_vmax[plate] = v1 if v1 > v2 else v2
+            plate_vmin[plate] = v1 if v1 < v2 else v2
+        self.plate_vmax = plate_vmax
+        self.plate_vmin = plate_vmin
 
     def plot_psinorm(self):
         self.psi_norm.plot_data()
@@ -712,11 +727,32 @@ class LSN(SNL, Ingrid):
         psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : ITP},option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         
+        def adjust_leg(leg, inner_point, outer_point):
+            
+            x, y = leg.fluff()
+            leg.p = [Point(p) for p in zip([ix for ix in x], [jy for jy in y])]
+
+            ind = 0
+            for p in leg.p:
+                if p.x > inner_point.x:
+                    leg.p.insert(ind, inner_point)
+                    leg.p = leg.p[ind : -1]
+                    break
+                ind += 1
+            ind = 0
+            for p in leg.p:
+                if p.x > outer_point.x:
+                    leg.p.insert(ind, outer_point)
+                    return Line(leg.p[0 : ind + 1])
+                ind += 1
+
         # IDL Patch
         IDL_N = iPsiMax_TP.reverse_copy()
         IDL_S = xpt_ITP
         IDL_E = xptW_psiMax.reverse_copy()
-        IDL_W = ITP.reverse_copy()
+        IDL_W = ITP
+        IDL_W = adjust_leg(IDL_W, IDL_N.p[0], IDL_S.p[-1])
+        IDL_W = IDL_W.reverse_copy()
         location = 'W'
         IDL = SNL_Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
@@ -724,7 +760,9 @@ class LSN(SNL, Ingrid):
         IPF_N = IDL_S.reverse_copy()
         IPF_S = psiMinPF_ITP
         IPF_E = xptS_psiMinPF
-        IPF_W = ITP.reverse_copy()
+        IPF_W = ITP
+        IPF_W = adjust_leg(IPF_W, IPF_N.p[0], IPF_S.p[-1])
+        IPF_W = IPF_W.reverse_copy()
         location = 'W'
         IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
@@ -761,6 +799,7 @@ class LSN(SNL, Ingrid):
         ODL_S = xpt_OTP.reverse_copy()
         ODL_E = OTP.reverse_copy()
         ODL_W = xptE_psiMax
+        ODL_E = adjust_leg(ODL_E.reverse_copy(), ODL_S.p[0], ODL_N.p[-1]).reverse_copy()
         location = 'E'
         ODL = SNL_Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchName = 'ODL', platePatch = True, plateLocation = location)
 
@@ -769,6 +808,7 @@ class LSN(SNL, Ingrid):
         OPF_S = psiMinPF_OTP.reverse_copy()
         OPF_E = OTP.reverse_copy()
         OPF_W = xptS_psiMinPF.reverse_copy()
+        OPF_E = adjust_leg(OPF_E.reverse_copy(), OPF_S.p[0], OPF_N.p[-1]).reverse_copy()
         location = 'E'
         OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
@@ -803,6 +843,7 @@ class LSN(SNL, Ingrid):
         self.patches = [IDL, IPF, ISB, ICB, IST, ICT, OST, OCT, OSB, OCB, ODL, OPF]
         names = ['IDL', 'IPF', 'ISB', 'ICB', 'IST', 'ICT', 'OST', 'OCT', 'OSB', 'OCB', 'ODL', 'OPF']
         patch_lookup = {}
+
         for patch in self.patches:
             patch_lookup[patch.patchName] = patch
             patch.plot_border()
@@ -998,19 +1039,39 @@ class USN(SNL, Ingrid):
         psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.itp},option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         
+        def adjust_leg(leg, inner_point, outer_point):
+            x, y = leg.fluff()
+            leg.p = [Point(p) for p in zip([ix for ix in x], [jy for jy in y])]
+
+            ind = 0
+            for p in leg.p:
+                if p.x > inner_point.x:
+                    leg.p.insert(ind, inner_point)
+                    leg.p = leg.p[ind : -1]
+                    break
+                ind += 1
+            ind = 0
+            for p in leg.p:
+                if p.x > outer_point.x:
+                    leg.p.insert(ind, outer_point)
+                    return Line(leg.p[0 : ind + 1])
+                ind += 1
+
         # IDL Patch
         IDL_N = iPsiMax_TP
         IDL_S = xpt_ITP.reverse_copy()
-        IDL_E = Line([IDL_N.p[-1], IDL_S.p[0]])
+        IDL_E = ITP
         IDL_W = xptE_psiMax
+        IDL_E = adjust_leg(IDL_E, IDL_N.p[-1], IDL_S.p[0])
         location = 'E'
         IDL = SNL_Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
         # IPF Patch
         IPF_N = IDL_S.reverse_copy()
         IPF_S = psiMinPF_ITP.reverse_copy()
-        IPF_E = Line([IPF_N.p[-1], IPF_S.p[0]])
+        IPF_E = ITP
         IPF_W = xptS_psiMinPF.reverse_copy()
+        IPF_E = adjust_leg(IPF_E, IPF_N.p[-1], IPF_S.p[0])
         location = 'E'
         IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
@@ -1046,7 +1107,8 @@ class USN(SNL, Ingrid):
         ODL_N = oPsiMax_TP.reverse_copy()
         ODL_S = xpt_OTP
         ODL_E = xptW_psiMax.reverse_copy()
-        ODL_W = Line([ODL_S.p[-1], ODL_N.p[0]])
+        ODL_W = OTP
+        ODL_W = adjust_leg(ODL_W, ODL_S.p[-1], ODL_N.p[0])
         location = 'W'
         ODL = SNL_Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchName = 'ODL', platePatch = True, plateLocation = location)
 
@@ -1054,7 +1116,8 @@ class USN(SNL, Ingrid):
         OPF_N = ODL_S.reverse_copy()
         OPF_S = psiMinPF_OTP
         OPF_E = xptS_psiMinPF
-        OPF_W = Line([OPF_S.p[-1], OPF_N.p[0]])
+        OPF_W = OTP
+        OPF_W = adjust_leg(OPF_W, OPF_S.p[-1], ODL_N.p[0])
         location = 'W'
         OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 

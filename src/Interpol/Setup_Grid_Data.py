@@ -142,6 +142,7 @@ class Efit_Data:
         start = time()
 
         f = self.v
+
         vr = np.zeros_like(self.vr)
         vz = np.zeros_like(self.vz)
         vrz = np.zeros_like(self.vrz)
@@ -165,13 +166,15 @@ class Efit_Data:
 
                 vrz[i, j] = (self.v[i+1, j+1] + self.v[i-1, j-1]
                              - self.v[i-1, j+1] - self.v[i+1, j-1])/4/dr/dz
+                
         # missed a row in x
-        for i in range(1, self.nz-1):
-            for j in [0, self.nr-1]:
+        for i in range(1, self.nr-1):
+            for j in [0, self.nz-1]:
                 vr[i, j] = (self.v[i+1, j] - self.v[i-1, j])/2/dr
+
         # and in y
-        for i in [0, self.nz-1]:
-            for j in range(1, self.nr-1):
+        for i in [0, self.nr-1]:
+            for j in range(1, self.nz-1):
                 vz[i, j] = (self.v[i, j+1] - self.v[i, j-1])/2/dz
 
         # forward difference accuracy h^2

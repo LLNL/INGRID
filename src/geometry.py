@@ -9,6 +9,7 @@ from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from matplotlib.patches import Polygon
 from scipy.optimize import fsolve, curve_fit, root_scalar, brentq
 from scipy.interpolate import splprep, splev
 
@@ -267,7 +268,7 @@ class Patch:
         
         # This is the border for the fill function
         # It need to only include N and S lines
-        self.p = list(self.N.p) + list(self.S.p)
+        self.p = list(self.N.p) + list(self.E.p) + list(self.S.p) + list(self.W.p)
 
         self.platePatch = platePatch
         self.plateLocation = plateLocation
@@ -299,9 +300,13 @@ class Patch:
         color : str, optional
             Defaults to a light salmon.
         """
-        x = [p.x for p in self.p]
-        y = [p.y for p in self.p]
-        plt.fill(x, y, facecolor=color)
+        x = np.array([p.x for p in self.p])
+        y = np.array([p.y for p in self.p])
+        arr = np.column_stack((x,y))
+        patch = Polygon(arr, fill = True, closed = True, color = color)
+        ax = plt.gca()
+        ax.add_patch(patch)
+        plt.show()
 
     def plot_subgrid(self, color = 'blue'):
         for row in self.cell_grid:

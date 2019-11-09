@@ -163,9 +163,9 @@ target_plates:
 # ===================================================================
 DEBUG:
   visual:
-    find_NSEW: 0
-    patch_map: False
-    subgrid: 0
+    find_NSEW: True
+    patch_map: True
+    subgrid: True
     gridue: True
   verbose:
     target_plates: 0

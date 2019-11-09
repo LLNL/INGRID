@@ -464,7 +464,7 @@ class LineTracing:
         self.config = 'LSN' if sign_test[1] == 1 else 'USN'
         print('===================\nGenerating {} grid...\n==================='.format(self.config))
 
-    def draw_line(self, rz_start, rz_end=None, color= 'orange',
+    def draw_line(self, rz_start, rz_end=None, color= 'purple',
                   option=None, direction=None, show_plot=False, text=False):
         """
         Uses scipy.integrate.solve_ivp to trace poloidal or radial
@@ -596,7 +596,7 @@ class LineTracing:
                 # y: list -- z endpoints
                 line.append(geo.Point(x[-1], y[-1]))
                 if show_plot:
-                    self.grid.ax.plot(x, y, '.-', linewidth = 1.5, color=color, markersize = 1.5)
+                    self.grid.ax.plot(x, y, '.-', linewidth = 2, color=color, markersize = 1.5)
                     plt.draw()
                     plt.pause(np.finfo(float).eps)
 

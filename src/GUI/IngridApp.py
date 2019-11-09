@@ -680,6 +680,7 @@ class ParamPicker(tk.Frame):
 
     def createPatches(self):
         
+
         self.set_INGRID_params()
         result = self.check_psi_validity()
 
@@ -696,6 +697,12 @@ class ParamPicker(tk.Frame):
         if isinstance(self.Grid, Ingrid.SNL):
             self.Grid.magx = self.MagAxis
             self.Grid.xpt1 = self.Xpt
+        
+        for F in self.PF_Frames:
+            if F.active_mouse.get() == False:
+                F.toggle_mouse()
+            F.disable_frame()
+
 
         self.Grid.construct_patches()
         self.Grid.patch_diagram()
@@ -1081,10 +1088,10 @@ class PsiFinderFrame(tk.LabelFrame):
     def toggle_mouse(self):
         if self.active_mouse.get() is True:
             self.controller.controller.IngridSession.psi_finder.connect()
-            print('Connected')
+            print('psi_finder connected')
         else:
             self.controller.controller.IngridSession.psi_finder.disconnect()
-            print('Disconnected')
+            print('psi_finder disconnected')
 
     def toggle_edit(self):
         self.config(text = 'Editing ' + self.title, fg = 'blue')
@@ -1103,6 +1110,12 @@ class PsiFinderFrame(tk.LabelFrame):
             entry.config(state = 'disabled')
         for rb in self.All_Radiobuttons:
             rb.config(state = 'disabled')
+    
+    def update_frame(self):
+        if self.active_frame == False:
+            self.enable_frame()
+        else:
+            self.disable_frame()
 
     def enable_frame(self):
         self.active_frame = True

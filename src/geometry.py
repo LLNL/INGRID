@@ -513,7 +513,7 @@ class SNL_Patch(Patch):
         if visual:
             for vertices in [W_vertices, E_vertices, N_vertices, S_vertices]:
                 for p in vertices:
-                    plt.plot(p.x, p.y, '.', color = 'black')
+                    plt.plot(p.x, p.y, '.', color = 'black', markersize = 8)
         # Radial lines of Psi surfaces. Ordered with increasing magnitude, starting with
         # the South boundary of the current Patch, and ending with the North boundary of
         # this current Patch. These will serve as delimiters when constructing cells.
@@ -530,6 +530,8 @@ class SNL_Patch(Patch):
             for i in range(np_lines):
                 _r = splev(_poloidal_f(i / (np_lines-1)), radial_spl)
                 vertex_list.append(Point((_r[0], _r[1])))
+                for p in vertex_list:
+                    plt.plot(p.x, p.y, '.', color = 'black', markersize = 8)
             radial_vertices.append(vertex_list)
         radial_lines.append(self.S)
         radial_vertices.append(S_vertices)

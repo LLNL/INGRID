@@ -119,7 +119,7 @@ class RootFinder:
         plt.cla()
         self.controller.IngridSession.plot_efit_data()
         self.controller.IngridSession.plot_target_plates()
-        plt.plot(x, y, '*', color = 'blue')
+        #plt.plot(x, y, '*', color = 'blue')
         sol = root(self.func, [x, y])
         r, z = sol.x[0], sol.x[1]
 
@@ -129,12 +129,13 @@ class RootFinder:
         else:
             print("You chose ({0:.5f}, {1:.5f}). ".format(x, y) +
                   "The zero point is ({0:.5f},{1:.5f})".format(r, z))
-            plt.plot(r, z, '1')  # the '1' determines the shape of the marker
+            plt.plot(r, z, '.', color = 'blue') 
+            plt.contour(self.grid.r, self.grid.z, self.grid.v, [self.grid.get_psi(r,z)], colors = 'purple')
             plt.draw()
 
             self.final_root = (r, z)
 
-            self.controller.frames[IngridApp.ParamPicker].curr_click = (x, y)
+            self.controller.frames[IngridApp.ParamPicker].curr_click = self.final_root
             # self.controller.curr_root = self.final_root
             self.controller.frames[IngridApp.ParamPicker].update_root_finder()
 

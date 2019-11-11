@@ -320,14 +320,14 @@ class LineTracing:
             Nline = [geo.Point((N_0[0], N_0[1]))]
             Sline = [geo.Point((S_0[0], S_0[1]))]
 
-            def save_line(x, y, line):
+            def save_line(x, y, line, color = 'red'):
                 # Plots the current line segments and saves
                 # it for future use
                 # x: list -- r endpoints
                 # y: list -- z endpoints
                 line.append(geo.Point(x[-1], y[-1]))
                 if True:
-                    self.grid.ax.plot(x, y, '.-', linewidth='2', color='red')
+                    self.grid.ax.plot(x, y, '.-', linewidth='2', color=color)
                     plt.draw()
                     plt.pause(np.finfo(float).eps)
             def converged(N_path, S_path, visual = False):
@@ -354,11 +354,11 @@ class LineTracing:
                 # We haven't converged.
                 else:
                     if visual:
-                        save_line([N_path[0][0], N_path[0][-1]], [ N_path[1][0], N_path[1][-1]], Nline)
-                        save_line([S_path[0][0], S_path[0][-1]], [ S_path[1][0], S_path[1][-1]], Sline)
+                        save_line([N_path[0][0], N_path[0][-1]], [ N_path[1][0], N_path[1][-1]], Nline, color = 'red')
+                        save_line([S_path[0][0], S_path[0][-1]], [ S_path[1][0], S_path[1][-1]], Sline, color = 'blue')
                     return False
             
-            while not converged(N_path, S_path):
+            while not converged(N_path, S_path, visual):
 
                 # Set current time interval.
                 tspan = (tstart, tfinal)

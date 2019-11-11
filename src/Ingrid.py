@@ -729,8 +729,9 @@ class LSN(SNL, Ingrid):
         
         def adjust_leg(leg, inner_point, outer_point):
             
-            x, y = leg.fluff()
-            leg.p = [Point(p) for p in zip([ix for ix in x], [jy for jy in y])]
+            if len(leg.p) < 5:
+                x, y = leg.fluff()
+                leg.p = [Point(p) for p in zip([ix for ix in x], [jy for jy in y])]
 
             ind = 0
             for p in leg.p:
@@ -1040,8 +1041,9 @@ class USN(SNL, Ingrid):
         psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         
         def adjust_leg(leg, inner_point, outer_point):
-            x, y = leg.fluff()
-            leg.p = [Point(p) for p in zip([ix for ix in x], [jy for jy in y])]
+            if len(leg.p) < 5:
+                x, y = leg.fluff()
+                leg.p = [Point(p) for p in zip([ix for ix in x], [jy for jy in y])]
 
             ind = 0
             for p in leg.p:

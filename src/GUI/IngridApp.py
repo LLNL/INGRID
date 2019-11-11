@@ -232,7 +232,7 @@ class FilePicker(tk.Frame):
             font = helv_medium, state = 'disabled', command = self.preview_data)
         self.confirmButton = tk.Button(self.ControlPanel, text = 'Confirm', \
             font = helv_medium, state = 'disabled', command = self.confirm_data)
-        self.resetButton = tk.Button(self.ControlPanel, text = 'Reset INGRID', \
+        self.resetButton = tk.Button(self.ControlPanel, text = 'Reset', \
             font = helv_medium, command = self.controller.reset_data)
 
         self.previewButton.grid(row = 0, column = 0, columnspan = 1, padx = 10, pady = 10, \
@@ -482,6 +482,7 @@ class FilePicker(tk.Frame):
         self.controller.show_frame(ParamPicker)
         self.controller.geometry("830x490")
         self.controller.IngridSession.find_roots(tk_controller = self.controller)
+        self.controller.IngridSession.root_finder.disconnect()
 
 class ParamPicker(tk.Frame):
     
@@ -598,6 +599,7 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.calc_psinorm()
         self.controller.IngridSession.plot_psinorm()
         self.controller.IngridSession.find_psi_lines(tk_controller = self.controller)
+        self.controller.IngridSession.psi_finder.disconnect()
         self.controller.IngridSession.init_LineTracing()
         self.controller.frames[ParamPicker].acceptPF_Button.config(state = 'normal')
 
@@ -634,7 +636,13 @@ class ParamPicker(tk.Frame):
         # TODO: Exception handling behind the scenes for ensuring PF_Frame is indeed ready.
         
         self.acceptRF_Button.config(text = 'Entries Saved!', fg = 'lime green')
-        # plt.close('all')        
+        # plt.close('all')    
+        self.controller.IngridSession.root_finder.disconnect()
+        for F in self.RF_Frames:
+            if F.active_frame:
+                F.update_frame()
+                F.config(text = F.title, fg = 'black')
+                F.Edit_Button.config(text = 'Edit ' + F.title, fg = 'black')
         self.unlock_PF_Frame()
 
     
@@ -659,6 +667,12 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.yaml['grid_params']['psi_min_pf'] = float(self.PsiPrivateFrame.Psi_EntryText.get())
         
         self.unlock_controls()
+        self.controller.IngridSession.psi_finder.disconnect()
+        for F in self.PF_Frames:
+            if F.active_frame:
+                F.update_frame()
+                F.config(text = F.title, fg = 'black')
+                F.Edit_Button.config(text = 'Edit ' + F.title, fg = 'black')
         self.acceptPF_Button.config(text = 'Entries Saved!', fg = 'lime green')
         self.controller.IngridSession.grid_params = self.controller.IngridSession.yaml['grid_params']
         self.controller.IngridSession.integrator_params = self.controller.IngridSession.yaml['integrator_params']

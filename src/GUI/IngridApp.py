@@ -414,7 +414,7 @@ class FilePicker(tk.Frame):
                     for sub_item in _yaml[item]:
                         lookup[item][sub_item](showFileDialog = False, toLoad = _yaml[item][sub_item]['file'])
 
-            self.controller.IngridSession.yaml = _yaml
+            self.controller.IngridSession.process_yaml(_yaml)
     def update_frame_state(self):
         """
         Keeps track of which files are loaded via
@@ -525,7 +525,7 @@ class ParamPicker(tk.Frame):
         self.load_Button.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = 'ew')
         self.save_Button.grid(row = 2, column = 0,  padx = 2, pady = 2, sticky = 'ew')
 
-        self.settings_Button.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = 'ew')
+        #self.settings_Button.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = 'ew')
         self.createPatches_Button.grid(row = 1, column = 0, padx = 2, pady = 2, sticky = 'ew')
         self.createSubgrid_Button.grid(row = 2, column = 0, padx = 2, pady = 2, sticky = 'ew')
         self.export_Button.grid(row = 3, column = 0, padx = 2, pady = 2, sticky = 'ew')
@@ -693,18 +693,20 @@ class ParamPicker(tk.Frame):
             self.controller.IngridSession.yaml = yaml.load(f.read_text())
 
     def createPatches(self):
-        
 
+        self.refresh_yaml()
         self.set_INGRID_params()
+
         result = self.check_psi_validity()
 
         if not result['psi_valid']:
             tkMB.showerror("Psi Value Error", result['message'])
             return
+
         self.controller.IngridSession._analyze_topology()
+        self.controller.IngridSession.init_LineTracing(refresh = True)
 
         self.Grid = self.controller.IngridSession.current_topology
-        self.refresh_yaml()
         self.Grid.yaml = self.controller.IngridSession.yaml
 
 
@@ -720,34 +722,42 @@ class ParamPicker(tk.Frame):
 
         self.Grid.construct_patches()
         self.Grid.patch_diagram()
-    
+
         self.createSubgrid_Button.config(state = 'normal')
 
     def check_psi_validity(self):
         result = {'psi_valid' : True, 'message' : 'Success'}
 
-        i_ptr = self.controller.IngridSession
+        grid = self.controller.IngridSession
 
-        E1_max = i_ptr.plate_vmax['plate_E1']
-        E1_min = i_ptr.plate_vmin['plate_E1']
+        (r,z) = grid.plate_data['plate_E1']['psi_max_rz']
+        E1_max = grid.psi_norm.get_psi(r,z)
+        print('E1_max at {} with psi value of {}'.format((r,z), E1_max))
+        (r,z) = grid.plate_data['plate_E1']['psi_min_rz']
+        E1_min = grid.psi_norm.get_psi(r,z)
+        print('E1_min at {} with psi value of {}'.format((r,z), E1_min))
 
-        W1_max = i_ptr.plate_vmax['plate_W1']
-        W1_min = i_ptr.plate_vmin['plate_W1']
+        (r,z) = grid.plate_data['plate_W1']['psi_max_rz']
+        W1_max = grid.psi_norm.get_psi(r,z)
+        print('W1_max at {} with psi value of {}'.format((r,z), W1_max))
+        (r,z) = grid.plate_data['plate_W1']['psi_min_rz']
+        W1_min = grid.psi_norm.get_psi(r,z)
+        print('W1_min at {} with psi value of {}'.format((r,z), W1_min))
 
         psi_list = ['psi_max', 'psi_min_pf']
         psi_error = {'psi_max' : False, 'psi_min_pf' : False}
         E1_error = False
         W1_error = False
 
-        error_message = 'The do not intersect a target plate: \n'
+        error_message = 'The following do not intersect a target plate: \n'
         for v in psi_list:
-            if i_ptr.yaml['grid_params'][v] > E1_max or \
-                i_ptr.yaml['grid_params'][v] < E1_min:
+            if grid.yaml['grid_params'][v] > E1_max or \
+                grid.yaml['grid_params'][v] < E1_min:
                 psi_error[v] = True
                 E1_error = True
                 error_message += '"' + v + '"' + ' at plate_E1' + '\n'
-            if i_ptr.yaml['grid_params'][v] > W1_max or \
-                i_ptr.yaml['grid_params'][v] < W1_min:
+            if grid.yaml['grid_params'][v] > W1_max or \
+                grid.yaml['grid_params'][v] < W1_min:
                 psi_error[v] = True
                 W1_error = True
                 error_message += '"' + v + '"' + ' at plate_W1' + '\n'
@@ -764,25 +774,24 @@ class ParamPicker(tk.Frame):
         self.Grid = self.controller.IngridSession.current_topology
 
         try:
-            np_cells = self.controller.IngridSession.yaml['grid_params']['np_global']
+            np_cells = self.controller.IngridSession.yaml['grid_params']['grid_generation']['np_global']
         except KeyError:
             np_cells = 2
             print('yaml file did not contain parameter np_global. Set to default value of 2...')
 
         try:
-            nr_cells = self.controller.IngridSession.yaml['grid_params']['nr_global']
+            nr_cells = self.controller.IngridSession.yaml['grid_params']['grid_generation']['nr_global']
         except KeyError:
             nr_cells = 2
             print('yaml file did not contain parameter nr_global. Set to default value of 2...')
 
         self.refresh_yaml()
+        self.Grid.yaml = self.controller.IngridSession.yaml
 
         print('Value Check for local plates:')
         _i = self.Grid.yaml['target_plates']
         for plate in _i:
-            print('Name: {}\n np_local: {}\n nr_local: {}\n'.format(_i[plate]['name'], _i[plate]['np_local'], _i[plate]['nr_local']))
-
-        self.Grid.yaml = self.controller.IngridSession.yaml
+            print('Name: {}\n np_local: {}\n'.format(_i[plate]['name'], _i[plate]['np_local']))
         self.Grid.construct_grid(np_cells, nr_cells)
         self.Grid.grid_diagram()
 
@@ -842,9 +851,9 @@ class ParamPicker(tk.Frame):
         container3 = tk.LabelFrame(newWindow, text = 'Target Plate Information', font = helv_medium)
         container4 = tk.Frame(newWindow)
 
-        gp_lookup = ['num_xpt', 'np_global', 'nr_global']
+        gp_lookup = ['num_xpt', 'np_global', 'nr_global', 'nr_core', 'nr_sol', 'nr_pf']
         integrator_lookup = ['first_step', 'step_ratio', 'eps', 'tol', 'dt']
-        target_plate_lookup = ['file', 'name', 'poloidal_f', 'np_local', 'nr_local']
+        target_plate_lookup = ['file', 'name', 'poloidal_f', 'np_local']
 
         gp_settings = {}
         integrator_settings = {}

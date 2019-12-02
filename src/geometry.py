@@ -129,6 +129,12 @@ class Line:
         self.p = self.p[::-1]
         return self
 
+    def copy(self):
+        """
+        Returns a copy of the line.
+        """
+        return Line(self.p[::])
+
     def reverse_copy(self):
         """
         Returns a copy of the line in the reversed direction.
@@ -335,7 +341,7 @@ class SNL_Patch(Patch):
                 cells within our Patch.
         """
 
-        def get_poloidal_func(grid, _func):
+        def get_func(grid, _func):
 
             def make_sympy_func(var, expression):
                 import sympy as sp
@@ -370,36 +376,79 @@ class SNL_Patch(Patch):
 
             return vparameterization
 
+        def psi_test(leg, grid):
+            """
+            Determine whether a leg's orientation is increasing in psi
+            by checking the endpoints of a given leg.
+
+            Returns True if final Point entry is greater in psi than the 
+            first Point entry. Returns False otherwise.
+            """
+            p1 = leg.p[0]
+            p2 = leg.p[-1]
+            
+            return True if grid.psi_norm.get_psi(p2.x, p2.y) > grid.psi_norm.get_psi(p1.x, p1.y) else False
+
+        def set_dynamic_step(ratio = 0.01):
+            """
+            Compute a dt value for line_tracing that occurs during subgrid generation of 
+            this Patch object. The value is taken to be a ratio of the average length of
+            a Patch in the radial direction.
+            """
+            d = 0
+            for i in range(nr_lines):
+                d += np.sqrt((E_vertices[i].x - W_vertices[i].x)**2 + (E_vertices[i].y - W_vertices[i].y)**2)
+            dynamic_step = d / nr_lines
+            print('Dynamic-Step value came out to be: {}\n'.format(dynamic_step * ratio))
+            return dynamic_step * ratio
+
+
         # Allocate space for collection of cell objects.
         # Arbitrary 2D container for now.
         cell_grid = []
 
         if self.platePatch:
-            print('PLATE PATCH!')
-
+            print('Plate patch!')
             if grid.config == 'LSN':
                 if self.plateLocation == 'W':
                     np_cells = grid.yaml['target_plates']['plate_W1']['np_local']
-                    nr_cells = grid.yaml['target_plates']['plate_W1']['nr_local']
-                    _func = grid.yaml['target_plates']['plate_W1']['poloidal_f']
+                    _poloidal_func = grid.yaml['target_plates']['plate_W1']['poloidal_f']
                 elif self.plateLocation == 'E':
                     np_cells = grid.yaml['target_plates']['plate_E1']['np_local']
-                    nr_cells = grid.yaml['target_plates']['plate_E1']['nr_local']
-                    _func = grid.yaml['target_plates']['plate_E1']['poloidal_f']                    
+                    _poloidal_func = grid.yaml['target_plates']['plate_E1']['poloidal_f']                    
             if grid.config == 'USN':
                 if self.plateLocation == 'E':
                     np_cells = grid.yaml['target_plates']['plate_W1']['np_local']
-                    nr_cells = grid.yaml['target_plates']['plate_W1']['nr_local']
-                    _func = grid.yaml['target_plates']['plate_W1']['poloidal_f']                    
+                    _poloidal_func = grid.yaml['target_plates']['plate_W1']['poloidal_f']                    
                 elif self.plateLocation == 'W':
                     np_cells = grid.yaml['target_plates']['plate_E1']['np_local']
-                    nr_cells = grid.yaml['target_plates']['plate_E1']['nr_local']
-                    _func = grid.yaml['target_plates']['plate_E1']['poloidal_f']
-
-            _poloidal_f = get_poloidal_func(grid, _func)
-
+                    _poloidal_func = grid.yaml['target_plates']['plate_E1']['poloidal_f']
+            _poloidal_f = get_func(grid, _poloidal_func)
         else:
             _poloidal_f = lambda x: x
+
+        if self in grid.SOL:
+            try:
+                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_sol']
+                valid_function = True
+                print('SOL radial transformation: "{}"'.format(_radial_f))
+            except KeyError:
+                valid_function = False
+        elif self in grid.CORE:
+            try:
+                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_core']
+                valid_function = True
+                print('CORE radial transformation: "{}"'.format(_radial_f))
+            except KeyError:
+                valid_function = False
+        elif self in grid.PF:
+            try:
+                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_pf']
+                valid_function = True
+                print('PF radial transformation: "{}"'.format(_radial_f))
+            except KeyError:
+                valid_function = False
+        _radial_f = get_func(grid, _radial_f) if valid_function else lambda x: x
 
         if verbose:
             print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(self.patchName, np_cells, nr_cells))
@@ -416,13 +465,14 @@ class SNL_Patch(Patch):
         S_vals = self.S.reverse_copy().fluff()
         S_spl, uS = splprep([S_vals[0], S_vals[1]], s = 0)
 
-
         # Create B-Splines along the East and West boundaries.
         # Parameterize EW splines in Psi
-        W_vals = self.W.reverse_copy().fluff()
+        n = 500 if len(self.W.p) > 50 else 1000
+        W_vals = self.W.reverse_copy().fluff(num = n)
         W_spl, uW = splprep([W_vals[0], W_vals[1]], u = psi_parameterize(grid, W_vals[0], W_vals[1]), s = 0)
 
-        E_vals = self.E.fluff()
+        n = 500 if len(self.E.p) > 50 else 1000
+        E_vals = self.E.fluff(num = n)
         E_spl, uE = splprep([E_vals[0], E_vals[1]], u = psi_parameterize(grid, E_vals[0], E_vals[1]), s = 0)     
         
         # ACCURACY ON PSI_MIN SIDE OF W IDL LINE ISSUE.
@@ -477,7 +527,11 @@ class SNL_Patch(Patch):
                     print('SouthIndex: ...fsolve success!')
                 except:
                     print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
-            U_vals = [U_vals[0][plate_north_index:plate_south_index], U_vals[1][plate_north_index:plate_south_index]]
+            if plate_south_index > plate_north_index:
+                # print('WARNING: Caught an index error... Fixing...')
+                plate_north_index, plate_south_index = plate_south_index, plate_north_index
+
+            U_vals = [U_vals[0][plate_south_index:plate_north_index+1], U_vals[1][plate_south_index:plate_north_index+1]]
             U_spl, _u = splprep([U_vals[0], U_vals[1]], u = psi_parameterize(grid, U_vals[0], U_vals[1]), s = 0)
 
             if self.plateLocation == 'W':
@@ -504,10 +558,10 @@ class SNL_Patch(Patch):
             S_vertices.append(Point((_s[0], _s[1])))
 
         for i in range(nr_lines):
-            _e = splev(i / (nr_lines-1), E_spl)
+            _e = splev(_radial_f(i / (nr_lines-1)), E_spl)
             E_vertices.append(Point((_e[0], _e[1])))
 
-            _w = splev(i / (nr_lines-1), W_spl)
+            _w = splev(_radial_f(i / (nr_lines-1)), W_spl)
             W_vertices.append(Point((_w[0], _w[1])))
 
         if visual:
@@ -519,10 +573,14 @@ class SNL_Patch(Patch):
         # this current Patch. These will serve as delimiters when constructing cells.
         radial_lines = [self.N]
         radial_vertices = [N_vertices]
+        dynamic_step = set_dynamic_step()
 
         # Interpolate radial lines between North and South patch boundaries.
         for i in range(len(W_vertices) - 2):
-            radial_lines.append(grid.eq.draw_line(W_vertices[i + 1], {'point' : E_vertices[i + 1]}, option = 'theta', direction = 'cw', show_plot = visual))
+            
+            radial_lines.append(grid.eq.draw_line(W_vertices[i + 1], {'line' : self.E}, option = 'theta', \
+                direction = 'cw', show_plot = visual, dynamic_step = dynamic_step))
+
             radial_vals = radial_lines[i + 1].fluff()
             radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s = 0)
             radial_spline = splev(uR, radial_spl)
@@ -530,8 +588,9 @@ class SNL_Patch(Patch):
             for i in range(np_lines):
                 _r = splev(_poloidal_f(i / (np_lines-1)), radial_spl)
                 vertex_list.append(Point((_r[0], _r[1])))
-                for p in vertex_list:
-                    plt.plot(p.x, p.y, '.', color = 'black', markersize = 8)
+                if visual:
+                    for p in vertex_list:
+                        plt.plot(p.x, p.y, '.', color = 'black', markersize = 8)
             radial_vertices.append(vertex_list)
         radial_lines.append(self.S)
         radial_vertices.append(S_vertices)
@@ -721,24 +780,6 @@ def segment_intersect(line1, line2, verbose = False):
                 print('~ Intersection occurred!')
             return True, [(xc, yc), (xd, yd)]
     return False, [(np.nan, np.nan), (np.nan, np.nan)]
-    
-    """
-    (xa, ya), (xb, yb) = (line1.xval[0], line1.yval[0]), (line2.xval[0], line2.yval[0])
-    (xc, yc), (xd, yd) = (line1.xval[1], line1.yval[1]), (line2.xval[1], line2.yval[1])
-    print(xb - xa)
-    print(yb - ya)
-    M = np.array([[xb - xa, -xd + xc],\
-                 [yb - ya, -yd + yc]])
-    print(M)
-    r = np.array([xc-xa, yc - ya])
-    print(r)
-    sol = np.linalg.solve(M, r)
-    if sol[0] <= 1 and sol[1] <= 1\
-       and sol[0] >= 0 and sol[1] >= 0:
-           return True, sol
-    else:
-        False, (None,None)
-    """
 
 
 if __name__ == "__main__":

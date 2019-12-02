@@ -34,9 +34,30 @@ eqdsk: ../data/SNL/USN/g162940.02944_670
 # =============================================================================
 grid_params:
     config: 'USN'
-    np_global: 8
-    nr_global: 5
     num_xpt: 1
+    patch_generation:
+        zmagx_shift: 0.0
+        rmagx_shift: 0.0
+        inner_tilt: -0.785398
+        outer_tilt: 0.785398
+        use_NW: False
+        NW_adjust: 0.0
+        NE_adjust: 0.0
+        use_NE: False
+        use_SW: False
+        use_SE: False
+    grid_generation:
+        np_core: 14
+        np_global: 14
+        np_pf: 14
+        np_sol: 14
+        nr_core: 25
+        nr_global: 25
+        nr_pf: 25
+        nr_sol: 25
+        radial_f_core: x, x
+        radial_f_pf: x, x
+        radial_f_sol: x, x
     psi_max: 1.019281813912
     psi_max_r: 1.168441558442
     psi_max_z: 1.080519480519
@@ -118,14 +139,12 @@ target_plates:
     plate_E1:
         file: ../data/SNL/USN/itp4.txt
         name: plate_E1
-        np_local: 4
-        nr_local: 5
+        np_local: 14
         poloidal_f: x, x
     plate_W1:
         file: ../data/SNL/USN/otp4.txt
         name: plate_W1
-        np_local: 4
-        nr_local: 5
+        np_local: 14
         poloidal_f: x, x
 # ===================================================================
 # DEBUG:
@@ -165,7 +184,7 @@ target_plates:
 DEBUG:
   visual:
     find_NSEW: 0
-    patch_map: False
+    patch_map: 0
     subgrid: 0
     gridue: 0
   verbose:

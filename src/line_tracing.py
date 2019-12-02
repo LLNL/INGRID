@@ -11,7 +11,7 @@ Created on Wed Jul  3 14:07:45 2019
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
+from scipy.integrate import solve_ivp, LSODA
 from scipy.optimize import root_scalar
 from Root_Finder import RootFinder
 from time import time
@@ -110,7 +110,7 @@ class LineTracing:
         except KeyError:
             params['integrator_params'].update({'max_step' : self.step_ratio * max(rdim, zdim)})
         self.max_step = params['integrator_params']['max_step']
-        print('max_step set to {}'.format(self.max_step))   
+        print('max_step set to {}'.format(self.max_step))
 
         # initialize the function
         self._set_function(option, direction)
@@ -148,7 +148,7 @@ class LineTracing:
         else:
             return -np.array([dR, dZ])
 
-    def _differential_z_const(self, t, xy):
+    def _differential_r_const(self, t, xy):
         """
         Coupled set of differential equations
         to trace vertical lines.
@@ -157,24 +157,24 @@ class LineTracing:
         B_R = 0
         B_Z = 1
         B = np.sqrt(B_R**2 + B_Z**2)
-        dR = B_Z/B
-        dZ = -B_R/B
+        dR = B_R/B
+        dZ = B_Z/B
         if self.dir == 'cw':
             return np.array([dR, dZ])
         else:
             return -np.array([dR, dZ])
 
-    def _differential_r_const(self, t, xy):
+    def _differential_z_const(self, t, xy):
         """
         Coupled set of differential equations
         to trace horizontal lines.
         """
         R, Z = xy
-        B_R = 1
-        B_Z = 0
+        B_R = np.cos(self.tilt_angle)
+        B_Z = np.sin(self.tilt_angle)
         B = np.sqrt(B_R**2 + B_Z**2)
-        dR = -B_Z/B
-        dZ = B_R/B
+        dR = B_R/B
+        dZ = B_Z/B
         if self.dir == 'cw':
             return np.array([dR, dZ])
         else:
@@ -249,9 +249,12 @@ class LineTracing:
         rmag, zmag = magx
 
         # Getting coefficients.
+        print('ADDRESS OF GRID DATA: {}'.format(self.grid))
         vrz = self.grid.get_psi(rxpt, zxpt, tag = 'vrz')
         vrr = self.grid.get_psi(rxpt, zxpt, tag = 'vrr')
         vzz = self.grid.get_psi(rxpt, zxpt, tag = 'vzz')
+
+        print('psi check: {}, {}, {}'.format(vrz, vrr, vzz))
         
         def get_theta(r, z):
             """
@@ -305,6 +308,7 @@ class LineTracing:
 
             """
             # Set our inital conditions
+
             N_0 = NSEW_coor[0]
             S_0 = NSEW_coor[1]
             tstart = 0
@@ -320,14 +324,19 @@ class LineTracing:
             Nline = [geo.Point((N_0[0], N_0[1]))]
             Sline = [geo.Point((S_0[0], S_0[1]))]
 
-            def save_line(x, y, line, color = 'red'):
+            def save_line(x, y, line, visual = False, color = 'red'):
                 # Plots the current line segments and saves
                 # it for future use
                 # x: list -- r endpoints
                 # y: list -- z endpoints
                 line.append(geo.Point(x[-1], y[-1]))
-                if True:
-                    self.grid.ax.plot(x, y, '.-', linewidth='2', color=color)
+                if visual:
+                    try:
+                        plt.plot(x, y, '.-', linewidth='2', color=color)
+                    except:
+                        self.grid.ax = plt.gcf().add_subplot(111)
+                        self.grid.ax.plot(x, y, '.-', linewidth='2', color=color)
+
                     plt.draw()
                     plt.pause(np.finfo(float).eps)
             def converged(N_path, S_path, visual = False):
@@ -336,7 +345,11 @@ class LineTracing:
                 is converging to magx.
                 """
                 if visual:
-                    print('N_path residual: ({}, {})'.format(N_path[0][-1]-magx[0], N_path[1][-1] - magx[1]))
+                    print('N_path dist to mag-x: {}'.format(np.sqrt((N_path[0][-1]-magx[0])**2 + (N_path[1][-1] - magx[1])**2 )))
+                    print('S_path dist to mag-x: {}'.format(np.sqrt((S_path[0][-1]-magx[0])**2 + (S_path[1][-1] - magx[1])**2 )))
+                    print('\n\n')
+                    print('N_path _differential_rho: {}'.format(self._differential_rho(0, (N_path[0][-1], N_path[1][-1]))))
+                    print('S_path _differential_rho: {}'.format(self._differential_rho(0, (S_path[0][-1], S_path[1][-1]))))
                 # Check if the N_path is converging to magx.
                 if (abs(N_path[0][-1] - magx[0]) < self.tol) \
                     and (abs(N_path[1][-1] - magx[1]) < self.tol):
@@ -353,16 +366,15 @@ class LineTracing:
                     return True
                 # We haven't converged.
                 else:
-                    if visual:
-                        save_line([N_path[0][0], N_path[0][-1]], [ N_path[1][0], N_path[1][-1]], Nline, color = 'red')
-                        save_line([S_path[0][0], S_path[0][-1]], [ S_path[1][0], S_path[1][-1]], Sline, color = 'blue')
+                    save_line([N_path[0][0], N_path[0][-1]], [ N_path[1][0], N_path[1][-1]], Nline, visual = visual, color = 'red')
+                    save_line([S_path[0][0], S_path[0][-1]], [ S_path[1][0], S_path[1][-1]], Sline, visual = visual, color = 'blue')
                     return False
-            
+
             while not converged(N_path, S_path, visual):
 
                 # Set current time interval.
                 tspan = (tstart, tfinal)
-                # Integrate N_path
+                # Integrate N_path)
                 N_sol = solve_ivp(self._differential_rho, tspan, N_0, method='LSODA',\
                                   first_step=self.first_step, max_step=self.max_step)
                 # Integrate S_path
@@ -381,6 +393,7 @@ class LineTracing:
                 N_path = [Nx, Ny]
                 S_path = [Sx, Sy]
 
+
             if self.is_true_north:
                 # print('NSEW_coor[N] was true-north!') 
                 return NSEW_coor, theta
@@ -396,8 +409,11 @@ class LineTracing:
                 return NSEW_coor, theta
 
         theta_crit = get_theta(rxpt, zxpt)
+
+        print('THETA CRIT IS: {}'.format(theta_crit))
         theta_min = get_concave_theta(theta_crit)
 
+        print('THETA MIN IS: {}'.format(theta_min))
 
         NSEW_coor = []
 
@@ -465,7 +481,7 @@ class LineTracing:
         print('===================\nGenerating {} grid...\n==================='.format(self.config))
 
     def draw_line(self, rz_start, rz_end=None, color= 'purple',
-                  option=None, direction=None, show_plot=False, text=False):
+                  option=None, direction=None, show_plot=False, text=False, dynamic_step = None):
         """
         Uses scipy.integrate.solve_ivp to trace poloidal or radial
         lines. Uses the LSODA method to solve the differential
@@ -518,6 +534,7 @@ class LineTracing:
             ynot = rz_start
 
         key_list = list()
+        
         for item in rz_end.keys():
             key_list.append(item)
 
@@ -554,20 +571,23 @@ class LineTracing:
             psi_test = rz_end['psi']
 
         elif key_list == ['psi_horizontal']:
-            print('Testing for psi convergence (horizontal trajectory)')
-            test = 'psi_horizontal'
-            psi_test = rz_end['psi_horizontal']
+            try:
+                psi_test = rz_end['psi_horizontal'][0]
+                self.tilt_angle = rz_end['psi_horizontal'][1]
+                test = 'psi' if self.tilt_angle != 0.0 else 'psi_horizontal'
+                print('Testing for psi convergence (sloped trajectory)')
+            except:
+                psi_test = rz_end['psi_horizontal']
+                self.tilt_angle = 0.0
+                test = 'psi_horizontal'
+                print('Testing for psi convergence (horizontal trajectory)')
 
         elif key_list == ['psi_vertical']:
             print('Testing for psi convergence (vertical trajectory)')
             test = 'psi_vertical'
             psi_test = rz_end['psi_vertical']
-
         else:
             print('rz_end type not recognized')
-
-        # size for each line segment
-        told, tnew = 0, self.dt
 
         count = 0
         # unpack boundaries
@@ -630,8 +650,7 @@ class LineTracing:
                 # tol value in both the x & y directions, and check if
                 # we have at least 5 segments in making up our line.
                 if (any(abs(points[0]-xf) < self.tol)
-                        and any(abs(points[1]-yf) < self.tol)
-                        and count > 5):
+                        and any(abs(points[1]-yf) < self.tol)):
                     if text:
                         success('endpoint')
                     save_line([points[0][0], xf], [points[1][0], yf])
@@ -654,7 +673,7 @@ class LineTracing:
                     save_line([p1[0], r], [p1[1], z])
                     return True
 
-            elif test == 'psi':
+            elif test in ['psi', 'psi_sloped']:
                 x1, y1 = points[0][0], points[1][0]
                 x2, y2 = points[0][-1], points[1][-1]
 
@@ -753,6 +772,18 @@ class LineTracing:
         # This stores two points that give us a single line segment.
         points = np.zeros([2, 2])  # initial length is arbitrary
         start = time()
+
+        # size for each line segment
+        told, tnew = 0, self.dt
+
+        # Use minimum of self.dt or dynamic_step value if provided.
+        if dynamic_step:
+            dt = np.amin([self.dt, dynamic_step])
+            if dt < self.dt:
+                print('Using dynamic_step value!\n')
+        else:
+            dt = self.dt
+
         while not converged(points):
             t_span = (told, tnew)
             # solve the system of differential equations
@@ -764,7 +795,7 @@ class LineTracing:
             self.y = sol.y[1]
 
             ynot = [self.x[-1], self.y[-1]]
-            told, tnew = tnew, tnew + self.dt
+            told, tnew = tnew, tnew + dt
 
             # TODO: reduce the list passed in to only be the endpoints
             # of the line, and not include all the intermediate points

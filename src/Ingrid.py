@@ -67,7 +67,9 @@ class Ingrid:
 
         self.default_target_plates_params = { \
             'plate_E1' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0}, \
-            'plate_W1' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0}
+            'plate_E2' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0}, \
+            'plate_W1' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0}, \
+            'plate_W2' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0} \
         }
 
         self.default_DEBUG_params = { \
@@ -343,7 +345,7 @@ class Ingrid:
         if self.yaml['grid_params']['num_xpt'] == 1:
             self.eq.SNL_find_NSEW(self.xpt1, self.magx, debug)
         elif self.yaml['grid_params']['num_xpt'] == 2:
-            print('Double null configurations not yet supported...')
+            self.eq.DNL_find_NSEW(self.xpt1, self.xpt2, self.magx, debug)
         
         self.yaml['grid_params']['config'] = self.eq.config
         return self.yaml['grid_params']['config']
@@ -354,6 +356,8 @@ class Ingrid:
             ingrid_topology = LSN(self)
         elif config == 'USN':
             ingrid_topology = USN(self)
+        elif config == 'DNL':
+            ingrid_topology = DNL(self)
 
         self.current_topology = ingrid_topology
 
@@ -409,6 +413,430 @@ class Ingrid:
         f.write(runidg + '\n')
 
         f.close()
+
+class DNL(Ingrid):
+    def __init__(self, INGRID_object):
+        super().__init__(params = INGRID_object.yaml)
+        self.efit_psi = INGRID_object.efit_psi
+        self.psi_norm = INGRID_object.psi_norm
+        self.eq = INGRID_object.eq
+
+        self.plate_data = INGRID_object.plate_data
+
+    def construct_patches(self):
+        """
+        Draws lines and creates patches for both USN and LSN configurations.
+            
+        Patch Labeling Key:
+            I: Inner,
+            O: Outer,
+            DL: Divertor Leg,
+            PF: Private Flux,
+            T: Top,
+            B: Bottom,
+            S: Scrape Off Layer,
+            C: Core.
+        """
+        # TODO: Create a 'lookup' procedure for determining line drawing
+        #       orientations and inner-outer locations.
+
+        def trim_line(line, point):
+            """
+            Create a modified copy of Line object 'line' that starts with Point object 'point'
+            """
+
+            line = line.fluff_copy(100)
+            end = line.p[-1]
+            target_dist = np.sqrt((point.x - end.x)**2 + (point.y - end.y)**2)
+
+            for i, p in enumerate(line.p):
+                d1 = np.sqrt((end.x - p.x)**2 + (end.y - p.y)**2)
+                if d1 < target_dist:
+                    return
+
+
+        def order_plate_points(plate, mode = 'lower'):
+            """
+            Sets the points in the target plate to have an orientation
+            increasing in R and Z. Checks the endpoints to satisfy this criteria.
+            """
+
+            if mode == 'lower':
+                left = plate.p[0]
+                right = plate.p[-1]
+                # Endpoints on same vertical line.
+                if left.x == right.x:
+                    # If rhs endpoint above lhs endpoint.
+                    if right.y > left.y:
+                        # Return target plate as is
+                        return plate.copy().p[::]
+                    else:
+                        # Else flip plate orientation.
+                        return plate.copy().p[::-1]
+                # Endpoints on same horizontal line.
+                elif left.y == right.y:
+                    # If lhs endpoint to the left of rhs endpoint.
+                    if left.x < right.x:
+                        # Return target plate as is
+                        return plate.copy().p
+                    else:
+                        # Else flip plate orientation
+                        return plate.copy().p[::-1]
+                # Endpoints are on sloped line.
+                # Check if lhs endpoint is on the left of rhs endpoint
+                elif left.x < right.x:
+                    return plate.copy().p
+                else:
+                    return plate.copy().p[::-1]
+            elif mode == 'upper':
+                """
+                Sets the points in the target plate to have an orientation
+                increasing in R and Z. Checks the endpoints to satisfy this criteria.
+                """
+                start = plate.p[0]
+                end = plate.p[-1]
+                # Endpoints on same vertical line.
+                if start.x == end.x:
+                    # If rhs endpoint above lhs endpoint.
+                    if end.y < start.y:
+                        # Return target plate as is
+                        return plate.copy().p
+                    else:
+                        # Else flip plate orientation.
+                        return plate.copy().p[::-1]
+                # Endpoints on same horizontal line.
+                elif start.y == start.y:
+                    # If lhs endpoint to the left of rhs endpoint.
+                    if end.x > start.x:
+                        # Return target plate as is
+                        return plate.copy().p
+                    else:
+                        # Else flip plate orientation
+                        return plate.copy().p[::-1]
+                # Endpoints are on sloped line.
+                # Check if lhs endpoint is on the left of rhs endpoint
+                elif end.x < start.x:
+                    return plate.copy().p
+                else:
+                    return plate.copy().p[::-1]
+
+        def get_insert_index(arr, val, mode = 'lower'):
+
+            # Iterate over all points in a given target plate
+            
+            # Check the current point and the following point
+            # since we are looking for where the given value will
+            # need to be inserted in an already populated list.
+
+            # 
+
+            if mode == 'lower':
+                index_found = True
+                for i in range(len(arr) - 1):
+                    p1, p2 = arr[i], arr[i+1]
+                    if (p1.x, p1.y) == (p2.x, p2.y):
+                        continue
+                    # vertical segment
+                    if p1.x == p2.x:
+                        # value in-between vertically increasing segment
+                        if (val.y >= p1.y and val.y <= p2.y):
+                            break
+                    # horizontal segment
+                    elif p1.y == p2.y:
+                        # value in-between horizontally increasing segment
+                        if (val.x >= p1.x and val.x <= p2.x):
+                            break
+                    # sloped segment
+                    elif p1.x < p2.x:
+                        if (val.x >= p1.x and val.x <= p2.x) \
+                            and (val.y <= p1.y and val.y >= p2.y):
+                            break
+                        if (val.x >= p1.x and val.x <= p2.x) \
+                            and (val.y >= p1.y and val.y <= p2.y):
+                            break
+                    elif p1.x > p2.x:
+                        if (val.x >= p2.x and val.x <= p1.x)\
+                            and (val.y <= p2.y and val.y >= p1.y):
+                            break
+                    elif i == len(arr.p) - 2:
+                        index_found = False
+                
+                return i+1 if index_found else null
+
+            elif mode == 'upper':
+                # Iterate over all points in a given target plate
+                
+                # Check the current point and the following point
+                # since we are looking for where the given value will
+                # need to be inserted in an already populated list.
+
+                index_found = True
+                for i in range(len(arr) - 1):
+                    p1, p2 = arr[i], arr[i+1]
+                    if (p1.x, p1.y) == (p2.x, p2.y):
+                        continue
+                    # vertical segment
+                    if p1.x == p2.x:
+                        # value in-between vertically increasing segment
+                        if (val.y <= p1.y and val.y >= p2.y):
+                            break
+                    # horizontal segment
+                    elif p1.y == p2.y:
+                        # value in-between horizontally increasing segment
+                        if (val.x <= p1.x and val.x >= p2.x):
+                            break
+                    # sloped segment
+                    elif p1.x > p2.x:
+                        if (val.x <= p1.x and val.x >= p2.x) \
+                            and (val.y <= p1.y and val.y >= p2.y):
+                            break
+                        if (val.x <= p1.x and val.x >= p2.x) \
+                            and (val.y >= p1.y and val.y <= p2.y):
+                            break
+                    elif p1.x < p2.x:
+                        if (val.x <= p2.x and val.x >= p1.x)\
+                            and (val.y >= p2.y and val.y <= p1.y):
+                            break
+                    elif i == len(arr.p) - 2:
+                        index_found = False
+                
+                return i+1 if index_found else null
+
+        def set_face(plate, south_point, north_point, location, mode = 'lower'):
+            """
+            Trim a Line object adjacent to a divertor plate.
+            The Line object will be defined by the interval of points
+            [min_point, max_point] that form a subset of a target plate.
+            """
+
+            if mode == 'lower':
+                new_leg = order_plate_points(plate, mode)
+                i = get_insert_index(new_leg, south_point, mode)
+                j = get_insert_index(new_leg, north_point, mode)
+
+                if location == 'W':
+                    new_leg.insert(i, south_point)
+                    new_leg.insert(j, north_point)
+                elif location == 'E':
+                    new_leg.insert(j, north_point)
+                    new_leg.insert(i, south_point)
+
+                lookup = {}
+                for i in range(len(new_leg)):
+                    lookup[new_leg[i]] = i
+
+                start = lookup[north_point]
+                end = lookup[south_point]
+
+                if start > end:
+                    start, end = end, start
+
+                # Return a reverse copy to maintain clockwise orientation within the LSN SNL patch.
+                return Line([p for p in new_leg[start:end+1]]).reverse_copy()
+
+            elif mode == 'upper':
+                """
+                Trim a Line object adjacent to a divertor plate.
+                The Line object will be defined by the interval of points
+                [min_point, max_point] that form a subset of a target plate.
+                """
+
+                new_leg = order_plate_points(plate, mode)
+                i = get_insert_index(new_leg, south_point, mode)
+                j = get_insert_index(new_leg, north_point, mode)
+
+                if location == 'W':
+                    new_leg.insert(i, south_point)
+                    new_leg.insert(j, north_point)
+                elif location == 'E':
+                    new_leg.insert(j, north_point)
+                    new_leg.insert(i, south_point)
+
+                lookup = {}
+                for i in range(len(new_leg)):
+                    lookup[new_leg[i]] = i
+
+                start = lookup[north_point]
+                end = lookup[south_point]
+
+                if start > end:
+                    start, end = end, start
+
+                # Return a reverse copy to maintain clockwise orientation within the LSN SNL patch.
+                return Line([p for p in new_leg[start:end+1]]).reverse_copy()
+
+        try:
+            visual = self.yaml['DEBUG']['visual']['patch_map']
+        except KeyError:
+            visual = False
+        try:
+            verbose = self.yaml['DEBUG']['verbose']['patch_generation']
+        except KeyError:
+            verbose = False
+        try:
+            inner_tilt = self.yaml['grid_params']['patch_generation']['inner_tilt']
+        except KeyError:
+            inner_tilt = 0.0
+        try:
+            outer_tilt = self.yaml['grid_params']['patch_generation']['outer_tilt']
+        except KeyError:
+            outer_tilt = 0.0
+
+        self.plate_W1 = self.plate_data['plate_W1']['coordinates']
+        self.plate_E1 = self.plate_data['plate_E1']['coordinates']
+        self.plate_E2 = self.plate_data['plate_E2']['coordinates']
+        self.plate_W2 = self.plate_data['plate_W2']['coordinates']
+
+        xpt1_dict = self.eq.eq_psi['xpt1']
+        xpt1_theta = self.eq.eq_psi_theta['xpt1']
+        xpt2_dict = self.eq.eq_psi['xpt2']
+        xpt1_theta = self.eq.eq_psi_theta['xpt2']
+
+        sptrx1_v = self.psi_norm.get_psi(self.xpt1[0], self.xpt1[1])
+        sptrx2_v = self.psi_norm.get_psi(self.xpt2[0], self.xpt2[1])
+
+        magx = np.array([self.yaml['grid_params']['rmagx'] + self.yaml['grid_params']['patch_generation']['rmagx_shift'], \
+            self.yaml['grid_params']['zmagx'] + self.yaml['grid_params']['patch_generation']['zmagx_shift']])
+
+        psi_max = self.yaml['grid_params']['psi_max']
+        psi_min_core = self.yaml['grid_params']['psi_min_core']
+        psi_min_pf = self.yaml['grid_params']['psi_min_pf']
+
+        psi_max_outer = self.yaml['grid_params']['psi_max_outer']
+        psi_max_inner = self.yaml['grid_params']['psi_max_inner']
+        psi_min_pf_2 = self.yaml['grid_params']['psi_pf2']
+
+        LITP = Line(order_plate_points(Line([Point(i) for i in self.plate_W1])))
+        LOTP = Line(order_plate_points(Line([Point(i) for i in self.plate_E1])))
+
+        UITP = Line(order_plate_points(Line([Point(i) for i in self.plate_E2]), mode = 'upper'))
+        UOTP = Line(order_plate_points(Line([Point(i) for i in self.plate_W2]), mode = 'upper'))
+
+        # Generate Horizontal Mid-Plane lines
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(inner_tilt), magx[1] + 1e6 * np.sin(inner_tilt))
+        inner_midLine = Line([LHS_Point, RHS_Point])
+        inner_midLine.plot()
+
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(outer_tilt), magx[1] - 1e6 * np.sin(outer_tilt))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(outer_tilt), magx[1] + 1e6 * np.sin(outer_tilt))
+        outer_midLine = Line([LHS_Point, RHS_Point])
+        outer_midLine.plot()
+
+        # Generate Vertical Mid-Plane line that intersects the secondary x-pt and the magnetic axis
+        slp = [self.xpt2[0] - magx[0], self.xpt2[1] - magx[1]]
+        slp = slp[1] / slp[0]
+        topLine_tilt = np.arctan(slp)
+
+        Upper_Point = Point(-1e6, slp * (-1e6 - self.xpt2[0]) + self.xpt2[1])
+        Lower_Point = Point(1e6, slp * (1e6 - self.xpt2[1]) + self.xpt2[1])
+        topLine = Line([Lower_Point, Upper_Point])
+        topLine.plot()
+
+        # Drawing the portion of separatrix similar to single-null configuration.
+        
+        # xpt1W_sptrx2Inner = self.eq.draw_line(xpt1_dict['W'], {'psi' : sptrx2_v}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+        # xpt1E_sptrx2Outer = self.eq.draw_line(xpt1_dict['E'], {'psi' : sptrx2_v}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt1N_psiMinCore = self.eq.draw_line(xpt1_dict['N'], {'psi' : psi_min_core}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1NW_sptrx1imidLine = self.eq.draw_line(xpt1_dict['NW'], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1NE_sptrx1omidLine = self.eq.draw_line(xpt1_dict['NE'], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx1imidLine_topLine = self.eq.draw_line(xpt1NW_sptrx1imidLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx1omidLine_topLine = self.eq.draw_line(xpt1NE_sptrx1omidLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinCore_imidLineCore = self.eq.draw_line(xpt1N_psiMinCore.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinCore_omidLineCore = self.eq.draw_line(xpt1N_psiMinCore.p[-1], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        imidLineCore_topLine = self.eq.draw_line(psiMinCore_imidLineCore.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        omidLineCore_topLine = self.eq.draw_line(psiMinCore_omidLineCore.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+
+        xpt1_psiMinPF1 = self.eq.draw_line(xpt1_dict['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF1_LITP = self.eq.draw_line(xpt1_psiMinPF1.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinPF1_LOTP = self.eq.draw_line(xpt1_psiMinPF1.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1_LITP = self.eq.draw_line(xpt1_dict['SW'], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt1_LOTP = self.eq.draw_line(xpt1_dict['SE'], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+
+        # Drawing the portion of the separatrix found in the double-null configuration
+        xpt2_sptrx1 = self.eq.draw_line(xpt2_dict['N'], {'psi_horizontal' : (sptrx1_v, topLine_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        xpt2NE_sptrx2imidLine = self.eq.draw_line(xpt2_dict['NE'], {'line' : inner_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt2NW_sptrx2omidLine = self.eq.draw_line(xpt2_dict['NW'], {'line' : outer_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2imidLine_LITP = self.eq.draw_line(xpt2NE_sptrx2imidLine.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx2omidLine_LOTP = self.eq.draw_line(xpt2NW_sptrx2omidLine.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt2_psiMinPF2 = self.eq.draw_line(xpt2_dict['S'], {'psi' : psi_min_pf_2}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF2_UITP = self.eq.draw_line(xpt2_psiMinPF2.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF2_UOTP = self.eq.draw_line(xpt2_psiMinPF2.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt2_UITP = self.eq.draw_line(xpt2_dict['SE'], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt2_UOTP = self.eq.draw_line(xpt2_dict['SW'], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+
+        xpt2_psiMaxInner = self.eq.draw_line(xpt2_dict['E'], {'psi' : psi_max_inner}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt2_psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi' : psi_max_outer}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+        imidLine_UITP = self.eq.draw_line(xpt2_psiMaxInner.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        omidLine_UOTP = self.eq.draw_line(xpt2_psiMaxOuter.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+
+
+        psiMaxInner_imidLine = self.eq.draw_line(xpt2_psiMaxInner.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMaxOuter_omidLine = self.eq.draw_line(xpt2_psiMaxOuter.p[-1], {'line' : outer_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        imidLine_LITP = self.eq.draw_line(psiMaxInner_imidLine.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        omidLine_LOTP = self.eq.draw_line(psiMaxOuter_omidLine.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+
+
+        # Computing angle between line tangent to sptrx1 in NW direction and unit vector < 1, 0 >
+        v = np.array([xpt1NW_sptrx1imidLine.p[1].x - self.xpt1[0], xpt1NW_sptrx1imidLine.p[1].y - self.xpt1[1]])
+        tilt = np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) + np.pi/6
+        xpt1W_sptrx2Lower = self.eq.draw_line(xpt1_dict['W'], {'line' : (sptrx2imidLine_LITP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2Lower_psiMaxinner = self.eq.draw_line(xpt1W_sptrx2Lower.p[-1], {'line' : (imidLine_LITP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+
+        # Computing angle between line tangent to sptrx1 in NE direction and unit vector < 1, 0 >
+        v = np.array([xpt1NE_sptrx1omidLine.p[1].x - self.xpt1[0], xpt1NE_sptrx1omidLine.p[1].y - self.xpt1[1]])
+        tilt = np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) - np.pi/6
+        xpt1E_sptrx2Lower = self.eq.draw_line(xpt1_dict['E'], {'line': (sptrx2omidLine_LOTP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2Lower_psiMaxOuter = self.eq.draw_line(xpt1E_sptrx2Lower.p[-1], {'line' : (omidLine_LOTP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+
+        # ============== Patch A1 ==============
+        location = 'W'
+        A1_N = self.eq.draw_line(sptrx2Lower_psiMaxinner.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
+        A1_S = self.eq.draw_line(xpt1W_sptrx2Lower.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        A1_E = sptrx2Lower_psiMaxinner.reverse_copy()
+        A1_W = set_face(LITP, A1_S.p[-1], A1_N.p[0], location = location)
+        A1 = SNL_Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'A1', platePatch = True, plateLocation = location)
+
+        # ============== Patch B1 ==============
+        location = 'W'
+        B1_N = A1_S.reverse_copy()
+        B1_E = xpt1W_sptrx2Lower.reverse_copy()
+        B1_S = xpt1_LITP
+        B1_W = set_face(LITP, B1_S.p[-1], B1_N.p[0], location = location)
+        B1 = SNL_Patch([B1_N, B1_E, B1_S, B1_W], patchName = 'B1', platePatch = True, plateLocation = location)
+
+        # ============== Patch C1 ==============
+        location = 'W'
+        C1_N = B1_S.reverse_copy()
+        C1_E = xpt1_psiMinPF1
+        C1_S = psiMinPF1_LITP
+        C1_W = set_face(LITP, C1_S.p[-1], C1_N.p[0], location = location)
+        C1 = SNL_Patch([C1_N, C1_E, C1_S, C1_W], patchName = 'C1', platePatch = True, plateLocation = location)
+
+        # ============== Patch A2 ==============
+        A2_N 
+
+
+        xpt1_eq['break']
+
+        self.patches = [IDL, IPF, ISB, ICB, IST, ICT, OST, OCT, OSB, OCB, ODL, OPF]
+        names = ['IDL', 'IPF', 'ISB', 'ICB', 'IST', 'ICT', 'OST', 'OCT', 'OSB', 'OCB', 'ODL', 'OPF']
+        patch_lookup = {}
+
+        for patch in self.patches:
+            patch_lookup[patch.patchName] = patch
+            patch.plot_border()
+            patch.fill()
+        self.patch_lookup = patch_lookup
+
+        p = self.patch_lookup
+        self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
+                        [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
+                        [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
+                        [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
+                        ]
+
+        self.catagorize_patches()
 
 class SNL(Ingrid):
 
@@ -1576,6 +2004,6 @@ def set_params_GUI():
             plt.close('all')
             IngridWindow.destroy()
     IngridWindow = IA.IngridApp()
-    IngridWindow.geometry("830x490")
+    IngridWindow.geometry("1185x490")
     IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
     IngridWindow.mainloop()

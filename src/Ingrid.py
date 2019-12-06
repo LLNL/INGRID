@@ -587,7 +587,7 @@ class DNL(Ingrid):
             """
             Split a line object into two line objects at a particular point
             """
-            line = line.fluff_copy(5)
+            line = line.fluff_copy(2)
             d_arr = []
             
             for i, j in zip(line.xval, line.yval):

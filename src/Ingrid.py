@@ -17,7 +17,7 @@ from OMFITgeqdsk import OMFITgeqdsk
 from Interpol.Setup_Grid_Data import Efit_Data
 from line_tracing import LineTracing
 from Root_Finder import RootFinder
-from geometry import Point, Line, SNL_Patch, segment_intersect
+from geometry import Point, Line, SNL_Patch, DNL_Patch, segment_intersect
 
 
 class Ingrid:

@@ -188,6 +188,10 @@ class Line:
         y_fluff = np.append(y_fluff, self.yval[-1])
 
         return x_fluff, y_fluff
+
+    def fluff_copy(self, num = 1000):
+        [x, y] = self.fluff(num)
+        return Line([Point(p) for p in [(i, j) for i,j in zip(x, y)]])
         
     def points(self):
         """ Returns the points in the line as a tuple. """

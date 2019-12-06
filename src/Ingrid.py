@@ -414,14 +414,157 @@ class Ingrid:
 
         f.close()
 
+
 class DNL(Ingrid):
     def __init__(self, INGRID_object):
         super().__init__(params = INGRID_object.yaml)
         self.efit_psi = INGRID_object.efit_psi
         self.psi_norm = INGRID_object.psi_norm
         self.eq = INGRID_object.eq
-
         self.plate_data = INGRID_object.plate_data
+        self.config = 'DNL'
+        print('=' * 80)
+        print('DNL Object!')
+        print('=' * 80 + '\n')
+
+    def patch_diagram(self):
+        """ Generates the patch diagram for a given configuration. """
+        
+        colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
+                  'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
+                  'seagreen', 'firebrick', 'saddlebrown', 'c', 
+                  'm', 'dodgerblue', 'darkorchid', 'crimson', 
+                  'darkorange', 'lightgreen', 'lightseagreen', 'indigo', 
+                  'mediumvioletred', 'mistyrose', 'darkolivegreen', 'rebeccapurple']
+
+        try:
+            plt.close('INGRID: Patch Map')
+        except:
+            pass
+
+        plt.figure('INGRID: Patch Map', figsize=(6, 10))
+        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
+        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.xlabel('R')
+        plt.ylabel('Z')
+        plt.title('DNL Patch Diagram')
+
+        for i in range(len(self.patches)):
+            self.patches[i].plot_border('green')
+            self.patches[i].fill(colors[i])
+
+        plt.show() 
+
+    def grid_diagram(self):
+
+        try:
+            plt.close('INGRID: Grid')
+        except:
+            pass
+
+        plt.figure('INGRID: Grid', figsize=(6,10))
+        for patch in self.patches:
+            patch.plot_subgrid()
+        
+        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
+        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.xlabel('R')
+        plt.ylabel('Z')
+        plt.title('INGRID DNL Subgrid')
+        plt.show()
+
+    def construct_grid(self, np_cells = 3, nr_cells = 3):
+
+        # Straighten up East and West segments of our patches,
+        # Plot borders and fill patches.
+
+        try:
+            visual = self.yaml['DEBUG']['visual']['subgrid']
+        except:
+            visual = False
+        try:
+            verbose = self.yaml['DEBUG']['verbose']['grid_generation']
+        except:
+            verbose = False
+
+        try:
+            np_sol = self.yaml['grid_params']['grid_generation']['np_sol']
+        except:
+            np_sol = self.yaml['grid_params']['grid_generation']['np_global']
+        try:
+            np_core = self.yaml['grid_params']['grid_generation']['np_core']
+        except:
+            np_core = self.yaml['grid_params']['grid_generation']['np_global']
+        try:
+            np_pf = self.yaml['grid_params']['grid_generation']['np_pf']
+        except:
+            np_pf = self.yaml['grid_params']['grid_generation']['np_global']
+
+        if np_sol != np_core:
+            print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
+                + ' to the minimum of np_sol and np_core.\n')
+            np_sol = np_core = np.amin([np_sol, np_core])
+
+        try:
+            nr_sol = self.yaml['grid_params']['grid_generation']['nr_sol']
+        except:
+            nr_sol = self.yaml['grid_params']['grid_generation']['nr_global']
+
+        try:
+            nr_core = self.yaml['grid_params']['grid_generation']['nr_core']
+        except:
+            nr_core = self.yaml['grid_params']['grid_generation']['nr_global']
+        try:
+            nr_pf = self.yaml['grid_params']['grid_generation']['nr_pf']
+        except:
+            nr_pf = self.yaml['grid_params']['grid_generation']['nr_global']
+
+        if nr_pf != nr_core:
+            print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
+                + ' to the minimum of nr_pf and nr_core.\n')
+            nr_pf = nr_core = np.amin([nr_pf, nr_core])
+
+        # primary_xpt = Point([self.yaml['grid_params']['rxpt'], self.yaml['grid_params']['zxpt']])
+        for patch in self.patches:
+            """
+            if patch in self.SOL:
+                nr_cells = nr_sol
+                np_cells = np_sol
+                print('Patch "{}" is in SOL'.format(patch.patchName))
+            elif patch in self.CORE:
+                nr_cells = nr_core
+                np_cells = np_core
+                print('Patch "{}" is in CORE'.format(patch.patchName))
+            elif patch in self.PF:
+                nr_cells = nr_pf
+                np_cells = np_pf
+                print('Patch "{}" is in PF'.format(patch.patchName))
+            """
+
+            patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
+
+            """
+            if patch.patchName == 'IDL':
+                patch.adjust_corner(primary_xpt, 'SE')
+            elif patch.patchName == 'IPF':
+                patch.adjust_corner(primary_xpt, 'NE')
+            elif patch.patchName == 'ISB':
+                patch.adjust_corner(primary_xpt, 'SW')
+            elif patch.patchName == 'ICB':
+                patch.adjust_corner(primary_xpt, 'NW')
+            elif patch.patchName == 'OCB':
+                patch.adjust_corner(primary_xpt, 'NE')
+            elif patch.patchName == 'OSB':
+                patch.adjust_corner(primary_xpt, 'SE')
+            elif patch.patchName == 'OPF':
+                patch.adjust_corner(primary_xpt, 'NW')
+            elif patch.patchName == 'ODL':
+                patch.adjust_corner(primary_xpt, 'SW')
+            """
+        # self.concat_grid(self.get_configuration())
+        # self.set_gridue()
 
     def construct_patches(self):
         """
@@ -440,19 +583,18 @@ class DNL(Ingrid):
         # TODO: Create a 'lookup' procedure for determining line drawing
         #       orientations and inner-outer locations.
 
-        def trim_line(line, point):
+        def split_line(line, point):
             """
-            Create a modified copy of Line object 'line' that starts with Point object 'point'
+            Split a line object into two line objects at a particular point
             """
+            line = line.fluff_copy(5)
+            d_arr = []
+            
+            for i, j in zip(line.xval, line.yval):
+                d_arr.append(np.sqrt((i - point.x) ** 2 + (j - point.y) ** 2))
+            ind = np.asarray(d_arr).argmin()
 
-            line = line.fluff_copy(100)
-            end = line.p[-1]
-            target_dist = np.sqrt((point.x - end.x)**2 + (point.y - end.y)**2)
-
-            for i, p in enumerate(line.p):
-                d1 = np.sqrt((end.x - p.x)**2 + (end.y - p.y)**2)
-                if d1 < target_dist:
-                    return
+            return Line([point] + line.p[ind:]), Line(line.p[:ind+1] + [point])
 
 
         def order_plate_points(plate, mode = 'lower'):
@@ -608,7 +750,9 @@ class DNL(Ingrid):
             The Line object will be defined by the interval of points
             [min_point, max_point] that form a subset of a target plate.
             """
-
+            import pdb
+            pdb.set_trace()
+            
             if mode == 'lower':
                 new_leg = order_plate_points(plate, mode)
                 i = get_insert_index(new_leg, south_point, mode)
@@ -716,12 +860,12 @@ class DNL(Ingrid):
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
         RHS_Point = Point(magx[0] + 1e6 * np.cos(inner_tilt), magx[1] + 1e6 * np.sin(inner_tilt))
         inner_midLine = Line([LHS_Point, RHS_Point])
-        inner_midLine.plot()
+        # inner_midLine.plot()
 
         LHS_Point = Point(magx[0] - 1e6 * np.cos(outer_tilt), magx[1] - 1e6 * np.sin(outer_tilt))
         RHS_Point = Point(magx[0] + 1e6 * np.cos(outer_tilt), magx[1] + 1e6 * np.sin(outer_tilt))
         outer_midLine = Line([LHS_Point, RHS_Point])
-        outer_midLine.plot()
+        # outer_midLine.plot()
 
         # Generate Vertical Mid-Plane line that intersects the secondary x-pt and the magnetic axis
         slp = [self.xpt2[0] - magx[0], self.xpt2[1] - magx[1]]
@@ -729,114 +873,292 @@ class DNL(Ingrid):
         topLine_tilt = np.arctan(slp)
 
         Upper_Point = Point(-1e6, slp * (-1e6 - self.xpt2[0]) + self.xpt2[1])
-        Lower_Point = Point(1e6, slp * (1e6 - self.xpt2[1]) + self.xpt2[1])
+        Lower_Point = Point(1e6, slp * (1e6 - self.xpt2[0]) + self.xpt2[1])
         topLine = Line([Lower_Point, Upper_Point])
-        topLine.plot()
+        # topLine.plot()
 
         # Drawing the portion of separatrix similar to single-null configuration.
-        
-        # xpt1W_sptrx2Inner = self.eq.draw_line(xpt1_dict['W'], {'psi' : sptrx2_v}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
-        # xpt1E_sptrx2Outer = self.eq.draw_line(xpt1_dict['E'], {'psi' : sptrx2_v}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
-        xpt1N_psiMinCore = self.eq.draw_line(xpt1_dict['N'], {'psi' : psi_min_core}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        xpt1NW_sptrx1imidLine = self.eq.draw_line(xpt1_dict['NW'], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        xpt1NE_sptrx1omidLine = self.eq.draw_line(xpt1_dict['NE'], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        sptrx1imidLine_topLine = self.eq.draw_line(xpt1NW_sptrx1imidLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx1omidLine_topLine = self.eq.draw_line(xpt1NE_sptrx1omidLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        psiMinCore_imidLineCore = self.eq.draw_line(xpt1N_psiMinCore.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinCore_omidLineCore = self.eq.draw_line(xpt1N_psiMinCore.p[-1], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        imidLineCore_topLine = self.eq.draw_line(psiMinCore_imidLineCore.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        omidLineCore_topLine = self.eq.draw_line(psiMinCore_omidLineCore.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt1N__psiMinCore = self.eq.draw_line(xpt1_dict['N'], {'psi' : psi_min_core}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1NW__sptrx1imidLine = self.eq.draw_line(xpt1_dict['NW'], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1NE__sptrx1omidLine = self.eq.draw_line(xpt1_dict['NE'], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx1imidLine__topLine = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx1omidLine__topLine = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinCore__imidLineCore = self.eq.draw_line(xpt1N__psiMinCore.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinCore__omidLineCore = self.eq.draw_line(xpt1N__psiMinCore.p[-1], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        imidLineCore__topLine = self.eq.draw_line(psiMinCore__imidLineCore.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        omidLineCore__topLine = self.eq.draw_line(psiMinCore__omidLineCore.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx1 = Line([xpt1NW__sptrx1imidLine.p + sptrx1imidLine__topLine.p + sptrx1omidLine__topLine.p[-2::-1] + xpt1NE__sptrx1omidLine.p[-2::-1]][0])
+        core = Line([psiMinCore__imidLineCore.p + imidLineCore__topLine.p + omidLineCore__topLine.p[-2::-1] + psiMinCore__omidLineCore.p[-2::-1]][0])
 
-        xpt1_psiMinPF1 = self.eq.draw_line(xpt1_dict['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinPF1_LITP = self.eq.draw_line(xpt1_psiMinPF1.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        psiMinPF1_LOTP = self.eq.draw_line(xpt1_psiMinPF1.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        xpt1_LITP = self.eq.draw_line(xpt1_dict['SW'], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        xpt1_LOTP = self.eq.draw_line(xpt1_dict['SE'], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1__psiMinPF1 = self.eq.draw_line(xpt1_dict['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF1__LITP = self.eq.draw_line(xpt1__psiMinPF1.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinPF1__LOTP = self.eq.draw_line(xpt1__psiMinPF1.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1__LITP = self.eq.draw_line(xpt1_dict['SW'], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt1__LOTP = self.eq.draw_line(xpt1_dict['SE'], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
 
         # Drawing the portion of the separatrix found in the double-null configuration
-        xpt2_sptrx1 = self.eq.draw_line(xpt2_dict['N'], {'psi_horizontal' : (sptrx1_v, topLine_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
-        xpt2NE_sptrx2imidLine = self.eq.draw_line(xpt2_dict['NE'], {'line' : inner_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        xpt2NW_sptrx2omidLine = self.eq.draw_line(xpt2_dict['NW'], {'line' : outer_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx2imidLine_LITP = self.eq.draw_line(xpt2NE_sptrx2imidLine.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        sptrx2omidLine_LOTP = self.eq.draw_line(xpt2NW_sptrx2omidLine.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        xpt2_psiMinPF2 = self.eq.draw_line(xpt2_dict['S'], {'psi' : psi_min_pf_2}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinPF2_UITP = self.eq.draw_line(xpt2_psiMinPF2.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinPF2_UOTP = self.eq.draw_line(xpt2_psiMinPF2.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        xpt2_UITP = self.eq.draw_line(xpt2_dict['SE'], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        xpt2_UOTP = self.eq.draw_line(xpt2_dict['SW'], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt2__sptrx1 = self.eq.draw_line(xpt2_dict['N'], {'line' : (sptrx1, topLine_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        xpt2NE__sptrx2imidLine = self.eq.draw_line(xpt2_dict['NE'], {'line' : inner_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt2NW__sptrx2omidLine = self.eq.draw_line(xpt2_dict['NW'], {'line' : outer_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2imidLine__LITP = self.eq.draw_line(xpt2NE__sptrx2imidLine.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx2omidLine__LOTP = self.eq.draw_line(xpt2NW__sptrx2omidLine.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
 
-        xpt2_psiMaxInner = self.eq.draw_line(xpt2_dict['E'], {'psi' : psi_max_inner}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
-        xpt2_psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi' : psi_max_outer}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
-        imidLine_UITP = self.eq.draw_line(xpt2_psiMaxInner.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        omidLine_UOTP = self.eq.draw_line(xpt2_psiMaxOuter.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx2_inner = Line([xpt2NE__sptrx2imidLine.p + sptrx2imidLine__LITP.p][0])
+        sptrx2_outer = Line([xpt2NW__sptrx2omidLine.p + sptrx2omidLine__LOTP.p][0])
+
+        xpt2__psiMinPF2 = self.eq.draw_line(xpt2_dict['S'], {'psi' : psi_min_pf_2}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        xpt2__psiMinPF2_B, xpt2__psiMinPF2_A = split_line(xpt2__psiMinPF2, xpt2__psiMinPF2.p[len(xpt2__psiMinPF2.p)//2])
+
+        psiMinPF2_A__UITP = self.eq.draw_line(xpt2__psiMinPF2_A.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF2_A__UOTP = self.eq.draw_line(xpt2__psiMinPF2_A.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinPF2_B__UITP = self.eq.draw_line(xpt2__psiMinPF2_B.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF2_B__UOTP = self.eq.draw_line(xpt2__psiMinPF2_B.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt2__UITP = self.eq.draw_line(xpt2_dict['SE'], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt2__UOTP = self.eq.draw_line(xpt2_dict['SW'], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+
+        v = np.array([xpt2NE__sptrx2imidLine.p[1].x - self.xpt2[0], xpt2NE__sptrx2imidLine.p[1].y - self.xpt2[1]])
+        tilt = np.arccos(np.dot(v, np.array([-1, 0])) / np.linalg.norm(v))
+        xpt2__psiMaxInner = self.eq.draw_line(xpt2_dict['E'], {'psi_horizontal' : (psi_max_inner, tilt)}, option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
+        v = np.array([xpt2NW__sptrx2omidLine.p[1].x - self.xpt2[0], xpt2NW__sptrx2omidLine.p[1].y - self.xpt2[1]])
+        tilt = -np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) 
+        xpt2__psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi_horizontal' : (psi_max_outer, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        psiMaxInner__UITP = self.eq.draw_line(xpt2__psiMaxInner.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMaxOuter__UOTP = self.eq.draw_line(xpt2__psiMaxOuter.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
 
 
-        psiMaxInner_imidLine = self.eq.draw_line(xpt2_psiMaxInner.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        psiMaxOuter_omidLine = self.eq.draw_line(xpt2_psiMaxOuter.p[-1], {'line' : outer_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        imidLine_LITP = self.eq.draw_line(psiMaxInner_imidLine.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        omidLine_LOTP = self.eq.draw_line(psiMaxOuter_omidLine.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMaxInner__imidLine = self.eq.draw_line(xpt2__psiMaxInner.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMaxOuter__omidLine = self.eq.draw_line(xpt2__psiMaxOuter.p[-1], {'line' : outer_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        imidLine__LITP = self.eq.draw_line(psiMaxInner__imidLine.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        omidLine__LOTP = self.eq.draw_line(psiMaxOuter__omidLine.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
 
+        sptrx3_inner = Line([psiMaxInner__imidLine.p + imidLine__LITP.p][0])
+        sptrx3_outer = Line([psiMaxOuter__omidLine.p + omidLine__LOTP.p][0])
 
         # Computing angle between line tangent to sptrx1 in NW direction and unit vector < 1, 0 >
-        v = np.array([xpt1NW_sptrx1imidLine.p[1].x - self.xpt1[0], xpt1NW_sptrx1imidLine.p[1].y - self.xpt1[1]])
+        v = np.array([xpt1NW__sptrx1imidLine.p[1].x - self.xpt1[0], xpt1NW__sptrx1imidLine.p[1].y - self.xpt1[1]])
         tilt = np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) + np.pi/6
-        xpt1W_sptrx2Lower = self.eq.draw_line(xpt1_dict['W'], {'line' : (sptrx2imidLine_LITP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx2Lower_psiMaxinner = self.eq.draw_line(xpt1W_sptrx2Lower.p[-1], {'line' : (imidLine_LITP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1W__sptrx2Lower = self.eq.draw_line(xpt1_dict['W'], {'line' : (sptrx2imidLine__LITP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2__LowerPsiMaxInner = self.eq.draw_line(xpt1W__sptrx2Lower.p[-1], {'line' : (imidLine__LITP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
 
         # Computing angle between line tangent to sptrx1 in NE direction and unit vector < 1, 0 >
-        v = np.array([xpt1NE_sptrx1omidLine.p[1].x - self.xpt1[0], xpt1NE_sptrx1omidLine.p[1].y - self.xpt1[1]])
+        v = np.array([xpt1NE__sptrx1omidLine.p[1].x - self.xpt1[0], xpt1NE__sptrx1omidLine.p[1].y - self.xpt1[1]])
         tilt = np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) - np.pi/6
-        xpt1E_sptrx2Lower = self.eq.draw_line(xpt1_dict['E'], {'line': (sptrx2omidLine_LOTP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx2Lower_psiMaxOuter = self.eq.draw_line(xpt1E_sptrx2Lower.p[-1], {'line' : (omidLine_LOTP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1E__sptrx2Lower = self.eq.draw_line(xpt1_dict['E'], {'line': (sptrx2omidLine__LOTP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2__LowerPsiMaxOuter = self.eq.draw_line(xpt1E__sptrx2Lower.p[-1], {'line' : (omidLine__LOTP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+
+        sptrx1__core_top = self.eq.draw_line(xpt2__sptrx1.p[-1], {'line' : (core, topLine_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx1__core_inner = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : (core, inner_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx1__core_outer = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : (core, outer_tilt)}, option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx1__sptrx2_inner = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : (sptrx2_inner, inner_tilt)}, option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx1__sptrx2_outer = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : (sptrx2_outer, outer_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2_inner__sptrx3_inner = self.eq.draw_line(xpt2NE__sptrx2imidLine.p[-1], {'line' : (sptrx3_inner, inner_tilt)}, option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx2_outer__sptrx3_outer = self.eq.draw_line(xpt2NW__sptrx2omidLine.p[-1], {'line' : (sptrx3_outer, outer_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+
 
         # ============== Patch A1 ==============
+        LowerPsiMaxInner__LITP, imidLine__LowerPsiMaxInner = split_line(imidLine__LITP, sptrx2__LowerPsiMaxInner.p[-1])
+        sptrx2Lower__LITP, sptrx2imidLine__sptrx2Lower = split_line(sptrx2imidLine__LITP, xpt1W__sptrx2Lower.p[-1])
         location = 'W'
-        A1_N = self.eq.draw_line(sptrx2Lower_psiMaxinner.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
-        A1_S = self.eq.draw_line(xpt1W_sptrx2Lower.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        A1_E = sptrx2Lower_psiMaxinner.reverse_copy()
+        A1_N = LowerPsiMaxInner__LITP.reverse_copy()
+        A1_S = sptrx2Lower__LITP
+        A1_E = sptrx2__LowerPsiMaxInner.reverse_copy()
         A1_W = set_face(LITP, A1_S.p[-1], A1_N.p[0], location = location)
-        A1 = SNL_Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'A1', platePatch = True, plateLocation = location)
+        A1 = DNL_Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'A1', platePatch = True, plateLocation = location)
 
         # ============== Patch B1 ==============
         location = 'W'
         B1_N = A1_S.reverse_copy()
-        B1_E = xpt1W_sptrx2Lower.reverse_copy()
-        B1_S = xpt1_LITP
+        B1_E = xpt1W__sptrx2Lower.reverse_copy()
+        B1_S = xpt1__LITP
         B1_W = set_face(LITP, B1_S.p[-1], B1_N.p[0], location = location)
-        B1 = SNL_Patch([B1_N, B1_E, B1_S, B1_W], patchName = 'B1', platePatch = True, plateLocation = location)
+        B1 = DNL_Patch([B1_N, B1_E, B1_S, B1_W], patchName = 'B1', platePatch = True, plateLocation = location)
 
         # ============== Patch C1 ==============
         location = 'W'
         C1_N = B1_S.reverse_copy()
-        C1_E = xpt1_psiMinPF1
-        C1_S = psiMinPF1_LITP
+        C1_E = xpt1__psiMinPF1
+        C1_S = psiMinPF1__LITP
         C1_W = set_face(LITP, C1_S.p[-1], C1_N.p[0], location = location)
-        C1 = SNL_Patch([C1_N, C1_E, C1_S, C1_W], patchName = 'C1', platePatch = True, plateLocation = location)
+        C1 = DNL_Patch([C1_N, C1_E, C1_S, C1_W], patchName = 'C1', platePatch = True, plateLocation = location)
 
         # ============== Patch A2 ==============
-        A2_N 
+        A2_N = imidLine__LowerPsiMaxInner.reverse_copy()
+        A2_E = sptrx2_inner__sptrx3_inner.reverse_copy()
+        A2_S = sptrx2imidLine__sptrx2Lower
+        A2_W = A1_E.reverse_copy()
+        A2 = DNL_Patch([A2_N, A2_E, A2_S, A2_W], patchName = 'A2')
 
+        # ============== Patch B2 ==============
+        B2_N = A2_S.reverse_copy()
+        B2_E = sptrx1__sptrx2_inner.reverse_copy()
+        B2_S = xpt1NW__sptrx1imidLine.reverse_copy()
+        B2_W = B1_E.reverse_copy()
+        B2 = DNL_Patch([B2_N, B2_E, B2_S, B2_W], patchName = 'B2')
 
-        xpt1_eq['break']
+        # ============== Patch C2 ==============
+        C2_N = B2_S.reverse_copy()
+        C2_E = sptrx1__core_inner
+        C2_S = psiMinCore__imidLineCore.reverse_copy()
+        C2_W = xpt1N__psiMinCore.reverse_copy()
+        C2 = DNL_Patch([C2_N, C2_E, C2_S, C2_W], patchName = 'C2')
 
-        self.patches = [IDL, IPF, ISB, ICB, IST, ICT, OST, OCT, OSB, OCB, ODL, OPF]
-        names = ['IDL', 'IPF', 'ISB', 'ICB', 'IST', 'ICT', 'OST', 'OCT', 'OSB', 'OCB', 'ODL', 'OPF']
+        # ============== Patch A3 ==============
+        A3_N = psiMaxInner__imidLine.reverse_copy()
+        A3_E = xpt2__psiMaxInner.reverse_copy()
+        A3_S = xpt2NE__sptrx2imidLine
+        A3_W = A2_E.reverse_copy()
+        A3 = DNL_Patch([A3_N, A3_E, A3_S, A3_W], patchName = 'A3')
+
+        # ============== Patch B3 ==============
+        B3_N = A3_S.reverse_copy()
+        B3_E = xpt2__sptrx1
+        B3_S = sptrx1imidLine__topLine.reverse_copy()
+        B3_W = B2_E.reverse_copy()
+        B3 = DNL_Patch([B3_N, B3_E, B3_S, B3_W], patchName = 'B3')
+
+        # ============== Patch C3 ==============
+        C3_N = B3_S.reverse_copy()
+        C3_E = sptrx1__core_top
+        C3_S = imidLineCore__topLine.reverse_copy()
+        C3_W = C2_E.reverse_copy()
+        C3 = DNL_Patch([C3_N, C3_E, C3_S, C3_W], patchName = 'C3')
+
+        # ============== Patch A4 ==============
+        location = 'E'
+        A4_N = psiMaxInner__UITP
+        A4_S = xpt2__UITP.reverse_copy()
+        A4_E = set_face(UITP, A4_S.p[0], A4_N.p[-1], location = location)
+        A4_W = A3_E.reverse()
+        A4 = DNL_Patch([A4_N, A4_E, A4_S, A4_W], patchName = 'A4', plateLocation = location)
+
+        # ============== Patch B4 ==============
+        location = 'E'
+        B4_N = A4_S.reverse_copy()
+        B4_S = psiMinPF2_A__UITP.reverse_copy()
+        B4_E = set_face(UITP, B4_S.p[0], B4_N.p[-1], location = location)
+        B4_W = xpt2__psiMinPF2_A.reverse_copy()
+        B4 = DNL_Patch([B4_N, B4_E, B4_S, B4_W], patchName = 'B4', plateLocation = location)
+        # ============== Patch C4 ==============
+        location = 'E'
+        C4_N = B4_S.reverse_copy()
+        C4_S = psiMinPF2_B__UITP.reverse_copy()
+        C4_E = set_face(UITP, C4_S.p[0], C4_N.p[-1], location = location)
+        C4_W = xpt2__psiMinPF2_B.reverse_copy()
+        C4 = DNL_Patch([C4_N, C4_E, C4_S, C4_W], patchName = 'C4', plateLocation = location)
+        # ============== Patch A5 ==============
+        location = 'W'
+        A5_N = psiMaxOuter__UOTP.reverse_copy()
+        A5_S = xpt2__UOTP
+        A5_E = xpt2__psiMaxOuter.reverse_copy()
+        A5_W = set_face(UOTP, A5_S.p[-1], A5_N.p[0], location = location)
+        A5 = DNL_Patch([A5_N, A5_E, A5_S, A5_W], patchName = 'A5', plateLocation = location)
+
+        # ============== Patch B5 ==============
+        location = 'W'
+        B5_N = A5_S.reverse_copy()
+        B5_S = psiMinPF2_A__UOTP
+        B5_E = xpt2__psiMinPF2_A
+        B5_W = set_face(UOTP, B5_S.p[-1], B5_N.p[0], location = location)
+        B5 = DNL_Patch([B5_N, B5_E, B5_S, B5_W], patchName = 'B5', plateLocation = location)
+
+        # ============== Patch C5 ==============
+        location = 'W'
+        C5_N = B5_S.reverse_copy()
+        C5_S = psiMinPF2_B__UOTP
+        C5_E = xpt2__psiMinPF2_B
+        C5_W = set_face(UOTP, C5_S.p[-1], C5_N.p[0], location = location)
+        C5 = DNL_Patch([C5_N, C5_E, C5_S, C5_W], patchName = 'C5', plateLocation = location)
+
+        # ============== Patch A6 ==============
+        A6_N = psiMaxOuter__omidLine
+        A6_S = xpt2NW__sptrx2omidLine.reverse_copy()
+        A6_E = sptrx2_outer__sptrx3_outer.reverse_copy()
+        A6_W = A5_E.reverse_copy()
+        A6 = DNL_Patch([A6_N, A6_E, A6_S, A6_W], patchName = 'A6')
+
+        # ============== Patch B6 ==============
+        B6_N = A6_S.reverse_copy()
+        B6_S = sptrx1omidLine__topLine
+        B6_E = sptrx1__sptrx2_outer.reverse_copy()
+        B6_W = B3_E.reverse_copy()
+        B6 = DNL_Patch([B6_N, B6_E, B6_S, B6_W], patchName = 'B6')
+
+        # ============== Patch C6 ==============
+        C6_N = B6_S.reverse_copy()
+        C6_S = omidLineCore__topLine
+        C6_E = sptrx1__core_outer
+        C6_W = C3_E.reverse_copy()
+        C6 = DNL_Patch([C6_N, C6_E, C6_S, C6_W], patchName = 'C6')
+
+        # ============== Patch A7 ==============
+        LowerPsiMaxOuter__LOTP, omidLine__LowerPsiMaxOuter = split_line(omidLine__LOTP, sptrx2__LowerPsiMaxOuter.p[-1])
+        sptrx2Lower__LOTP, sptrx2imidLine__sptrx2Lower = split_line(sptrx2omidLine__LOTP, xpt1E__sptrx2Lower.p[-1])
+        A7_N = omidLine__LowerPsiMaxOuter
+        A7_S = sptrx2imidLine__sptrx2Lower.reverse_copy()
+        A7_E = sptrx2__LowerPsiMaxOuter.reverse_copy()
+        A7_W = A6_E.reverse_copy()
+        A7 = DNL_Patch([A7_N, A7_E, A7_S, A7_W], patchName = 'A7')
+
+        # ============== Patch B7 ==============
+        B7_N = A7_S.reverse_copy()
+        B7_S = xpt1NE__sptrx1omidLine
+        B7_E = xpt1E__sptrx2Lower.reverse_copy()
+        B7_W = B6_E.reverse_copy()
+        B7 = DNL_Patch([B7_N, B7_E, B7_S, B7_W], patchName = 'B7')
+
+        # ============== Patch C7 ==============
+        C7_N = B7_S.reverse_copy()
+        C7_S = psiMinCore__omidLineCore
+        C7_E = C2_W.reverse_copy()
+        C7_W = C6_E.reverse_copy()
+        C7 = DNL_Patch([C7_N, C7_E, C7_S, C7_W], patchName = 'C7')
+
+        # ============== Patch A8 ==============
+        location = 'E'
+        A8_N = LowerPsiMaxOuter__LOTP
+        A8_S = sptrx2Lower__LOTP.reverse_copy()
+        A8_E = set_face(LOTP, A8_S.p[0], A8_N.p[-1], location = location)
+        A8_W = A7_E.reverse_copy()
+        A8 = DNL_Patch([A8_N, A8_E, A8_S, A8_W], patchName = 'A8', plateLocation = location)
+
+        # ============== Patch B8 ==============
+        location = 'E'
+        B8_N = A8_S.reverse_copy()
+        B8_S = xpt1__LOTP.reverse_copy()
+        B8_E = set_face(LOTP, B8_S.p[0], B8_N.p[-1], location = location)
+        B8_W = B7_E.reverse_copy()
+        B8 = DNL_Patch([B8_N, B8_E, B8_S, B8_W], patchName = 'B8', plateLocation = location)
+
+        # ============== Patch C8 ==============
+        location = 'E'
+        C8_N = B8_S.reverse_copy()
+        C8_S = psiMinPF1__LOTP.reverse_copy()
+        C8_E = set_face(LOTP, C8_S.p[0], C8_N.p[-1], location = location)
+        C8_W = C1_E.reverse_copy()
+        C8 = DNL_Patch([C8_N, C8_E, C8_S, C8_W], patchName = 'C8', plateLocation = location)
+
+        self.patches = [A1, B1, C1, A2, B2, C2, A3, B3, C3, A4, B4, C4, A5, B5, C5, A6, B6, C6, A7, B7, C7, A8, B8, C8]
         patch_lookup = {}
-
         for patch in self.patches:
             patch_lookup[patch.patchName] = patch
             patch.plot_border()
             patch.fill()
         self.patch_lookup = patch_lookup
 
-        p = self.patch_lookup
-        self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-                        [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
-                        [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
-                        [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
-                        ]
+        import pdb
+        pdb.set_trace()
 
-        self.catagorize_patches()
+        p = self.patch_lookup
+        self.patch_matrix = [[[None],  [None],  [None],  [None],  [None], [None], [None], [None], [None], [None], [None], [None]], \
+                            [[None], p['A1'], p['A2'], p['A3'], p['A4'], [None], [None], ['A5'], ['A6'], ['A7'], ['A8'], [None]],  \
+                            [[None], p['B1'], p['B2'], p['B3'], p['B4'], [None], [None], ['B5'], ['B6'], ['B7'], ['B8'], [None]],  \
+                            [[None], p['C1'], p['C2'], p['C3'], p['C4'], [None], [None], ['C5'], ['C6'], ['C7'], ['C8'], [None]], \
+                            [[None],  [None],  [None],  [None],  [None], [None], [None], [None], [None], [None], [None], [None]]  \
+                             ]
+
+        # self.catagorize_patches()
+
+
 
 class SNL(Ingrid):
 

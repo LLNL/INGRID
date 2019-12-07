@@ -583,231 +583,67 @@ class DNL(Ingrid):
         # TODO: Create a 'lookup' procedure for determining line drawing
         #       orientations and inner-outer locations.
 
-        def split_line(line, point):
+        def split(line, split_point, add_split_point = False):
             """
-            Split a line object into two line objects at a particular point
+            Split a line object into two line objects at a particular point.
+            Returns two Line objects Segment A and Segment B (corresponding to both subsets of Points)
+
+            split_point: Point object
+                - Point that determines splitting location.
+                - split_point is always included in Segment B
+            add_split_point: Boolean
+                - Append the split point to Segment A.
             """
-            line = line.fluff_copy(2)
+            new_line = line
             d_arr = []
+
             
-            for i, j in zip(line.xval, line.yval):
-                d_arr.append(np.sqrt((i - point.x) ** 2 + (j - point.y) ** 2))
+            for i, j in zip(new_line.xval, new_line.yval):
+                d_arr.append(np.sqrt((i - split_point.x) ** 2 + (j - split_point.y) ** 2))
             ind = np.asarray(d_arr).argmin()
 
-            return Line([point] + line.p[ind:]), Line(line.p[:ind+1] + [point])
+            start__split = new_line.p[:ind + 1]
+            split__end = [split_point] + new_line.p[ind + 1:]
+
+            start__split += [split_point] if add_split_point else []
+            return Line(start__split), Line(split__end)
 
 
-        def order_plate_points(plate, mode = 'lower'):
+        def order_plate_points(plate, location = 'UITP', orientation = 'cw'):
             """
             Sets the points in the target plate to have an orientation
             increasing in R and Z. Checks the endpoints to satisfy this criteria.
             """
 
-            if mode == 'lower':
-                left = plate.p[0]
-                right = plate.p[-1]
-                # Endpoints on same vertical line.
-                if left.x == right.x:
-                    # If rhs endpoint above lhs endpoint.
-                    if right.y > left.y:
-                        # Return target plate as is
-                        return plate.copy().p[::]
-                    else:
-                        # Else flip plate orientation.
-                        return plate.copy().p[::-1]
-                # Endpoints on same horizontal line.
-                elif left.y == right.y:
-                    # If lhs endpoint to the left of rhs endpoint.
-                    if left.x < right.x:
-                        # Return target plate as is
-                        return plate.copy().p
-                    else:
-                        # Else flip plate orientation
-                        return plate.copy().p[::-1]
-                # Endpoints are on sloped line.
-                # Check if lhs endpoint is on the left of rhs endpoint
-                elif left.x < right.x:
-                    return plate.copy().p
+            loc_sgn = 1 if location[0] == 'U' else -1
+
+            start = plate.p[0]
+            end = plate.p[-1]
+            # Endpoints on same vertical line.
+            if start.x == end.x:
+                # If rhs endpoint above lhs endpoint.
+                if end.y - start.y > 0:
+                    # Return target plate as is
+                    return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
                 else:
-                    return plate.copy().p[::-1]
-            elif mode == 'upper':
-                """
-                Sets the points in the target plate to have an orientation
-                increasing in R and Z. Checks the endpoints to satisfy this criteria.
-                """
-                start = plate.p[0]
-                end = plate.p[-1]
-                # Endpoints on same vertical line.
-                if start.x == end.x:
-                    # If rhs endpoint above lhs endpoint.
-                    if end.y < start.y:
-                        # Return target plate as is
-                        return plate.copy().p
-                    else:
-                        # Else flip plate orientation.
-                        return plate.copy().p[::-1]
-                # Endpoints on same horizontal line.
-                elif start.y == start.y:
-                    # If lhs endpoint to the left of rhs endpoint.
-                    if end.x > start.x:
-                        # Return target plate as is
-                        return plate.copy().p
-                    else:
-                        # Else flip plate orientation
-                        return plate.copy().p[::-1]
-                # Endpoints are on sloped line.
-                # Check if lhs endpoint is on the left of rhs endpoint
-                elif end.x < start.x:
-                    return plate.copy().p
+                    # Else flip plate orientation.
+                    return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+            # Endpoints on same horizontal line.
+            elif start.y == end.y:
+                # If lhs endpoint to the left of rhs endpoint.
+                if end.x - start.x > 0:
+                    # Return target plate as is
+                    return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
                 else:
-                    return plate.copy().p[::-1]
+                    # Else flip plate orientation
+                    return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+            # Endpoints are on sloped line.
+            # Check if lhs endpoint is on the left of rhs endpoint
+            elif loc_sgn * (end.x - start.x) > 0:
+                return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+            else:
+                return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
 
-        def get_insert_index(arr, val, mode = 'lower'):
-
-            # Iterate over all points in a given target plate
-            
-            # Check the current point and the following point
-            # since we are looking for where the given value will
-            # need to be inserted in an already populated list.
-
-            # 
-
-            if mode == 'lower':
-                index_found = True
-                for i in range(len(arr) - 1):
-                    p1, p2 = arr[i], arr[i+1]
-                    if (p1.x, p1.y) == (p2.x, p2.y):
-                        continue
-                    # vertical segment
-                    if p1.x == p2.x:
-                        # value in-between vertically increasing segment
-                        if (val.y >= p1.y and val.y <= p2.y):
-                            break
-                    # horizontal segment
-                    elif p1.y == p2.y:
-                        # value in-between horizontally increasing segment
-                        if (val.x >= p1.x and val.x <= p2.x):
-                            break
-                    # sloped segment
-                    elif p1.x < p2.x:
-                        if (val.x >= p1.x and val.x <= p2.x) \
-                            and (val.y <= p1.y and val.y >= p2.y):
-                            break
-                        if (val.x >= p1.x and val.x <= p2.x) \
-                            and (val.y >= p1.y and val.y <= p2.y):
-                            break
-                    elif p1.x > p2.x:
-                        if (val.x >= p2.x and val.x <= p1.x)\
-                            and (val.y <= p2.y and val.y >= p1.y):
-                            break
-                    elif i == len(arr.p) - 2:
-                        index_found = False
-                
-                return i+1 if index_found else null
-
-            elif mode == 'upper':
-                # Iterate over all points in a given target plate
-                
-                # Check the current point and the following point
-                # since we are looking for where the given value will
-                # need to be inserted in an already populated list.
-
-                index_found = True
-                for i in range(len(arr) - 1):
-                    p1, p2 = arr[i], arr[i+1]
-                    if (p1.x, p1.y) == (p2.x, p2.y):
-                        continue
-                    # vertical segment
-                    if p1.x == p2.x:
-                        # value in-between vertically increasing segment
-                        if (val.y <= p1.y and val.y >= p2.y):
-                            break
-                    # horizontal segment
-                    elif p1.y == p2.y:
-                        # value in-between horizontally increasing segment
-                        if (val.x <= p1.x and val.x >= p2.x):
-                            break
-                    # sloped segment
-                    elif p1.x > p2.x:
-                        if (val.x <= p1.x and val.x >= p2.x) \
-                            and (val.y <= p1.y and val.y >= p2.y):
-                            break
-                        if (val.x <= p1.x and val.x >= p2.x) \
-                            and (val.y >= p1.y and val.y <= p2.y):
-                            break
-                    elif p1.x < p2.x:
-                        if (val.x <= p2.x and val.x >= p1.x)\
-                            and (val.y >= p2.y and val.y <= p1.y):
-                            break
-                    elif i == len(arr.p) - 2:
-                        index_found = False
-                
-                return i+1 if index_found else null
-
-        def set_face(plate, south_point, north_point, location, mode = 'lower'):
-            """
-            Trim a Line object adjacent to a divertor plate.
-            The Line object will be defined by the interval of points
-            [min_point, max_point] that form a subset of a target plate.
-            """
-            import pdb
-            pdb.set_trace()
-            
-            if mode == 'lower':
-                new_leg = order_plate_points(plate, mode)
-                i = get_insert_index(new_leg, south_point, mode)
-                j = get_insert_index(new_leg, north_point, mode)
-
-                if location == 'W':
-                    new_leg.insert(i, south_point)
-                    new_leg.insert(j, north_point)
-                elif location == 'E':
-                    new_leg.insert(j, north_point)
-                    new_leg.insert(i, south_point)
-
-                lookup = {}
-                for i in range(len(new_leg)):
-                    lookup[new_leg[i]] = i
-
-                start = lookup[north_point]
-                end = lookup[south_point]
-
-                if start > end:
-                    start, end = end, start
-
-                # Return a reverse copy to maintain clockwise orientation within the LSN SNL patch.
-                return Line([p for p in new_leg[start:end+1]]).reverse_copy()
-
-            elif mode == 'upper':
-                """
-                Trim a Line object adjacent to a divertor plate.
-                The Line object will be defined by the interval of points
-                [min_point, max_point] that form a subset of a target plate.
-                """
-
-                new_leg = order_plate_points(plate, mode)
-                i = get_insert_index(new_leg, south_point, mode)
-                j = get_insert_index(new_leg, north_point, mode)
-
-                if location == 'W':
-                    new_leg.insert(i, south_point)
-                    new_leg.insert(j, north_point)
-                elif location == 'E':
-                    new_leg.insert(j, north_point)
-                    new_leg.insert(i, south_point)
-
-                lookup = {}
-                for i in range(len(new_leg)):
-                    lookup[new_leg[i]] = i
-
-                start = lookup[north_point]
-                end = lookup[south_point]
-
-                if start > end:
-                    start, end = end, start
-
-                # Return a reverse copy to maintain clockwise orientation within the LSN SNL patch.
-                return Line([p for p in new_leg[start:end+1]]).reverse_copy()
 
         try:
             visual = self.yaml['DEBUG']['visual']['patch_map']
@@ -850,11 +686,11 @@ class DNL(Ingrid):
         psi_max_inner = self.yaml['grid_params']['psi_max_inner']
         psi_min_pf_2 = self.yaml['grid_params']['psi_pf2']
 
-        LITP = Line(order_plate_points(Line([Point(i) for i in self.plate_W1])))
-        LOTP = Line(order_plate_points(Line([Point(i) for i in self.plate_E1])))
+        LITP = Line(order_plate_points(Line([Point(i) for i in self.plate_W1]), location = 'LITP'))
+        LOTP = Line(order_plate_points(Line([Point(i) for i in self.plate_E1]), location = 'LOTP'))
 
-        UITP = Line(order_plate_points(Line([Point(i) for i in self.plate_E2]), mode = 'upper'))
-        UOTP = Line(order_plate_points(Line([Point(i) for i in self.plate_W2]), mode = 'upper'))
+        UITP = Line(order_plate_points(Line([Point(i) for i in self.plate_E2]), location = 'UITP'))
+        UOTP = Line(order_plate_points(Line([Point(i) for i in self.plate_W2]), location = 'UOTP'))
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
@@ -907,7 +743,7 @@ class DNL(Ingrid):
         sptrx2_outer = Line([xpt2NW__sptrx2omidLine.p + sptrx2omidLine__LOTP.p][0])
 
         xpt2__psiMinPF2 = self.eq.draw_line(xpt2_dict['S'], {'psi' : psi_min_pf_2}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        xpt2__psiMinPF2_B, xpt2__psiMinPF2_A = split_line(xpt2__psiMinPF2, xpt2__psiMinPF2.p[len(xpt2__psiMinPF2.p)//2])
+        xpt2__psiMinPF2_A, xpt2__psiMinPF2_B = split(xpt2__psiMinPF2, xpt2__psiMinPF2.p[len(xpt2__psiMinPF2.p)//2], add_split_point = True)
 
         psiMinPF2_A__UITP = self.eq.draw_line(xpt2__psiMinPF2_A.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         psiMinPF2_A__UOTP = self.eq.draw_line(xpt2__psiMinPF2_A.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
@@ -955,14 +791,15 @@ class DNL(Ingrid):
         sptrx2_outer__sptrx3_outer = self.eq.draw_line(xpt2NW__sptrx2omidLine.p[-1], {'line' : (sptrx3_outer, outer_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
 
 
+        imidLine__LowerPsiMaxInner, LowerPsiMaxInner__LITP = split(imidLine__LITP, sptrx2__LowerPsiMaxInner.p[-1], add_split_point = True)
+        sptrx2imidLine__sptrx2Lower, sptrx2Lower__LITP = split(sptrx2imidLine__LITP, xpt1W__sptrx2Lower.p[-1], add_split_point = True)
+
         # ============== Patch A1 ==============
-        LowerPsiMaxInner__LITP, imidLine__LowerPsiMaxInner = split_line(imidLine__LITP, sptrx2__LowerPsiMaxInner.p[-1])
-        sptrx2Lower__LITP, sptrx2imidLine__sptrx2Lower = split_line(sptrx2imidLine__LITP, xpt1W__sptrx2Lower.p[-1])
         location = 'W'
         A1_N = LowerPsiMaxInner__LITP.reverse_copy()
         A1_S = sptrx2Lower__LITP
         A1_E = sptrx2__LowerPsiMaxInner.reverse_copy()
-        A1_W = set_face(LITP, A1_S.p[-1], A1_N.p[0], location = location)
+        A1_W = split(split(LITP, A1_S.p[-1])[1], A1_N.p[0], add_split_point = True)[0]
         A1 = DNL_Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'A1', platePatch = True, plateLocation = location)
 
         # ============== Patch B1 ==============
@@ -970,7 +807,7 @@ class DNL(Ingrid):
         B1_N = A1_S.reverse_copy()
         B1_E = xpt1W__sptrx2Lower.reverse_copy()
         B1_S = xpt1__LITP
-        B1_W = set_face(LITP, B1_S.p[-1], B1_N.p[0], location = location)
+        B1_W = split(split(LITP, B1_S.p[-1])[1], B1_N.p[0], add_split_point = True)[0]
         B1 = DNL_Patch([B1_N, B1_E, B1_S, B1_W], patchName = 'B1', platePatch = True, plateLocation = location)
 
         # ============== Patch C1 ==============
@@ -978,7 +815,7 @@ class DNL(Ingrid):
         C1_N = B1_S.reverse_copy()
         C1_E = xpt1__psiMinPF1
         C1_S = psiMinPF1__LITP
-        C1_W = set_face(LITP, C1_S.p[-1], C1_N.p[0], location = location)
+        C1_W = split(split(LITP, C1_S.p[-1])[1], C1_N.p[0], add_split_point = True)[0]
         C1 = DNL_Patch([C1_N, C1_E, C1_S, C1_W], patchName = 'C1', platePatch = True, plateLocation = location)
 
         # ============== Patch A2 ==============
@@ -1027,7 +864,7 @@ class DNL(Ingrid):
         location = 'E'
         A4_N = psiMaxInner__UITP
         A4_S = xpt2__UITP.reverse_copy()
-        A4_E = set_face(UITP, A4_S.p[0], A4_N.p[-1], location = location)
+        A4_E = split(split(UITP, A4_N.p[-1])[1], A4_S.p[0], add_split_point = True)[0]
         A4_W = A3_E.reverse()
         A4 = DNL_Patch([A4_N, A4_E, A4_S, A4_W], patchName = 'A4', plateLocation = location)
 
@@ -1035,14 +872,14 @@ class DNL(Ingrid):
         location = 'E'
         B4_N = A4_S.reverse_copy()
         B4_S = psiMinPF2_A__UITP.reverse_copy()
-        B4_E = set_face(UITP, B4_S.p[0], B4_N.p[-1], location = location)
+        B4_E = split(split(UITP, B4_N.p[-1])[1], B4_S.p[0], add_split_point = True)[0]
         B4_W = xpt2__psiMinPF2_A.reverse_copy()
         B4 = DNL_Patch([B4_N, B4_E, B4_S, B4_W], patchName = 'B4', plateLocation = location)
         # ============== Patch C4 ==============
         location = 'E'
         C4_N = B4_S.reverse_copy()
         C4_S = psiMinPF2_B__UITP.reverse_copy()
-        C4_E = set_face(UITP, C4_S.p[0], C4_N.p[-1], location = location)
+        C4_E = split(split(UITP, C4_N.p[-1])[1], C4_S.p[0], add_split_point = True)[0]
         C4_W = xpt2__psiMinPF2_B.reverse_copy()
         C4 = DNL_Patch([C4_N, C4_E, C4_S, C4_W], patchName = 'C4', plateLocation = location)
         # ============== Patch A5 ==============
@@ -1050,7 +887,7 @@ class DNL(Ingrid):
         A5_N = psiMaxOuter__UOTP.reverse_copy()
         A5_S = xpt2__UOTP
         A5_E = xpt2__psiMaxOuter.reverse_copy()
-        A5_W = set_face(UOTP, A5_S.p[-1], A5_N.p[0], location = location)
+        A5_W = split(split(UOTP, A5_S.p[-1])[1], A5_N.p[0], add_split_point = True)[0]
         A5 = DNL_Patch([A5_N, A5_E, A5_S, A5_W], patchName = 'A5', plateLocation = location)
 
         # ============== Patch B5 ==============
@@ -1058,7 +895,7 @@ class DNL(Ingrid):
         B5_N = A5_S.reverse_copy()
         B5_S = psiMinPF2_A__UOTP
         B5_E = xpt2__psiMinPF2_A
-        B5_W = set_face(UOTP, B5_S.p[-1], B5_N.p[0], location = location)
+        B5_W = split(split(UOTP, B5_S.p[-1])[1], B5_N.p[0], add_split_point = True)[0]
         B5 = DNL_Patch([B5_N, B5_E, B5_S, B5_W], patchName = 'B5', plateLocation = location)
 
         # ============== Patch C5 ==============
@@ -1066,7 +903,7 @@ class DNL(Ingrid):
         C5_N = B5_S.reverse_copy()
         C5_S = psiMinPF2_B__UOTP
         C5_E = xpt2__psiMinPF2_B
-        C5_W = set_face(UOTP, C5_S.p[-1], C5_N.p[0], location = location)
+        C5_W = split(split(UOTP, C5_S.p[-1])[1], C5_N.p[0], add_split_point = True)[0]
         C5 = DNL_Patch([C5_N, C5_E, C5_S, C5_W], patchName = 'C5', plateLocation = location)
 
         # ============== Patch A6 ==============
@@ -1091,8 +928,8 @@ class DNL(Ingrid):
         C6 = DNL_Patch([C6_N, C6_E, C6_S, C6_W], patchName = 'C6')
 
         # ============== Patch A7 ==============
-        LowerPsiMaxOuter__LOTP, omidLine__LowerPsiMaxOuter = split_line(omidLine__LOTP, sptrx2__LowerPsiMaxOuter.p[-1])
-        sptrx2Lower__LOTP, sptrx2imidLine__sptrx2Lower = split_line(sptrx2omidLine__LOTP, xpt1E__sptrx2Lower.p[-1])
+        omidLine__LowerPsiMaxOuter, LowerPsiMaxOuter__LOTP = split(omidLine__LOTP, sptrx2__LowerPsiMaxOuter.p[-1], add_split_point = True)
+        sptrx2imidLine__sptrx2Lower, sptrx2Lower__LOTP = split(sptrx2omidLine__LOTP, xpt1E__sptrx2Lower.p[-1], add_split_point = True)
         A7_N = omidLine__LowerPsiMaxOuter
         A7_S = sptrx2imidLine__sptrx2Lower.reverse_copy()
         A7_E = sptrx2__LowerPsiMaxOuter.reverse_copy()
@@ -1117,7 +954,7 @@ class DNL(Ingrid):
         location = 'E'
         A8_N = LowerPsiMaxOuter__LOTP
         A8_S = sptrx2Lower__LOTP.reverse_copy()
-        A8_E = set_face(LOTP, A8_S.p[0], A8_N.p[-1], location = location)
+        A8_E = split(split(LOTP, A8_N.p[-1])[1], A8_S.p[0], add_split_point = True)[0]
         A8_W = A7_E.reverse_copy()
         A8 = DNL_Patch([A8_N, A8_E, A8_S, A8_W], patchName = 'A8', plateLocation = location)
 
@@ -1125,7 +962,7 @@ class DNL(Ingrid):
         location = 'E'
         B8_N = A8_S.reverse_copy()
         B8_S = xpt1__LOTP.reverse_copy()
-        B8_E = set_face(LOTP, B8_S.p[0], B8_N.p[-1], location = location)
+        B8_E = split(split(LOTP, B8_N.p[-1])[1], B8_S.p[0], add_split_point = True)[0]
         B8_W = B7_E.reverse_copy()
         B8 = DNL_Patch([B8_N, B8_E, B8_S, B8_W], patchName = 'B8', plateLocation = location)
 
@@ -1133,7 +970,7 @@ class DNL(Ingrid):
         location = 'E'
         C8_N = B8_S.reverse_copy()
         C8_S = psiMinPF1__LOTP.reverse_copy()
-        C8_E = set_face(LOTP, C8_S.p[0], C8_N.p[-1], location = location)
+        C8_E = split(split(LOTP, C8_N.p[-1])[1], C8_S.p[0], add_split_point = True)[0]
         C8_W = C1_E.reverse_copy()
         C8 = DNL_Patch([C8_N, C8_E, C8_S, C8_W], patchName = 'C8', plateLocation = location)
 

@@ -10,7 +10,6 @@ import numpy as np
 import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
-import yaml as _yaml_
 import GUI.IngridApp as IA
 
 from OMFITgeqdsk import OMFITgeqdsk
@@ -254,6 +253,37 @@ class Ingrid:
                     continue
         except:
             pass
+
+    def order_plate_points(self, plate, location = 'LITP', orientation = 'cw'):
+
+        loc_sgn = 1 if location[0] == 'U' else -1
+
+        start = plate.p[0]
+        end = plate.p[-1]
+        # Endpoints on same vertical line.
+        if start.x == end.x:
+            # If rhs endpoint above lhs endpoint.
+            if end.y - start.y > 0:
+                # Return target plate as is
+                return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+            else:
+                # Else flip plate orientation.
+                return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+        # Endpoints on same horizontal line.
+        elif start.y == end.y:
+            # If lhs endpoint to the left of rhs endpoint.
+            if end.x - start.x > 0:
+                # Return target plate as is
+                return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+            else:
+                # Else flip plate orientation
+                return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+        # Endpoints are on sloped line.
+        # Check if lhs endpoint is on the left of rhs endpoint
+        elif loc_sgn * (end.x - start.x) > 0:
+            return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+        else:
+            return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
 
     def calc_efit_derivs(self):
         """ Calculates the partial derivatives using finite differences.
@@ -756,110 +786,6 @@ class LSN(SNL, Ingrid):
         # TODO: Create a 'lookup' procedure for determining line drawing
         #       orientations and inner-outer locations.
 
-        def order_plate_points(plate):
-            """
-            Sets the points in the target plate to have an orientation
-            increasing in R and Z. Checks the endpoints to satisfy this criteria.
-            """
-            left = plate.p[0]
-            right = plate.p[-1]
-            # Endpoints on same vertical line.
-            if left.x == right.x:
-                # If rhs endpoint above lhs endpoint.
-                if right.y > left.y:
-                    # Return target plate as is
-                    return plate.copy().p[::]
-                else:
-                    # Else flip plate orientation.
-                    return plate.copy().p[::-1]
-            # Endpoints on same horizontal line.
-            elif left.y == right.y:
-                # If lhs endpoint to the left of rhs endpoint.
-                if left.x < right.x:
-                    # Return target plate as is
-                    return plate.copy().p
-                else:
-                    # Else flip plate orientation
-                    return plate.copy().p[::-1]
-            # Endpoints are on sloped line.
-            # Check if lhs endpoint is on the left of rhs endpoint
-            elif left.x < right.x:
-                return plate.copy().p
-            else:
-                return plate.copy().p[::-1]
-
-        def get_insert_index(arr, val):
-
-            # Iterate over all points in a given target plate
-            
-            # Check the current point and the following point
-            # since we are looking for where the given value will
-            # need to be inserted in an already populated list.
-
-            # 
-            index_found = True
-            for i in range(len(arr) - 1):
-                p1, p2 = arr[i], arr[i+1]
-                if (p1.x, p1.y) == (p2.x, p2.y):
-                    continue
-                # vertical segment
-                if p1.x == p2.x:
-                    # value in-between vertically increasing segment
-                    if (val.y >= p1.y and val.y <= p2.y):
-                        break
-                # horizontal segment
-                elif p1.y == p2.y:
-                    # value in-between horizontally increasing segment
-                    if (val.x >= p1.x and val.x <= p2.x):
-                        break
-                # sloped segment
-                elif p1.x < p2.x:
-                    if (val.x >= p1.x and val.x <= p2.x) \
-                        and (val.y <= p1.y and val.y >= p2.y):
-                        break
-                    if (val.x >= p1.x and val.x <= p2.x) \
-                        and (val.y >= p1.y and val.y <= p2.y):
-                        break
-                elif p1.x > p2.x:
-                    if (val.x >= p2.x and val.x <= p1.x)\
-                        and (val.y <= p2.y and val.y >= p1.y):
-                        break
-                elif i == len(arr.p) - 2:
-                    index_found = False
-            
-            return i+1 if index_found else null
-
-        def set_face(plate, south_point, north_point, location):
-            """
-            Trim a Line object adjacent to a divertor plate.
-            The Line object will be defined by the interval of points
-            [min_point, max_point] that form a subset of a target plate.
-            """
-
-            new_leg = order_plate_points(plate)
-            i = get_insert_index(new_leg, south_point)
-            j = get_insert_index(new_leg, north_point)
-
-            if location == 'W':
-                new_leg.insert(i, south_point)
-                new_leg.insert(j, north_point)
-            elif location == 'E':
-                new_leg.insert(j, north_point)
-                new_leg.insert(i, south_point)
-
-            lookup = {}
-            for i in range(len(new_leg)):
-                lookup[new_leg[i]] = i
-
-            start = lookup[north_point]
-            end = lookup[south_point]
-
-            if start > end:
-                start, end = end, start
-
-            # Return a reverse copy to maintain clockwise orientation within the LSN SNL patch.
-            return Line([p for p in new_leg[start:end+1]]).reverse_copy()
-
         try:
             visual = self.yaml['DEBUG']['visual']['patch_map']
         except KeyError:
@@ -888,8 +814,8 @@ class LSN(SNL, Ingrid):
         psi_min_core = self.yaml['grid_params']['psi_min_core']
         psi_min_pf = self.yaml['grid_params']['psi_min_pf']
 
-        ITP = Line(order_plate_points(Line([Point(i) for i in self.itp])))
-        OTP = Line(order_plate_points(Line([Point(i) for i in self.otp])))
+        ITP = Line(self.order_plate_points(Line([Point(i) for i in self.itp]), location = 'LITP', orientation = 'cw'))
+        OTP = Line(self.order_plate_points(Line([Point(i) for i in self.otp]), location = 'LOTP', orientation = 'cw'))
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
@@ -953,19 +879,19 @@ class LSN(SNL, Ingrid):
                 direction = 'ccw', show_plot = visual, text = verbose)
 
         # IDL Patch
+        location = 'W'
         IDL_N = iPsiMax_TP.reverse_copy()
         IDL_S = xpt_ITP
         IDL_E = xptW_psiMax.reverse_copy()
-        location = 'W'
-        IDL_W = set_face(ITP, IDL_S.p[-1], IDL_N.p[0], location = location)
+        IDL_W = (ITP.split(IDL_S.p[-1])[1]).split(IDL_N.p[0], add_split_point = True)[0]
         IDL = SNL_Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
         # IPF Patch
+        location = 'W'
         IPF_N = IDL_S.reverse_copy()
         IPF_S = psiMinPF_ITP
         IPF_E = xptS_psiMinPF
-        location = 'W'
-        IPF_W = set_face(ITP, IPF_S.p[-1], IPF_N.p[0], location = location)
+        IPF_W = (ITP.split(IPF_S.p[-1])[1]).split(IPF_N.p[0], add_split_point = True)[0]
         IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # ISB Patch
@@ -997,18 +923,18 @@ class LSN(SNL, Ingrid):
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
 
         # ODL Patch 
+        location = 'E'
         ODL_N = oPsiMax_TP
         ODL_S = xpt_OTP.reverse_copy()
-        location = 'E'
-        ODL_E = set_face(OTP, ODL_S.p[0], ODL_N.p[-1], location = location)
+        ODL_E = (OTP.split(ODL_N.p[-1])[1]).split(ODL_S.p[0], add_split_point = True)[0]
         ODL_W = xptE_psiMax
         ODL = SNL_Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchName = 'ODL', platePatch = True, plateLocation = location)
 
         # OPF Patch
+        location = 'E'
         OPF_N = ODL_S.reverse_copy()
         OPF_S = psiMinPF_OTP.reverse_copy()
-        location = 'E'
-        OPF_E = set_face(OTP, OPF_S.p[0], OPF_N.p[-1], location = location)
+        OPF_E = (OTP.split(OPF_N.p[-1])[1]).split(OPF_S.p[0], add_split_point = True)[0]
         OPF_W = xptS_psiMinPF.reverse_copy()
         OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
@@ -1207,109 +1133,6 @@ class USN(SNL, Ingrid):
 
     def construct_patches(self):
 
-        def order_plate_points(plate):
-            """
-            Sets the points in the target plate to have an orientation
-            increasing in R and Z. Checks the endpoints to satisfy this criteria.
-            """
-            start = plate.p[0]
-            end = plate.p[-1]
-            # Endpoints on same vertical line.
-            if start.x == end.x:
-                # If rhs endpoint above lhs endpoint.
-                if end.y < start.y:
-                    # Return target plate as is
-                    return plate.copy().p
-                else:
-                    # Else flip plate orientation.
-                    return plate.copy().p[::-1]
-            # Endpoints on same horizontal line.
-            elif start.y == start.y:
-                # If lhs endpoint to the left of rhs endpoint.
-                if end.x > start.x:
-                    # Return target plate as is
-                    return plate.copy().p
-                else:
-                    # Else flip plate orientation
-                    return plate.copy().p[::-1]
-            # Endpoints are on sloped line.
-            # Check if lhs endpoint is on the left of rhs endpoint
-            elif end.x < start.x:
-                return plate.copy().p
-            else:
-                return plate.copy().p[::-1]
-
-        def get_insert_index(arr, val):
-
-            # Iterate over all points in a given target plate
-            
-            # Check the current point and the following point
-            # since we are looking for where the given value will
-            # need to be inserted in an already populated list.
-
-            index_found = True
-            for i in range(len(arr) - 1):
-                p1, p2 = arr[i], arr[i+1]
-                if (p1.x, p1.y) == (p2.x, p2.y):
-                    continue
-                # vertical segment
-                if p1.x == p2.x:
-                    # value in-between vertically increasing segment
-                    if (val.y <= p1.y and val.y >= p2.y):
-                        break
-                # horizontal segment
-                elif p1.y == p2.y:
-                    # value in-between horizontally increasing segment
-                    if (val.x <= p1.x and val.x >= p2.x):
-                        break
-                # sloped segment
-                elif p1.x > p2.x:
-                    if (val.x <= p1.x and val.x >= p2.x) \
-                        and (val.y <= p1.y and val.y >= p2.y):
-                        break
-                    if (val.x <= p1.x and val.x >= p2.x) \
-                        and (val.y >= p1.y and val.y <= p2.y):
-                        break
-                elif p1.x < p2.x:
-                    if (val.x <= p2.x and val.x >= p1.x)\
-                        and (val.y >= p2.y and val.y <= p1.y):
-                        break
-                elif i == len(arr.p) - 2:
-                    index_found = False
-            
-            return i+1 if index_found else null
-
-        def set_face(plate, south_point, north_point, location):
-            """
-            Trim a Line object adjacent to a divertor plate.
-            The Line object will be defined by the interval of points
-            [min_point, max_point] that form a subset of a target plate.
-            """
-
-            new_leg = order_plate_points(plate)
-            i = get_insert_index(new_leg, south_point)
-            j = get_insert_index(new_leg, north_point)
-
-            if location == 'W':
-                new_leg.insert(i, south_point)
-                new_leg.insert(j, north_point)
-            elif location == 'E':
-                new_leg.insert(j, north_point)
-                new_leg.insert(i, south_point)
-
-            lookup = {}
-            for i in range(len(new_leg)):
-                lookup[new_leg[i]] = i
-
-            start = lookup[north_point]
-            end = lookup[south_point]
-
-            if start > end:
-                start, end = end, start
-
-            # Return a reverse copy to maintain clockwise orientation within the LSN SNL patch.
-            return Line([p for p in new_leg[start:end+1]]).reverse_copy()
-
         try:
             visual = self.yaml['DEBUG']['visual']['patch_map']
         except KeyError:
@@ -1338,8 +1161,8 @@ class USN(SNL, Ingrid):
         psi_min_core = self.yaml['grid_params']['psi_min_core']
         psi_min_pf = self.yaml['grid_params']['psi_min_pf']
 
-        ITP = Line(order_plate_points(Line([Point(i) for i in self.itp])))
-        OTP = Line(order_plate_points(Line([Point(i) for i in self.otp])))
+        ITP = Line(self.order_plate_points(Line([Point(i) for i in self.itp]), location = 'UITP', orientation = 'cw'))
+        OTP = Line(self.order_plate_points(Line([Point(i) for i in self.otp]), location = 'UOTP', orientation = 'cw'))
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
@@ -1403,19 +1226,19 @@ class USN(SNL, Ingrid):
                 direction = 'cw', show_plot = visual, text = verbose)
 
         # IDL Patch
+        location = 'E'   
         IDL_N = iPsiMax_TP
-        IDL_S = xpt_ITP.reverse_copy()
-        IDL_W = xptE_psiMax
-        location = 'E'        
-        IDL_E = set_face(ITP, IDL_S.p[0], IDL_N.p[-1], location = location)
+        IDL_S = xpt_ITP.reverse_copy()  
+        IDL_E = ITP.split(IDL_N.p[-1])[1].split(IDL_S.p[0], add_split_point = True)[0]
+        IDL_W = xptE_psiMax   
         IDL = SNL_Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
         # IPF Patch
+        location = 'E'
         IPF_N = IDL_S.reverse_copy()
         IPF_S = psiMinPF_ITP.reverse_copy()
+        IPF_E = ITP.split(IPF_N.p[-1])[1].split(IPF_S.p[0], add_split_point = True)[0]
         IPF_W = xptS_psiMinPF.reverse_copy()
-        location = 'E'
-        IPF_E = set_face(ITP, IPF_S.p[0], IPF_N.p[-1], location = location)
         IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # ISB Patch
@@ -1446,20 +1269,23 @@ class USN(SNL, Ingrid):
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
 
+        import pdb
+        pdb.set_trace()
+
         # ODL Patch
+        location = 'W'
         ODL_N = oPsiMax_TP.reverse_copy()
         ODL_S = xpt_OTP
         ODL_E = xptW_psiMax.reverse_copy()
-        location = 'W'
-        ODL_W = set_face(OTP, ODL_S.p[-1], ODL_N.p[0], location = location)
+        ODL_W = OTP.split(ODL_S.p[-1])[1].split(ODL_N.p[0], add_split_point = True)[0]
         ODL = SNL_Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchName = 'ODL', platePatch = True, plateLocation = location)
 
         # OPF Patch
+        location = 'W'
         OPF_N = ODL_S.reverse_copy()
         OPF_S = psiMinPF_OTP
         OPF_E = xptS_psiMinPF
-        location = 'W'
-        OPF_W = set_face(OTP, OPF_S.p[-1], OPF_N.p[0], location = location)
+        OPF_W = OTP.split(OPF_S.p[-1])[1].split(OPF_N.p[0], add_split_point = True)[0]
         OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
         # OSB Patch

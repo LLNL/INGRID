@@ -188,6 +188,40 @@ class Line:
         y_fluff = np.append(y_fluff, self.yval[-1])
 
         return x_fluff, y_fluff
+
+    def fluff_copy(self, num = 5):
+        pts = []
+        for i in zip(self.fluff(num)):
+            pts.append(Point(i))
+        return Line(pts)
+
+    def split(self, split_point, add_split_point = False):
+        """
+        Split a line object into two line objects at a particular point.
+        Returns two Line objects Segment A and Segment B (corresponding to both subsets of Points)
+
+        split_point: Point object
+            - Point that determines splitting location.
+            - split_point is always included in Segment B
+        add_split_point: Boolean
+            - Append the split point to Segment A.
+        """
+        new_line = self
+        d_arr = []
+        
+        for i, j in zip(new_line.xval, new_line.yval):
+            d_arr.append(np.sqrt((i - split_point.x) ** 2 + (j - split_point.y) ** 2))
+        ind = np.asarray(d_arr).argmin()
+
+        ind_dist = np.sqrt((self.p[-1].x - self.p[ind].x) ** 2 + (self.p[-1].y - self.p[ind].y) ** 2)
+        split_dist = np.sqrt((self.p[-1].x - split_point.x) ** 2 + (self.p[-1].y - split_point.y) ** 2)
+        ind += -1 if ind_dist < split_dist else 0
+        
+        start__split = new_line.p[:ind + 1]
+        split__end = [split_point] + new_line.p[ind + 1:]
+
+        start__split += [split_point] if add_split_point else []
+        return Line(start__split), Line(split__end)
         
     def points(self):
         """ Returns the points in the line as a tuple. """

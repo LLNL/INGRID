@@ -5,21 +5,21 @@ DEBUG:
         target_plates: 0
     visual:
         find_NSEW: 0
-        gridue: 0
+        gridue: 1
         patch_map: 0
         subgrid: 0
 eqdsk: ../data/DNL/DIII-D/neqdsk
 grid_params:
     config: DNL
     grid_generation:
-        np_core: 6
-        np_global: 6
-        np_pf: 6
-        np_sol: 6
-        nr_core: 6
-        nr_global: 6
-        nr_pf: 6
-        nr_sol: 6
+        np_core: 3
+        np_global: 3
+        np_pf: 3
+        np_sol: 3
+        nr_core: 3
+        nr_global: 3
+        nr_pf: 3
+        nr_sol: 3
         radial_f_core: x, x
         radial_f_pf: x, x
         radial_f_sol: x, x
@@ -38,23 +38,23 @@ grid_params:
         zmagx_shift: 0.0
         zxpt: 0.0
     psi_max: 1.063944309117
-    psi_max_inner: 1.171884420437
-    psi_max_outer: 1.246411597427
+    psi_max_inner: 1.12723905026
+    psi_max_outer: 1.208746052328
     psi_max_r: 1.056233766234
-    psi_max_r_inner: 0.906623376623
-    psi_max_r_outer: 1.525844155844
+    psi_max_r_inner: 0.985584415584
+    psi_max_r_outer: 1.484285714286
     psi_max_z: -1.05974025974
-    psi_max_z_inner: 1.026493506494
-    psi_max_z_outer: 1.537662337662
+    psi_max_z_inner: 1.350649350649
+    psi_max_z_outer: 1.529350649351
     psi_min_core: 0.85
     psi_min_core_r: 1.35961038961
     psi_min_core_z: -1.022337662338
     psi_min_pf: 0.96733007686
     psi_min_pf_r: 1.222467532468
     psi_min_pf_z: -1.271688311688
-    psi_pf2: 1.095750801927
-    psi_pf2_r: 1.180909090909
-    psi_pf2_z: 1.425454545455
+    psi_pf2: 1.097226101051
+    psi_pf2_r: 1.106103896104
+    psi_pf2_z: 1.45038961039
     rmagx: 1.757854426846
     rxpt: 1.300094032687
     rxpt2: 1.21750502759
@@ -62,7 +62,7 @@ grid_params:
     zxpt: -1.133159375302
     zxpt2: 1.219825715746
 integrator_params:
-    dt: 0.05
+    dt: 0.01
     eps: 5.0e-05
     first_step: 5.0e-05
     max_step: 0.064
@@ -72,24 +72,24 @@ target_plates:
     plate_E1:
         file: ../data/DNL/DIII-D/d3d_otp.txt
         name: plate_E1
-        np_local: 6
+        np_local: 3
         poloidal_f: x, x
         zshift: 1.6
     plate_E2:
-        file: ../data/DNL/DIII-D/d3d_upper_itp.txt
+        file: ../data/DNL/DIII-D/d3d_UITP_test.txt
         name: plate_E2
-        np_local: 6
+        np_local: 3
         poloidal_f: x, x
         zshift: 0.0
     plate_W1:
         file: ../data/DNL/DIII-D/d3d_itp.txt
         name: plate_W1
-        np_local: 6
+        np_local: 3
         poloidal_f: x, x
         zshift: 1.6
     plate_W2:
         file: ../data/DNL/DIII-D/d3d_upper_otp.txt
         name: plate_W2
-        np_local: 6
+        np_local: 3
         poloidal_f: x, x
         zshift: 0.0

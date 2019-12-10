@@ -127,12 +127,15 @@ class MenuBarControl(tk.Tk):
         ingridTab.add_command(label='Restart INGRID session', command=controller.reset_data)
         ingridTab.add_command(label='__DEBUG__', command=pdb.set_trace)
         ingridTab.add_command(label="Quit INGRID", command=controller.exit_app)
-
         patchTab = tk.Menu(self.menubar)
-        patchTab.add_command(label='Generate Patches', command=controller.frames[ParamPicker].createPatches)
-        gridTab = tk.Menu(self.menubar)        
+        patchTab.add_command(label='Generate Patches', command = controller.frames[ParamPicker].createPatches)
+        gridTab = tk.Menu(self.menubar)
+        gridTab.add_command(label = 'Generate Grid', command = controller.frames[ParamPicker].createSubgrid)
+        gridTab.add_command(label = 'Export gridue', command = controller.frames[ParamPicker].write_gridue)
+        
         self.menubar.add_cascade(label = 'INGRID', menu = ingridTab)
-        self.menubar.add_cascade(label = 'Edit', menu = patchTab)
+        self.menubar.add_cascade(label = 'Patch Controls', menu = patchTab)
+        self.menubar.add_cascade(label = 'Grid Controls', menu = gridTab)
         #self.menubar.add_cascade(label = 'Grid Settings', menu = gridTab)
 
 

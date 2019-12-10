@@ -189,9 +189,42 @@ class Line:
 
         return x_fluff, y_fluff
 
-    def fluff_copy(self, num = 1000):
-        [x, y] = self.fluff(num)
-        return Line([Point(p) for p in [(i, j) for i,j in zip(x, y)]])
+    def fluff_copy(self, num = 5):
+        pts = []
+        for i in zip(self.fluff(num)):
+            pts.append(Point(i))
+        return Line(pts)
+
+    def split(self, split_point, add_split_point = False):
+        """
+        Split a line object into two line objects at a particular point.
+        Returns two Line objects Segment A and Segment B (corresponding to both subsets of Points)
+        split_point: Point object
+            - Point that determines splitting location.
+            - split_point is always included in Segment B
+        add_split_point: Boolean
+            - Append the split point to Segment A.
+        """
+        new_line = self
+        same_line_split = False
+        d_arr = []
+        
+        for i, j in zip(new_line.xval, new_line.yval):
+            d_arr.append(np.sqrt((i - split_point.x) ** 2 + (j - split_point.y) ** 2))
+        ind = np.asarray(d_arr).argmin()
+
+        ind_dist = np.sqrt((self.p[-1].x - self.p[ind].x) ** 2 + (self.p[-1].y - self.p[ind].y) ** 2)
+        split_dist = np.sqrt((self.p[-1].x - split_point.x) ** 2 + (self.p[-1].y - split_point.y) ** 2)
+        if ind_dist == split_dist:
+            same_line_split = True
+        elif ind_dist < split_dist:
+            ind += -1
+        
+        start__split = new_line.p[:ind + (1 if not same_line_split else 0)]
+        split__end = [split_point] + new_line.p[ind + (1 if not same_line_split else 2):]
+
+        start__split += [split_point] if add_split_point else []
+        return Line(start__split), Line(split__end)
         
     def points(self):
         """ Returns the points in the line as a tuple. """
@@ -323,6 +356,20 @@ class Patch:
             for cell in row:
                 cell.plot_border(color)
                 #cell.plot_center()
+
+    def adjust_corner(self, point, corner):
+        if corner == 'NW':
+            self.cell_grid[0][0].vertices[corner] = point
+            self.cell_grid[0][0].vertices[corner] = point
+        elif corner == 'NE':
+            self.cell_grid[0][-1].vertices[corner] = point
+            self.cell_grid[0][-1].vertices[corner] = point
+        elif corner == 'SE':
+            self.cell_grid[-1][-1].vertices[corner] = point
+            self.cell_grid[-1][-1].vertices[corner] = point
+        elif corner == 'SW':
+            self.cell_grid[-1][0].vertices[corner] = point
+            self.cell_grid[-1][0].vertices[corner] = point
 
 
 class SNL_Patch(Patch):
@@ -613,20 +660,6 @@ class SNL_Patch(Patch):
 
         self.cell_grid = cell_grid
 
-    def adjust_corner(self, point, corner):
-        if corner == 'NW':
-            self.cell_grid[0][0].vertices[corner] = point
-            self.cell_grid[0][0].vertices[corner] = point
-        elif corner == 'NE':
-            self.cell_grid[0][-1].vertices[corner] = point
-            self.cell_grid[0][-1].vertices[corner] = point
-        elif corner == 'SE':
-            self.cell_grid[-1][-1].vertices[corner] = point
-            self.cell_grid[-1][-1].vertices[corner] = point
-        elif corner == 'SW':
-            self.cell_grid[-1][0].vertices[corner] = point
-            self.cell_grid[-1][0].vertices[corner] = point
-
 
 class DNL_Patch(Patch):
     def __init__(self, lines, patchName = '', platePatch = False, plateLocation = None):
@@ -778,9 +811,6 @@ class DNL_Patch(Patch):
         # Create B-Splines along the East and West boundaries.
         # Parameterize EW splines in Psi
 
-        if self.patchName == 'B4':
-            import pdb
-            pdb.set_trace()
         n = 50 if len(self.W.p) > 50 else 100
         W_vals = self.W.reverse_copy().fluff(num = n)
         W_spl, uW = splprep([W_vals[0], W_vals[1]], u = psi_parameterize(grid, W_vals[0], W_vals[1]), s = 0)

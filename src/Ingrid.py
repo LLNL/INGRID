@@ -21,18 +21,189 @@ from geometry import Point, Line, SNL_Patch, DNL_Patch, segment_intersect
 
 
 class Ingrid:
-    """ An interactive grid generator for edge plasmas in a tokamak
-    Accepts a dictionary generated from a namelist file that contains
-    the parameters.
+    """
+    The Ingrid class manages all processes pertaining to patch map and grid generation.
+    File I/O, Geometry file prep, parameter instantiation, and configuration classification
+    are driven by Ingrid.
     
     Parameters
     ----------
-    yaml : dict
-        Params dictionary object contains two dictionaries
-        First is 'files' which contains the keys: geqdsk, itp, otp.
-        The second is 'grid params' which has: psi_max, psi_min_core,
-        psi_min_pf, Rmagx, Zmagx, Rxpt, Zxpt
-    
+    params : dict (optional)
+        Dictionary object containing the following YAML entries: 
+        'eqdsk'
+        'grid_params'
+        'integrator_params'
+        'target_plates'
+        'DEBUG'
+        
+        A copy of 'params' is stored within this Ingrid object.
+        Should the user not provide 'param', or entries are missing within the YAML file,
+        default values will populate the YAML copy that is within the Ingrid object. 
+    Description of YAML file and 'param' dictionary:
+    # =================================================================================================
+    # grid_params:
+    # -------------------------------------------------------------------------------------------------
+    #     Topologically significant parameters for INGRID to
+    #     utilize during runtime.
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    #     config - (str) Topology associated with current parameters.
+    #               Currently supported: LSN and USN
+    # -------------------------------------------------------------------------------------------------
+    #     num_xpt - (int) Number of x-points
+    # -------------------------------------------------------------------------------------------------
+    #     psi_* - (double) Bounds of grid domain determined 
+    #              by normalized psi efit data.
+    # -------------------------------------------------------------------------------------------------
+    #     patch_generation - (dict) User settings related to patch map generation.
+    #
+    #          rmagx_shift - (double) Translate the r-coordinate of the magnetic axis
+    #                         used for patch bounds.
+    #          zmagx_shift - (double) Translate the z-coordinate of the magnetic axis
+    #                         for the patch bounds.
+    #          inner_tilt - (double) RADIAN value to tilt the inner horizontal-line patch
+    #                        boundary that intersects the magnetic-axis
+    #          outer_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
+    #                        boundary that intersects the magnetic-axis
+    #          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction 
+    #                    rather than tracing 'W' in rho.
+    #          NW_adjust - (double) RADIAN value to adjust the direction of the 'NW' linear trace.
+    #
+    #          use_NE - (bool/logical-int) Trace linearly from primary-xpt in the 'NE' direction 
+    #                    rather than tracing 'E' in rho.
+    #          NE_adjust - (double) RADIAN value to adjust the direction of the 'NE' linear trace.
+    # -------------------------------------------------------------------------------------------------
+    #     grid_generation - (dict) User settings related to grid generation.
+    #
+    #          np_global - (int) Default number of POLOIDAL cells to generate for all
+    #                       patches not adjacent to a target plate.
+    #          nr_global - (int) Default number of RADIAL cells to generate for all
+    #                       patches not adjacent to a target plate.
+    #     
+    #          np_core - (int) Number of POLOIDAL cells in the core plasma region
+    #          nr_core - (int) Number of RADIAL cells in the core plasma region
+    #          radial_f_core - (str) User defined cell "distortion" function for
+    #                           radial cells in the core plasma region.
+    #          
+    #          np_sol - (int) Number of POLOIDAL cells in the scrape-off layer
+    #          nr_sol - (int) Number of RADIAL cells in the scrape-off layer
+    #          radial_f_sol - (str) User defined cell "distortion" function for
+    #                           radial cells in the scrape off layer.
+    #          
+    #          np_pf - (int) Number of POLOIDAL cells in the private-flux region
+    #          nr_pf - (int) Number of RADIAL cells in the private-flux region
+    #          radial_f_pf - (str) User defined cell "distortion" function for
+    #                           radial cells in the private-flux region.   
+    # -------------------------------------------------------------------------------------------------
+    #     rmagx - (double) r coordinate of magnetic axis
+    # -------------------------------------------------------------------------------------------------
+    #     rxpt - (double) r coordinate of primary x-point
+    # -------------------------------------------------------------------------------------------------
+    #     zmagx - (double) z coordinate of magnetic axis
+    # -------------------------------------------------------------------------------------------------
+    #     zxpt - (double) z coordinate of primary x-point
+    # =================================================================================================
+    # =================================================================================================
+    # integrator_params:
+    # -------------------------------------------------------------------------------------------------
+    #     Integrator and line_tracing class settings.
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    #     dt - (double) Integration time-step for line_tracing class.
+    # -------------------------------------------------------------------------------------------------
+    #     eps - (double) Radius of epsilon neighborhood around x-point
+    #            containing seed-point directions associated with NSEW.
+    # -------------------------------------------------------------------------------------------------
+    #     first_step - (double) Initial step size for LSODA integrator.
+    # -------------------------------------------------------------------------------------------------
+    #     step_ratio - (double) A ratio of RZ-domain dimensions to
+    #                   determine max_step parameter for LSODA integrator.
+    # ------------------------------------------------------------------------------------------------- 
+    #     tol - (double) Tolerance value defining convergence criterion   
+    #            for integration with line_tracing class.
+    # =================================================================================================
+    # =================================================================================================
+    # target_plates:
+    # -------------------------------------------------------------------------------------------------
+    #     Settings for all target plates to be
+    #     considered during INGRID runtime.
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    #     plate_E1: (dict) Plate EAST of primary x-point (where NORTH
+    #                is defined as the path towards magnetic axis).
+    # -------------------------------------------------------------------------------------------------
+    #     plate_W1: (dict) Plate WEST of primary x-point (where NORTH
+    #                is defined as the path towards magnetic axis).
+    # -------------------------------------------------------------------------------------------------
+    #     file: (str) Text file containing coordinates defining a target
+    #            plate.
+    # -------------------------------------------------------------------------------------------------
+    #     name: (str) User-defined name associated with plate.
+    # -------------------------------------------------------------------------------------------------
+    #     np_local: (int) Number of POLOIDAL cells to generate within
+    #                patches adjacent to the respective target plate.
+    # -------------------------------------------------------------------------------------------------
+    #     nr_local: (int) Number of RADIAL cells to generate within
+    #                patches adjacent to the respective target plate.
+    # -------------------------------------------------------------------------------------------------
+    #     poloidal_f: (str) User defined function for 'distortion' of
+    #                  cell placement within a target plate.
+    # -------------------------------------------------------------------------------------------------
+    #     USAGE OF "poloidal_f":
+    #                 - The sequence of characters before ',' must
+    #                   denote the variable name VAR to operate upon.
+    #
+    #                 - Place a user-defined mathematical expression
+    #                   after the ',' delimiter utilizing the variable
+    #                   VAR defined before-hand.
+    #
+    #                 - The package SymPy is used to convert user-input 
+    #                   to a mathematical expression. This requires the 
+    #                   input to be a valid Python expression. 
+    #
+    #                 - For detailed information on available functions,
+    #                   see Sympy docs pertaining to "Functions" module.
+    # =================================================================================================
+    # =================================================================================================
+    # DEBUG:
+    # -------------------------------------------------------------------------------------------------
+    #     Controls for DEBUG mode in INGRID.
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
+    #     visual - (dict) Dictionary of bool/logical-int values to 
+    #               activate live-plotting during INGRID operations.
+    #
+    #         find_NSEW - (bool/logical-int) Show line_tracing during
+    #                      search for North/South from primary x-point
+    #         patch_map - (bool/logical-int) Show line_tracing during 
+    #                      generation of patch-map
+    #         subgrid - (bool/logical-int) Show line_tracing during
+    #                      generation of subgrids within each patch
+    #         gridue - (bool/logical-int) Plot gridue data with 
+    #                      guard cells in order of increasing poloidal 
+    #                      and radial indices
+    # -------------------------------------------------------------------------------------------------
+    #     verbose - (dict) Dictionary of bool/logical-int values to
+    #                activate verbose output during INGRID operations.
+    #
+    #         target_plates - (bool/logical-int) Print all target plate 
+    #                          coordinates to terminal.
+    #         patch_generation - (bool/logical-int) Print all patch names 
+    #                             and intersection/convergence events
+    #                             that occur during patch generation
+    #         grid_generation - (bool/logical-int) Print cell information 
+    #                            of a patch, and the populating of arrays 
+    #                            containing gridue data during meshgrid 
+    #                            generation.                    
+    # =================================================================================================
     """
 
     def __init__(self, params = {}):
@@ -83,66 +254,86 @@ class Ingrid:
         self.default_values_lookup = {'grid_params' : self.default_grid_params, 'integrator_params' : self.default_integrator_params, \
             'target_plates' : self.default_target_plates_params, 'DEBUG' : self.default_DEBUG_params}
 
-        # Process params as a YAML file. Ensure ends up as a raw dictionary.s
         self.process_yaml(params)
-        self.get_yaml()
+        self.print_yaml()
 
     def process_yaml(self, params):
+        """
+        Parse the contents of a YAML dump (dictionary object).
+        Parameter:
+            - params : dict
+            Dictionary object conforming to INGRID YAML requirements.
+        @author: garcia299
+        """
 
+        def get_default_values(item, sub_item = None, attribute = None):
+            """
+            Helper function for processing the YAML file dump.
+            Determines if the entry within the YAML file dump is valid and currently
+            recognized by INGRID.
+            @author: garcia299
+            """
+            try:
+                default_values = self.default_values_lookup[item]
+            except KeyError:
+                print('Key not recognized... Add default values to source code for support.')
+                return None
+
+            if item and sub_item and attribute:
+                return self.default_values_lookup[item][sub_item][attribute]
+            elif item and sub_item:
+                return self.default_values_lookup[item][sub_item]
+            elif item:
+                return self.default_values_lookup[item]
+
+        # First level entries within YAML file dump.
         for item in self.default_values_lookup.keys():
 
             try:
+                # Check to see if the item is in the YAML dump.
                 params[item]
             except KeyError:
                 print('Could not find "{}" in YAML file.'.format(item))
-                params[item] = self.get_default_values(item)
+                params[item] = get_default_values(item)
                 continue
 
+            # Second level entries within YAML file dump.
             for sub_item in self.default_values_lookup[item].keys():
                 try:
                     params[item][sub_item]
                 except KeyError:
                     print('Could not find "{}/{}" in YAML file.'.format(item, sub_item))
-                    params[item][sub_item] = self.get_default_values(item, sub_item)
+                    params[item][sub_item] = get_default_values(item, sub_item)
                     continue
                 if item in ['grid_params', 'target_plates'] and sub_item in ['patch_generation', 'grid_generation', 'plate_E1', 'plate_W1']:
                     for plate_attribute in self.default_values_lookup[item][sub_item].keys():
                         try:
                             params[item][sub_item][plate_attribute]
                         except:
-                            params[item][sub_item][plate_attribute] = self.get_default_values(item, sub_item, plate_attribute)
+                            params[item][sub_item][plate_attribute] = get_default_values(item, sub_item, plate_attribute)
 
-        # Store YAML data as dictionary object
+        # Update references to YAML entries.
         self.yaml = params
         self.grid_params = params['grid_params']
         self.integrator_params = params['integrator_params']
         self.target_plates = params['target_plates']
         self.DEBUG = params['DEBUG']
 
-    def get_yaml(self):
+    def print_yaml(self):
+        """
+        Print the YAML file copy stored within the Ingrid object.
+        @author: garcia299
+        """
         for item in self.yaml.keys():
             print('=' * 80)
             print('INGRID {}: {}'.format(item, self.yaml[item]))
             print('=' * 80 + '\n')
 
-    def get_default_values(self, item, sub_item = None, attribute = None):
-        try:
-            default_values = self.default_values_lookup[item]
-        except KeyError:
-            print('Key not recognized... Add default values to source code for support.')
-            return None
-
-        if item and sub_item and attribute:
-            return self.default_values_lookup[item][sub_item][attribute]
-        elif item and sub_item:
-            return self.default_values_lookup[item][sub_item]
-        elif item:
-            return self.default_values_lookup[item]
-
     def OMFIT_read_psi(self):
         """
         Python class to read the psi data in from an ascii file.
         Saves the boundary information and generated efit_data instance
+        @author: watkins35
         """
 
         g = OMFITgeqdsk(self.yaml['eqdsk'])
@@ -181,37 +372,46 @@ class Ingrid:
         self.OMFIT_psi = g
 
     def read_target_plates(self):
-        """ Reads the coordinates for a line defining the inner
+        """ 
+        Reads the coordinates for a line defining the inner
         and outer target plates.
         The lines to define target plates end up with the shape ((x,y),(x,y)).
         These files read can contain more complicated lines than this.
+        @author: watkins35, garcia299
         """
 
+        # Determine if in DEBUG verbose mode.
         try:
             debug = self.yaml['DEBUG']['verbose']['target_plates']
         except:
             debug = False
 
+        # Create references and plate_data container.
         target_plates = self.yaml['target_plates']
         plate_data = {}
 
         for plate in target_plates:
 
-            zshift = target_plates[plate]['zshift']
-
-            plate_data[plate] = {'coordinates' : [], 'psi_min_rz' : (), 'psi_max_rz' : ()}
-
-            if not 'name' in target_plates[plate].keys():
-                target_plates[plate].update({'name' : plate})
-            
-            elif target_plates[plate]['name'] == '':
-                target_plates[plate]['name'] = plate
-
+            # Check for valid file path.
             try:
                 open(target_plates[plate]['file'])
             except FileNotFoundError:
                 continue
 
+            # Some target plate geometries have an associated 'z-shift' that
+            # translates the geometry. Application of 'z-shift' occurs during reading.
+            zshift = target_plates[plate]['zshift']
+
+            # plate_data contains a list of geometric coordinates, and the min/max psi values
+            # that lie on the plate geometry. This can be used (and is) for checking for valid
+            # psi entries during patch map generation. 
+            plate_data[plate] = {'coordinates' : [], 'psi_min_rz' : (), 'psi_max_rz' : ()}
+
+            # Associated label with a target_plate (remove this feature?)
+            if not 'name' in target_plates[plate].keys():
+                target_plates[plate].update({'name' : plate})
+            elif target_plates[plate]['name'] == '':
+                target_plates[plate]['name'] = plate
 
             with open(target_plates[plate]['file']) as f:
                 for line in f:
@@ -226,12 +426,13 @@ class Ingrid:
 
             temp_max = temp_min = plate_data[plate]['coordinates'][0]
 
-            for i in range(len(plate_data[plate]['coordinates'])):
-                curr_v = self.efit_psi.get_psi(plate_data[plate]['coordinates'][i][0], plate_data[plate]['coordinates'][i][1])
+            # Determine the min/max psi values that lie on the current target plate.
+            for (r, z) in plate_data[plate]['coordinates']:
+                curr_v = self.efit_psi.get_psi(r, z)
                 min_v_test = self.efit_psi.get_psi(temp_min[0], temp_min[1])
                 max_v_test = self.efit_psi.get_psi(temp_max[0], temp_max[1])
-                temp_min = plate_data[plate]['coordinates'][i] if curr_v <= min_v_test else temp_min
-                temp_max = plate_data[plate]['coordinates'][i] if curr_v >= max_v_test else temp_max
+                temp_min = (r, z) if curr_v <= min_v_test else temp_min
+                temp_max = (r, z) if curr_v >= max_v_test else temp_max
             
             plate_data[plate]['psi_min_rz'] = temp_min
             plate_data[plate]['psi_max_rz'] = temp_max
@@ -239,11 +440,15 @@ class Ingrid:
             if debug:
                 print('Using target plate "{}": {}'.format(target_plates[plate]['name'], plate_data[plate]))
 
-         
+        # Save plate_data dictionary within the Ingrid object.
         self.plate_data = plate_data
 
     def plot_target_plates(self):
-        """ Plots all target plates on the current figure """
+        """
+        Plot the plate_data stored within the Ingrid object to the current figure.
+        
+        @author: watkins35, garcia299
+        """
         
         try:
             for plate in self.plate_data:
@@ -257,15 +462,78 @@ class Ingrid:
         except:
             pass
 
+    def order_plate_points(self, plate, location = 'LITP', orientation = 'cw'):
+        """
+        Order the plate points within a Line object in a clockwise or counter-clockwise orientation.
+        This is used for patch generation and determining boundaries for Patch objects adjacent to
+        target plates.
+        Parameters:
+            - plate : Line object
+            - location: string
+            This string value should start with an 'L' or 'U'. These values correspond to the 
+            target plate names: 
+                'LITP' : (lower-inner target-plate)
+                'LOTP' : (lower-outer target-plate)
+                'UITP' : (upper-inner target-plate)
+                'UOTP' : (upper-outer target-plate)
+            - orientation: string
+            String values should be 'cw' or 'ccw'.
+        @author: garcia299
+        """
+
+        # The hard-coded logic is for a plate located above the magnetic axis.
+        #
+        # loc_sgn = 'location sign'.
+        #
+        # This sign-coefficient adapts the code to a plate below the magnetic axis.
+
+        loc_sgn = 1 if location[0] == 'U' else -1
+
+        # Assume the plate is already ordered.
+        start = plate.p[0]
+        end = plate.p[-1]
+
+        # Endpoints on same vertical line.
+        if start.x == end.x:
+            # If 'end' point above 'start' point.
+            if end.y - start.y > 0:
+                # Return target plate as is
+                return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+            else:
+                # Else flip plate orientation.
+                return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+
+        # Endpoints on same horizontal line.
+        elif start.y == end.y:
+            # If 'end' point to the right of 'start' point.
+            if end.x - start.x > 0:
+                # Return target plate as is
+                return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+            else:
+                # Else flip plate orientation
+                return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+
+        # Endpoints are on sloped line.
+        # Check if 'end' point to the right of 'start' point.
+        elif loc_sgn * (end.x - start.x) > 0:
+            return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+        else:
+            return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+
     def calc_efit_derivs(self):
-        """ Calculates the partial derivatives using finite differences.
+        """ 
+        Calculates the partial derivatives using finite differences.
         Wrapper for the member function in the efit class.
+        @author: watkins35
         """
         self.efit_psi.Calculate_PDeriv()
 
     def plot_efit_data(self):
-        """ Generates the plot that we will be able to manipulate
-        using the root finder """
+        """ 
+        Generates the plot that we will be able to manipulate
+        using the root finder 
+        @author: watkins35
+        """
         self.efit_psi.clear_plot()
         self.efit_psi.plot_data()
     
@@ -273,23 +541,27 @@ class Ingrid:
         """ Displays a plot, and has the user click on an approximate
         zero point. Uses a root finder to adjust to the more exact point.
         Right click to disable.
+        Parameter:
+            - tk_controller : Tk object
+            A reference to the root TK object (for usage in GUI mode).
+        @author: watkins35, garcia299
         """
-        # All we need to do is pass in the crude grid with its derivatives.
-        # The interpolation for derivatives is handled by our newton functon
-        # make plot - click on point - refine null point
-        # the roots are saved at self.root_finder.roots
 
         self.root_finder = RootFinder(self.efit_psi, controller = tk_controller)
 
     def toggle_root_finder(self):
-        """ Activates or deactivates the root finder ability. Enables
+        """ 
+        Activates or deactivates the root finder ability. Enables
         the user to save the location where they last clicked.
+        @author: watkins35
         """
         self.root_finder.toggle_root_finding()
 
     def calc_psinorm(self):
         """ Uses magx and xpt1 to normalize the psi data. Furthur calculations
-        will use this information """
+        will use this information 
+        @author: watkins35, garcia299
+        """
         from Interpol.Setup_Grid_Data import Efit_Data
 
         # use the same bounds as the efit data
@@ -306,6 +578,9 @@ class Ingrid:
         self.psi_norm.Calculate_PDeriv()
 
     def plot_psinorm(self):
+        """
+        Plot the psi_norm data stored in the Ingrid object.
+        """
         self.psi_norm.plot_data()
         self.plot_target_plates()
 
@@ -315,13 +590,18 @@ class Ingrid:
     def init_LineTracing(self, refresh = False):
         """ 
         Initializes the line tracing class for the construction
-        of the grid.
+        of the grid. 
+        Parameter:
+            - refresh : boolean
+            Re-initialize the LineTracing class.
+        @author: watkins35, garcia299
         """
         try:
             # Check if the LineTracing class has been initialized.
             # Exception will be thrown if it no initialization has occured.
             if not self.eq:
                 raise AttributeError
+
         except AttributeError:
             self.eq = LineTracing(self.psi_norm, self.yaml)
         if refresh:
@@ -332,12 +612,29 @@ class Ingrid:
         self.init_LineTracing(refresh = True)
 
     def catagorize_patches(self):
+        """
+        Group Patch objects into their relevant topological regions.
+        TODO: Create a class in geometry.py for grouping Patches.
+        @author: garcia299
+        """
         m = self.patch_matrix
-        self.SOL = m[1][1:-1]
-        self.CORE = m[2][2:-2]
-        self.PF = [m[2][1], m[2][-2]]
+        if isinstance(self, SNL):
+            self.SOL = m[1][1:-1]
+            self.CORE = m[2][2:-2]
+            self.PF = [m[2][1], m[2][-2]]
+        elif isinstance(self, DNL):
+            self.PRIMARY_SOL = m[2][1:4] + m[2][8:11]
+            self.SECONDARY_SOL = m[1][1:5] + m[1][7:11]
+            self.CORE = m[3][2:4] + m[3][8:10]
+            self.PRIMARY_PF = [m[3][1], m[3][-2]]
+            self.SECONDARY_PF = [m[3][4], m[2][4], m[3][7], m[2][7]]
 
     def _classify_gridtype(self):
+        """
+        Analyze the topology around the primary x-point in order to determine the configuration.
+        This is a wrapper for the LineTracing class method SNL_find_NSEW.
+        @author: garcia299
+        """
         try:
             debug = self.yaml['DEBUG']['visual']['find_NSEW']
         except:
@@ -366,9 +663,12 @@ class Ingrid:
 
     def export(self, fname = 'gridue'):
         """ Saves the grid as an ascii file """
-        self.write_gridue(self.current_topology.gridue_params, fname)
+        if isinstance(self.current_topology, SNL):
+            self.write_gridue_SNL(self.current_topology.gridue_params, fname)
+        elif isinstance(self.current_topology, DNL):
+            self.write_gridue_DNL(self.current_topology.gridue_params, fname)
 
-    def write_gridue(self, gridue_params, fname = 'gridue'):
+    def write_gridue_SNL(self, gridue_params, fname = 'gridue'):
         
         def format_header(gridue):
             header_items = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
@@ -377,6 +677,57 @@ class Ingrid:
                 header += '{}'.format(gridue[item]).rjust(4)
 
             header += '\n'
+            return header
+
+        def format_body(data):
+
+            delim_val = 0
+            delim_char = ''
+            body = ''
+
+            for n in range(5):
+                for j in range(len(data[0])):
+                    for i in range(len(data)):
+                        delim_val += 1
+                        val = np.format_float_scientific(data[i][j][n], precision = 15, unique = False).rjust(23).replace('e', 'D')
+                        if delim_val == 3:
+                            delim_val = 0
+                            delim_char = '\n'
+                        body += val + delim_char
+                        delim_char = ''
+
+            if delim_val % 3 != 0:
+                body += '\n'
+
+            return body
+
+
+        f = open(fname, mode = 'w')
+        f.write(format_header(gridue_params) + '\n')
+
+        body_items = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
+        for item in body_items:
+            f.write(format_body(gridue_params[item]) + '\n')
+        
+        runidg = 'iogridue'
+        f.write(runidg + '\n')
+
+        f.close()
+
+    def write_gridue_DNL(self, gridue_params, fname = 'gridue'):
+        
+        def format_header(gridue):
+            header_rows = [['nxm', 'nym'], \
+                    ['iyseparatrix1', 'iyseparatrix2'], \
+                    ['ix_plate1', 'ix_cut1', '_FILLER_', 'ix_cut2', 'ix_plate2'],\
+                    ['iyseparatrix3', 'iyseparatrix4'], \
+                    ['ix_plate3', 'ix_cut3', '_FILLER_', 'ix_cut4', 'ix_plate4']]
+
+            header = '' 
+            for header_items in header_rows:
+                for item in header_items:
+                    header += '{}'.format(gridue[item]).rjust(4)
+                header += '\n'
             return header
 
         def format_body(data):
@@ -475,6 +826,291 @@ class DNL(Ingrid):
         plt.title('INGRID DNL Subgrid')
         plt.show()
 
+    def animate_grid(self):
+
+        try:
+            plt.close('INGRID: Debug')
+        except:
+            pass
+        plt.figure('INGRID: Debug', figsize=(6, 10))
+        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
+        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.xlabel('R')
+        plt.ylabel('Z')
+        plt.title('visualize gridue')
+
+        k = [1,2,4,3,1]
+
+        for i in range(len(self.rm)):
+            for j in range(len(self.rm[0])):
+                plt.plot(self.rm[i][j][k], self.zm[i][j][k])
+                plt.pause(0.01)
+
+    def concat_grid(self):
+        """
+        Concatenate all local grids on individual patches into a single 
+        array with branch cuts
+        Parameters:
+        ----------
+            config : str
+                Type of SNL grid to concat.
+        """
+        # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
+        patch_matrix = self.patch_matrix
+
+        # Get some poloidal and radial information from each patch to attribute to the 
+        # local subgrid.
+        # NOTE: npol and nrad refer to the actual lines in the subgrid. Because of this, we must add
+        #       the value of 1 to the cell number to get the accurate number of lines.
+
+
+        for patch in self.patches:
+            patch.npol = len(patch.cell_grid[0]) + 1
+            patch.nrad = len(patch.cell_grid) + 1
+
+            print('"{}" has npol = {} and nrad = {}'.format(patch.patchName, patch.npol, patch.nrad))
+
+        # Total number of poloidal indices in all subgrids.
+        np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:5]])) + 2
+
+        # Total number of radial indices in all subgrids.
+        nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:4]])) + 2
+
+        # Total number of poloidal indices in all subgrids.
+        np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:11]])) + 2
+
+        # Total number of radial indices in all subgrids.
+        nr_total2 = int(np.sum([patch[7].nrad - 1 for patch in patch_matrix[1:4]])) + 2
+
+        rm1 = np.zeros((np_total1, nr_total1, 5), order = 'F')
+        zm1  = np.zeros((np_total1, nr_total1, 5), order = 'F')
+        rm2 = np.zeros((np_total2, nr_total2, 5), order = 'F')
+        zm2  = np.zeros((np_total2, nr_total2, 5), order = 'F')
+
+        ixcell = 0
+        jycell = 0
+
+        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
+        for ixp in range(1, 5):
+            
+            nr_sum = 0
+            for jyp in range(1, 4):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
+
+                if local_patch == [None]:
+                    continue
+
+                nr_sum += local_patch.nrad - 1
+
+                # Access the grid that is contained within this local_patch. 
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
+
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
+                                - len(local_patch.cell_grid[0]) + ixl + 1
+
+                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
+                        print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
+
+        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
+
+        ixcell = 0
+        jycell = 0
+
+        for ixp in range(7, 11):
+            
+            nr_sum = 0
+            for jyp in range(1, 4):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
+
+                if local_patch == [None]:
+                    continue
+
+                nr_sum += local_patch.nrad - 1
+
+                # Access the grid that is contained within this local_patch. 
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
+
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:ixp+1]])) \
+                                - len(local_patch.cell_grid[0]) + ixl + 1
+
+                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
+                        print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
+
+        # Flip indices into gridue format.
+        for i in range(len(rm1)):
+            rm1[i] = rm1[i][::-1]
+        for i in range(len(zm1)):
+            zm1[i] = zm1[i][::-1]
+        for i in range(len(rm2)):
+            rm2[i] = rm2[i][::-1]
+        for i in range(len(zm2)):
+            zm2[i] = zm2[i][::-1]
+
+        # Add guard cells to the concatenated grid.
+        ixrb1 = len(rm1) - 2
+        ixlb1 = 0
+        ixrb2 = len(rm2) - 2
+        ixlb2 = 0
+
+        rm1 = self.add_guardc(rm1, ixlb1, ixrb1)
+        zm1 = self.add_guardc(zm1, ixlb1, ixrb1)
+        rm2 = self.add_guardc(rm2, ixlb2, ixrb2)
+        zm2 = self.add_guardc(zm2, ixlb2, ixrb2)
+
+        self.rm = np.concatenate((rm1, rm2))
+        self.zm = np.concatenate((zm1, zm2))
+
+        try:
+            debug = self.yaml['DEBUG']['visual']['gridue']
+        except:
+            debug = False
+        
+        if debug:
+            self.animate_grid()
+
+    def add_guardc(self, cell_map, ixlb, ixrb, eps = 1e-3):
+
+        def set_guard(cell_map, ix, iy, eps, boundary):
+            # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
+            # TODO: Edit the code to reflect this at some point so the next reader is not overwhelmed.
+            if boundary == 'left':
+                ixn = ix + 1
+                iyn = iy
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            elif boundary == 'right':
+                ixn = ix - 1
+                iyn = iy
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+            
+            elif boundary == 'bottom':
+                ixn = ix
+                iyn = iy + 1
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+            elif boundary == 'top':
+                ixn = ix
+                iyn = iy - 1
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            return cell_map
+
+        np = len(cell_map) - 2
+        nr = len(cell_map[0]) - 2
+
+        for iy in range(1, nr + 1):
+            ix = ixlb
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'left')
+            ix = ixrb + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'right')
+
+        for ix in range(np + 2):
+            iy = 0
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'bottom')
+            iy = nr + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'top')
+
+        return cell_map
+
+    def set_gridue(self):
+        """
+        Prepare the relevant arrays for writing to GRIDUE.
+        """
+
+        ixlb = 0
+        ixrb = len(self.rm) - 2
+
+        nxm = len(self.rm) - 4
+        nym = len(self.rm[0]) - 2
+        iyseparatrix1 = self.patch_lookup['C2'].nrad - 1
+        iyseparatrix2 = self.patch_lookup['B5'].nrad + self.patch_lookup['C5'].nrad - 2
+        ix_plate1 = 0
+        ix_cut1 = self.patch_lookup['A1'].npol - 1
+        ix_cut2 = self.patch_lookup['A1'].npol + self.patch_lookup['A2'].npol + self.patch_lookup['A3'].npol - 3
+        ix_plate2 = ix_cut2 + self.patch_lookup['A4'].npol - 1
+        iyseparatrix3 = iyseparatrix2
+        iyseparatrix4 = iyseparatrix1
+        ix_plate3 = ix_plate2 + 2
+        ix_cut3 = ix_plate3 + self.patch_lookup['A5'].npol - 1
+        ix_cut4 = ix_cut3 + self.patch_lookup['A6'].npol + self.patch_lookup['A7'].npol - 2
+        ix_plate4 = ix_cut4 + self.patch_lookup['A8'].npol - 1
+
+        psi = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
+        br = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
+        bz = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
+        bpol = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
+        bphi = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
+        b = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
+
+        rm = self.rm
+        zm = self.zm
+        rb_prod = self.efit_psi.rcenter * self.efit_psi.bcenter
+
+        for i in range(len(b)):
+            for j in range(len(b[0])):
+                for k in range(5):
+                    _r = rm[i][j][k]
+                    _z = zm[i][j][k]
+
+                    _psi = self.efit_psi.get_psi(_r, _z)
+                    _br = self.efit_psi.get_psi(_r, _z, tag = 'vz') / _r
+                    _bz = -self.efit_psi.get_psi(_r, _z, tag = 'vr') / _r
+                    _bpol = np.sqrt(_br ** 2 + _bz ** 2)
+                    _bphi = rb_prod / _r
+                    _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
+
+                    psi[i][j][k] = _psi
+                    br[i][j][k] = _br
+                    bz[i][j][k] = _bz
+                    bpol[i][j][k] = _bpol
+                    bphi[i][j][k] = _bphi
+                    b[i][j][k] = _b
+
+        self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'iyseparatrix1' : iyseparatrix1, 'iyseparatrix2' : iyseparatrix2, \
+                'ix_plate1' : ix_plate1, 'ix_cut1' : ix_cut1, 'ix_cut2' : ix_cut2, 'ix_plate2' : ix_plate2, 'iyseparatrix3' : iyseparatrix3, \
+                'iyseparatrix4' : iyseparatrix4, 'ix_plate3' : ix_plate3, 'ix_cut3' : ix_cut3, 'ix_cut4' : ix_cut4, 'ix_plate4' : ix_plate4, \
+                'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b, '_FILLER_' : -1}
+
+        import pdb
+        pdb.set_trace()
+
+
     def construct_grid(self, np_cells = 3, nr_cells = 3):
 
         # Straighten up East and West segments of our patches,
@@ -526,7 +1162,6 @@ class DNL(Ingrid):
                 + ' to the minimum of nr_pf and nr_core.\n')
             nr_pf = nr_core = np.amin([nr_pf, nr_core])
 
-        # primary_xpt = Point([self.yaml['grid_params']['rxpt'], self.yaml['grid_params']['zxpt']])
         for patch in self.patches:
             """
             if patch in self.SOL:
@@ -542,29 +1177,50 @@ class DNL(Ingrid):
                 np_cells = np_pf
                 print('Patch "{}" is in PF'.format(patch.patchName))
             """
-
+            print('CONSTRUCTING GRID FOR PATCH: {}'.format(patch.patchName))
             patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
 
-            """
-            if patch.patchName == 'IDL':
+            # Tidy up primary x-point
+            primary_xpt = Point(self.xpt1)
+            secondary_xpt = Point(self.xpt2)
+
+            if patch.patchName == 'B1':
                 patch.adjust_corner(primary_xpt, 'SE')
-            elif patch.patchName == 'IPF':
+            elif patch.patchName == 'C1':
                 patch.adjust_corner(primary_xpt, 'NE')
-            elif patch.patchName == 'ISB':
+            elif patch.patchName == 'B2':
                 patch.adjust_corner(primary_xpt, 'SW')
-            elif patch.patchName == 'ICB':
+            elif patch.patchName == 'C2':
                 patch.adjust_corner(primary_xpt, 'NW')
-            elif patch.patchName == 'OCB':
+            elif patch.patchName == 'C7':
                 patch.adjust_corner(primary_xpt, 'NE')
-            elif patch.patchName == 'OSB':
+            elif patch.patchName == 'B7':
                 patch.adjust_corner(primary_xpt, 'SE')
-            elif patch.patchName == 'OPF':
+            elif patch.patchName == 'C8':
                 patch.adjust_corner(primary_xpt, 'NW')
-            elif patch.patchName == 'ODL':
+            elif patch.patchName == 'B8':
                 patch.adjust_corner(primary_xpt, 'SW')
-            """
-        # self.concat_grid(self.get_configuration())
-        # self.set_gridue()
+
+            # Tidy up secondary x-point
+            elif patch.patchName == 'A3':
+                patch.adjust_corner(secondary_xpt, 'SE')
+            elif patch.patchName == 'B3':
+                patch.adjust_corner(secondary_xpt, 'NE')
+            elif patch.patchName == 'A4':
+                patch.adjust_corner(secondary_xpt, 'SW')
+            elif patch.patchName == 'B4':
+                patch.adjust_corner(secondary_xpt, 'NW')
+            elif patch.patchName == 'B5':
+                patch.adjust_corner(secondary_xpt, 'NE')
+            elif patch.patchName == 'A5':
+                patch.adjust_corner(secondary_xpt, 'SE')
+            elif patch.patchName == 'B6':
+                patch.adjust_corner(secondary_xpt, 'NW')
+            elif patch.patchName == 'A6':
+                patch.adjust_corner(secondary_xpt, 'SW')
+
+        self.concat_grid()
+        self.set_gridue()
 
     def construct_patches(self):
         """
@@ -582,32 +1238,6 @@ class DNL(Ingrid):
         """
         # TODO: Create a 'lookup' procedure for determining line drawing
         #       orientations and inner-outer locations.
-
-        def split(line, split_point, add_split_point = False):
-            """
-            Split a line object into two line objects at a particular point.
-            Returns two Line objects Segment A and Segment B (corresponding to both subsets of Points)
-
-            split_point: Point object
-                - Point that determines splitting location.
-                - split_point is always included in Segment B
-            add_split_point: Boolean
-                - Append the split point to Segment A.
-            """
-            new_line = line
-            d_arr = []
-
-            
-            for i, j in zip(new_line.xval, new_line.yval):
-                d_arr.append(np.sqrt((i - split_point.x) ** 2 + (j - split_point.y) ** 2))
-            ind = np.asarray(d_arr).argmin()
-
-            start__split = new_line.p[:ind + 1]
-            split__end = [split_point] + new_line.p[ind + 1:]
-
-            start__split += [split_point] if add_split_point else []
-            return Line(start__split), Line(split__end)
-
 
         def order_plate_points(plate, location = 'UITP', orientation = 'cw'):
             """
@@ -714,92 +1344,144 @@ class DNL(Ingrid):
         # topLine.plot()
 
         # Drawing the portion of separatrix similar to single-null configuration.
-        xpt1N__psiMinCore = self.eq.draw_line(xpt1_dict['N'], {'psi' : psi_min_core}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        xpt1NW__sptrx1imidLine = self.eq.draw_line(xpt1_dict['NW'], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        xpt1NE__sptrx1omidLine = self.eq.draw_line(xpt1_dict['NE'], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        sptrx1imidLine__topLine = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx1omidLine__topLine = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        psiMinCore__imidLineCore = self.eq.draw_line(xpt1N__psiMinCore.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinCore__omidLineCore = self.eq.draw_line(xpt1N__psiMinCore.p[-1], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        imidLineCore__topLine = self.eq.draw_line(psiMinCore__imidLineCore.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        omidLineCore__topLine = self.eq.draw_line(psiMinCore__omidLineCore.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt1N__psiMinCore = self.eq.draw_line(xpt1_dict['N'], {'psi' : psi_min_core}, \
+            option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1NW__sptrx1imidLine = self.eq.draw_line(xpt1_dict['NW'], {'line' : inner_midLine}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1NE__sptrx1omidLine = self.eq.draw_line(xpt1_dict['NE'], {'line' : outer_midLine}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx1imidLine__topLine = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : topLine}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx1omidLine__topLine = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : topLine}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinCore__imidLineCore = self.eq.draw_line(xpt1N__psiMinCore.p[-1], {'line' : inner_midLine}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinCore__omidLineCore = self.eq.draw_line(xpt1N__psiMinCore.p[-1], {'line' : outer_midLine}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        imidLineCore__topLine = self.eq.draw_line(psiMinCore__imidLineCore.p[-1], {'line' : topLine}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        omidLineCore__topLine = self.eq.draw_line(psiMinCore__omidLineCore.p[-1], {'line' : topLine}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         sptrx1 = Line([xpt1NW__sptrx1imidLine.p + sptrx1imidLine__topLine.p + sptrx1omidLine__topLine.p[-2::-1] + xpt1NE__sptrx1omidLine.p[-2::-1]][0])
         core = Line([psiMinCore__imidLineCore.p + imidLineCore__topLine.p + omidLineCore__topLine.p[-2::-1] + psiMinCore__omidLineCore.p[-2::-1]][0])
 
-        xpt1__psiMinPF1 = self.eq.draw_line(xpt1_dict['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinPF1__LITP = self.eq.draw_line(xpt1__psiMinPF1.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        psiMinPF1__LOTP = self.eq.draw_line(xpt1__psiMinPF1.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        xpt1__LITP = self.eq.draw_line(xpt1_dict['SW'], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        xpt1__LOTP = self.eq.draw_line(xpt1_dict['SE'], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1__psiMinPF1 = self.eq.draw_line(xpt1_dict['S'], {'psi' : psi_min_pf}, \
+            option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF1__LITP = self.eq.draw_line(xpt1__psiMinPF1.p[-1], {'line' : LITP}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinPF1__LOTP = self.eq.draw_line(xpt1__psiMinPF1.p[-1], {'line' : LOTP}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1__LITP = self.eq.draw_line(xpt1_dict['SW'], {'line' : LITP}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt1__LOTP = self.eq.draw_line(xpt1_dict['SE'], {'line' : LOTP}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
 
         # Drawing the portion of the separatrix found in the double-null configuration
-        xpt2__sptrx1 = self.eq.draw_line(xpt2_dict['N'], {'line' : (sptrx1, topLine_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
-        xpt2NE__sptrx2imidLine = self.eq.draw_line(xpt2_dict['NE'], {'line' : inner_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        xpt2NW__sptrx2omidLine = self.eq.draw_line(xpt2_dict['NW'], {'line' : outer_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx2imidLine__LITP = self.eq.draw_line(xpt2NE__sptrx2imidLine.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        sptrx2omidLine__LOTP = self.eq.draw_line(xpt2NW__sptrx2omidLine.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-
+        xpt2__sptrx1 = self.eq.draw_line(xpt2_dict['N'], {'line' : (sptrx1, topLine_tilt)}, \
+            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        xpt2NE__sptrx2imidLine = self.eq.draw_line(xpt2_dict['NE'], {'line' : inner_midLine}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt2NW__sptrx2omidLine = self.eq.draw_line(xpt2_dict['NW'], {'line' : outer_midLine}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2imidLine__LITP = self.eq.draw_line(xpt2NE__sptrx2imidLine.p[-1], {'line' : LITP}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx2omidLine__LOTP = self.eq.draw_line(xpt2NW__sptrx2omidLine.p[-1], {'line' : LOTP}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         sptrx2_inner = Line([xpt2NE__sptrx2imidLine.p + sptrx2imidLine__LITP.p][0])
         sptrx2_outer = Line([xpt2NW__sptrx2omidLine.p + sptrx2omidLine__LOTP.p][0])
 
-        xpt2__psiMinPF2 = self.eq.draw_line(xpt2_dict['S'], {'psi' : psi_min_pf_2}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        xpt2__psiMinPF2_A, xpt2__psiMinPF2_B = split(xpt2__psiMinPF2, xpt2__psiMinPF2.p[len(xpt2__psiMinPF2.p)//2], add_split_point = True)
+        xpt2__psiMinPF2 = self.eq.draw_line(xpt2_dict['S'], {'psi' : psi_min_pf_2}, \
+            option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        xpt2__psiMinPF2_A, xpt2__psiMinPF2_B = xpt2__psiMinPF2.split(xpt2__psiMinPF2.p[len(xpt2__psiMinPF2.p)//2], add_split_point = True)
 
-        psiMinPF2_A__UITP = self.eq.draw_line(xpt2__psiMinPF2_A.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinPF2_A__UOTP = self.eq.draw_line(xpt2__psiMinPF2_A.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        psiMinPF2_B__UITP = self.eq.draw_line(xpt2__psiMinPF2_B.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinPF2_B__UOTP = self.eq.draw_line(xpt2__psiMinPF2_B.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        xpt2__UITP = self.eq.draw_line(xpt2_dict['SE'], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        xpt2__UOTP = self.eq.draw_line(xpt2_dict['SW'], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinPF2_A__UITP = self.eq.draw_line(xpt2__psiMinPF2_B.p[0], {'line' : UITP}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF2_A__UOTP = self.eq.draw_line(xpt2__psiMinPF2_B.p[0], {'line' : UOTP}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinPF2_B__UITP = self.eq.draw_line(xpt2__psiMinPF2_B.p[-1], {'line' : UITP}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF2_B__UOTP = self.eq.draw_line(xpt2__psiMinPF2_B.p[-1], {'line' : UOTP}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt2__UITP = self.eq.draw_line(xpt2_dict['SE'], {'line' : UITP}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt2__UOTP = self.eq.draw_line(xpt2_dict['SW'], {'line' : UOTP}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
 
         v = np.array([xpt2NE__sptrx2imidLine.p[1].x - self.xpt2[0], xpt2NE__sptrx2imidLine.p[1].y - self.xpt2[1]])
-        tilt = np.arccos(np.dot(v, np.array([-1, 0])) / np.linalg.norm(v))
-        xpt2__psiMaxInner = self.eq.draw_line(xpt2_dict['E'], {'psi_horizontal' : (psi_max_inner, tilt)}, option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
+        tilt = np.arccos(np.dot(v, np.array([-1, 0])) / np.linalg.norm(v)) - np.pi/8
+        xpt2__psiMaxInner = self.eq.draw_line(xpt2_dict['E'], {'psi_horizontal' : (psi_max_inner, tilt)}, \
+            option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
         v = np.array([xpt2NW__sptrx2omidLine.p[1].x - self.xpt2[0], xpt2NW__sptrx2omidLine.p[1].y - self.xpt2[1]])
-        tilt = -np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) 
-        xpt2__psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi_horizontal' : (psi_max_outer, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
-        psiMaxInner__UITP = self.eq.draw_line(xpt2__psiMaxInner.p[-1], {'line' : UITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        psiMaxOuter__UOTP = self.eq.draw_line(xpt2__psiMaxOuter.p[-1], {'line' : UOTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-
-
-        psiMaxInner__imidLine = self.eq.draw_line(xpt2__psiMaxInner.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        psiMaxOuter__omidLine = self.eq.draw_line(xpt2__psiMaxOuter.p[-1], {'line' : outer_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        imidLine__LITP = self.eq.draw_line(psiMaxInner__imidLine.p[-1], {'line' : LITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        omidLine__LOTP = self.eq.draw_line(psiMaxOuter__omidLine.p[-1], {'line' : LOTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-
+        tilt = -np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) + np.pi/8
+        xpt2__psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi_horizontal' : (psi_max_outer, tilt)}, \
+            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        
+        psiMaxInner__UITP = self.eq.draw_line(xpt2__psiMaxInner.p[-1], {'line' : UITP}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMaxOuter__UOTP = self.eq.draw_line(xpt2__psiMaxOuter.p[-1], {'line' : UOTP}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMaxInner__imidLine = self.eq.draw_line(xpt2__psiMaxInner.p[-1], {'line' : inner_midLine}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMaxOuter__omidLine = self.eq.draw_line(xpt2__psiMaxOuter.p[-1], {'line' : outer_midLine}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        imidLine__LITP = self.eq.draw_line(psiMaxInner__imidLine.p[-1], {'line' : LITP}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        omidLine__LOTP = self.eq.draw_line(psiMaxOuter__omidLine.p[-1], {'line' : LOTP}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         sptrx3_inner = Line([psiMaxInner__imidLine.p + imidLine__LITP.p][0])
         sptrx3_outer = Line([psiMaxOuter__omidLine.p + omidLine__LOTP.p][0])
 
         # Computing angle between line tangent to sptrx1 in NW direction and unit vector < 1, 0 >
         v = np.array([xpt1NW__sptrx1imidLine.p[1].x - self.xpt1[0], xpt1NW__sptrx1imidLine.p[1].y - self.xpt1[1]])
         tilt = np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) + np.pi/6
-        xpt1W__sptrx2Lower = self.eq.draw_line(xpt1_dict['W'], {'line' : (sptrx2imidLine__LITP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx2__LowerPsiMaxInner = self.eq.draw_line(xpt1W__sptrx2Lower.p[-1], {'line' : (imidLine__LITP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1W__sptrx2Lower = self.eq.draw_line(xpt1_dict['W'], {'line' : (sptrx2imidLine__LITP, tilt)}, \
+            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2__LowerPsiMaxInner = self.eq.draw_line(xpt1W__sptrx2Lower.p[-1], {'line' : (imidLine__LITP, tilt)}, \
+            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
 
         # Computing angle between line tangent to sptrx1 in NE direction and unit vector < 1, 0 >
         v = np.array([xpt1NE__sptrx1omidLine.p[1].x - self.xpt1[0], xpt1NE__sptrx1omidLine.p[1].y - self.xpt1[1]])
         tilt = np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) - np.pi/6
-        xpt1E__sptrx2Lower = self.eq.draw_line(xpt1_dict['E'], {'line': (sptrx2omidLine__LOTP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx2__LowerPsiMaxOuter = self.eq.draw_line(xpt1E__sptrx2Lower.p[-1], {'line' : (omidLine__LOTP, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        xpt1E__sptrx2Lower = self.eq.draw_line(xpt1_dict['E'], {'line': (sptrx2omidLine__LOTP, tilt)}, \
+            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2__LowerPsiMaxOuter = self.eq.draw_line(xpt1E__sptrx2Lower.p[-1], {'line' : (omidLine__LOTP, tilt)}, \
+            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
 
-        sptrx1__core_top = self.eq.draw_line(xpt2__sptrx1.p[-1], {'line' : (core, topLine_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx1__core_inner = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : (core, inner_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx1__core_outer = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : (core, outer_tilt)}, option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
-        sptrx1__sptrx2_inner = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : (sptrx2_inner, inner_tilt)}, option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
-        sptrx1__sptrx2_outer = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : (sptrx2_outer, outer_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
-        sptrx2_inner__sptrx3_inner = self.eq.draw_line(xpt2NE__sptrx2imidLine.p[-1], {'line' : (sptrx3_inner, inner_tilt)}, option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
-        sptrx2_outer__sptrx3_outer = self.eq.draw_line(xpt2NW__sptrx2omidLine.p[-1], {'line' : (sptrx3_outer, outer_tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx1__core_top = self.eq.draw_line(xpt2__sptrx1.p[-1], {'line' : (core, topLine_tilt)}, \
+            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx1__core_inner = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : (core, inner_tilt)}, \
+            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx1__core_outer = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : (core, outer_tilt)}, \
+            option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx1__sptrx2_inner = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : (sptrx2_inner, inner_tilt)}, \
+            option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx1__sptrx2_outer = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : (sptrx2_outer, outer_tilt)}, \
+            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        sptrx2_inner__sptrx3_inner = self.eq.draw_line(xpt2NE__sptrx2imidLine.p[-1], {'line' : (sptrx3_inner, inner_tilt)}, \
+            option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
+        sptrx2_outer__sptrx3_outer = self.eq.draw_line(xpt2NW__sptrx2omidLine.p[-1], {'line' : (sptrx3_outer, outer_tilt)}, \
+            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
 
-
-        imidLine__LowerPsiMaxInner, LowerPsiMaxInner__LITP = split(imidLine__LITP, sptrx2__LowerPsiMaxInner.p[-1], add_split_point = True)
-        sptrx2imidLine__sptrx2Lower, sptrx2Lower__LITP = split(sptrx2imidLine__LITP, xpt1W__sptrx2Lower.p[-1], add_split_point = True)
+        imidLine__LowerPsiMaxInner, LowerPsiMaxInner__LITP = imidLine__LITP.split(sptrx2__LowerPsiMaxInner.p[-1], add_split_point = True)
+        sptrx2imidLine__sptrx2Lower, sptrx2Lower__LITP = sptrx2imidLine__LITP.split(xpt1W__sptrx2Lower.p[-1], add_split_point = True)
 
         # ============== Patch A1 ==============
         location = 'W'
         A1_N = LowerPsiMaxInner__LITP.reverse_copy()
         A1_S = sptrx2Lower__LITP
         A1_E = sptrx2__LowerPsiMaxInner.reverse_copy()
-        A1_W = split(split(LITP, A1_S.p[-1])[1], A1_N.p[0], add_split_point = True)[0]
+        # =====================================================================================
+        # Trimming the target_plate to conform to the patch boundary.
+        # -------------------------------------------------------------------------------------
+        # Recall LITP has a clockwise orientation.
+        #
+        # The inner 'split' trims all Point objects BEFORE the point of intersection of LITP 
+        # and A1_S. Call this new Line object Line_A.
+        #
+        # The outer 'split' trims all Point objects AFTER the point of intersection of Line_A
+        # and A1_N. This new Line object is the plate facing boundary of the Patch.
+        # =====================================================================================
+        A1_W = (LITP.split(A1_S.p[-1])[1]).split(A1_N.p[0], add_split_point = True)[0]
         A1 = DNL_Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'A1', platePatch = True, plateLocation = location)
 
         # ============== Patch B1 ==============
@@ -807,7 +1489,7 @@ class DNL(Ingrid):
         B1_N = A1_S.reverse_copy()
         B1_E = xpt1W__sptrx2Lower.reverse_copy()
         B1_S = xpt1__LITP
-        B1_W = split(split(LITP, B1_S.p[-1])[1], B1_N.p[0], add_split_point = True)[0]
+        B1_W = (LITP.split(B1_S.p[-1])[1]).split(B1_N.p[0], add_split_point = True)[0]
         B1 = DNL_Patch([B1_N, B1_E, B1_S, B1_W], patchName = 'B1', platePatch = True, plateLocation = location)
 
         # ============== Patch C1 ==============
@@ -815,7 +1497,7 @@ class DNL(Ingrid):
         C1_N = B1_S.reverse_copy()
         C1_E = xpt1__psiMinPF1
         C1_S = psiMinPF1__LITP
-        C1_W = split(split(LITP, C1_S.p[-1])[1], C1_N.p[0], add_split_point = True)[0]
+        C1_W = (LITP.split(C1_S.p[-1])[1]).split(C1_N.p[0], add_split_point = True)[0]
         C1 = DNL_Patch([C1_N, C1_E, C1_S, C1_W], patchName = 'C1', platePatch = True, plateLocation = location)
 
         # ============== Patch A2 ==============
@@ -864,7 +1546,7 @@ class DNL(Ingrid):
         location = 'E'
         A4_N = psiMaxInner__UITP
         A4_S = xpt2__UITP.reverse_copy()
-        A4_E = split(split(UITP, A4_N.p[-1])[1], A4_S.p[0], add_split_point = True)[0]
+        A4_E = (UITP.split(A4_N.p[-1])[1]).split(A4_S.p[0], add_split_point = True)[0]
         A4_W = A3_E.reverse()
         A4 = DNL_Patch([A4_N, A4_E, A4_S, A4_W], patchName = 'A4', plateLocation = location)
 
@@ -872,14 +1554,14 @@ class DNL(Ingrid):
         location = 'E'
         B4_N = A4_S.reverse_copy()
         B4_S = psiMinPF2_A__UITP.reverse_copy()
-        B4_E = split(split(UITP, B4_N.p[-1])[1], B4_S.p[0], add_split_point = True)[0]
+        B4_E = (UITP.split(B4_N.p[-1]))[1].split(B4_S.p[0], add_split_point = True)[0]
         B4_W = xpt2__psiMinPF2_A.reverse_copy()
         B4 = DNL_Patch([B4_N, B4_E, B4_S, B4_W], patchName = 'B4', plateLocation = location)
         # ============== Patch C4 ==============
         location = 'E'
         C4_N = B4_S.reverse_copy()
         C4_S = psiMinPF2_B__UITP.reverse_copy()
-        C4_E = split(split(UITP, C4_N.p[-1])[1], C4_S.p[0], add_split_point = True)[0]
+        C4_E = (UITP.split(C4_N.p[-1])[1]).split(C4_S.p[0], add_split_point = True)[0]
         C4_W = xpt2__psiMinPF2_B.reverse_copy()
         C4 = DNL_Patch([C4_N, C4_E, C4_S, C4_W], patchName = 'C4', plateLocation = location)
         # ============== Patch A5 ==============
@@ -887,7 +1569,7 @@ class DNL(Ingrid):
         A5_N = psiMaxOuter__UOTP.reverse_copy()
         A5_S = xpt2__UOTP
         A5_E = xpt2__psiMaxOuter.reverse_copy()
-        A5_W = split(split(UOTP, A5_S.p[-1])[1], A5_N.p[0], add_split_point = True)[0]
+        A5_W = (UOTP.split(A5_S.p[-1])[1]).split(A5_N.p[0], add_split_point = True)[0]
         A5 = DNL_Patch([A5_N, A5_E, A5_S, A5_W], patchName = 'A5', plateLocation = location)
 
         # ============== Patch B5 ==============
@@ -895,7 +1577,7 @@ class DNL(Ingrid):
         B5_N = A5_S.reverse_copy()
         B5_S = psiMinPF2_A__UOTP
         B5_E = xpt2__psiMinPF2_A
-        B5_W = split(split(UOTP, B5_S.p[-1])[1], B5_N.p[0], add_split_point = True)[0]
+        B5_W = (UOTP.split(B5_S.p[-1])[1]).split(B5_N.p[0], add_split_point = True)[0]
         B5 = DNL_Patch([B5_N, B5_E, B5_S, B5_W], patchName = 'B5', plateLocation = location)
 
         # ============== Patch C5 ==============
@@ -903,7 +1585,7 @@ class DNL(Ingrid):
         C5_N = B5_S.reverse_copy()
         C5_S = psiMinPF2_B__UOTP
         C5_E = xpt2__psiMinPF2_B
-        C5_W = split(split(UOTP, C5_S.p[-1])[1], C5_N.p[0], add_split_point = True)[0]
+        C5_W = (UOTP.split(C5_S.p[-1])[1]).split(C5_N.p[0], add_split_point = True)[0]
         C5 = DNL_Patch([C5_N, C5_E, C5_S, C5_W], patchName = 'C5', plateLocation = location)
 
         # ============== Patch A6 ==============
@@ -928,8 +1610,8 @@ class DNL(Ingrid):
         C6 = DNL_Patch([C6_N, C6_E, C6_S, C6_W], patchName = 'C6')
 
         # ============== Patch A7 ==============
-        omidLine__LowerPsiMaxOuter, LowerPsiMaxOuter__LOTP = split(omidLine__LOTP, sptrx2__LowerPsiMaxOuter.p[-1], add_split_point = True)
-        sptrx2imidLine__sptrx2Lower, sptrx2Lower__LOTP = split(sptrx2omidLine__LOTP, xpt1E__sptrx2Lower.p[-1], add_split_point = True)
+        omidLine__LowerPsiMaxOuter, LowerPsiMaxOuter__LOTP = omidLine__LOTP.split(sptrx2__LowerPsiMaxOuter.p[-1], add_split_point = True)
+        sptrx2imidLine__sptrx2Lower, sptrx2Lower__LOTP = sptrx2omidLine__LOTP.split(xpt1E__sptrx2Lower.p[-1], add_split_point = True)
         A7_N = omidLine__LowerPsiMaxOuter
         A7_S = sptrx2imidLine__sptrx2Lower.reverse_copy()
         A7_E = sptrx2__LowerPsiMaxOuter.reverse_copy()
@@ -954,7 +1636,7 @@ class DNL(Ingrid):
         location = 'E'
         A8_N = LowerPsiMaxOuter__LOTP
         A8_S = sptrx2Lower__LOTP.reverse_copy()
-        A8_E = split(split(LOTP, A8_N.p[-1])[1], A8_S.p[0], add_split_point = True)[0]
+        A8_E = (LOTP.split(A8_N.p[-1])[1]).split(A8_S.p[0], add_split_point = True)[0]
         A8_W = A7_E.reverse_copy()
         A8 = DNL_Patch([A8_N, A8_E, A8_S, A8_W], patchName = 'A8', plateLocation = location)
 
@@ -962,7 +1644,7 @@ class DNL(Ingrid):
         location = 'E'
         B8_N = A8_S.reverse_copy()
         B8_S = xpt1__LOTP.reverse_copy()
-        B8_E = split(split(LOTP, B8_N.p[-1])[1], B8_S.p[0], add_split_point = True)[0]
+        B8_E = (LOTP.split(B8_N.p[-1])[1]).split(B8_S.p[0], add_split_point = True)[0]
         B8_W = B7_E.reverse_copy()
         B8 = DNL_Patch([B8_N, B8_E, B8_S, B8_W], patchName = 'B8', plateLocation = location)
 
@@ -970,7 +1652,7 @@ class DNL(Ingrid):
         location = 'E'
         C8_N = B8_S.reverse_copy()
         C8_S = psiMinPF1__LOTP.reverse_copy()
-        C8_E = split(split(LOTP, C8_N.p[-1])[1], C8_S.p[0], add_split_point = True)[0]
+        C8_E = (LOTP.split(C8_N.p[-1])[1]).split(C8_S.p[0], add_split_point = True)[0]
         C8_W = C1_E.reverse_copy()
         C8 = DNL_Patch([C8_N, C8_E, C8_S, C8_W], patchName = 'C8', plateLocation = location)
 
@@ -982,24 +1664,31 @@ class DNL(Ingrid):
             patch.fill()
         self.patch_lookup = patch_lookup
 
-        import pdb
-        pdb.set_trace()
-
         p = self.patch_lookup
         self.patch_matrix = [[[None],  [None],  [None],  [None],  [None], [None], [None], [None], [None], [None], [None], [None]], \
-                            [[None], p['A1'], p['A2'], p['A3'], p['A4'], [None], [None], ['A5'], ['A6'], ['A7'], ['A8'], [None]],  \
-                            [[None], p['B1'], p['B2'], p['B3'], p['B4'], [None], [None], ['B5'], ['B6'], ['B7'], ['B8'], [None]],  \
-                            [[None], p['C1'], p['C2'], p['C3'], p['C4'], [None], [None], ['C5'], ['C6'], ['C7'], ['C8'], [None]], \
+                            [[None], p['A1'], p['A2'], p['A3'], p['A4'], [None], [None], p['A5'], p['A6'], p['A7'], p['A8'], [None]],  \
+                            [[None], p['B1'], p['B2'], p['B3'], p['B4'], [None], [None], p['B5'], p['B6'], p['B7'], p['B8'], [None]],  \
+                            [[None], p['C1'], p['C2'], p['C3'], p['C4'], [None], [None], p['C5'], p['C6'], p['C7'], p['C8'], [None]], \
                             [[None],  [None],  [None],  [None],  [None], [None], [None], [None], [None], [None], [None], [None]]  \
-                             ]
+                            ]
 
-        # self.catagorize_patches()
-
-
+        self.catagorize_patches()
 
 class SNL(Ingrid):
+    """
+    The SNL (Single-Null) class is the parent class for both upper-single null (USN)
+    and lower-single null (LSN) configurations. 
+    This base class handles the formatting and plotting of data obtained from an LSN or USN
+    object.
+    Parameter:
+        - INGRID_object : Ingrid class object
+        All SNL objects are children of the main Ingrid class. INGRID_object provides
+        information such as YAML data, efit_psi, psi_norm, and plate_data.
+    @author: garcia299
+    """
 
     def __init__(self, INGRID_object):
+
         super().__init__(params = INGRID_object.yaml)
         self.efit_psi = INGRID_object.efit_psi
         self.psi_norm = INGRID_object.psi_norm
@@ -1008,6 +1697,10 @@ class SNL(Ingrid):
         self.plate_data = INGRID_object.plate_data
 
     def grid_diagram(self):
+        """
+        Create Grid matplotlib figure for an SNL object.
+        @author: watkins35, garcia299
+        """
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
           'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
           'seagreen', 'firebrick', 'saddlebrown']
@@ -1031,7 +1724,10 @@ class SNL(Ingrid):
         plt.show()
 
     def patch_diagram(self):
-        """ Generates the patch diagram for a given configuration. """
+        """ 
+        Generates the patch diagram for a given configuration. 
+        @author: watkins35, garcia299
+        """
         
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
                   'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
@@ -1066,12 +1762,10 @@ class SNL(Ingrid):
         """
         Concatenate all local grids on individual patches into a single 
         array with branch cuts
-
         Parameters:
         ----------
             config : str
                 Type of SNL grid to concat.
-
         """
         # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
         patch_matrix = self.patch_matrix
@@ -1137,7 +1831,6 @@ class SNL(Ingrid):
         self.rm = self.add_guardc(rm, ixlb, ixrb, config)
         self.zm = self.add_guardc(zm, ixlb, ixrb, config)
 
-
         try:
             debug = self.yaml['DEBUG']['visual']['gridue']
         except:
@@ -1150,9 +1843,8 @@ class SNL(Ingrid):
     def add_guardc(self, cell_map, ixlb, ixrb, config, nxpt = 1, eps = 1e-3):
 
         def set_guard(cell_map, ix, iy, eps, config, boundary):
-
             # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
-            # Edit the code to reflect this at some point so the next reader is not overwhelmed.
+            # TODO: Edit the code to reflect this at some point so the next reader is not overwhelmed.
             if boundary == 'left':
                 ixn = ix + 1
                 iyn = iy
@@ -1343,110 +2035,6 @@ class LSN(SNL, Ingrid):
         # TODO: Create a 'lookup' procedure for determining line drawing
         #       orientations and inner-outer locations.
 
-        def order_plate_points(plate):
-            """
-            Sets the points in the target plate to have an orientation
-            increasing in R and Z. Checks the endpoints to satisfy this criteria.
-            """
-            left = plate.p[0]
-            right = plate.p[-1]
-            # Endpoints on same vertical line.
-            if left.x == right.x:
-                # If rhs endpoint above lhs endpoint.
-                if right.y > left.y:
-                    # Return target plate as is
-                    return plate.copy().p[::]
-                else:
-                    # Else flip plate orientation.
-                    return plate.copy().p[::-1]
-            # Endpoints on same horizontal line.
-            elif left.y == right.y:
-                # If lhs endpoint to the left of rhs endpoint.
-                if left.x < right.x:
-                    # Return target plate as is
-                    return plate.copy().p
-                else:
-                    # Else flip plate orientation
-                    return plate.copy().p[::-1]
-            # Endpoints are on sloped line.
-            # Check if lhs endpoint is on the left of rhs endpoint
-            elif left.x < right.x:
-                return plate.copy().p
-            else:
-                return plate.copy().p[::-1]
-
-        def get_insert_index(arr, val):
-
-            # Iterate over all points in a given target plate
-            
-            # Check the current point and the following point
-            # since we are looking for where the given value will
-            # need to be inserted in an already populated list.
-
-            # 
-            index_found = True
-            for i in range(len(arr) - 1):
-                p1, p2 = arr[i], arr[i+1]
-                if (p1.x, p1.y) == (p2.x, p2.y):
-                    continue
-                # vertical segment
-                if p1.x == p2.x:
-                    # value in-between vertically increasing segment
-                    if (val.y >= p1.y and val.y <= p2.y):
-                        break
-                # horizontal segment
-                elif p1.y == p2.y:
-                    # value in-between horizontally increasing segment
-                    if (val.x >= p1.x and val.x <= p2.x):
-                        break
-                # sloped segment
-                elif p1.x < p2.x:
-                    if (val.x >= p1.x and val.x <= p2.x) \
-                        and (val.y <= p1.y and val.y >= p2.y):
-                        break
-                    if (val.x >= p1.x and val.x <= p2.x) \
-                        and (val.y >= p1.y and val.y <= p2.y):
-                        break
-                elif p1.x > p2.x:
-                    if (val.x >= p2.x and val.x <= p1.x)\
-                        and (val.y <= p2.y and val.y >= p1.y):
-                        break
-                elif i == len(arr.p) - 2:
-                    index_found = False
-            
-            return i+1 if index_found else null
-
-        def set_face(plate, south_point, north_point, location):
-            """
-            Trim a Line object adjacent to a divertor plate.
-            The Line object will be defined by the interval of points
-            [min_point, max_point] that form a subset of a target plate.
-            """
-
-            new_leg = order_plate_points(plate)
-            i = get_insert_index(new_leg, south_point)
-            j = get_insert_index(new_leg, north_point)
-
-            if location == 'W':
-                new_leg.insert(i, south_point)
-                new_leg.insert(j, north_point)
-            elif location == 'E':
-                new_leg.insert(j, north_point)
-                new_leg.insert(i, south_point)
-
-            lookup = {}
-            for i in range(len(new_leg)):
-                lookup[new_leg[i]] = i
-
-            start = lookup[north_point]
-            end = lookup[south_point]
-
-            if start > end:
-                start, end = end, start
-
-            # Return a reverse copy to maintain clockwise orientation within the LSN SNL patch.
-            return Line([p for p in new_leg[start:end+1]]).reverse_copy()
-
         try:
             visual = self.yaml['DEBUG']['visual']['patch_map']
         except KeyError:
@@ -1475,8 +2063,8 @@ class LSN(SNL, Ingrid):
         psi_min_core = self.yaml['grid_params']['psi_min_core']
         psi_min_pf = self.yaml['grid_params']['psi_min_pf']
 
-        ITP = Line(order_plate_points(Line([Point(i) for i in self.itp])))
-        OTP = Line(order_plate_points(Line([Point(i) for i in self.otp])))
+        ITP = Line(self.order_plate_points(Line([Point(i) for i in self.itp]), location = 'LITP', orientation = 'cw'))
+        OTP = Line(self.order_plate_points(Line([Point(i) for i in self.otp]), location = 'LOTP', orientation = 'cw'))
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
@@ -1540,19 +2128,30 @@ class LSN(SNL, Ingrid):
                 direction = 'ccw', show_plot = visual, text = verbose)
 
         # IDL Patch
+        location = 'W'
         IDL_N = iPsiMax_TP.reverse_copy()
         IDL_S = xpt_ITP
         IDL_E = xptW_psiMax.reverse_copy()
-        location = 'W'
-        IDL_W = set_face(ITP, IDL_S.p[-1], IDL_N.p[0], location = location)
+        # =====================================================================================
+        # Trimming the target_plate to conform to the patch boundary.
+        # -------------------------------------------------------------------------------------
+        # Recall ITP has a clockwise orientation.
+        #
+        # The inner 'split' trims all Point objects BEFORE the point of intersection of ITP 
+        # and IDL_S. Call this new Line object Line_A.
+        #
+        # The outer 'split' trims all Point objects AFTER the point of intersection of Line_A
+        # and IDL_N. This new Line object is the plate facing boundary of the Patch.
+        # =====================================================================================
+        IDL_W = (ITP.split(IDL_S.p[-1])[1]).split(IDL_N.p[0], add_split_point = True)[0]
         IDL = SNL_Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
         # IPF Patch
+        location = 'W'
         IPF_N = IDL_S.reverse_copy()
         IPF_S = psiMinPF_ITP
         IPF_E = xptS_psiMinPF
-        location = 'W'
-        IPF_W = set_face(ITP, IPF_S.p[-1], IPF_N.p[0], location = location)
+        IPF_W = (ITP.split(IPF_S.p[-1])[1]).split(IPF_N.p[0], add_split_point = True)[0]
         IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # ISB Patch
@@ -1584,18 +2183,18 @@ class LSN(SNL, Ingrid):
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
 
         # ODL Patch 
+        location = 'E'
         ODL_N = oPsiMax_TP
         ODL_S = xpt_OTP.reverse_copy()
-        location = 'E'
-        ODL_E = set_face(OTP, ODL_S.p[0], ODL_N.p[-1], location = location)
+        ODL_E = (OTP.split(ODL_N.p[-1])[1]).split(ODL_S.p[0], add_split_point = True)[0]
         ODL_W = xptE_psiMax
         ODL = SNL_Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchName = 'ODL', platePatch = True, plateLocation = location)
 
         # OPF Patch
+        location = 'E'
         OPF_N = ODL_S.reverse_copy()
         OPF_S = psiMinPF_OTP.reverse_copy()
-        location = 'E'
-        OPF_E = set_face(OTP, OPF_S.p[0], OPF_N.p[-1], location = location)
+        OPF_E = (OTP.split(OPF_N.p[-1])[1]).split(OPF_S.p[0], add_split_point = True)[0]
         OPF_W = xptS_psiMinPF.reverse_copy()
         OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
@@ -1794,109 +2393,6 @@ class USN(SNL, Ingrid):
 
     def construct_patches(self):
 
-        def order_plate_points(plate):
-            """
-            Sets the points in the target plate to have an orientation
-            increasing in R and Z. Checks the endpoints to satisfy this criteria.
-            """
-            start = plate.p[0]
-            end = plate.p[-1]
-            # Endpoints on same vertical line.
-            if start.x == end.x:
-                # If rhs endpoint above lhs endpoint.
-                if end.y < start.y:
-                    # Return target plate as is
-                    return plate.copy().p
-                else:
-                    # Else flip plate orientation.
-                    return plate.copy().p[::-1]
-            # Endpoints on same horizontal line.
-            elif start.y == start.y:
-                # If lhs endpoint to the left of rhs endpoint.
-                if end.x > start.x:
-                    # Return target plate as is
-                    return plate.copy().p
-                else:
-                    # Else flip plate orientation
-                    return plate.copy().p[::-1]
-            # Endpoints are on sloped line.
-            # Check if lhs endpoint is on the left of rhs endpoint
-            elif end.x < start.x:
-                return plate.copy().p
-            else:
-                return plate.copy().p[::-1]
-
-        def get_insert_index(arr, val):
-
-            # Iterate over all points in a given target plate
-            
-            # Check the current point and the following point
-            # since we are looking for where the given value will
-            # need to be inserted in an already populated list.
-
-            index_found = True
-            for i in range(len(arr) - 1):
-                p1, p2 = arr[i], arr[i+1]
-                if (p1.x, p1.y) == (p2.x, p2.y):
-                    continue
-                # vertical segment
-                if p1.x == p2.x:
-                    # value in-between vertically increasing segment
-                    if (val.y <= p1.y and val.y >= p2.y):
-                        break
-                # horizontal segment
-                elif p1.y == p2.y:
-                    # value in-between horizontally increasing segment
-                    if (val.x <= p1.x and val.x >= p2.x):
-                        break
-                # sloped segment
-                elif p1.x > p2.x:
-                    if (val.x <= p1.x and val.x >= p2.x) \
-                        and (val.y <= p1.y and val.y >= p2.y):
-                        break
-                    if (val.x <= p1.x and val.x >= p2.x) \
-                        and (val.y >= p1.y and val.y <= p2.y):
-                        break
-                elif p1.x < p2.x:
-                    if (val.x <= p2.x and val.x >= p1.x)\
-                        and (val.y >= p2.y and val.y <= p1.y):
-                        break
-                elif i == len(arr.p) - 2:
-                    index_found = False
-            
-            return i+1 if index_found else null
-
-        def set_face(plate, south_point, north_point, location):
-            """
-            Trim a Line object adjacent to a divertor plate.
-            The Line object will be defined by the interval of points
-            [min_point, max_point] that form a subset of a target plate.
-            """
-
-            new_leg = order_plate_points(plate)
-            i = get_insert_index(new_leg, south_point)
-            j = get_insert_index(new_leg, north_point)
-
-            if location == 'W':
-                new_leg.insert(i, south_point)
-                new_leg.insert(j, north_point)
-            elif location == 'E':
-                new_leg.insert(j, north_point)
-                new_leg.insert(i, south_point)
-
-            lookup = {}
-            for i in range(len(new_leg)):
-                lookup[new_leg[i]] = i
-
-            start = lookup[north_point]
-            end = lookup[south_point]
-
-            if start > end:
-                start, end = end, start
-
-            # Return a reverse copy to maintain clockwise orientation within the LSN SNL patch.
-            return Line([p for p in new_leg[start:end+1]]).reverse_copy()
-
         try:
             visual = self.yaml['DEBUG']['visual']['patch_map']
         except KeyError:
@@ -1925,8 +2421,8 @@ class USN(SNL, Ingrid):
         psi_min_core = self.yaml['grid_params']['psi_min_core']
         psi_min_pf = self.yaml['grid_params']['psi_min_pf']
 
-        ITP = Line(order_plate_points(Line([Point(i) for i in self.itp])))
-        OTP = Line(order_plate_points(Line([Point(i) for i in self.otp])))
+        ITP = Line(self.order_plate_points(Line([Point(i) for i in self.itp]), location = 'UITP', orientation = 'cw'))
+        OTP = Line(self.order_plate_points(Line([Point(i) for i in self.otp]), location = 'UOTP', orientation = 'cw'))
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
@@ -1990,19 +2486,26 @@ class USN(SNL, Ingrid):
                 direction = 'cw', show_plot = visual, text = verbose)
 
         # IDL Patch
+        location = 'E'   
         IDL_N = iPsiMax_TP
-        IDL_S = xpt_ITP.reverse_copy()
-        IDL_W = xptE_psiMax
-        location = 'E'        
-        IDL_E = set_face(ITP, IDL_S.p[0], IDL_N.p[-1], location = location)
+        IDL_S = xpt_ITP.reverse_copy()  
+        # =====================================================================================
+        # The inner 'split' trims all Point objects BEFORE the point of intersection of ITP 
+        # and IDL_N. Call this new Line object Line_A.
+        #
+        # The outer 'split' trims all Point objects AFTER the point of intersection of Line_A
+        # and IDL_S. This new Line object is the plate facing boundary of the Patch.
+        # =====================================================================================
+        IDL_E = (ITP.split(IDL_N.p[-1])[1]).split(IDL_S.p[0], add_split_point = True)[0]
+        IDL_W = xptE_psiMax   
         IDL = SNL_Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
         # IPF Patch
+        location = 'E'
         IPF_N = IDL_S.reverse_copy()
         IPF_S = psiMinPF_ITP.reverse_copy()
+        IPF_E = (ITP.split(IPF_N.p[-1])[1]).split(IPF_S.p[0], add_split_point = True)[0]
         IPF_W = xptS_psiMinPF.reverse_copy()
-        location = 'E'
-        IPF_E = set_face(ITP, IPF_S.p[0], IPF_N.p[-1], location = location)
         IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # ISB Patch
@@ -2033,20 +2536,23 @@ class USN(SNL, Ingrid):
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
 
+        import pdb
+        pdb.set_trace()
+
         # ODL Patch
+        location = 'W'
         ODL_N = oPsiMax_TP.reverse_copy()
         ODL_S = xpt_OTP
         ODL_E = xptW_psiMax.reverse_copy()
-        location = 'W'
-        ODL_W = set_face(OTP, ODL_S.p[-1], ODL_N.p[0], location = location)
+        ODL_W = (OTP.split(ODL_S.p[-1])[1]).split(ODL_N.p[0], add_split_point = True)[0]
         ODL = SNL_Patch([ODL_N, ODL_E, ODL_S, ODL_W], patchName = 'ODL', platePatch = True, plateLocation = location)
 
         # OPF Patch
+        location = 'W'
         OPF_N = ODL_S.reverse_copy()
         OPF_S = psiMinPF_OTP
         OPF_E = xptS_psiMinPF
-        location = 'W'
-        OPF_W = set_face(OTP, OPF_S.p[-1], OPF_N.p[0], location = location)
+        OPF_W = (OTP.split(OPF_S.p[-1])[1]).split(OPF_N.p[0], add_split_point = True)[0]
         OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
         # OSB Patch

@@ -38,7 +38,7 @@ class Efit_Data:
     """
 
     def __init__(self, rmin=0.0, rmax=1.0, nr=10, zmin=0.0, zmax=2.0, nz=20,
-                 rcenter = 1.6955000, bcenter = -2.1094041, name='unnamed'):
+                 rcenter = 1.6955000, bcenter = -2.1094041, rmagx = 0.0, zmagx = 0.0, name='unnamed'):
         r, dr = np.linspace(rmin, rmax, nr, retstep=True)
         z, dz = np.linspace(zmin, zmax, nz, retstep=True)
         rgrid, zgrid = np.meshgrid(r, z, indexing='ij')
@@ -60,6 +60,8 @@ class Efit_Data:
         self.dz = dz
         self.rcenter = rcenter
         self.bcenter = bcenter
+        self.rmagx = rmagx
+        self.zmagx = zmagx
 
         self.name = name
 
@@ -345,6 +347,7 @@ class Efit_Data:
         lev = (self.v.min() + (self.v.max()
                - self.v.min()) * np.arange(nlev) / (nlev-1))
         self.ax.contour(self.r, self.z, self.v, lev)
+        plt.plot(self.rmagx, self.zmagx, 'x', color = 'black')
         plt.gca().set_aspect('equal', adjustable='box')
         plt.title('psi')
         plt.xlabel('R')

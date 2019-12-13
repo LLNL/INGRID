@@ -209,24 +209,34 @@ class Ingrid:
     def __init__(self, params = {}):
 
         self.default_grid_params = { \
-            'config' : '', 'num_xpt' : 1, \
+            'config' : '', 'num_xpt' : 1, 'nlevs' : 30, \
             'psi_max' : 0.0, 'psi_max_r' : 0.0, 'psi_max_z' : 0.0, \
             'psi_min_core' : 0.0, 'psi_min_core_r' : 0.0, 'psi_min_core_z' : 0.0, \
             'psi_min_pf' : 0.0, 'psi_min_pf_r' : 0.0, 'psi_min_pf_z' : 0.0, \
+            'psi_pf2' : 0.0, 'psi_pf2_r' : 0.0, 'psi_pf2_z' : 0.0, \
+            'psi_max_inner' : 0.0, 'psi_max_r_inner' : 0.0, 'psi_max_z_inner' : 0.0, \
+            'psi_max_outer' : 0.0, 'psi_max_r_outer' : 0.0, 'psi_max_z_outer' : 0.0, \
             'rmagx' : 0.0, 'zmagx' : 0.0, \
+            'rxpt' : 0.0, 'zxpt' : 0.0, 'rxpt2' : 0.0, 'zxpt2' : 0.0, \
             'grid_generation' : { \
                 'np_global' : 3, 'nr_global' : 2, \
-                'nr_sol' : 2, 'nr_core' : 2, 'nr_pf' : 2, \
-                'radial_f_sol' : 'x, x', 'radial_f_core' : 'x, x', \
-                'radial_f_pf' : 'x, x', \
+                'np_primary_sol' : 2, 'np_core' : 2, 'np_primary_pf' : 2, \
+                'np_secondary_sol' : 2, 'np_secondary_pf' : 2, \
+                'nr_primary_sol' : 2, 'nr_core' : 2, 'nr_primary_pf' : 2, \
+                'nr_secondary_sol' : 2, 'nr_secondary_pf' : 2, \
+                'radial_f_primary_sol' : 'x, x', 'radial_f_secondary_sol' : 'x, x', \
+                'radial_f_primary_pf' : 'x, x', 'radial_f_secondary_pf' : 'x, x', \
+                'radial_f_core' : 'x, x', \
             }, \
             'patch_generation' : { \
                 'rmagx_shift' : 0.0, 'zmagx_shift' : 0.0, \
                 'inner_tilt' : 0.0, 'outer_tilt' : 0.0, \
                 'rxpt' : 0.0, 'zxpt' : 0.0, \
                 'use_NW' : False, 'use_NE' : False, \
-                'use_SW' : False, 'use_SE' : False,
+                'use_secondary_NW' : False, 'use_secondary_NE' : False, \
+                'use_SW' : False, 'use_SE' : False, \
                 'NW_adjust' : 0.0, 'NE_adjust' : 0.0, \
+                'secondary_NW_adjust' : 0.0, 'secondary_NE_adjust' : 0.0, \
             } \
         }
 
@@ -295,6 +305,7 @@ class Ingrid:
             except KeyError:
                 print('Could not find "{}" in YAML file.'.format(item))
                 params[item] = get_default_values(item)
+                print('Populated "{}" with default value of "{}".\n'.format(item, params[item]))
                 continue
 
             # Second level entries within YAML file dump.
@@ -304,8 +315,10 @@ class Ingrid:
                 except KeyError:
                     print('Could not find "{}/{}" in YAML file.'.format(item, sub_item))
                     params[item][sub_item] = get_default_values(item, sub_item)
+                    print('Populated "{}/{}" with default value of "{}".\n'.format(item, sub_item, params[item][sub_item]))
                     continue
-                if item in ['grid_params', 'target_plates'] and sub_item in ['patch_generation', 'grid_generation', 'plate_E1', 'plate_W1']:
+                if item in ['grid_params', 'target_plates'] \
+                and sub_item in ['patch_generation', 'grid_generation', 'plate_E1', 'plate_W1', 'plate_E2', 'plate_W2']:
                     for plate_attribute in self.default_values_lookup[item][sub_item].keys():
                         try:
                             params[item][sub_item][plate_attribute]
@@ -348,6 +361,9 @@ class Ingrid:
         rcenter = g['RCENTR']
         bcenter = g['BCENTR']
 
+        rmagx = g['RMAXIS']
+        zmagx = g['ZMAXIS']
+
         psi = g['PSIRZ'].T
 
         # TODO: possibly use the limiters to determine where the strke plates
@@ -366,8 +382,11 @@ class Ingrid:
         # reproduce efit grid
         self.efit_psi = Efit_Data(rmin, rmax, nxefit,
                                   zmin, zmax, nyefit,
-                                  rcenter, bcenter, name='Efit Data')
+                                  rcenter, bcenter, 
+                                  rmagx, zmagx, name='Efit Data')
         self.efit_psi.set_v(psi)
+
+        self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx'] = (self.efit_psi.rmagx, self.efit_psi.zmagx)
 
         self.OMFIT_psi = g
 
@@ -535,7 +554,7 @@ class Ingrid:
         @author: watkins35
         """
         self.efit_psi.clear_plot()
-        self.efit_psi.plot_data()
+        self.efit_psi.plot_data(self.yaml['grid_params']['nlevs'])
     
     def find_roots(self, tk_controller = None):
         """ Displays a plot, and has the user click on an approximate
@@ -569,7 +588,7 @@ class Ingrid:
                                   self.efit_psi.nr, self.efit_psi.zmin,
                                   self.efit_psi.zmax, self.efit_psi.nz,
                                   self.efit_psi.rcenter, self.efit_psi.bcenter,
-                                  name='psi norm')
+                                  self.efit_psi.rmagx, self.efit_psi.zmagx, name='psi norm')
         psi = self.efit_psi.v
         psi_magx = self.efit_psi.get_psi(self.magx[0], self.magx[1])
         psi_xpt1 = self.efit_psi.get_psi(self.xpt1[0], self.xpt1[1])
@@ -581,7 +600,7 @@ class Ingrid:
         """
         Plot the psi_norm data stored in the Ingrid object.
         """
-        self.psi_norm.plot_data()
+        self.psi_norm.plot_data(self.yaml['grid_params']['nlevs'])
         self.plot_target_plates()
 
     def find_psi_lines(self, tk_controller = None):
@@ -1056,7 +1075,7 @@ class DNL(Ingrid):
         ixlb = 0
         ixrb = len(self.rm) - 2
 
-        nxm = len(self.rm) - 4
+        nxm = len(self.rm) - 2
         nym = len(self.rm[0]) - 2
         iyseparatrix1 = self.patch_lookup['C2'].nrad - 1
         iyseparatrix2 = self.patch_lookup['B5'].nrad + self.patch_lookup['C5'].nrad - 2
@@ -1071,12 +1090,12 @@ class DNL(Ingrid):
         ix_cut4 = ix_cut3 + self.patch_lookup['A6'].npol + self.patch_lookup['A7'].npol - 2
         ix_plate4 = ix_cut4 + self.patch_lookup['A8'].npol - 1
 
-        psi = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
-        br = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
-        bz = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
-        bpol = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
-        bphi = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
-        b = np.zeros((nxm + 4, nym + 2, 5), order = 'F')
+        psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
 
         rm = self.rm
         zm = self.zm
@@ -1107,9 +1126,6 @@ class DNL(Ingrid):
                 'iyseparatrix4' : iyseparatrix4, 'ix_plate3' : ix_plate3, 'ix_cut3' : ix_cut3, 'ix_cut4' : ix_cut4, 'ix_plate4' : ix_plate4, \
                 'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b, '_FILLER_' : -1}
 
-        import pdb
-        pdb.set_trace()
-
 
     def construct_grid(self, np_cells = 3, nr_cells = 3):
 
@@ -1126,57 +1142,81 @@ class DNL(Ingrid):
             verbose = False
 
         try:
-            np_sol = self.yaml['grid_params']['grid_generation']['np_sol']
+            np_primary_sol = self.yaml['grid_params']['grid_generation']['np_primary_sol']
         except:
-            np_sol = self.yaml['grid_params']['grid_generation']['np_global']
+            np_primary_sol = self.yaml['grid_params']['grid_generation']['np_global']
+        try:
+            np_secondary_sol = self.yaml['grid_params']['grid_generation']['np_secondary_sol']
+        except:
+            np_secondary_sol = self.yaml['grid_params']['grid_generation']['np_global']
         try:
             np_core = self.yaml['grid_params']['grid_generation']['np_core']
         except:
             np_core = self.yaml['grid_params']['grid_generation']['np_global']
         try:
-            np_pf = self.yaml['grid_params']['grid_generation']['np_pf']
+            np_primary_pf = self.yaml['grid_params']['grid_generation']['np_primary_pf']
         except:
-            np_pf = self.yaml['grid_params']['grid_generation']['np_global']
-
+            np_primary_pf = self.yaml['grid_params']['grid_generation']['np_global']
+        try:
+            np_secondary_pf = self.yaml['grid_params']['grid_generation']['np_secondary_pf']
+        except:
+            np_secondary_pf = self.yaml['grid_params']['grid_generation']['np_global']
+        """
         if np_sol != np_core:
             print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
                 + ' to the minimum of np_sol and np_core.\n')
             np_sol = np_core = np.amin([np_sol, np_core])
+        """
+        try:
+            nr_primary_sol = self.yaml['grid_params']['grid_generation']['nr_primary_sol']
+        except:
+            nr_primary_sol = self.yaml['grid_params']['grid_generation']['nr_global']
 
         try:
-            nr_sol = self.yaml['grid_params']['grid_generation']['nr_sol']
+            nr_secondary_sol = self.yaml['grid_params']['grid_generation']['nr_secondary_sol']
         except:
-            nr_sol = self.yaml['grid_params']['grid_generation']['nr_global']
+            nr_secondary_sol = self.yaml['grid_params']['grid_generation']['nr_global']
 
         try:
             nr_core = self.yaml['grid_params']['grid_generation']['nr_core']
         except:
             nr_core = self.yaml['grid_params']['grid_generation']['nr_global']
         try:
-            nr_pf = self.yaml['grid_params']['grid_generation']['nr_pf']
+            nr_primary_pf = self.yaml['grid_params']['grid_generation']['nr_primary_pf']
         except:
-            nr_pf = self.yaml['grid_params']['grid_generation']['nr_global']
-
+            nr_primary_pf = self.yaml['grid_params']['grid_generation']['nr_global']
+        try:
+            nr_secondary_pf = self.yaml['grid_params']['grid_generation']['nr_secondary_pf']
+        except:
+            nr_secondary_pf = self.yaml['grid_params']['grid_generation']['nr_global']
+        """
         if nr_pf != nr_core:
             print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
                 + ' to the minimum of nr_pf and nr_core.\n')
             nr_pf = nr_core = np.amin([nr_pf, nr_core])
-
+        """
         for patch in self.patches:
-            """
-            if patch in self.SOL:
-                nr_cells = nr_sol
-                np_cells = np_sol
-                print('Patch "{}" is in SOL'.format(patch.patchName))
+            if patch in self.PRIMARY_SOL:
+                nr_cells = nr_primary_sol
+                np_cells = np_primary_sol
+                print('Patch "{}" is in PRIMARY_SOL'.format(patch.patchName))
+            elif patch in self.SECONDARY_SOL:
+                nr_cells = nr_secondary_sol
+                np_cells = np_secondary_sol
+                print('Patch "{}" is in SECONDARY_SOL'.format(patch.patchName))
             elif patch in self.CORE:
                 nr_cells = nr_core
                 np_cells = np_core
                 print('Patch "{}" is in CORE'.format(patch.patchName))
-            elif patch in self.PF:
-                nr_cells = nr_pf
-                np_cells = np_pf
-                print('Patch "{}" is in PF'.format(patch.patchName))
-            """
+            elif patch in self.PRIMARY_PF:
+                nr_cells = nr_primary_pf
+                np_cells = np_primary_pf
+                print('Patch "{}" is in PRIMARY_PF'.format(patch.patchName))
+            elif patch in self.SECONDARY_PF:
+                nr_cells = nr_secondary_pf
+                np_cells = np_secondary_pf
+                print('Patch "{}" is in SECONDARY_PF'.format(patch.patchName))
+
             print('CONSTRUCTING GRID FOR PATCH: {}'.format(patch.patchName))
             patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
 
@@ -1350,6 +1390,7 @@ class DNL(Ingrid):
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         xpt1NE__sptrx1omidLine = self.eq.draw_line(xpt1_dict['NE'], {'line' : outer_midLine}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+
         sptrx1imidLine__topLine = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : topLine}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         sptrx1omidLine__topLine = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : topLine}, \
@@ -1399,7 +1440,7 @@ class DNL(Ingrid):
         psiMinPF2_A__UOTP = self.eq.draw_line(xpt2__psiMinPF2_B.p[0], {'line' : UOTP}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         psiMinPF2_B__UITP = self.eq.draw_line(xpt2__psiMinPF2_B.p[-1], {'line' : UITP}, \
-            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose, debug = True)
         psiMinPF2_B__UOTP = self.eq.draw_line(xpt2__psiMinPF2_B.p[-1], {'line' : UOTP}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         xpt2__UITP = self.eq.draw_line(xpt2_dict['SE'], {'line' : UITP}, \
@@ -1407,14 +1448,22 @@ class DNL(Ingrid):
         xpt2__UOTP = self.eq.draw_line(xpt2_dict['SW'], {'line' : UOTP}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
 
-        v = np.array([xpt2NE__sptrx2imidLine.p[1].x - self.xpt2[0], xpt2NE__sptrx2imidLine.p[1].y - self.xpt2[1]])
-        tilt = np.arccos(np.dot(v, np.array([-1, 0])) / np.linalg.norm(v)) - np.pi/8
-        xpt2__psiMaxInner = self.eq.draw_line(xpt2_dict['E'], {'psi_horizontal' : (psi_max_inner, tilt)}, \
-            option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
-        v = np.array([xpt2NW__sptrx2omidLine.p[1].x - self.xpt2[0], xpt2NW__sptrx2omidLine.p[1].y - self.xpt2[1]])
-        tilt = -np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) + np.pi/8
-        xpt2__psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi_horizontal' : (psi_max_outer, tilt)}, \
-            option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        if self.yaml['grid_params']['patch_generation']['use_secondary_NE']:
+            v = np.array([xpt2NE__sptrx2imidLine.p[1].x - self.xpt2[0], xpt2NE__sptrx2imidLine.p[1].y - self.xpt2[1]])
+            tilt = np.arccos(np.dot(v, np.array([-1, 0])) / np.linalg.norm(v)) + self.yaml['grid_params']['patch_generation']['secondary_NE_adjust']
+            xpt2__psiMaxInner = self.eq.draw_line(xpt2_dict['E'], {'psi_horizontal' : (psi_max_inner, tilt)}, \
+                option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
+        else:
+            xpt2__psiMaxInner = self.eq.draw_line(xpt2_dict['E'], {'psi' : psi_max_inner}, \
+                option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+        if self.yaml['grid_params']['patch_generation']['use_secondary_NW']:
+            v = np.array([xpt2NW__sptrx2omidLine.p[1].x - self.xpt2[0], xpt2NW__sptrx2omidLine.p[1].y - self.xpt2[1]])
+            tilt = -np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) + self.yaml['grid_params']['patch_generation']['secondary_NW_adjust']
+            xpt2__psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi_horizontal' : (psi_max_outer, tilt)}, \
+                option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        else:
+            xpt2__psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi' : psi_max_outer}, \
+                option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
         
         psiMaxInner__UITP = self.eq.draw_line(xpt2__psiMaxInner.p[-1], {'line' : UITP}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
@@ -2102,11 +2151,11 @@ class LSN(SNL, Ingrid):
         
         xpt_ITP = self.eq.draw_line(xpt['SW'], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)        
         xptS_psiMinPF = self.eq.draw_line(xpt['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        xpt_OTP = self.eq.draw_line(xpt['SE'], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)        
+        xpt_OTP = self.eq.draw_line(xpt['SE'], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)        
         iPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : ITP},option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         oPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
 
         imidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         omidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
@@ -2458,13 +2507,13 @@ class USN(SNL, Ingrid):
         else:
             xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
         
-        xpt_OTP = self.eq.draw_line(xpt['SW'], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt_OTP = self.eq.draw_line(xpt['SW'], {'line' : OTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         xptS_psiMinPF = self.eq.draw_line(xpt['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        xpt_ITP = self.eq.draw_line(xpt['SE'], {'line' : self.itp}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)        
-        oPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.otp}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        iPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : self.itp}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : self.itp},option = 'theta', direction = 'cw', show_plot = visual, text = verbose)        
+        xpt_ITP = self.eq.draw_line(xpt['SE'], {'line' : ITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)        
+        oPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : OTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : OTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        iPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : ITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : ITP},option = 'theta', direction = 'cw', show_plot = visual, text = verbose)        
 
         imidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         omidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
@@ -2535,10 +2584,7 @@ class USN(SNL, Ingrid):
         ICT_E = Line([ICT_N.p[-1], ICT_S.p[0]])
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
-
-        import pdb
-        pdb.set_trace()
-
+        
         # ODL Patch
         location = 'W'
         ODL_N = oPsiMax_TP.reverse_copy()
@@ -2669,6 +2715,5 @@ def set_params_GUI():
             plt.close('all')
             IngridWindow.destroy()
     IngridWindow = IA.IngridApp()
-    IngridWindow.geometry("1185x490")
     IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
     IngridWindow.mainloop()

@@ -205,27 +205,94 @@ class Line:
         add_split_point: Boolean
             - Append the split point to Segment A.
         """
-        new_line = self
+        eps = 1e-9
         same_line_split = False
         d_arr = []
         
-        for i, j in zip(new_line.xval, new_line.yval):
-            d_arr.append(np.sqrt((i - split_point.x) ** 2 + (j - split_point.y) ** 2))
-        ind = np.asarray(d_arr).argmin()
+        def is_between(end_u, split_v):
+            # check cross product vector norm against eps.
+            if np.linalg.norm(np.cross(end_u, split_v)) < eps:
+                # Colinear up to eps.
+                # Ensure dot product is positive and vector v lies in distance of u norm.
+                if (np.dot(end_u, split_v) > 0) and (np.linalg.norm(end_u) > np.linalg.norm(split_v)):
+                    return True
+            else:
+                return False
 
-        ind_dist = np.sqrt((self.p[-1].x - self.p[ind].x) ** 2 + (self.p[-1].y - self.p[ind].y) ** 2)
-        split_dist = np.sqrt((self.p[-1].x - split_point.x) ** 2 + (self.p[-1].y - split_point.y) ** 2)
-        if ind_dist == split_dist:
+
+        for i in range(len(self.p) - 1):
+            # Split point is exactly on a Line object's point. Occurs often 
+            # when splitting a Line object with itself.
+            if split_point.y == self.p[i].y and split_point.x == self.p[i].x:
+                same_line_split = True
+                ind = i
+                break
+            # Create two vectors. 
+            end_u = np.array([self.p[i+1].x - self.p[i].x, self.p[i+1].y - self.p[i].y])
+            split_v = np.array([split_point.x - self.p[i].x, split_point.y - self.p[i].y])
+
+            if is_between(end_u, split_v):
+                # store index corresponding to the start of the segment containing the split_point.
+                ind = i
+                break
+            else:
+                continue
+
+        start__split = self.p[:ind + (1 if not same_line_split else 0)]
+        start__split += [split_point] if add_split_point else []
+        split__end = [split_point] + self.p[ind + (1 if not same_line_split else 2):]
+
+        return Line(start__split), Line(split__end) 
+
+
+        """
+        for i in range(len(self.p) - 1):
+            v1 = np.array([self.p[i+1].x - self.p[i].x, self.p[i+1].y - self.p[i].y])
+            v2 = np.array([split_point.x - self.p[i].x, split_point.y - self.p[i].y])
+
+            # Split point is exactly on a Line object's point. Occurs often 
+            # when splitting a Line object with itself.
+            if split_point.y == self.p[i].y and split_point.x == self.p[i].x:
+                same_line_split = True
+                d_arr.append((0.0, i))
+                break
+            # Vertical line segment.
+            elif self.p[i+1].x == self.p[i].x:
+                    # Append x-direction offset and the corresponding i index.
+                    d_arr.append((np.abs(split_point.x - self.p[i].x), i))
+                else:
+                    continue
+            # Horizontal line segment.
+            elif self.p[i+1].y == self.p[i].y:
+                    # Append y-direction offset and the corresponding i index.
+                    d_arr.append((np.abs(split_point.y - self.p[i].y), i))
+                else:
+                    continue
+            # Sloped line segment.
+            else: 
+                # Compute slope and check if point lies on segment. Append difference and index.
+                m = (self.p[i+1].y - self.p[i].y)/(self.p[i+1].x - self.p[i].x)
+                y = self.p[i+1].y - split_point.y
+                x = m * (self.p[i].x - split_point.x)
+                d_arr.append((np.abs(x-y), i))
+        """
+        # Get index of minimal value.
+        ind = np.asarray([dist[0] for dist in d_arr]).argmin()
+        # Recover the index location we stored earlier corresponding to the target segment.           
+        """
+        end_dist = np.sqrt((self.p[ind + 1].x - split_point.x) ** 2 + (self.p[ind + 1].y - split_point.y) ** 2)
+        start_dist = np.sqrt((self.p[ind].x - split_point.x) ** 2 + (self.p[ind].y - split_point.y) ** 2)
+        if start_dist == end_dist:
             same_line_split = True
-        elif ind_dist < split_dist:
+        elif end_dist < start_dist:
             ind += -1
         
-        start__split = new_line.p[:ind + (1 if not same_line_split else 0)]
+        start__split = self.p[:ind + (1 if not same_line_split else 0)]
         split__end = [split_point] + new_line.p[ind + (1 if not same_line_split else 2):]
 
         start__split += [split_point] if add_split_point else []
         return Line(start__split), Line(split__end)
-        
+        """
     def points(self):
         """ Returns the points in the line as a tuple. """
         return [(p.x, p.y) for p in self.p]
@@ -480,7 +547,7 @@ class SNL_Patch(Patch):
 
         if self in grid.SOL:
             try:
-                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_sol']
+                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_primary_sol']
                 valid_function = True
                 print('SOL radial transformation: "{}"'.format(_radial_f))
             except KeyError:
@@ -494,7 +561,7 @@ class SNL_Patch(Patch):
                 valid_function = False
         elif self in grid.PF:
             try:
-                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_pf']
+                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_primary_pf']
                 valid_function = True
                 print('PF radial transformation: "{}"'.format(_radial_f))
             except KeyError:
@@ -766,12 +833,19 @@ class DNL_Patch(Patch):
         """
         Organize DNL patches into groupings.
         """
-        """
-        if self in grid.SOL:
+
+        if self in grid.PRIMARY_SOL:
             try:
-                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_sol']
+                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_primary_sol']
                 valid_function = True
                 print('SOL radial transformation: "{}"'.format(_radial_f))
+            except KeyError:
+                valid_function = False
+        elif self in grid.SECONDARY_SOL:
+            try:
+                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_secondary_sol']
+                valid_function = True
+                print('CORE radial transformation: "{}"'.format(_radial_f))
             except KeyError:
                 valid_function = False
         elif self in grid.CORE:
@@ -781,17 +855,22 @@ class DNL_Patch(Patch):
                 print('CORE radial transformation: "{}"'.format(_radial_f))
             except KeyError:
                 valid_function = False
-        elif self in grid.PF:
+        elif self in grid.PRIMARY_PF:
             try:
-                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_pf']
+                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_primary_pf']
+                valid_function = True
+                print('PF radial transformation: "{}"'.format(_radial_f))
+            except KeyError:
+                valid_function = False
+        elif self in grid.SECONDARY_PF:
+            try:
+                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_secondary_pf']
                 valid_function = True
                 print('PF radial transformation: "{}"'.format(_radial_f))
             except KeyError:
                 valid_function = False
 
         _radial_f = get_func(grid, _radial_f) if valid_function else lambda x: x
-        """
-        _radial_f = lambda x: x
 
         if verbose:
             print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(self.patchName, np_cells, nr_cells))
@@ -1108,7 +1187,9 @@ def segment_intersect(line1, line2, verbose = False):
             and (sol[0] >= 0) and (sol[1] >= 0):
             if verbose:
                 print('~ Intersection occurred!')
-            return True, [(xc, yc), (xd, yd)]
+            print(sol)
+
+            return True, [(xc, yc), (xc + sol[1]*(xd-xc), yc + sol[1]*(yd - yc))]
     return False, [(np.nan, np.nan), (np.nan, np.nan)]
 
 

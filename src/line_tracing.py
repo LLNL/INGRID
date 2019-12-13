@@ -745,7 +745,7 @@ class LineTracing:
         print('===================\nGenerating {} grid...\n==================='.format(self.config))
 
     def draw_line(self, rz_start, rz_end=None, color= 'purple',
-                  option=None, direction=None, show_plot=False, text=False, dynamic_step = None):
+                  option=None, direction=None, show_plot=False, text=False, dynamic_step = None, debug = False):
         """
         Uses scipy.integrate.solve_ivp to trace poloidal or radial
         lines. Uses the LSODA method to solve the differential
@@ -931,7 +931,6 @@ class LineTracing:
             elif test == 'line':
                 # endpoints define the latest line segment
                 # TODO change the point criteria
-
                 # p1 = ( x1, y1 )
                 p1 = (points[0][0], points[1][0])
                 # p2 = ( x2, y2 )
@@ -939,11 +938,17 @@ class LineTracing:
                 result = geo.test2points(p1, p2, endLine)
                 intersected, segment = geo.segment_intersect((p1, p2), endLine, text)
                 if result and intersected:
+                    """
+                    import pdb
+                    pdb.set_trace()
+                    print('debug')
+                    """
                     if text:
                         success('line crossing')
-                    segment = geo.Line([geo.Point(segment[0]), geo.Point(segment[-1])])
-                    r, z = geo.intersect((p1, p2), segment, text)
-                    save_line([p1[0], r], [p1[1], z])
+                    #segment = geo.Line([geo.Point(segment[0]), geo.Point(segment[-1])])
+                    #r, z = geo.intersect((p1, p2), segment, text)
+                    #save_line([p1[0], r], [p1[1], z])
+                    save_line((p1[0], segment[1][0]), (p1[1], segment[1][1]))
                     return True
 
             elif test in ['psi', 'psi_sloped']:

@@ -65,26 +65,69 @@ class IngridApp(tk.Tk):
         self.container.pack(side="top", fill="both", expand = True)
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
+        self.gui_mode = 'SNL'
+        self.update_gui_dimensions()
+        self.populate_GUI()
+        self.IngridSession = Ingrid.Ingrid(params = {'grid_params' : {'num_xpt' : 1}})
 
+    def populate_GUI(self):
         self.frames = {}
-
         for F in (FilePicker, ParamPicker):
             frame = F(self.container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
+        self.set_global_lookup()
         self.show_frame(ParamPicker)
-
-        self.IngridSession = Ingrid.Ingrid()
-
         self.IngridMenubar = MenuBarControl(self)
 
-
-    def show_frame(self, cont):
-        frame = self.frames[cont]
+    def show_frame(self, item):
+        frame = self.frames[item]
         frame.tkraise()
+        self.geometry(self.gui_dimensions[item])
 
-    def reset_data(self):
-        if tkMB.askyesno('', 'Are you sure you want to reset?'):
+    def change_numxpt(self, config = 'SNL'):
+        self.gui_mode = config
+        self.update_gui_dimensions()
+        return self.reset_data(message = 'Changing number of x-points requires a reset.\nContinue?')
+
+    def set_global_lookup(self):
+        _ref = self.frames[ParamPicker]
+        if self.gui_mode == 'SNL':
+            self.global_lookup = {'rmagx' : _ref.MagFrame.R_EntryText, 'zmagx' : _ref.MagFrame.Z_EntryText,\
+                      'rxpt'  : _ref.XptFrame1.R_EntryText, 'zxpt'  : _ref.XptFrame1.Z_EntryText,\
+                      'psi_max_r' : _ref.PsiMaxFrame.R_EntryText, 'psi_max_z' : _ref.PsiMaxFrame.Z_EntryText,\
+                      'psi_min_core_r' : _ref.PsiMinFrame.R_EntryText, 'psi_min_core_z' : _ref.PsiMinFrame.Z_EntryText,\
+                      'psi_min_pf_r' : _ref.PsiPrivateFrame.R_EntryText, 'psi_min_pf_z' : _ref.PsiPrivateFrame.Z_EntryText,\
+                      'psi_max' : _ref.PsiMaxFrame.Psi_EntryText, 'psi_min_core' : _ref.PsiMinFrame.Psi_EntryText,\
+                      'psi_min_pf' : _ref.PsiPrivateFrame.Psi_EntryText
+            }
+
+        elif self.gui_mode == 'DNL':
+            self.global_lookup = {'rmagx' : _ref.MagFrame.R_EntryText, 'zmagx' : _ref.MagFrame.Z_EntryText,\
+                      'rxpt'  : _ref.XptFrame1.R_EntryText, 'zxpt'  : _ref.XptFrame1.Z_EntryText,\
+                      'rxpt2' : _ref.XptFrame2.R_EntryText, 'zxpt2' : _ref.XptFrame2.Z_EntryText, \
+                      'psi_max_r' : _ref.PsiMaxFrame.R_EntryText, 'psi_max_z' : _ref.PsiMaxFrame.Z_EntryText,\
+                      'psi_min_core_r' : _ref.PsiMinFrame.R_EntryText, 'psi_min_core_z' : _ref.PsiMinFrame.Z_EntryText,\
+                      'psi_min_pf_r' : _ref.PsiPrivateFrame.R_EntryText, 'psi_min_pf_z' : _ref.PsiPrivateFrame.Z_EntryText,\
+                      'psi_max' : _ref.PsiMaxFrame.Psi_EntryText, 'psi_min_core' : _ref.PsiMinFrame.Psi_EntryText,\
+                      'psi_min_pf' : _ref.PsiPrivateFrame.Psi_EntryText,\
+                      'psi_max_r_outer' : _ref.PsiMaxOuterFrame.R_EntryText, 'psi_max_z_outer' : _ref.PsiMaxOuterFrame.Z_EntryText, \
+                      'psi_max_outer' : _ref.PsiMaxOuterFrame.Psi_EntryText, \
+                      'psi_max_r_inner' : _ref.PsiMaxInnerFrame.R_EntryText, 'psi_max_z_inner' : _ref.PsiMaxInnerFrame.Z_EntryText, \
+                      'psi_max_inner' : _ref.PsiMaxInnerFrame.Psi_EntryText, \
+                      'psi_pf2_r' : _ref.PsiPrivate2Frame.R_EntryText, 'psi_pf2_z' : _ref.PsiPrivate2Frame.Z_EntryText, \
+                      'psi_pf2' : _ref.PsiPrivate2Frame.Psi_EntryText, 
+            }
+
+    def update_gui_dimensions(self):
+        self.gui_dimensions = {}
+        if self.gui_mode == 'SNL':
+            self.gui_dimensions = {FilePicker : "550x270", ParamPicker : "780x475"}
+        elif self.gui_mode == 'DNL':
+            self.gui_dimensions = {FilePicker : "550x380", ParamPicker : "1155x475"}
+
+    def reset_data(self, message = 'Are you sure you want to reset?'):
+        if tkMB.askyesno('', message):
             self.frames = {}
 
             try:
@@ -93,14 +136,20 @@ class IngridApp(tk.Tk):
             except:
                 pass
 
-            for F in (FilePicker, ParamPicker):
-                frame = F(self.container, self)
-                self.frames[F] = frame
-                frame.grid(row=0, column=0, sticky="nsew")
+            self.populate_GUI()
+            
+            if self.gui_mode == 'SNL':
+                nxpt = 1
+            elif self.gui_mode == 'DNL':
+                nxpt = 2
+            self.IngridSession = Ingrid.Ingrid({'grid_params' : {'num_xpt' : nxpt}})
 
-            self.IngridSession = Ingrid.Ingrid(params = {})
             self.show_frame(ParamPicker)
-            self.geometry("1185x490")
+            self.geometry(self.gui_dimensions[ParamPicker])
+            return True
+
+        else:
+            return False
 
     def exit_app(self):
         if tkMB.askyesno('', 'Are you sure you want to quit?'):
@@ -119,13 +168,13 @@ class MenuBarControl(tk.Tk):
         controller.config(menu = self.menubar)
 
         ingridTab = tk.Menu(self.menubar)
-        ingridTab.add_command(label='Preferences...', command=controller.frames[ParamPicker].settings_window)
+        ingridTab.add_command(label='Preferences...', command=self.open_preferences)
         ingridTab.add_separator()
-        ingridTab.add_command(label='Load Files', command=controller.frames[ParamPicker].load_files)
+        ingridTab.add_command(label='New INGRID session', command=controller.frames[ParamPicker].load_files)
+        ingridTab.add_command(label='Load YAML File...', command = self.load_yaml)
         ingridTab.add_command(label='Save Parameters', command=controller.frames[ParamPicker].saveParameters)
         ingridTab.add_separator()
         ingridTab.add_command(label='Restart INGRID session', command=controller.reset_data)
-        ingridTab.add_command(label='__DEBUG__', command=pdb.set_trace)
         ingridTab.add_command(label="Quit INGRID", command=controller.exit_app)
         patchTab = tk.Menu(self.menubar)
         patchTab.add_command(label='Generate Patches', command = controller.frames[ParamPicker].createPatches)
@@ -136,9 +185,62 @@ class MenuBarControl(tk.Tk):
         self.menubar.add_cascade(label = 'INGRID', menu = ingridTab)
         self.menubar.add_cascade(label = 'Patch Controls', menu = patchTab)
         self.menubar.add_cascade(label = 'Grid Controls', menu = gridTab)
-        #self.menubar.add_cascade(label = 'Grid Settings', menu = gridTab)
+
+        patchTab.entryconfig(0, state = 'disabled')
+        gridTab.entryconfig(0, state = 'disabled')
+        gridTab.entryconfig(1, state = 'disabled')
+
+        self.ingridTab = ingridTab
+        self.patchTab = patchTab
+        self.gridTab = gridTab
+
+    def load_yaml(self):
+        self.controller.frames[ParamPicker].load_files()
+        self.controller.frames[FilePicker].load_param_file()
+
+    def enable_patch_generation(self):
+        self.patchTab.entryconfig(0, state = 'normal')
+
+    def enable_grid_generation(self):
+        self.gridTab.entryconfig(0, state = 'normal')
+
+    def enable_gridue_export(self):
+        self.gridTab.entryconfig(1, state = 'normal')   
+    
+    def open_preferences(self):
+
+        def apply_settings():
+            lookup = {'1' : 'SNL', '2' : 'DNL'}
+            if lookup[nxpt_spinbox.get()] != self.controller.gui_mode:
+                if not self.controller.change_numxpt(lookup[nxpt_spinbox.get()]):
+                    pass
+
+        def close_settings():
+            newWindow.withdraw()
+        
+        newWindow = tk.Toplevel(self.controller)
+        entry_container = tk.Frame(newWindow)
+        entry_container.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
+
+        nxpt_label = tk.Label(entry_container, text = 'Number of x-points:')
+        nxpt_label.grid(row = 0, column = 0, padx = 10, pady = 5, sticky = 'nsew')
+
+        nxpt_text = tk.StringVar()
+        if self.controller.gui_mode == 'SNL':
+            txt = '1'
+        elif self.controller.gui_mode == 'DNL':
+            txt = '2'
+        nxpt_text.set(txt)
+        nxpt_spinbox = tk.Spinbox(entry_container, from_ = 1, to = 2, width = 5, state = 'readonly', textvariable=nxpt_text.get())
+        nxpt_spinbox.grid(row = 0, column = 1, padx = 10, pady = 5, sticky = 'nsew')
 
 
+        button_container = tk.Frame(newWindow)
+        button_container.grid(row = 1, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
+        confirm = tk.Button(button_container, text = 'Apply settings', command = apply_settings)
+        confirm.grid(row = 1, column = 0, padx = 10, pady = 5, sticky = 'nsew')
+        close = tk.Button(button_container, text = 'Close', command = close_settings)
+        close.grid(row = 1, column = 1, padx = 10, pady = 5, sticky = 'nsew')
 
 class FilePickerFrame(tk.Frame):
     """
@@ -206,7 +308,6 @@ class FilePickerFrame(tk.Frame):
         self.FP_Button.config(fg = 'red')
         self.isLoaded = False
 
-
 class FilePicker(tk.Frame):
     """
     FilePicker:
@@ -227,8 +328,6 @@ class FilePicker(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent) 
         
-        # TODO: Use controller over self.ROOT. 
-        #       Work towards code uniformity.
         self.controller = controller
         self.parent = parent
 
@@ -236,7 +335,7 @@ class FilePicker(tk.Frame):
         
         Title = tk.Label(self, text = "Ingrid.", font=helv_large)
         Title.grid(row = 0, column = 0, columnspan = 3, \
-            padx = 10, pady = 10, sticky = 'NSEW')
+            padx = 10, pady = 5, sticky = 'NSEW')
         Title.grid(row = 0, column = 0, padx = 10, pady = 10, sticky = 'EW')
 
         self.eqdskFrame = FilePickerFrame(self, controller, \
@@ -272,13 +371,16 @@ class FilePicker(tk.Frame):
              'ButtonCommand' : self.load_param_file \
              })
 
-        self.FP_Frames = [self.eqdskFrame, self.itpFrame, self.otpFrame,\
-                          self.itp2Frame, self.otp2Frame, self.paramFrame]
+        if self.controller.gui_mode == 'DNL':
+            self.FP_Frames = [self.eqdskFrame, self.itpFrame, self.otpFrame,\
+                              self.itp2Frame, self.otp2Frame]
+        elif self.controller.gui_mode == 'SNL':
+            self.FP_Frames = [self.eqdskFrame, self.itpFrame, self.otpFrame]
 
         self.FP_handles = [f._handle for f in self.FP_Frames]
         
         for i in range(len(self.FP_Frames)):
-            self.FP_Frames[i-1].grid(row = i + 1, column = 0, \
+            self.FP_Frames[i].grid(row = i + 1, column = 0, \
                 padx = 10, pady = 5, sticky = 'NSEW')
 
         self.ControlPanel = tk.Frame(self)
@@ -518,22 +620,24 @@ class FilePicker(tk.Frame):
             self.paramFrame.fileLoaded(param_file)
             self.update_frame_state()
             print(self.controller.IngridSession.yaml)
+        elif not valid_path:
+            return False
 
     def parse_yaml(self, _yaml):
-            lookup = { \
-                'eqdsk' : self.load_eqdsk_file, \
-                'target_plates' : {'plate_W1' : self.load_itp_file, 'plate_E1' : self.load_otp_file, 
-                                   'plate_W2' : self.load_otp2_file, 'plate_E2' : self.load_itp2_file} \
-                }
-            for item in _yaml:
-                print(item)
-                if item == 'eqdsk':
-                    lookup[item](showFileDialog = False, toLoad = _yaml[item])
-                elif item == 'target_plates':
-                    for sub_item in _yaml[item]:
-                        lookup[item][sub_item](showFileDialog = False, toLoad = _yaml[item][sub_item]['file'])
+        lookup = { \
+            'eqdsk' : self.load_eqdsk_file, \
+            'target_plates' : {'plate_W1' : self.load_itp_file, 'plate_E1' : self.load_otp_file, 
+                               'plate_W2' : self.load_otp2_file, 'plate_E2' : self.load_itp2_file} \
+            }
+        for item in _yaml:
+            print(item)
+            if item == 'eqdsk':
+                lookup[item](showFileDialog = False, toLoad = _yaml[item])
+            elif item == 'target_plates':
+                for sub_item in _yaml[item]:
+                    lookup[item][sub_item](showFileDialog = False, toLoad = _yaml[item][sub_item]['file'])
+        self.controller.IngridSession.process_yaml(_yaml)
 
-            self.controller.IngridSession.process_yaml(_yaml)
     def update_frame_state(self):
         """
         Keeps track of which files are loaded via
@@ -599,7 +703,7 @@ class FilePicker(tk.Frame):
         self.controller.frames[ParamPicker].load_frame_entries()
         self.controller.frames[ParamPicker].acceptRF_Button.config(state = 'normal')
         self.controller.show_frame(ParamPicker)
-        self.controller.geometry("1185x490")
+        self.controller.geometry(self.controller.gui_dimensions[ParamPicker])
         self.controller.IngridSession.find_roots(tk_controller = self.controller)
         self.controller.IngridSession.root_finder.disconnect()
 
@@ -614,19 +718,13 @@ class ParamPicker(tk.Frame):
 
         self.RF_Container = tk.LabelFrame(self, text = '1.', font = helv_medium, relief = 'groove')
         self.PF_Container = tk.LabelFrame(self, text = '2.', font = helv_medium)
-        self.PF2_Container = tk.LabelFrame(self, text = '3.', font = helv_medium)
 
         self.Controls_Container = tk.Frame(self)
         self.Action_Container = tk.LabelFrame(self.Controls_Container, text = 'INGRID', font = helv_medium)
         self.Settings_Container = tk.LabelFrame(self.Controls_Container, text = 'Settings', font = helv_medium)
 
         self.RF_Container.grid(row = 0, column = 0, padx = 10, pady = 10, sticky = 'nsew')
-        self.PF_Container.grid(row = 0, rowspan = 2, column = 1, padx = 10, pady = 10, sticky = 'nsew')
-        self.PF2_Container.grid(row = 0, rowspan = 2, column = 2, padx = 10, pady = 10, sticky = 'nsew')
-        self.Controls_Container.grid(row = 1, column = 0, padx = 0, pady = 20, sticky = 'NSew')
-
-        # self.Action_Container.grid(row = 0, column = 2, columnspan = 2, padx = 10, pady = 0, sticky = 'nsew')
-        # self.Settings_Container.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 0, sticky = 'nsew')
+        self.PF_Container.grid(row = 0, column = 1, padx = 10, pady = 10, sticky = 'nsew')
 
         self.createPatches_Button = tk.Button(self.Action_Container, text = 'Generate Patches', \
                                               font = helv_medium, state = 'disabled', width = 30, \
@@ -643,29 +741,24 @@ class ParamPicker(tk.Frame):
         self.createSubgrid_Button = tk.Button(self.Action_Container, text = 'Generate Subgrid', \
                                     width = 30, font = helv_medium, state = 'disabled', command = self.createSubgrid)
 
-
-        self.load_Button.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = 'ew')
-        self.save_Button.grid(row = 2, column = 0,  padx = 2, pady = 2, sticky = 'ew')
-
-        #self.settings_Button.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = 'ew')
-        self.createPatches_Button.grid(row = 1, column = 0, padx = 2, pady = 2, sticky = 'ew')
-        self.createSubgrid_Button.grid(row = 2, column = 0, padx = 2, pady = 2, sticky = 'ew')
-        self.export_Button.grid(row = 3, column = 0, padx = 2, pady = 2, sticky = 'ew')
-
         self.MagFrame = RootFinderFrame(self.RF_Container, self, title = 'Magnetic-Axis', style = helv_medium)
         self.XptFrame1 = RootFinderFrame(self.RF_Container, self, title = 'Primary X-Point', style = helv_medium)
         self.XptFrame2 = RootFinderFrame(self.RF_Container, self, title = 'Secondary X-Point', style = helv_medium)
 
         self.PsiMaxFrame = PsiFinderFrame(self.PF_Container, self, title = 'Psi-Max', style = helv_medium)        
-        self.PsiMinFrame = PsiFinderFrame(self.PF_Container, self, title = 'Psi-Min', style = helv_medium)
-        self.PsiPrivateFrame = PsiFinderFrame(self.PF_Container, self, title = 'Psi-Private', style = helv_medium)
+        self.PsiMinFrame = PsiFinderFrame(self.PF_Container, self, title = 'Psi-Core', style = helv_medium)
+        self.PsiPrivateFrame = PsiFinderFrame(self.PF_Container, self, title = 'Primary PF', style = helv_medium)
 
-        self.PsiMaxInnerFrame = PsiFinderFrame(self.PF2_Container, self, title = 'Psi-Max Inner', style = helv_medium)        
-        self.PsiMaxOuterFrame = PsiFinderFrame(self.PF2_Container, self, title = 'Psi-Max Outer', style = helv_medium)
-        self.PsiPrivate2Frame = PsiFinderFrame(self.PF2_Container, self, title = 'Psi-Private (Upper)', style = helv_medium)
+        self.PsiMaxInnerFrame = PsiFinderFrame(self.PF_Container, self, title = 'Psi-Max Inner', style = helv_medium)        
+        self.PsiMaxOuterFrame = PsiFinderFrame(self.PF_Container, self, title = 'Psi-Max Outer', style = helv_medium)
+        self.PsiPrivate2Frame = PsiFinderFrame(self.PF_Container, self, title = 'Secondary PF', style = helv_medium)
 
-        self.RF_Frames = [self.MagFrame, self.XptFrame1, self.XptFrame2]
-        self.PF_Frames = [self.PsiMaxFrame, self.PsiMinFrame, self.PsiPrivateFrame, self.PsiMaxInnerFrame, self.PsiMaxOuterFrame, self.PsiPrivate2Frame]
+        if self.controller.gui_mode == 'DNL':
+            self.RF_Frames = [self.MagFrame, self.XptFrame1, self.XptFrame2]
+            self.PF_Frames = [self.PsiMaxInnerFrame, self.PsiMaxOuterFrame, self.PsiMinFrame, self.PsiPrivateFrame, self.PsiPrivate2Frame]
+        elif self.controller.gui_mode == 'SNL':
+            self.RF_Frames = [self.MagFrame, self.XptFrame1]
+            self.PF_Frames = [self.PsiMaxFrame, self.PsiMinFrame, self.PsiPrivateFrame]
 
         self.All_Frames = []
 
@@ -674,23 +767,22 @@ class ParamPicker(tk.Frame):
         for F in self.PF_Frames:
             self.All_Frames.append(F)
         
-        self.acceptRF_Button = tk.Button(self.RF_Container, text = 'Confirm Entries', font = helv_medium, \
+        self.acceptRF_Button = tk.Button(self, text = 'Confirm geometry', font = helv_medium, \
                                          state = 'disabled', command = self.set_RFValues)
-        self.acceptRF_Button.grid(row = len(self.RF_Frames), column = 0, columnspan = 1, padx = 10, pady = 10)
-
-        self.acceptPF_Button = tk.Button(self.PF_Container, text = 'Confirm Entries', font = helv_medium, \
+        self.acceptRF_Button.grid(row = 2, column = 0, columnspan = 1, padx = 0, pady = 0)
+        self.acceptPF_Button = tk.Button(self, text = 'Confirm psi', font = helv_medium, \
                                          state = 'disabled', command = self.set_PsiValues)
-        self.acceptPF_Button.grid(row = len(self.RF_Frames), column = 0, columnspan = 1, padx = 10, pady = 10)
+        self.acceptPF_Button.grid(row = 2, column = 1, columnspan = 1, padx = 0, pady = 0)
 
-        self.acceptPF2_Button = tk.Button(self.PF2_Container, text = 'Confirm Entries', font = helv_medium, \
-                                         state = 'disabled', command = self.set_PsiValues2)
-        self.acceptPF2_Button.grid(row = len(self.RF_Frames), column = 0, columnspan = 1, padx = 10, pady = 10)
+        for i, Frame in enumerate(self.RF_Frames):
+            Frame.grid(row = i, column = 0, padx = 5, pady = 10, sticky = 'nsew')
 
-        for container in [self.RF_Frames, self.PF_Frames]:
-            for i, frame in enumerate(container):
-                frame.grid(row = i, column = 0, padx = 5, pady = 10, sticky = 'nsew')
-
-        # Use push/pop system for keeping track. Initially all inactive
+        i = 0
+        j = 0
+        for Frame in self.PF_Frames:
+            j += 1 if i == 0 else 0
+            Frame.grid(row =  i, column = j, padx = 5, pady = 10, sticky = 'nsew') 
+            i += 1 if i < 2 else -i
         self.ActiveFrame = []
         self.curr_click = ()
 
@@ -727,6 +819,7 @@ class ParamPicker(tk.Frame):
 
         for F in self.PF_Frames:
             F.Edit_Button.config(state = 'normal')
+
         self.controller.IngridSession.calc_psinorm()
         self.controller.IngridSession.plot_psinorm()
         self.controller.IngridSession.find_psi_lines(tk_controller = self.controller)
@@ -742,7 +835,7 @@ class ParamPicker(tk.Frame):
     def load_files(self):
         self.controller.frames[FilePicker].preview_loaded = False
         self.controller.show_frame(FilePicker)
-        self.controller.geometry("550x440")
+        self.controller.geometry(self.controller.gui_dimensions[FilePicker])
 
     def update_root_finder(self):
         self.ActiveFrame[0].R_EntryText.set('{0:.12f}'.format(self.curr_click[0]))
@@ -752,22 +845,19 @@ class ParamPicker(tk.Frame):
             self.ActiveFrame[0].Psi_EntryText.set('{0:.12f}'.format(psi))
 
     def set_RFValues(self):
-
-        self.controller.IngridSession.yaml['grid_params']['rmagx'] = float(self.MagFrame.R_EntryText.get())
-        self.controller.IngridSession.yaml['grid_params']['zmagx'] = float(self.MagFrame.Z_EntryText.get())
-        self.controller.IngridSession.yaml['grid_params']['rxpt'] = float(self.XptFrame1.R_EntryText.get())
-        self.controller.IngridSession.yaml['grid_params']['zxpt'] = float(self.XptFrame1.Z_EntryText.get())
-
-        self.controller.IngridSession.yaml['grid_params']['rxpt2'] = float(self.XptFrame2.R_EntryText.get())
-        self.controller.IngridSession.yaml['grid_params']['zxpt2'] = float(self.XptFrame2.Z_EntryText.get())
+        
+        lookup = self.controller.global_lookup
+        for key in lookup.keys():
+            self.controller.IngridSession.yaml['grid_params'][key] = float(lookup[key].get())
 
         self.MagAxis = (self.controller.IngridSession.yaml['grid_params']['rmagx'], self.controller.IngridSession.yaml['grid_params']['zmagx'])
-        self.Xpt = (self.controller.IngridSession.yaml['grid_params']['rxpt'], self.controller.IngridSession.yaml['grid_params']['zxpt'])
-        self.Xpt2 = (self.controller.IngridSession.yaml['grid_params']['rxpt2'], self.controller.IngridSession.yaml['grid_params']['zxpt2'])
-
         self.controller.IngridSession.magx = self.MagAxis
+        self.Xpt = (self.controller.IngridSession.yaml['grid_params']['rxpt'], self.controller.IngridSession.yaml['grid_params']['zxpt'])
         self.controller.IngridSession.xpt1 = self.Xpt
-        self.controller.IngridSession.xpt2 = self.Xpt2
+        
+        if self.controller.gui_mode == 'DNL':
+            self.Xpt2 = (self.controller.IngridSession.yaml['grid_params']['rxpt2'], self.controller.IngridSession.yaml['grid_params']['zxpt2'])
+            self.controller.IngridSession.xpt2 = self.Xpt2
         
         # TODO: Exception handling behind the scenes for ensuring PF_Frame is indeed ready.
         
@@ -780,7 +870,7 @@ class ParamPicker(tk.Frame):
                 F.config(text = F.title, fg = 'black')
                 F.Edit_Button.config(text = 'Edit ' + F.title, fg = 'black')
         self.unlock_PF_Frame()
-
+        self.controller.frames[ParamPicker].acceptPF_Button.config(state = 'normal')
     
     def set_PsiValues(self):
         
@@ -790,50 +880,7 @@ class ParamPicker(tk.Frame):
             if F.Z_EntryText.get() == '':
                 F.Z_EntryText.set('0.0')
 
-        lookup = {'psi_max_r' : self.PsiMaxFrame.R_EntryText, 'psi_max_z' : self.PsiMaxFrame.Z_EntryText, \
-                  'psi_max' : self.PsiMaxFrame.Psi_EntryText, \
-                  'psi_min_core_r' : self.PsiMinFrame.R_EntryText, 'psi_min_core_z' : self.PsiMinFrame.Z_EntryText, \
-                  'psi_min_core' : self.PsiMinFrame.Psi_EntryText, \
-                  'psi_min_pf_r' : self.PsiPrivateFrame.R_EntryText, 'psi_min_pf_z' : self.PsiPrivateFrame.Z_EntryText, \
-                  'psi_min_pf' : self.PsiPrivateFrame.Psi_EntryText, \
-        }
-
-        for key in lookup.keys():
-            self.controller.IngridSession.yaml['grid_params'][key] = float(lookup[key].get())
-        
-        self.controller.frames[ParamPicker].acceptPF2_Button.config(state = 'normal')
-        self.controller.IngridSession.psi_finder.disconnect()
-        for F in self.PF_Frames:
-            if F.active_frame:
-                F.update_frame()
-                F.config(text = F.title, fg = 'black')
-                F.Edit_Button.config(text = 'Edit ' + F.title, fg = 'black')
-        self.acceptPF_Button.config(text = 'Entries Saved!', fg = 'lime green')
-        self.controller.IngridSession.grid_params = self.controller.IngridSession.yaml['grid_params']
-        self.controller.IngridSession.integrator_params = self.controller.IngridSession.yaml['integrator_params']
-        self.controller.IngridSession.target_plates = self.controller.IngridSession.yaml['target_plates']
-
-    def set_PsiValues2(self):
-        
-        for F in self.PF_Frames:
-            if F.R_EntryText.get() == '':
-                F.R_EntryText.set('0.0')
-            if F.Z_EntryText.get() == '':
-                F.Z_EntryText.set('0.0')
-
-        lookup = {'psi_max_r' : self.PsiMaxFrame.R_EntryText, 'psi_max_z' : self.PsiMaxFrame.Z_EntryText, \
-                  'psi_max' : self.PsiMaxFrame.Psi_EntryText, \
-                  'psi_min_core_r' : self.PsiMinFrame.R_EntryText, 'psi_min_core_z' : self.PsiMinFrame.Z_EntryText, \
-                  'psi_min_core' : self.PsiMinFrame.Psi_EntryText, \
-                  'psi_min_pf_r' : self.PsiPrivateFrame.R_EntryText, 'psi_min_pf_z' : self.PsiPrivateFrame.Z_EntryText, \
-                  'psi_min_pf' : self.PsiPrivateFrame.Psi_EntryText, \
-                  'psi_max_r_outer' : self.PsiMaxOuterFrame.R_EntryText, 'psi_max_z_outer' : self.PsiMaxOuterFrame.Z_EntryText, \
-                  'psi_max_outer' : self.PsiMaxOuterFrame.Psi_EntryText, \
-                  'psi_max_r_inner' : self.PsiMaxInnerFrame.R_EntryText, 'psi_max_z_inner' : self.PsiMaxInnerFrame.Z_EntryText, \
-                  'psi_max_inner' : self.PsiMaxInnerFrame.Psi_EntryText, \
-                  'psi_pf2_r' : self.PsiPrivate2Frame.R_EntryText, 'psi_pf2_z' : self.PsiPrivate2Frame.Z_EntryText, \
-                  'psi_pf2' : self.PsiPrivate2Frame.Psi_EntryText, 
-        }
+        lookup = self.controller.global_lookup
 
         for key in lookup.keys():
             self.controller.IngridSession.yaml['grid_params'][key] = float(lookup[key].get())
@@ -850,11 +897,12 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.integrator_params = self.controller.IngridSession.yaml['integrator_params']
         self.controller.IngridSession.target_plates = self.controller.IngridSession.yaml['target_plates']
 
+        self.controller.IngridMenubar.enable_patch_generation()
+
     def set_INGRID_params(self):
         
         self.set_RFValues()
         self.set_PsiValues()
-        self.set_PsiValues2()
 
         self.controller.IngridSession.grid_params = self.controller.IngridSession.yaml['grid_params']
         self.controller.IngridSession.integrator_params = self.controller.IngridSession.yaml['integrator_params']
@@ -863,7 +911,7 @@ class ParamPicker(tk.Frame):
     def refresh_yaml(self):
         if self.controller.frames[FilePicker].paramFrame.isLoaded:
             f = Path(self.controller.frames[FilePicker].paramFrame.FP_EntryText.get())
-            self.controller.IngridSession.yaml = yaml.load(f.read_text())
+            self.controller.IngridSession.process_yaml(yaml.load(f.read_text()))
 
     def createPatches(self):
 
@@ -896,13 +944,19 @@ class ParamPicker(tk.Frame):
                 F.toggle_mouse()
             F.disable_frame()
 
-        self.Grid.construct_patches()
-        self.Grid.patch_diagram()
-
-        self.createSubgrid_Button.config(state = 'normal')
+        try:
+            self.Grid.construct_patches()
+            self.Grid.patch_diagram()
+            self.createSubgrid_Button.config(state = 'normal')
+            self.controller.IngridMenubar.enable_grid_generation()
+        except Exception as e:
+            print('=' * 80)
+            print('ERROR DURING PATCH CONSTRUCTION: {}'.format(repr(e)))
+            print('=' * 80 + '\n')
 
     def check_psi_validity(self):
         result = {'psi_valid' : True, 'message' : 'Success'}
+        return result
 
         grid = self.controller.IngridSession
 
@@ -920,7 +974,7 @@ class ParamPicker(tk.Frame):
         W1_min = grid.psi_norm.get_psi(r,z)
         print('W1_min at {} with psi value of {}'.format((r,z), W1_min))
 
-        psi_list = ['psi_max', 'psi_min_pf']
+        psi_list = ['psi_max', 'psi_min_pf'] if self.controller.gui_mode == 'SNL' else ['psi_min_pf']
         psi_error = {'psi_max' : False, 'psi_min_pf' : False}
         E1_error = False
         W1_error = False
@@ -968,10 +1022,15 @@ class ParamPicker(tk.Frame):
         _i = self.Grid.yaml['target_plates']
         for plate in _i:
             print('Name: {}\n np_local: {}\n'.format(_i[plate]['name'], _i[plate]['np_local']))
-        self.Grid.construct_grid(np_cells, nr_cells)
-        self.Grid.grid_diagram()
 
-        self.export_Button.config(state = 'normal')
+        try:
+            self.Grid.construct_grid(np_cells, nr_cells)
+            self.Grid.grid_diagram()
+            self.controller.IngridMenubar.enable_gridue_export()
+        except Exception as e:
+            print('=' * 80)
+            print('ERROR DURING GRID GENERATION: {}'.format(repr(e)))
+            print('=' * 80 + '\n')
 
     def write_gridue(self):
         fname = tkFD.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='', initialfile = 'gridue')
@@ -988,21 +1047,6 @@ class ParamPicker(tk.Frame):
         print("Saved parameters to '{}'.".format(fname))
 
     def load_frame_entries(self):
-        lookup = {'rmagx' : self.MagFrame.R_EntryText, 'zmagx' : self.MagFrame.Z_EntryText,\
-                  'rxpt'  : self.XptFrame1.R_EntryText, 'zxpt'  : self.XptFrame1.Z_EntryText,\
-                  'rxpt2' : self.XptFrame2.R_EntryText, 'zxpt2' : self.XptFrame2.Z_EntryText, \
-                  'psi_max_r' : self.PsiMaxFrame.R_EntryText, 'psi_max_z' : self.PsiMaxFrame.Z_EntryText,\
-                  'psi_min_core_r' : self.PsiMinFrame.R_EntryText, 'psi_min_core_z' : self.PsiMinFrame.Z_EntryText,\
-                  'psi_min_pf_r' : self.PsiPrivateFrame.R_EntryText, 'psi_min_pf_z' : self.PsiPrivateFrame.Z_EntryText,\
-                  'psi_max' : self.PsiMaxFrame.Psi_EntryText, 'psi_min_core' : self.PsiMinFrame.Psi_EntryText,\
-                  'psi_min_pf' : self.PsiPrivateFrame.Psi_EntryText,\
-                  'psi_max_r_outer' : self.PsiMaxOuterFrame.R_EntryText, 'psi_max_z_outer' : self.PsiMaxOuterFrame.Z_EntryText, \
-                  'psi_max_outer' : self.PsiMaxOuterFrame.Psi_EntryText, \
-                  'psi_max_r_inner' : self.PsiMaxInnerFrame.R_EntryText, 'psi_max_z_inner' : self.PsiMaxInnerFrame.Z_EntryText, \
-                  'psi_max_inner' : self.PsiMaxInnerFrame.Psi_EntryText, \
-                  'psi_pf2_r' : self.PsiPrivate2Frame.R_EntryText, 'psi_pf2_z' : self.PsiPrivate2Frame.Z_EntryText, \
-                  'psi_pf2' : self.PsiPrivate2Frame.Psi_EntryText, 
-        }
 
         ignore = ['config', 'num_xpt', 'np_global', 'nr_global']
 
@@ -1010,7 +1054,7 @@ class ParamPicker(tk.Frame):
             if param in ignore:
                 continue
             try:
-                lookup[param].set('{0:.12f}'.format(self.controller.IngridSession.yaml['grid_params'][param]))
+                self.controller.global_lookup[param].set('{0:.12f}'.format(self.controller.IngridSession.yaml['grid_params'][param]))
                 print('Set "{}" to {}'.format(param, self.controller.IngridSession.yaml['grid_params'][param]))
             except:
                 print('Did not find: ' + str(param))
@@ -1019,87 +1063,6 @@ class ParamPicker(tk.Frame):
 
         def confirm_settings():
             newWindow.withdraw()
-
-        if self.controller.frames[FilePicker].paramFrame.isLoaded:
-            f = Path(self.controller.frames[FilePicker].paramFrame.FP_EntryText.get())
-            self.controller.frames[FilePicker].parse_yaml(yaml.load(f.read_text()))
-
-        _gp_default_values = self.controller.IngridSession.default_grid_params
-        _integrator_default_values = self.controller.IngridSession.default_integrator_params
-        _target_plates_default_values = self.controller.IngridSession.default_target_plates_params
-
-        newWindow = tk.Toplevel(self.controller)
-        container1 = tk.LabelFrame(newWindow, text = 'Grid Parameters:', font = helv_medium)
-        container2 = tk.LabelFrame(newWindow, text = 'Integrator Parameters:', font = helv_medium)
-        container3 = tk.LabelFrame(newWindow, text = 'Target Plate Information', font = helv_medium)
-        container4 = tk.Frame(newWindow)
-
-        gp_lookup = ['num_xpt', 'np_global', 'nr_global', 'nr_core', 'nr_sol', 'nr_pf']
-        integrator_lookup = ['first_step', 'step_ratio', 'eps', 'tol', 'dt']
-        target_plate_lookup = ['file', 'name', 'poloidal_f', 'np_local']
-
-        gp_settings = {}
-        integrator_settings = {}
-        target_plate_settings = {}
-        for plate in self.controller.IngridSession.yaml['target_plates']:
-            target_plate_settings[plate] = {}
-
-        gp_default = []
-        integrator_default = []
-
-        for item in gp_lookup:
-            try:
-                gp_settings[item] = SettingsFrame(container1, newWindow, \
-                    {'LabelText' : item, 'EntryText' : self.controller.IngridSession.yaml['grid_params'][item]})
-            except:
-                try:
-                    self.controller.IngridSession.yaml['grid_params']
-                except KeyError:
-                    self.controller.IngridSession.yaml.update({'grid_params' : {}})
-                
-                gp_settings[item] = SettingsFrame(container1, newWindow, \
-                    {'LabelText' : item, 'EntryText' : _gp_default_values[item]})
-                
-                self.controller.IngridSession.yaml['grid_params'].update({item : _gp_default_values[item]})
-
-                print(self.controller.IngridSession.yaml['grid_params'])
-
-        for item in integrator_lookup:
-            try:
-                integrator_settings[item] = SettingsFrame(container2, newWindow, \
-                    {'LabelText' : item, 'EntryText' : self.controller.IngridSession.yaml['integrator_params'][item]})
-            except:
-                try:
-                    self.controller.IngridSession.yaml['integrator_params']
-                except KeyError:
-                    self.controller.IngridSession.yaml.update({'integrator_params' : {}})
-                
-                integrator_settings[item] = SettingsFrame(container2, newWindow, \
-                        {'LabelText' : item, 'EntryText' : _integrator_default_values[item]})
-
-                self.controller.IngridSession.yaml['integrator_params'].update({item : _integrator_default_values[item]})
-        
-        for plate in self.controller.IngridSession.yaml['target_plates']:
-            for item in target_plate_lookup:
-                target_plate_settings[plate][item] = SettingsFrame(container3, newWindow, \
-                        {'LabelText' : item, 'EntryText' : self.controller.IngridSession.yaml['target_plates'][plate][item]})
-
-        container1.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
-        container2.grid(row = 1, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
-        container3.grid(row = 0, column = 2, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
-        container4.grid(row = 2, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
-
-        i = 0
-        for key in gp_settings.keys():
-            gp_settings[key].grid(row = i, column = 0, padx = 5, pady = 5, sticky = 'nsew')
-            i += 1
-        for key in integrator_settings.keys():
-            integrator_settings[key].grid(row = i, column = 0, padx = 5, pady = 5, sticky = 'nsew')
-            i += 1
-        for plate in target_plate_settings.keys():
-            for key in target_plate_settings[plate].keys():
-                target_plate_settings[plate][key].grid(row = i, column = 0, padx = 5, pady = 5, sticky = 'nsew')
-                i += 1
 
         confirm = tk.Button(container4, text = 'Confirm', command = confirm_settings)
         confirm.grid(row = i + 1, column = 0, padx = 10, pady = 5, sticky = 'nsew')

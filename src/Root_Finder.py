@@ -144,7 +144,7 @@ class RootFinder:
         self.controller.frames[IngridApp.ParamPicker].update_root_finder()
 
         plt.cla()
-        self.grid.plot_data()
+        self.grid.plot_data(self.controller.IngridSession.yaml['grid_params']['nlevs'])
         self.controller.IngridSession.plot_target_plates()
         plt.contour(self.grid.r, self.grid.z, self.grid.v, [self.grid.get_psi(x,y)], colors = 'red', label = 'psi_line')
 
@@ -153,7 +153,7 @@ class RootFinder:
         level = float(self.controller.frames[IngridApp.ParamPicker].ActiveFrame[0].Psi_EntryText.get())
 
         plt.cla()
-        self.grid.plot_data()
+        self.grid.plot_data(self.controller.IngridSession.yaml['grid_params']['nlevs'])
         self.controller.IngridSession.plot_target_plates()
         plt.contour(self.grid.r, self.grid.z, self.grid.v, [level], colors = 'red', label = 'psi_line')
 

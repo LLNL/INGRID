@@ -170,8 +170,8 @@ class MenuBarControl(tk.Tk):
         ingridTab = tk.Menu(self.menubar)
         ingridTab.add_command(label='Preferences...', command=self.open_preferences)
         ingridTab.add_separator()
-        ingridTab.add_command(label='New INGRID session', command=controller.frames[ParamPicker].load_files)
-        ingridTab.add_command(label='Load YAML File...', command = self.load_yaml)
+        ingridTab.add_command(label='Select Data', command=controller.frames[ParamPicker].load_files)
+        ingridTab.add_command(label='Load YAML Parameter File', command = self.load_yaml)
         ingridTab.add_command(label='Save Parameters', command=controller.frames[ParamPicker].saveParameters)
         ingridTab.add_separator()
         ingridTab.add_command(label='Restart INGRID session', command=controller.reset_data)
@@ -193,6 +193,8 @@ class MenuBarControl(tk.Tk):
         self.ingridTab = ingridTab
         self.patchTab = patchTab
         self.gridTab = gridTab
+
+        self.preferences_window = None
 
     def load_yaml(self):
         self.controller.frames[ParamPicker].load_files()
@@ -216,10 +218,16 @@ class MenuBarControl(tk.Tk):
                     pass
 
         def close_settings():
-            newWindow.withdraw()
-        
-        newWindow = tk.Toplevel(self.controller)
-        entry_container = tk.Frame(newWindow)
+            self.preferences_window.destroy()
+            self.preferences_window = None
+
+        if self.preferences_window:
+            self.preferences_window.destroy()
+            self.preferences_window = None
+
+        self.preferences_window = tk.Toplevel(self.controller)
+
+        entry_container = tk.Frame(self.preferences_window)
         entry_container.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
 
         nxpt_label = tk.Label(entry_container, text = 'Number of x-points:')
@@ -235,7 +243,7 @@ class MenuBarControl(tk.Tk):
         nxpt_spinbox.grid(row = 0, column = 1, padx = 10, pady = 5, sticky = 'nsew')
 
 
-        button_container = tk.Frame(newWindow)
+        button_container = tk.Frame(self.preferences_window)
         button_container.grid(row = 1, column = 0, columnspan = 2, padx = 10, pady = 10, sticky = 'nsew')
         confirm = tk.Button(button_container, text = 'Apply settings', command = apply_settings)
         confirm.grid(row = 1, column = 0, padx = 10, pady = 5, sticky = 'nsew')
@@ -1043,7 +1051,11 @@ class ParamPicker(tk.Frame):
     def saveParameters(self):
         self.set_INGRID_params()
         fname = Path(tkFD.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='.yml'))
-        fname.write_text(yaml.dump(self.controller.IngridSession.yaml, indent = 4))  # force tag is to overwrite the previous file
+        try:
+            documentation = Path('../Docs/INGRID_YAML_CONTROLS.txt')
+            fname.write_text(documentation.resolve().read_text() + '\n' + yaml.dump(self.controller.IngridSession.yaml, indent = 4))
+        except:
+            fname.write_text(yaml.dump(self.controller.IngridSession.yaml, indent = 4))  # force tag is to overwrite the previous file
         print("Saved parameters to '{}'.".format(fname))
 
     def load_frame_entries(self):
@@ -1062,7 +1074,7 @@ class ParamPicker(tk.Frame):
     def settings_window(self):
 
         def confirm_settings():
-            newWindow.withdraw()
+            self.preferences_window.withdraw()
 
         confirm = tk.Button(container4, text = 'Confirm', command = confirm_settings)
         confirm.grid(row = i + 1, column = 0, padx = 10, pady = 5, sticky = 'nsew')

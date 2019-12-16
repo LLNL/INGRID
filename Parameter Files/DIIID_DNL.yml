@@ -1,15 +1,3 @@
-DEBUG:
-    verbose:
-        grid_generation: 1
-        patch_generation: 1
-        target_plates: 1
-    visual:
-        find_NSEW: 1
-        gridue: 0
-        patch_map: 1
-        subgrid: 0
-
-eqdsk: ../data/SNL/C-MOD/neqdsk
 # =================================================================================================
 # grid_params:
 # -------------------------------------------------------------------------------------------------
@@ -75,42 +63,7 @@ eqdsk: ../data/SNL/C-MOD/neqdsk
 # -------------------------------------------------------------------------------------------------
 #     zxpt - (double) z coordinate of primary x-point
 # =================================================================================================
-grid_params:
-    config: ''
-    patch_generation:
-        zmagx_shift: -0.7
-        rmagx_shift: -0.15
-        inner_tilt: 0.0
-        outer_tilt: -0.5
-        use_NW: False
-        NW_adjust: 0.4
-        NE_adjust: -0.275
-        use_NE: False
-    grid_generation:
-        np_core: 6
-        np_global: 6
-        np_pf: 6
-        np_sol: 6
-        nr_core: 6
-        nr_global: 6
-        nr_pf: 6
-        nr_sol: 6
-        radial_f_core: x, x ** 1/2
-        radial_f_pf: x, x
-        radial_f_sol: x, x ** 0.5
-    psi_max: 1.08
-    psi_max_r: 0.630909090909
-    psi_max_z: -0.418181818182
-    psi_min_core: 0.879983255333
-    psi_min_core_r: 0.598181818182
-    psi_min_core_z: -0.283636363636
-    psi_min_pf: 0.96983650612
-    psi_min_pf_r: 0.550909090909
-    psi_min_pf_z: -0.445454545455
-    rmagx: 0.681827575433
-    rxpt: 0.563043114769
-    zmagx: -0.003614829399
-    zxpt: -0.394986500081
+
 # =================================================================================================
 # integrator_params:
 # -------------------------------------------------------------------------------------------------
@@ -132,13 +85,7 @@ grid_params:
 #     tol - (double) Tolerance value defining convergence criterion   
 #            for integration with line_tracing class.
 # =================================================================================================
-integrator_params:
-    dt: 0.001
-    eps: 5.0e-05
-    first_step: 1.0e-05
-    max_step: 0.064
-    step_ratio: 0.02
-    tol: 0.005
+
 # =================================================================================================
 # target_plates:
 # -------------------------------------------------------------------------------------------------
@@ -183,14 +130,150 @@ integrator_params:
 #                 - For detailed information on available functions,
 #                   see Sympy docs pertaining to "Functions" module.
 # =================================================================================================
+
+# =================================================================================================
+# DEBUG:
+# -------------------------------------------------------------------------------------------------
+#     Controls for DEBUG mode in INGRID.
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+#     visual - (dict) Dictionary of bool/logical-int values to 
+#               activate live-plotting during INGRID operations.
+#
+#         find_NSEW - (bool/logical-int) Show line_tracing during
+#                      search for North/South from primary x-point
+#         patch_map - (bool/logical-int) Show line_tracing during 
+#                      generation of patch-map
+#         subgrid - (bool/logical-int) Show line_tracing during
+#                      generation of subgrids within each patch
+#         gridue - (bool/logical-int) Plot gridue data with 
+#                      guard cells in order of increasing poloidal 
+#                      and radial indices
+# -------------------------------------------------------------------------------------------------
+#     verbose - (dict) Dictionary of bool/logical-int values to
+#                activate verbose output during INGRID operations.
+#
+#         target_plates - (bool/logical-int) Print all target plate 
+#                          coordinates to terminal.
+#         patch_generation - (bool/logical-int) Print all patch names 
+#                             and intersection/convergence events
+#                             that occur during patch generation
+#         grid_generation - (bool/logical-int) Print cell information 
+#                            of a patch, and the populating of arrays 
+#                            containing gridue data during meshgrid 
+#                            generation.                    
+# =================================================================================================
+DEBUG:
+    verbose:
+        grid_generation: 0
+        patch_generation: 0
+        target_plates: 0
+    visual:
+        find_NSEW: 0
+        gridue: 0
+        patch_map: 0
+        subgrid: 0
+eqdsk: ../data/DNL/DIII-D/neqdsk
+grid_params:
+    config: DNL
+    grid_generation:
+        np_core: 6
+        np_global: 6
+        np_pf: 6
+        np_primary_pf: 2
+        np_primary_sol: 2
+        np_secondary_pf: 2
+        np_secondary_sol: 2
+        np_sol: 6
+        nr_core: 6
+        nr_global: 6
+        nr_pf: 6
+        nr_primary_pf: 2
+        nr_primary_sol: 2
+        nr_secondary_pf: 2
+        nr_secondary_sol: 2
+        nr_sol: 6
+        radial_f_core: x, x
+        radial_f_pf: x, x
+        radial_f_primary_pf: x, x
+        radial_f_primary_sol: x, x
+        radial_f_secondary_pf: x, x
+        radial_f_secondary_sol: x, x
+        radial_f_sol: x, x
+    nlevs: 30
+    num_xpt: 2
+    patch_generation:
+        NE_adjust: 0.0
+        NW_adjust: 0.0
+        inner_tilt: 0.0
+        outer_tilt: 0.0
+        rmagx_shift: 0.0
+        rxpt: 0.0
+        secondary_NE_adjust: 0.0
+        secondary_NW_adjust: 0.0
+        use_NE: false
+        use_NW: false
+        use_SE: false
+        use_SW: false
+        use_secondary_NE: false
+        use_secondary_NW: false
+        zmagx_shift: 0.0
+        zxpt: 0.0
+    psi_max: 1.066
+    psi_max_inner: 1.157435084695
+    psi_max_outer: 1.151758078227
+    psi_max_r: 1.031298701299
+    psi_max_r_inner: 1.052077922078
+    psi_max_r_outer: 1.546623376623
+    psi_max_z: -1.072207792208
+    psi_max_z_inner: -0.885194805195
+    psi_max_z_outer: 1.147012987013
+    psi_min_core: 0.975770930045
+    psi_min_core_r: 1.392857142857
+    psi_min_core_z: -1.034805194805
+    psi_min_pf: 0.957326087084
+    psi_min_pf_r: 1.222467532468
+    psi_min_pf_z: -1.300779220779
+    psi_pf2: 1.11910779769
+    psi_pf2_r: 1.189220779221
+    psi_pf2_z: 1.263376623377
+    rmagx: 1.75785604
+    rxpt: 1.300094032688
+    rxpt2: 1.217505027591
+    zmagx: -0.0292478683
+    zxpt: -1.133159375304
+    zxpt2: 1.219825715749
+integrator_params:
+    dt: 0.01
+    eps: 5.0e-05
+    first_step: 5.0e-05
+    max_step: 0.064
+    step_ratio: 0.02
+    tol: 0.005
 target_plates:
     plate_E1:
-        file: ../data/SNL/C-MOD/cmod_otp.txt
+        file: ../data/DNL/DIII-D/d3d_otp.txt
         name: plate_E1
-        np_local: 7
+        np_local: 6
         poloidal_f: x, x
+        zshift: 1.6
+    plate_E2:
+        file: ../data/DNL/DIII-D/d3d_upper_itp.txt
+        name: plate_E2
+        np_local: 6
+        poloidal_f: x, x
+        zshift: 0.0
     plate_W1:
-        file: ../data/SNL/C-MOD/cmod_itp.txt
+        file: ../data/DNL/DIII-D/d3d_itp.txt
         name: plate_W1
-        np_local: 7
+        np_local: 6
         poloidal_f: x, x
+        zshift: 1.6
+    plate_W2:
+        file: ../data/DNL/DIII-D/d3d_upper_otp.txt
+        name: plate_W2
+        np_local: 6
+        poloidal_f: x, x
+        zshift: 0.0

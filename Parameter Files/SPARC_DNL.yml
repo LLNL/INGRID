@@ -1,4 +1,3 @@
-eqdsk: ../data/DNL/DIII-D/neqdsk
 # =================================================================================================
 # grid_params:
 # -------------------------------------------------------------------------------------------------
@@ -64,43 +63,7 @@ eqdsk: ../data/DNL/DIII-D/neqdsk
 # -------------------------------------------------------------------------------------------------
 #     zxpt - (double) z coordinate of primary x-point
 # =================================================================================================
-grid_params:
-    config: 'DNL'
-    num_xpt: 2
-    psi_max: 1.066
-    psi_max_r: 1.031298701299
-    psi_max_z: -1.072207792208
-    psi_min_core: 0.90
-    psi_min_core_r: 1.363766233766
-    psi_min_core_z: -1.030649350649
-    psi_min_pf: 0.99
-    psi_min_pf_r: 1.247402597403
-    psi_min_pf_z: -1.255064935065
-    patch_generation:
-        zmagx_shift: 0.0 #-0.7
-        rmagx_shift: 0.0 #-0.15
-        inner_tilt: 0.0
-        outer_tilt: 0.0 #-0.5
-        use_NW: False #True
-        NW_adjust: 0.0 #0.4
-        NE_adjust: 0.0 #-0.275
-        use_NE: False # True
-    grid_generation:
-        np_core: 6
-        np_global: 6
-        np_pf: 6
-        np_sol: 6
-        nr_core: 6
-        nr_global: 6
-        nr_pf: 6
-        nr_sol: 6
-        radial_f_core: x, x
-        radial_f_pf: x, x
-        radial_f_sol: x, x 
-    rmagx: 1.757854426846
-    rxpt: 1.300094032687
-    zmagx: -0.029274692394
-    zxpt: -1.133159375302
+
 # =================================================================================================
 # integrator_params:
 # -------------------------------------------------------------------------------------------------
@@ -122,13 +85,7 @@ grid_params:
 #     tol - (double) Tolerance value defining convergence criterion   
 #            for integration with line_tracing class.
 # =================================================================================================
-integrator_params:
-    dt: 0.01
-    eps: 5.0e-05
-    first_step: 5.0e-05
-    max_step: 0.064
-    step_ratio: 0.02
-    tol: 0.005
+
 # =================================================================================================
 # target_plates:
 # -------------------------------------------------------------------------------------------------
@@ -173,31 +130,7 @@ integrator_params:
 #                 - For detailed information on available functions,
 #                   see Sympy docs pertaining to "Functions" module.
 # =================================================================================================
-target_plates:
-    plate_E1:
-        file: ../data/DNL/DIII-D/d3d_otp.txt
-        name: plate_E1
-        np_local: 6
-        poloidal_f: x, x
-        zshift: 1.60
-    plate_W1:
-        file: ../data/DNL/DIII-D/d3d_itp.txt
-        name: plate_W1
-        np_local: 6
-        poloidal_f: x, x
-        zshift: 1.60
-    plate_E2:
-        file: ../data/DNL/DIII-D/d3d_upper_itp.txt
-        name: plate_E2
-        np_local: 6
-        poloidal_f: x, x
-        zshift: 0.0
-    plate_W2:
-        file: ../data/DNL/DIII-D/d3d_upper_otp.txt
-        name: plate_W2
-        np_local: 6
-        poloidal_f: x, x
-        zshift: 0.0
+
 # =================================================================================================
 # DEBUG:
 # -------------------------------------------------------------------------------------------------
@@ -234,11 +167,107 @@ target_plates:
 # =================================================================================================
 DEBUG:
     verbose:
-        grid_generation: 0
-        patch_generation: 1
-        target_plates: 0
+        grid_generation: false
+        patch_generation: false
+        target_plates: false
     visual:
-        find_NSEW: 0
-        gridue: 0
-        patch_map: 1
-        subgrid: 0
+        find_NSEW: false
+        gridue: false
+        patch_map: false
+        subgrid: false
+eqdsk: ../Data/DNL/SPARC/V1D_low_geqdsk
+grid_params:
+    config: DNL
+    grid_generation:
+        np_core: 6
+        np_global: 6
+        np_primary_pf: 6
+        np_primary_sol: 6
+        np_secondary_pf: 6
+        np_secondary_sol: 6
+        nr_core: 8
+        nr_global: 8
+        nr_primary_pf: 8
+        nr_primary_sol: 8
+        nr_secondary_pf: 8
+        nr_secondary_sol: 8
+        radial_f_core: x, x
+        radial_f_primary_pf: x, x
+        radial_f_primary_sol: x, x
+        radial_f_secondary_pf: x, x
+        radial_f_secondary_sol: x, x
+    nlevs: 150
+    num_xpt: 2
+    patch_generation:
+        NE_adjust: 0.0
+        NW_adjust: 0.0
+        inner_tilt: 0.0
+        outer_tilt: 0.0
+        rmagx_shift: 0.0
+        rxpt: 0.0
+        secondary_NE_adjust: -0.55
+        secondary_NW_adjust: 0.55
+        use_NE: false
+        use_NW: false
+        use_SE: false
+        use_SW: false
+        use_secondary_NE: true
+        use_secondary_NW: true
+        zmagx_shift: 0.0
+        zxpt: 0.0
+    psi_max: 0.0
+    psi_max_inner: 1.005030611031
+    psi_max_outer: 1.00552682118
+    psi_max_r: 0.0
+    psi_max_r_inner: 1.422077922078
+    psi_max_r_outer: 1.554545454545
+    psi_max_z: 0.0
+    psi_max_z_inner: -1.075324675325
+    psi_max_z_outer: -1.153246753247
+    psi_min_core: 0.940265282465
+    psi_min_core_r: 1.609090909091
+    psi_min_core_z: -0.896103896104
+    psi_min_pf: 0.997157635444
+    psi_min_pf_r: 1.476623376623
+    psi_min_pf_z: -1.153246753247
+    psi_pf2: 1.000525228398
+    psi_pf2_r: 1.445454545455
+    psi_pf2_z: 1.137662337662
+    rmagx: 1.839069334
+    rxpt: 1.489777680336
+    rxpt2: 1.489734496243
+    zmagx: -0.000743286742
+    zxpt: -1.099819078021
+    zxpt2: 1.099422038985
+integrator_params:
+    dt: 0.01
+    eps: 5.0e-05
+    first_step: 1.0e-05
+    max_step: 0.12
+    step_ratio: 0.02
+    tol: 0.005
+target_plates:
+    plate_E1:
+        file: ../Data/DNL/SPARC/divRZv1d_lotp.txt
+        name: plate_E1
+        np_local: 6
+        poloidal_f: x, x
+        zshift: 0.0
+    plate_E2:
+        file: ../Data/DNL/SPARC/divRZv1d_uitp.txt
+        name: plate_E2
+        np_local: 6
+        poloidal_f: x, x
+        zshift: 0.0
+    plate_W1:
+        file: ../Data/DNL/SPARC/divRZv1d_litp.txt
+        name: plate_W1
+        np_local: 6
+        poloidal_f: x, x
+        zshift: 0.0
+    plate_W2:
+        file: ../Data/DNL/SPARC/divRZv1d_uotp.txt
+        name: plate_W2
+        np_local: 6
+        poloidal_f: x, x
+        zshift: 0.0

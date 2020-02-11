@@ -219,10 +219,15 @@ class Line:
             else:
                 return False
 
-
+        # ind was not defined if the conditions are not met, e.g. when magnetic field lines do not intersect the targets
+        # Safety check added with an exception 
+        ind=None
+    
         for i in range(len(self.p) - 1):
             # Split point is exactly on a Line object's point. Occurs often 
             # when splitting a Line object with itself.
+            
+            print(' #', i,self.p[i].x,self.p[i].y)
             if split_point.y == self.p[i].y and split_point.x == self.p[i].x:
                 same_line_split = True
                 ind = i
@@ -237,7 +242,15 @@ class Line:
                 break
             else:
                 continue
-
+        
+        if ind==None:
+            for i in range(len(self.p) - 1):
+                plt.plot(self.p[i].x,self.p[i].y,'.',color='black',ms=8)
+                plt.plot(split_point.x,split_point.y,'s',color='red',ms=8)
+            plt.show()
+            raise ValueError("Value of ind has not been set. This probably means that one of the targets does not intersect one of the field lines.\
+                             Check that targets are wide enough to emcompass the SOL and PFR region")
+        
         start__split = self.p[:ind + (1 if not same_line_split else 0)]
         start__split += [split_point] if add_split_point else []
         split__end = [split_point] + self.p[ind + (1 if not same_line_split else 2):]
@@ -388,6 +401,19 @@ class Patch:
         #       Currently this is being done in the concat_grid method.
         self.npol = 0
         self.nrad = 0
+        
+        self.PatchLabelDoc={
+            'I': 'Inner',
+            'O':' Outer',
+            'D':'Divertor',
+            'L':'Leg',
+           'P': 'Private',
+           'F':'Flux',
+            'T': 'Top',
+            'B': 'Bottom',
+            'S': 'SOL',
+            'C': 'Core'
+            }
 
     def plot_border(self, color='red'):
         """
@@ -413,9 +439,12 @@ class Patch:
         x = np.array([p.x for p in self.p])
         y = np.array([p.y for p in self.p])
         arr = np.column_stack((x,y))
-        patch = Polygon(arr, fill = True, closed = True, color = color)
+        PatchLabel=self.patchName+' (' +UnfoldLabel(self.PatchLabelDoc,self.patchName)+')'
+        patch = Polygon(arr, fill = True, closed = True, color = color,label=PatchLabel)
         ax = plt.gca()
         ax.add_patch(patch)
+        ax.plot()
+        
         plt.show()
 
     def plot_subgrid(self, color = 'blue'):
@@ -437,7 +466,8 @@ class Patch:
         elif corner == 'SW':
             self.cell_grid[-1][0].vertices[corner] = point
             self.cell_grid[-1][0].vertices[corner] = point
-
+        
+    
 
 class SNL_Patch(Patch):
     def __init__(self, lines, patchName = '', platePatch = False, plateLocation = None):
@@ -565,7 +595,7 @@ class SNL_Patch(Patch):
                 valid_function = True
                 print('PF radial transformation: "{}"'.format(_radial_f))
             except KeyError:
-                valid_function = False
+                valid_function = False # not a good idea because the user may not know that his function was actually invalid....
         _radial_f = get_func(grid, _radial_f) if valid_function else lambda x: x
 
         if verbose:
@@ -1219,3 +1249,31 @@ if __name__ == "__main__":
     plt.ylabel('Z')
     plt.title('Example Patch')
     plt.show()
+
+def UnfoldLabel(Dic:dict,Name:str)->str:
+        '''
+        Unfold Patch label (e.g. "ICT" -> "Inner Core Top")
+
+        Parameters
+        ----------
+        Dic : dict
+            Dictionnary containing description of acronym characters
+        Name : str
+            patch label
+
+        Returns
+        -------
+        str
+            Unfolded patch label.
+
+        '''    
+        Output=[]
+        for s in Name:
+            if Dic.get(s)!=None:
+                Output.append(Dic.get(s)+' ')
+            else:
+                Output.append(s)
+        if len(Output)>0:
+            return ''.join(Output)
+        else:
+            return ''

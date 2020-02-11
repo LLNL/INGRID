@@ -227,7 +227,6 @@ class Line:
             # Split point is exactly on a Line object's point. Occurs often 
             # when splitting a Line object with itself.
             
-            print(' #', i,self.p[i].x,self.p[i].y)
             if split_point.y == self.p[i].y and split_point.x == self.p[i].x:
                 same_line_split = True
                 ind = i

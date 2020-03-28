@@ -2664,9 +2664,6 @@ class LSN(SNL, Ingrid):
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
 
-        import pdb
-        pdb.set_trace()
-
         # ODL Patch 
         location = 'E'
         ODL_N = oPsiMax_TP

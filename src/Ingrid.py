@@ -443,23 +443,42 @@ class Ingrid:
                     y = float(point.split(',')[1])
                     plate_data[plate]['coordinates'].append((x, y - zshift))
 
-            temp_max = temp_min = plate_data[plate]['coordinates'][0]
-
-            # Determine the min/max psi values that lie on the current target plate.
-            for (r, z) in plate_data[plate]['coordinates']:
-                curr_v = self.efit_psi.get_psi(r, z)
-                min_v_test = self.efit_psi.get_psi(temp_min[0], temp_min[1])
-                max_v_test = self.efit_psi.get_psi(temp_max[0], temp_max[1])
-                temp_min = (r, z) if curr_v <= min_v_test else temp_min
-                temp_max = (r, z) if curr_v >= max_v_test else temp_max
-            
-            plate_data[plate]['psi_min_rz'] = temp_min
-            plate_data[plate]['psi_max_rz'] = temp_max
-
             if debug:
                 print('Using target plate "{}": {}'.format(target_plates[plate]['name'], plate_data[plate]))
 
         # Save plate_data dictionary within the Ingrid object.
+        self.plate_data = plate_data
+
+    def determine_target_plate_psi_min_max_values(self):
+            
+        plate_data = self.plate_data
+
+        for plate in self.yaml['target_plates']:
+
+            # Check for valid file path.
+            try:
+                open(self.yaml['target_plates'][plate]['file'])
+            except FileNotFoundError:
+                continue
+
+            temp_min_rz = plate_data[plate]['coordinates'][0]
+            temp_max_rz = plate_data[plate]['coordinates'][-1]
+            temp_min_psi = self.psi_norm.get_psi( temp_min_rz[0], temp_min_rz[1] )
+            temp_max_psi = self.psi_norm.get_psi( temp_max_rz[0], temp_max_rz[1] )
+
+            # Determine the min/max psi values that lie on the current target plate.
+            for (r, z) in plate_data[plate]['coordinates']:
+                current_psi = self.psi_norm.get_psi(r, z)
+                if current_psi < temp_min_psi:
+                    temp_min_psi = current_psi
+                    temp_min_rz = ( r, z )
+                if current_psi > temp_max_psi:
+                    temp_max_psi = current_psi
+                    temp_max_rz = ( r, z )
+
+            plate_data[plate]['psi_min_rz'] = temp_min_rz
+            plate_data[plate]['psi_max_rz'] = temp_max_rz
+
         self.plate_data = plate_data
 
     def plot_target_plates(self):
@@ -594,6 +613,7 @@ class Ingrid:
         psi_xpt1 = self.efit_psi.get_psi(self.xpt1[0], self.xpt1[1])
         psinorm = (psi - np.full_like(psi, psi_magx))/(psi_xpt1 - psi_magx)
         self.psi_norm.set_v(psinorm)
+        self.determine_target_plate_psi_min_max_values()
         self.psi_norm.Calculate_PDeriv()
 
     def plot_psinorm(self):

@@ -964,7 +964,7 @@ class ParamPicker(tk.Frame):
 
     def check_psi_validity(self):
         result = {'psi_valid' : True, 'message' : 'Success'}
-        return result
+        #return result
 
         grid = self.controller.IngridSession
 

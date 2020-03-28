@@ -168,7 +168,7 @@
 DEBUG:
     verbose:
         grid_generation: 0
-        patch_generation: 1
+        patch_generation: 0
         target_plates: 0
     visual:
         find_NSEW: 0

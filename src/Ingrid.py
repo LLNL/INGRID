@@ -525,7 +525,7 @@ class Ingrid:
         # Endpoints on same horizontal line.
         elif start.y == end.y:
             # If 'end' point to the right of 'start' point.
-            if end.x - start.x > 0:
+            if start.x - end.x > 0:
                 # Return target plate as is
                 return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
             else:
@@ -846,6 +846,20 @@ class DNL(Ingrid):
         plt.show()
 
     def animate_grid(self):
+        """
+        animate_grid:
+            Sequentially draw each cell contained withing the 
+            finalized RM and ZM arrays. Used for verification
+            of poloidal/radial index space ordering of cell data.
+
+        Parameters:
+            N/A
+
+        Return:
+            N/A
+
+        @author: garcia299
+        """
 
         try:
             plt.close('INGRID: Debug')
@@ -868,13 +882,19 @@ class DNL(Ingrid):
 
     def concat_grid(self):
         """
-        Concatenate all local grids on individual patches into a single 
-        array with branch cuts
+        concat_grid:
+            Concatenate each refined grid within a Patch object into
+            UEDGE formatted arrays RM and ZM.
+
         Parameters:
-        ----------
-            config : str
-                Type of SNL grid to concat.
+            N/A
+
+        Return:
+            N/A
+
+        @author: garcia299
         """
+
         # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
         patch_matrix = self.patch_matrix
 
@@ -1009,6 +1029,28 @@ class DNL(Ingrid):
             self.animate_grid()
 
     def add_guardc(self, cell_map, ixlb, ixrb, eps = 1e-3):
+        """
+        add_guardc:
+            Method for adding guard cells to a refined patch map.
+
+        Parameters:
+            cell_map : list-like
+                - The refined patch map with shape = (np, nr, 5).
+            ixlb : int
+                - Index corresponding to the left boundary of the
+                  cell_map object.
+            ixrb : int
+                - Index corresponding to the right boundary of the
+                  cell_map object.
+            eps : float
+                - Epsilon value for guard cell size. For usage in
+                  linear interpolation of non-guard cells.
+
+        Returns:
+            cell_map : list-like
+                - The modified cell_map parameter with guard cells
+                  included.
+        """
 
         def set_guard(cell_map, ix, iy, eps, boundary):
             # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
@@ -1069,7 +1111,15 @@ class DNL(Ingrid):
 
     def set_gridue(self):
         """
-        Prepare the relevant arrays for writing to GRIDUE.
+        set_gridue:
+            Prepares 'self.gridue_params' dictionary with required data.
+            The self.gridue_params attribute is used to write a gridue
+            formatted file
+
+        Parameters:
+            N/A
+        Return:
+            N/A
         """
 
         ixlb = 0
@@ -1128,96 +1178,130 @@ class DNL(Ingrid):
 
 
     def construct_grid(self, np_cells = 3, nr_cells = 3):
+        """
+        construct_grid:
+            Method for facilitating the refining of Patches within the Ingrid object.
+            Grid construction as well as grid concatenation and gridue
+            file prep is completed here.
 
-        # Straighten up East and West segments of our patches,
-        # Plot borders and fill patches.
+        Parameters:
+            np_cells : int
+                - Default number of poloidal cells to generate in a Patch
+            nr_cells : int
+                - Default number of radial cells to generate in a Patch
 
+        # TODO: Remove parameters and rely on np_global and nr_global in YAML
+        """
+
+        # Check for visual mode in Patch refinement.
         try:
             visual = self.yaml['DEBUG']['visual']['subgrid']
         except:
             visual = False
+
+        # Check for verbose output in Patch refinement.
         try:
             verbose = self.yaml['DEBUG']['verbose']['grid_generation']
         except:
             verbose = False
 
+        # Check for specified number of poloidal cells for patches in Primary SOL.
+        # Uses np_global if no specification.
         try:
             np_primary_sol = self.yaml['grid_params']['grid_generation']['np_primary_sol']
         except:
             np_primary_sol = self.yaml['grid_params']['grid_generation']['np_global']
+
+        # Check for specified number of poloidal cells for patches in Secondary SOL.
+        # Uses np_global if no specification.
         try:
             np_secondary_sol = self.yaml['grid_params']['grid_generation']['np_secondary_sol']
         except:
             np_secondary_sol = self.yaml['grid_params']['grid_generation']['np_global']
+
+        # Check for specified number of poloidal cells for patches in Core.
+        # Uses np_global if no specification.
         try:
             np_core = self.yaml['grid_params']['grid_generation']['np_core']
         except:
             np_core = self.yaml['grid_params']['grid_generation']['np_global']
+
+        # Check for specified number of poloidal cells for patches in Primary PF.
+        # Uses np_global if no specification.
         try:
             np_primary_pf = self.yaml['grid_params']['grid_generation']['np_primary_pf']
         except:
             np_primary_pf = self.yaml['grid_params']['grid_generation']['np_global']
+
+        # Check for specified number of poloidal cells for patches in Secondary PF.
+        # Uses np_global if no specification.
         try:
             np_secondary_pf = self.yaml['grid_params']['grid_generation']['np_secondary_pf']
         except:
             np_secondary_pf = self.yaml['grid_params']['grid_generation']['np_global']
-        """
-        if np_sol != np_core:
-            print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
-                + ' to the minimum of np_sol and np_core.\n')
-            np_sol = np_core = np.amin([np_sol, np_core])
-        """
+
+        # Check for specified number of radial cells for patches in Primary SOL.
+        # Uses nr_global if no specification.
         try:
             nr_primary_sol = self.yaml['grid_params']['grid_generation']['nr_primary_sol']
         except:
             nr_primary_sol = self.yaml['grid_params']['grid_generation']['nr_global']
 
+        # Check for specified number of radial cells for patches in Secondary SOL.
+        # Uses nr_global if no specification.
         try:
             nr_secondary_sol = self.yaml['grid_params']['grid_generation']['nr_secondary_sol']
         except:
             nr_secondary_sol = self.yaml['grid_params']['grid_generation']['nr_global']
 
+        # Check for specified number of radial cells for patches in Core.
+        # Uses nr_global if no specification.
         try:
             nr_core = self.yaml['grid_params']['grid_generation']['nr_core']
         except:
             nr_core = self.yaml['grid_params']['grid_generation']['nr_global']
+
+        # Check for specified number of radial cells for patches in Primary PF.
+        # Uses nr_global if no specification.
         try:
             nr_primary_pf = self.yaml['grid_params']['grid_generation']['nr_primary_pf']
         except:
             nr_primary_pf = self.yaml['grid_params']['grid_generation']['nr_global']
+
+        # Check for specified number of radial cells for patches in Secondary PF.
+        # Uses nr_global if no specification.
         try:
             nr_secondary_pf = self.yaml['grid_params']['grid_generation']['nr_secondary_pf']
         except:
             nr_secondary_pf = self.yaml['grid_params']['grid_generation']['nr_global']
-        """
-        if nr_pf != nr_core:
-            print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
-                + ' to the minimum of nr_pf and nr_core.\n')
-            nr_pf = nr_core = np.amin([nr_pf, nr_core])
-        """
-        for patch in self.patches:
-            if patch in self.PRIMARY_SOL:
-                nr_cells = nr_primary_sol
-                np_cells = np_primary_sol
-                print('Patch "{}" is in PRIMARY_SOL'.format(patch.patchName))
-            elif patch in self.SECONDARY_SOL:
-                nr_cells = nr_secondary_sol
-                np_cells = np_secondary_sol
-                print('Patch "{}" is in SECONDARY_SOL'.format(patch.patchName))
-            elif patch in self.CORE:
-                nr_cells = nr_core
-                np_cells = np_core
-                print('Patch "{}" is in CORE'.format(patch.patchName))
-            elif patch in self.PRIMARY_PF:
-                nr_cells = nr_primary_pf
-                np_cells = np_primary_pf
-                print('Patch "{}" is in PRIMARY_PF'.format(patch.patchName))
-            elif patch in self.SECONDARY_PF:
-                nr_cells = nr_secondary_pf
-                np_cells = np_secondary_pf
-                print('Patch "{}" is in SECONDARY_PF'.format(patch.patchName))
 
+
+        # Local lookup table helper.
+        lookup = {self.PRIMARY_SOL : [nr_primary_sol, np_primary_sol, 'PRIMARY_SOL'], \
+                    self.SECONDARY_SOL : [nr_secondary_sol, np_secondary_sol, 'SECONDARY_SOL'], \
+                    self.CORE : [nr_core, np_core, 'CORE'], \
+                    self.PRIMARY_PF : [nr_primary_pf, np_primary_pf, 'PRIMARY_PF'], \
+                    self.SECONDARY_PF : [nr_secondary_pf, np_secondary_pf, 'SECONDARY_PF']}
+
+        # Iterate through patches and refine into grids.
+        for patch in self.patches:
+            for key in lookup.keys():
+                if patch not in key:
+                    continue
+                nr_cells = lookup[key][0]
+                np_cells = lookup[key][1]
+                topos_group = lookup[key][2]
+            print('=====================================')
+            print('=====================================')
             print('CONSTRUCTING GRID FOR PATCH: {}'.format(patch.patchName))
+            print('-------------------------------------')
+            print('Patch "{}" is located in "{}"'.format(patch.patchName, topos_group))
+            print('-------------------------------------')
+            print('Number of poloidal cells to generate: {}'.format(np_cells))
+            print('-------------------------------------')
+            print('Number of radial cells to generate: {}'.format(nr_cells))
+            print('=====================================')
+            print('=====================================')
             patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
 
             # Tidy up primary x-point
@@ -1264,25 +1348,47 @@ class DNL(Ingrid):
 
     def construct_patches(self):
         """
-        Draws lines and creates patches for both USN and LSN configurations.
-            
-        Patch Labeling Key:
-            I: Inner,
-            O: Outer,
-            DL: Divertor Leg,
-            PF: Private Flux,
-            T: Top,
-            B: Bottom,
-            S: Scrape Off Layer,
-            C: Core.
+        construct_patches:
+            Draws lines and creates patches based off the X-points, Magnetic Axis, 
+            and specified Psi surfaces for the DNL configuration.
+
+            Patch Labeling Key:
+                A-C : Radial location of a Patch. Convention here has A being the outermost 
+                      and C being the innermost.
+                1-8 : Poloidal location of a Patch. Convention here follows the clockwise 
+                      orientation.
+
+        Parameters: 
+            No user specified parameters.
+
+        Returns:
+            No return value.
         """
-        # TODO: Create a 'lookup' procedure for determining line drawing
-        #       orientations and inner-outer locations.
 
         def order_plate_points(plate, location = 'UITP', orientation = 'cw'):
             """
-            Sets the points in the target plate to have an orientation
-            increasing in R and Z. Checks the endpoints to satisfy this criteria.
+            order_plate_points:
+                Sets the points in the target plate to have an orientation
+                increasing in R and Z. Checks the endpoints to satisfy this criteria.
+
+            Parameters:
+                plate : Line object
+                    - Line object representing the target plate geometry to order.
+                location : str
+                    - String indicating the target plate location. 
+                      Must be:
+                        'UITP' : Upper Inner Target Plate
+                        'UOTP' : Upper Outer Target Plate
+                        'LITP' : Lower Inner Target Plate
+                        'LOTP' : Lower Outer Target Plate
+                orientation : str
+                    - Orientation to order plate points in. 
+                      Must be:
+                        'cw' : Clockwise
+                        'ccw' : Counter Clockwise
+            Returns:
+                List
+                    - List of Point objects ordered in the orientation specified.
             """
 
             loc_sgn = 1 if location[0] == 'U' else -1
@@ -1315,168 +1421,495 @@ class DNL(Ingrid):
                 return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
 
 
+        # Check for visual mode in Patch Map generation.
         try:
             visual = self.yaml['DEBUG']['visual']['patch_map']
         except KeyError:
             visual = False
+
+        # Check for verbose mode in Patch Map generation.
         try:
             verbose = self.yaml['DEBUG']['verbose']['patch_generation']
         except KeyError:
             verbose = False
+
+        # Check for specified radian adjustment for INNER-most horizontal line
+        # through magnetic axis.
         try:
             inner_tilt = self.yaml['grid_params']['patch_generation']['inner_tilt']
         except KeyError:
             inner_tilt = 0.0
+
+        # Check for specified radian adjustment for OUTER-most horizontal line
+        # through magnetic axis.
         try:
             outer_tilt = self.yaml['grid_params']['patch_generation']['outer_tilt']
         except KeyError:
             outer_tilt = 0.0
 
+        # Ingrid plate attributes as references to geometric plate data.
+        """
+        Plate Labeling:
+            W : Inner
+            E : Outer
+            1 : Closest to primary X-point
+            2 : Closest to secondary X-point
+        """
         self.plate_W1 = self.plate_data['plate_W1']['coordinates']
         self.plate_E1 = self.plate_data['plate_E1']['coordinates']
         self.plate_E2 = self.plate_data['plate_E2']['coordinates']
         self.plate_W2 = self.plate_data['plate_W2']['coordinates']
 
+        # References to NSEW rz coordinates for xpt1 and xpt2.
         xpt1_dict = self.eq.eq_psi['xpt1']
-        xpt1_theta = self.eq.eq_psi_theta['xpt1']
         xpt2_dict = self.eq.eq_psi['xpt2']
+
+        # References to NSEW theta values for xpt1 and xpt2.
+        xpt1_theta = self.eq.eq_psi_theta['xpt1']
         xpt1_theta = self.eq.eq_psi_theta['xpt2']
 
+        # Psi value corresponding to separatrix through xpt1
         sptrx1_v = self.psi_norm.get_psi(self.xpt1[0], self.xpt1[1])
+        # Psi value corresponding to separatrix through xpt2
         sptrx2_v = self.psi_norm.get_psi(self.xpt2[0], self.xpt2[1])
 
+        # RZ oordinates for magnetic axis with the corresponding r-shift and z-shift applied.
         magx = np.array([self.yaml['grid_params']['rmagx'] + self.yaml['grid_params']['patch_generation']['rmagx_shift'], \
             self.yaml['grid_params']['zmagx'] + self.yaml['grid_params']['patch_generation']['zmagx_shift']])
 
+        # Get relevant psi surface values.
         psi_max = self.yaml['grid_params']['psi_max']
         psi_min_core = self.yaml['grid_params']['psi_min_core']
         psi_min_pf = self.yaml['grid_params']['psi_min_pf']
-
         psi_max_outer = self.yaml['grid_params']['psi_max_outer']
         psi_max_inner = self.yaml['grid_params']['psi_max_inner']
         psi_min_pf_2 = self.yaml['grid_params']['psi_pf2']
 
+        # Process raw RZ coordinates of target plate data into Line objects.
         LITP = Line(order_plate_points(Line([Point(i) for i in self.plate_W1]), location = 'LITP'))
         LOTP = Line(order_plate_points(Line([Point(i) for i in self.plate_E1]), location = 'LOTP'))
-
         UITP = Line(order_plate_points(Line([Point(i) for i in self.plate_E2]), location = 'UITP'))
         UOTP = Line(order_plate_points(Line([Point(i) for i in self.plate_W2]), location = 'UOTP'))
 
-        # Generate Horizontal Mid-Plane lines
+        # Generate INNER Horizontal Mid-Plane line and apply inner-tilt radian adjustment (if any)
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
         RHS_Point = Point(magx[0] + 1e6 * np.cos(inner_tilt), magx[1] + 1e6 * np.sin(inner_tilt))
         inner_midLine = Line([LHS_Point, RHS_Point])
-        # inner_midLine.plot()
 
+        # Generate OUTER Horizontal Mid-Plane line and apply outer-tilt radian adjustment (if any)
         LHS_Point = Point(magx[0] - 1e6 * np.cos(outer_tilt), magx[1] - 1e6 * np.sin(outer_tilt))
         RHS_Point = Point(magx[0] + 1e6 * np.cos(outer_tilt), magx[1] + 1e6 * np.sin(outer_tilt))
         outer_midLine = Line([LHS_Point, RHS_Point])
-        # outer_midLine.plot()
 
         # Generate Vertical Mid-Plane line that intersects the secondary x-pt and the magnetic axis
+        # TODO : Maybe create new criteria for this 'topLine'?
         slp = [self.xpt2[0] - magx[0], self.xpt2[1] - magx[1]]
         slp = slp[1] / slp[0]
         topLine_tilt = np.arctan(slp)
-
         Upper_Point = Point(-1e6, slp * (-1e6 - self.xpt2[0]) + self.xpt2[1])
         Lower_Point = Point(1e6, slp * (1e6 - self.xpt2[0]) + self.xpt2[1])
         topLine = Line([Lower_Point, Upper_Point])
-        # topLine.plot()
 
-        # Drawing the portion of separatrix similar to single-null configuration.
+        # ====================================================================================
+        # Beginning of line-tracing for primary separatrix and core region.
+        # ====================================================================================
+        """
+        Draw line from primary x-point towards the core. 
+        Stops at psi surface corresponding to psiMinCore value.
+
+            Starting tag : xpt1N
+            Ending Tag   : psiMinCore
+        """
         xpt1N__psiMinCore = self.eq.draw_line(xpt1_dict['N'], {'psi' : psi_min_core}, \
             option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from primary x-point towards the inner mid-line. 
+        Stops when intersection occurs with inner_midLine object.
+
+            Starting tag : xpt1NW
+            Ending tag   : sptrx1imidLine
+        """
         xpt1NW__sptrx1imidLine = self.eq.draw_line(xpt1_dict['NW'], {'line' : inner_midLine}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from primary x-point towards the outer mid-line. 
+        Stops when intersection occurs with outer_midLine object.
+
+            Starting tag : xpt1NE
+            Ending tag   : sptrx1omidLine
+        """
         xpt1NE__sptrx1omidLine = self.eq.draw_line(xpt1_dict['NE'], {'line' : outer_midLine}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line from inner_midLine on primary separatrix to topLine. 
+        Stops when intersection occurs with topLine object.
 
+            Starting tag : sptrx1imidLine
+            Ending tag   : topLine
+        """
         sptrx1imidLine__topLine = self.eq.draw_line(xpt1NW__sptrx1imidLine.p[-1], {'line' : topLine}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from outer_midLine on primary separatrix to topLine.
+        Stops when intersection occurs with topLine object.
+
+            Starting tag : sptrx1omidLine
+            Ending tag   : topLine
+        """
         sptrx1omidLine__topLine = self.eq.draw_line(xpt1NE__sptrx1omidLine.p[-1], {'line' : topLine}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line in the core region from psiMinCore to inner_midLine.
+        Stops when intersection occurs with inner_midLine object.
+
+            Starting tag : psiMinCore
+            Ending tag   : imidLineCore
+        """
         psiMinCore__imidLineCore = self.eq.draw_line(xpt1N__psiMinCore.p[-1], {'line' : inner_midLine}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line in the core region from psiMinCore to outer_midLine.
+        Stops when intersection occurs with outer_midLine object.
+
+            Starting tag : psiMinCore
+            Ending tag   : omidLineCore
+        """
         psiMinCore__omidLineCore = self.eq.draw_line(xpt1N__psiMinCore.p[-1], {'line' : outer_midLine}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line from inner_midLine in core region to topLine.
+        Stops when intersection occurs with topLine object.
+
+            Starting tag : imidLineCore
+            Ending tag   : topLine
+        """
         imidLineCore__topLine = self.eq.draw_line(psiMinCore__imidLineCore.p[-1], {'line' : topLine}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from outer_midLine in core region to topLine.
+        Stops when intersection occurs with topLine object.
+
+            Starting tag : omidLineCore
+            Ending tag   : topLine
+        """
         omidLineCore__topLine = self.eq.draw_line(psiMinCore__omidLineCore.p[-1], {'line' : topLine}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        # ====================================================================================
+        # End of line-tracing for primary separatrix and core region.
+        # ====================================================================================
+        # ####################################################################################
+
+        # Create line objects representing the primary separatrix and the core region boundaries.
         sptrx1 = Line([xpt1NW__sptrx1imidLine.p + sptrx1imidLine__topLine.p + sptrx1omidLine__topLine.p[-2::-1] + xpt1NE__sptrx1omidLine.p[-2::-1]][0])
         core = Line([psiMinCore__imidLineCore.p + imidLineCore__topLine.p + omidLineCore__topLine.p[-2::-1] + psiMinCore__omidLineCore.p[-2::-1]][0])
+        # Note: These will handy for termination criteria in later line tracing.
 
+        # ####################################################################################
+        # ====================================================================================
+        # Beginning of line-tracing for primary private-flux region.
+        # ====================================================================================
+        """
+        Draw line from primary x-point towards the primary private-flux region. 
+        Stops at psi surface corresponding to psiMinPF1 value.
+
+            Starting tag : xpt1
+            Ending tag   : psiMinPF1
+        """
         xpt1__psiMinPF1 = self.eq.draw_line(xpt1_dict['S'], {'psi' : psi_min_pf}, \
             option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from primary private-flux surface to lower inner target-plate. 
+        Stops upon intersection with LITP Line object.
+
+            Starting tag : psiMinPF1
+            Ending tag   : LITP
+        """
         psiMinPF1__LITP = self.eq.draw_line(xpt1__psiMinPF1.p[-1], {'line' : LITP}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line from primary private-flux surface to lower outer target-plate. 
+        Stops upon intersection with LOTP Line object.
+
+            Starting tag : psiMinPF1
+            Ending tag   : LOTP
+        """
         psiMinPF1__LOTP = self.eq.draw_line(xpt1__psiMinPF1.p[-1], {'line' : LOTP}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from primary x-point to lower inner target-plate. 
+        Stops upon intersection with LITP Line object
+
+            Starting tag : xpt1
+            Ending tag   : LITP
+        """
         xpt1__LITP = self.eq.draw_line(xpt1_dict['SW'], {'line' : LITP}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line from primary x-point to lower outer target-plate. 
+        Stops upon intersection with LOTP Line object
+
+            Starting tag : xpt1
+            Ending tag   : LOTP
+        """
         xpt1__LOTP = self.eq.draw_line(xpt1_dict['SE'], {'line' : LOTP}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        # ====================================================================================
+        # End of line-tracing for primary private-flux region.
+        # ====================================================================================
+        # ####################################################################################
 
-        # Drawing the portion of the separatrix found in the double-null configuration
+        # ####################################################################################
+        # ====================================================================================
+        # Beginning of line-tracing for secondary separatrix.
+        # ====================================================================================
+        """
+        Draw line from secondary x-point to primary separatrix.
+        Stops upon intersection with sptrx1 Line object.
+
+            Starting tag : xpt2
+            Ending tag   : sptrx1
+        """
         xpt2__sptrx1 = self.eq.draw_line(xpt2_dict['N'], {'line' : (sptrx1, topLine_tilt)}, \
             option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from secondary x-point to upper inner target-plate. 
+        Stops when intersection occurs with UITP Line object.
+
+            Starting tag : xpt2
+            Ending tag   : UITP
+        """
+        xpt2__UITP = self.eq.draw_line(xpt2_dict['SE'], {'line' : UITP}, \
+            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from secondary x-point to upper outer target-plate.
+        Stops when intersection occurs with UOTP Line oject.
+
+            Starting tag : xpt2
+            Ending tag   : UOTP
+        """
+        xpt2__UOTP = self.eq.draw_line(xpt2_dict['SW'], {'line' : UOTP}, \
+            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line from secondary x-point to the inner mid-line.
+        Stops upon intersection with inner_midLine Line object.
+
+            Starting tag : xpt2NE
+            Ending tag   : sptrx2imidLine
+        """
         xpt2NE__sptrx2imidLine = self.eq.draw_line(xpt2_dict['NE'], {'line' : inner_midLine}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line from secondary x-point to the outer mid-line.
+        Stops upon intersection with outer_midLine Line object.
+
+            Starting tag : xpt2NW
+            Ending tag   : sptrx2omidLine
+        """
         xpt2NW__sptrx2omidLine = self.eq.draw_line(xpt2_dict['NW'], {'line' : outer_midLine}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from inner_midLine on secondary separatrix to lower inner target-plate. 
+        Stops when intersection occurs with LITP Line object.
+
+            Starting tag : sptrx2imidLine
+            Ending tag   : LITP
+        """
         sptrx2imidLine__LITP = self.eq.draw_line(xpt2NE__sptrx2imidLine.p[-1], {'line' : LITP}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line from outer_midLine on secondary separatrix to lower outer target-plate. 
+        Stops when intersection occurs with LOTP Line object.
+
+            Starting tag : sptrx2omidLine
+            Ending tag   : LOTP
+        """
         sptrx2omidLine__LOTP = self.eq.draw_line(xpt2NW__sptrx2omidLine.p[-1], {'line' : LOTP}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        # ====================================================================================
+        # End of line-tracing for secondary separatrix.
+        # ====================================================================================
+        # ####################################################################################
+
+        # Saving portion of secondary separatrix on the inner and outer sides as Line objects
+        # Note: These will be handy for termination criteria in later line tracing.
         sptrx2_inner = Line([xpt2NE__sptrx2imidLine.p + sptrx2imidLine__LITP.p][0])
         sptrx2_outer = Line([xpt2NW__sptrx2omidLine.p + sptrx2omidLine__LOTP.p][0])
 
+        # ####################################################################################
+        # ====================================================================================
+        # Beginning of line-tracing for secondary private-flux region.
+        # ====================================================================================
+        """
+        Draw line from secondary x-point towards secondary private-flux region.
+        Stops upon reaching psi-surface corresponding to psi_min_pf_2 psi value.
+
+            Starting tag : xpt2
+            Ending tag   : psiMinPF2
+        """
         xpt2__psiMinPF2 = self.eq.draw_line(xpt2_dict['S'], {'psi' : psi_min_pf_2}, \
             option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Split the above Line object into two separate Line objects.
+        Note: Splitting of Line object is required to conform with final index space mappings.
+        
+        Labeling key:
+            xpt2__psiMinPF2_A : The first half of the split line
+                i.e. Starting at xpt2__psiMinPF2.p[0] and ending at mid-point.
+            xpt2__psiMinPF2_B : The second half of the split line
+                i.e. Starting at mid-point and ending at xpt2__psiMinPF2.p[-1]
+        """
         xpt2__psiMinPF2_A, xpt2__psiMinPF2_B = xpt2__psiMinPF2.split(xpt2__psiMinPF2.p[len(xpt2__psiMinPF2.p)//2], add_split_point = True)
 
+        """
+        Draw line from psiMinPF2_A to upper inner target-plate. 
+        Stops when intersection occurs with UITP Line object.
+
+            Starting tag : psiMinPF2_A
+            Ending tag   : UITP
+        """
         psiMinPF2_A__UITP = self.eq.draw_line(xpt2__psiMinPF2_B.p[0], {'line' : UITP}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from psiMinPF2_A to upper outer target-plate. 
+        Stops when intersection occurs with UOTP Line object.
+
+            Starting tag : psiMinPF2_A
+            Ending tag   : UOTP
+        """
         psiMinPF2_A__UOTP = self.eq.draw_line(xpt2__psiMinPF2_B.p[0], {'line' : UOTP}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line from psiMinPF2_B to upper inner target-plate. 
+        Stops when intersection occurs with UITP Line object.
+
+            Starting tag : psiMinPF2_B
+            Ending tag   : UITP
+        """
         psiMinPF2_B__UITP = self.eq.draw_line(xpt2__psiMinPF2_B.p[-1], {'line' : UITP}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose, debug = True)
+        """
+        Draw line from psiMinPF2_B to upper outer target-plate. 
+        Stops when intersection occurs with UOTP Line object.
+
+            Starting tag : psiMinPF2_B
+            Ending tag   : UOTP
+        """
         psiMinPF2_B__UOTP = self.eq.draw_line(xpt2__psiMinPF2_B.p[-1], {'line' : UOTP}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        xpt2__UITP = self.eq.draw_line(xpt2_dict['SE'], {'line' : UITP}, \
-            option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        xpt2__UOTP = self.eq.draw_line(xpt2_dict['SW'], {'line' : UOTP}, \
-            option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        # ====================================================================================
+        # End of line-tracing for secondary private-flux region.
+        # ====================================================================================
+        # ####################################################################################
 
+        # ####################################################################################
+        # ====================================================================================
+        # Beginning of line-tracing for outer.
+        # ====================================================================================
+        """
+        Draw line from secondary x-point to psi-surface corresponding to value of psi_max_inner.
+        Stops line tracing when integrator reaches value of psi_max_inner.
+
+            Starting tag : xpt2
+            Ending tag   : psiMaxInner
+        
+        Check if 'use_secondary_NE' is set to True. This allows for NE line to be drawn tangent
+        to secondary separatrix. The radian value of 'secondary_NE_adjust' allows for theta
+        adjustment of the generated line.
+        """
         if self.yaml['grid_params']['patch_generation']['use_secondary_NE']:
             v = np.array([xpt2NE__sptrx2imidLine.p[1].x - self.xpt2[0], xpt2NE__sptrx2imidLine.p[1].y - self.xpt2[1]])
-            tilt = np.arccos(np.dot(v, np.array([-1, 0])) / np.linalg.norm(v)) + self.yaml['grid_params']['patch_generation']['secondary_NE_adjust']
+            tilt = np.arccos(np.dot(v, np.array([-1, 0])) / np.linalg.norm(v)) \
+                    + self.yaml['grid_params']['patch_generation']['secondary_NE_adjust']
+
             xpt2__psiMaxInner = self.eq.draw_line(xpt2_dict['E'], {'psi_horizontal' : (psi_max_inner, tilt)}, \
                 option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
+        # If option is not set (default behavior), line trace orthogonal to psi surface.
         else:
             xpt2__psiMaxInner = self.eq.draw_line(xpt2_dict['E'], {'psi' : psi_max_inner}, \
                 option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line from secondary x-point to psi-surface corresponding to value of psi_max_outer.
+        Stops line tracing when integrator reaches value of psi_max_outer.
+
+            Starting tag : xpt2
+            Ending tag   : psiMaxOuter
+        
+        Check if 'use_secondary_NW' is set to True. This allows for NW line to be drawn tangent
+        to secondary separatrix. The radian value of 'secondary_NW_adjust' allows for theta
+        adjustment of the generated line.
+        """
         if self.yaml['grid_params']['patch_generation']['use_secondary_NW']:
             v = np.array([xpt2NW__sptrx2omidLine.p[1].x - self.xpt2[0], xpt2NW__sptrx2omidLine.p[1].y - self.xpt2[1]])
-            tilt = -np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) + self.yaml['grid_params']['patch_generation']['secondary_NW_adjust']
+            tilt = -np.arccos(np.dot(v, np.array([1, 0])) / np.linalg.norm(v)) \
+                    + self.yaml['grid_params']['patch_generation']['secondary_NW_adjust']
+
             xpt2__psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi_horizontal' : (psi_max_outer, tilt)}, \
                 option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+        # If option is not set (default behavior), line trace orthogonal to psi surface.
         else:
             xpt2__psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi' : psi_max_outer}, \
                 option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
-        
+        """
+        Draw line along psi-surface corresponding to value of 'psi_max_inner' towards upper
+        inner target-plate.
+        Stops line-tracing when integrator intersects UITP Line object.
+
+            Starting tag : psiMaxInner
+            Ending tag   : UITP
+        """
         psiMaxInner__UITP = self.eq.draw_line(xpt2__psiMaxInner.p[-1], {'line' : UITP}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line along psi-surface corresponding to value of 'psi_max_outer' towards upper
+        outer target-plate.
+        Stops line-tracing when integrator intersects UOTP Line object.
+
+            Starting tag : psiMaxOuter
+            Ending tag   : UOTP
+        """
         psiMaxOuter__UOTP = self.eq.draw_line(xpt2__psiMaxOuter.p[-1], {'line' : UOTP}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line along psi-surface corresponding to value of 'psi_max_inner' towards
+        inner mid-line.
+        Stops line-tracing when integrator intersects inner_midLine Line object.
+
+            Starting tag : psiMaxInner
+            Ending tag   : imidLine
+        """
         psiMaxInner__imidLine = self.eq.draw_line(xpt2__psiMaxInner.p[-1], {'line' : inner_midLine}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line along psi-surface corresponding to value of 'psi_max_outer' towards
+        outer mid-line.
+        Stops line-tracing when integrator intersects outer_midLine Line object.
+
+            Starting tag : psiMaxOuter
+            Ending tag   : omidLine
+        """
         psiMaxOuter__omidLine = self.eq.draw_line(xpt2__psiMaxOuter.p[-1], {'line' : outer_midLine}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        """
+        Draw line from inner_midLine on psi-surface of 'psi_max_inner' towards lower
+        inner target-plate.
+        Stops when intersection occurs with LITP Line object.
+
+            Starting tag : imidLine
+            Ending tag   : LITP
+        """
         imidLine__LITP = self.eq.draw_line(psiMaxInner__imidLine.p[-1], {'line' : LITP}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        """
+        Draw line from outer_midLine on psi-surface of 'psi_max_outer' towards lower
+        outer target-plate.
+        Stops when intersection occurs with LOTP Line object.
+
+            Starting tag : omidLine
+            Ending tag   : LOTP
+        """
         omidLine__LOTP = self.eq.draw_line(psiMaxOuter__omidLine.p[-1], {'line' : LOTP}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+
         sptrx3_inner = Line([psiMaxInner__imidLine.p + imidLine__LITP.p][0])
         sptrx3_outer = Line([psiMaxOuter__omidLine.p + omidLine__LOTP.p][0])
 
@@ -2230,6 +2663,9 @@ class LSN(SNL, Ingrid):
         ICT_E = Line([ICT_N.p[-1], ICT_S.p[0]])
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
+
+        import pdb
+        pdb.set_trace()
 
         # ODL Patch 
         location = 'E'

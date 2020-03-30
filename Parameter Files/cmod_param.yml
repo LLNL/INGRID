@@ -4,9 +4,9 @@ DEBUG:
         patch_generation: 1
         target_plates: 1
     visual:
-        find_NSEW: 1
+        find_NSEW: 0
         gridue: 0
-        patch_map: 1
+        patch_map: 0
         subgrid: 0
 
 eqdsk: ../data/SNL/C-MOD/neqdsk
@@ -78,14 +78,14 @@ eqdsk: ../data/SNL/C-MOD/neqdsk
 grid_params:
     config: ''
     patch_generation:
-        zmagx_shift: -0.7
-        rmagx_shift: -0.15
+        zmagx_shift: 0.0
+        rmagx_shift: 0.0
         inner_tilt: 0.0
         outer_tilt: -0.5
-        use_NW: False
+        use_NW: True
         NW_adjust: 0.4
         NE_adjust: -0.275
-        use_NE: False
+        use_NE: True
     grid_generation:
         np_core: 6
         np_global: 6
@@ -133,7 +133,7 @@ grid_params:
 #            for integration with line_tracing class.
 # =================================================================================================
 integrator_params:
-    dt: 0.001
+    dt: 0.01
     eps: 5.0e-05
     first_step: 1.0e-05
     max_step: 0.064

@@ -500,7 +500,7 @@ class Ingrid:
         except:
             pass
 
-    def order_plate_points(self, plate, location = 'LITP', orientation = 'cw'):
+    def order_plate_points(self, Efit_Data, plate, location = 'LITP', orientation = 'cw'):
         """
         Order the plate points within a Line object in a clockwise or counter-clockwise orientation.
         This is used for patch generation and determining boundaries for Patch objects adjacent to
@@ -521,11 +521,23 @@ class Ingrid:
 
         # The hard-coded logic is for a plate located above the magnetic axis.
         #
-        # loc_sgn = 'location sign'.
+        # LU_sgn = 'Lower-Upper location sign'.
         #
         # This sign-coefficient adapts the code to a plate below the magnetic axis.
+        # (Adapt to LSN or USN geometry)
 
-        loc_sgn = 1 if location[0] == 'U' else -1
+
+        def unit_vector(vector):
+            """ Returns the unit vector of the vector.  """
+            return vector / np.linalg.norm(vector)
+
+        def angle_between(v1, v2):
+            """ Returns the angle in radians between vectors 'v1' and 'v2'"""
+            v1_u = unit_vector(v1)
+            v2_u = unit_vector(v2)
+            return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+        # LU_sgn = 1 if location[0] == 'U' else -1
 
         # Assume the plate is already ordered.
         start = plate.p[0]
@@ -551,12 +563,36 @@ class Ingrid:
                 # Else flip plate orientation
                 return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
 
+        else:
+            # Check the angle between the plate endpoints and a reference vector
+            # constructed from Efit data boundaries rmin, rmax, zmin, zmax.
+            if location == "LITP" or location == 'LOTP':
+                v_reference = np.array( [ Efit_Data.rmin, Efit_Data.zmin ])
+            elif location == "UITP" or location == 'UOTP':
+                v_reference = np.array( [ Efit_Data.rmin, Efit_Data.zmax ])
+
+            v1 = np.array( [ plate.p[0].x, plate.p[0].y ] )
+            v2 = np.array( [ plate.p[-1].x, plate.p[-1].y ] )
+
+            if location == 'LITP' or location == 'UOTP':
+                if angle_between(v_reference, v1) < angle_between(v_reference, v2):
+                    return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+                else:
+                    return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+            elif location == 'LOTP' or location == 'UITP':
+                if angle_between(v_reference, v1) > angle_between(v_reference, v2):
+                    return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+                else:
+                    return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+
+        """
         # Endpoints are on sloped line.
         # Check if 'end' point to the right of 'start' point.
-        elif loc_sgn * (end.x - start.x) > 0:
+        elif LU_sgn * (end.x - start.x) > 0:
             return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
         else:
             return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+        """
 
     def calc_efit_derivs(self):
         """ 
@@ -1296,72 +1332,77 @@ class DNL(Ingrid):
             nr_secondary_pf = self.yaml['grid_params']['grid_generation']['nr_global']
 
 
+        import pdb
+        pdb.set_trace()
+
         # Local lookup table helper.
-        lookup = {self.PRIMARY_SOL : [nr_primary_sol, np_primary_sol, 'PRIMARY_SOL'], \
-                    self.SECONDARY_SOL : [nr_secondary_sol, np_secondary_sol, 'SECONDARY_SOL'], \
-                    self.CORE : [nr_core, np_core, 'CORE'], \
-                    self.PRIMARY_PF : [nr_primary_pf, np_primary_pf, 'PRIMARY_PF'], \
-                    self.SECONDARY_PF : [nr_secondary_pf, np_secondary_pf, 'SECONDARY_PF']}
+        lookup = {'PRIMARY_SOL' : (self.PRIMARY_SOL, nr_primary_sol, np_primary_sol), \
+                    'SECONDARY_SOL' : (self.SECONDARY_SOL, nr_secondary_sol, np_secondary_sol), \
+                    'CORE' : (self.CORE, nr_core, np_core), \
+                    'PRIMARY_PF' : (self.PRIMARY_PF, nr_primary_pf, np_primary_pf), \
+                    'SECONDARY_PF' : (self.SECONDARY_PF, nr_secondary_pf, np_secondary_pf)}
 
         # Iterate through patches and refine into grids.
         for patch in self.patches:
             for key in lookup.keys():
-                if patch not in key:
+                if patch not in lookup[key][0]:
                     continue
-                nr_cells = lookup[key][0]
-                np_cells = lookup[key][1]
-                topos_group = lookup[key][2]
-            print('=====================================')
-            print('=====================================')
-            print('CONSTRUCTING GRID FOR PATCH: {}'.format(patch.patchName))
-            print('-------------------------------------')
-            print('Patch "{}" is located in "{}"'.format(patch.patchName, topos_group))
-            print('-------------------------------------')
-            print('Number of poloidal cells to generate: {}'.format(np_cells))
-            print('-------------------------------------')
-            print('Number of radial cells to generate: {}'.format(nr_cells))
-            print('=====================================')
-            print('=====================================')
-            patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
+            
+                topos_group = lookup[key][0]
+                nr_cells = lookup[key][1]
+                np_cells = lookup[key][2]
 
-            # Tidy up primary x-point
-            primary_xpt = Point(self.xpt1)
-            secondary_xpt = Point(self.xpt2)
+                print('=====================================')
+                print('=====================================')
+                print('CONSTRUCTING GRID FOR PATCH: {}'.format(patch.patchName))
+                print('-------------------------------------')
+                print('Patch "{}" is located in "{}"'.format(patch.patchName, topos_group))
+                print('-------------------------------------')
+                print('Number of poloidal cells to generate: {}'.format(np_cells))
+                print('-------------------------------------')
+                print('Number of radial cells to generate: {}'.format(nr_cells))
+                print('=====================================')
+                print('=====================================')
+                patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
 
-            if patch.patchName == 'B1':
-                patch.adjust_corner(primary_xpt, 'SE')
-            elif patch.patchName == 'C1':
-                patch.adjust_corner(primary_xpt, 'NE')
-            elif patch.patchName == 'B2':
-                patch.adjust_corner(primary_xpt, 'SW')
-            elif patch.patchName == 'C2':
-                patch.adjust_corner(primary_xpt, 'NW')
-            elif patch.patchName == 'C7':
-                patch.adjust_corner(primary_xpt, 'NE')
-            elif patch.patchName == 'B7':
-                patch.adjust_corner(primary_xpt, 'SE')
-            elif patch.patchName == 'C8':
-                patch.adjust_corner(primary_xpt, 'NW')
-            elif patch.patchName == 'B8':
-                patch.adjust_corner(primary_xpt, 'SW')
+                # Tidy up primary x-point
+                primary_xpt = Point(self.xpt1)
+                secondary_xpt = Point(self.xpt2)
 
-            # Tidy up secondary x-point
-            elif patch.patchName == 'A3':
-                patch.adjust_corner(secondary_xpt, 'SE')
-            elif patch.patchName == 'B3':
-                patch.adjust_corner(secondary_xpt, 'NE')
-            elif patch.patchName == 'A4':
-                patch.adjust_corner(secondary_xpt, 'SW')
-            elif patch.patchName == 'B4':
-                patch.adjust_corner(secondary_xpt, 'NW')
-            elif patch.patchName == 'B5':
-                patch.adjust_corner(secondary_xpt, 'NE')
-            elif patch.patchName == 'A5':
-                patch.adjust_corner(secondary_xpt, 'SE')
-            elif patch.patchName == 'B6':
-                patch.adjust_corner(secondary_xpt, 'NW')
-            elif patch.patchName == 'A6':
-                patch.adjust_corner(secondary_xpt, 'SW')
+                if patch.patchName == 'B1':
+                    patch.adjust_corner(primary_xpt, 'SE')
+                elif patch.patchName == 'C1':
+                    patch.adjust_corner(primary_xpt, 'NE')
+                elif patch.patchName == 'B2':
+                    patch.adjust_corner(primary_xpt, 'SW')
+                elif patch.patchName == 'C2':
+                    patch.adjust_corner(primary_xpt, 'NW')
+                elif patch.patchName == 'C7':
+                    patch.adjust_corner(primary_xpt, 'NE')
+                elif patch.patchName == 'B7':
+                    patch.adjust_corner(primary_xpt, 'SE')
+                elif patch.patchName == 'C8':
+                    patch.adjust_corner(primary_xpt, 'NW')
+                elif patch.patchName == 'B8':
+                    patch.adjust_corner(primary_xpt, 'SW')
+
+                # Tidy up secondary x-point
+                elif patch.patchName == 'A3':
+                    patch.adjust_corner(secondary_xpt, 'SE')
+                elif patch.patchName == 'B3':
+                    patch.adjust_corner(secondary_xpt, 'NE')
+                elif patch.patchName == 'A4':
+                    patch.adjust_corner(secondary_xpt, 'SW')
+                elif patch.patchName == 'B4':
+                    patch.adjust_corner(secondary_xpt, 'NW')
+                elif patch.patchName == 'B5':
+                    patch.adjust_corner(secondary_xpt, 'NE')
+                elif patch.patchName == 'A5':
+                    patch.adjust_corner(secondary_xpt, 'SE')
+                elif patch.patchName == 'B6':
+                    patch.adjust_corner(secondary_xpt, 'NW')
+                elif patch.patchName == 'A6':
+                    patch.adjust_corner(secondary_xpt, 'SW')
 
         self.concat_grid()
         self.set_gridue()
@@ -1384,62 +1425,6 @@ class DNL(Ingrid):
         Returns:
             No return value.
         """
-
-        def order_plate_points(plate, location = 'UITP', orientation = 'cw'):
-            """
-            order_plate_points:
-                Sets the points in the target plate to have an orientation
-                increasing in R and Z. Checks the endpoints to satisfy this criteria.
-
-            Parameters:
-                plate : Line object
-                    - Line object representing the target plate geometry to order.
-                location : str
-                    - String indicating the target plate location. 
-                      Must be:
-                        'UITP' : Upper Inner Target Plate
-                        'UOTP' : Upper Outer Target Plate
-                        'LITP' : Lower Inner Target Plate
-                        'LOTP' : Lower Outer Target Plate
-                orientation : str
-                    - Orientation to order plate points in. 
-                      Must be:
-                        'cw' : Clockwise
-                        'ccw' : Counter Clockwise
-            Returns:
-                List
-                    - List of Point objects ordered in the orientation specified.
-            """
-
-            loc_sgn = 1 if location[0] == 'U' else -1
-
-            start = plate.p[0]
-            end = plate.p[-1]
-            # Endpoints on same vertical line.
-            if start.x == end.x:
-                # If rhs endpoint above lhs endpoint.
-                if end.y - start.y > 0:
-                    # Return target plate as is
-                    return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
-                else:
-                    # Else flip plate orientation.
-                    return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
-            # Endpoints on same horizontal line.
-            elif start.y == end.y:
-                # If lhs endpoint to the left of rhs endpoint.
-                if end.x - start.x > 0:
-                    # Return target plate as is
-                    return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
-                else:
-                    # Else flip plate orientation
-                    return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
-            # Endpoints are on sloped line.
-            # Check if lhs endpoint is on the left of rhs endpoint
-            elif loc_sgn * (end.x - start.x) > 0:
-                return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
-            else:
-                return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
-
 
         # Check for visual mode in Patch Map generation.
         try:
@@ -1506,10 +1491,10 @@ class DNL(Ingrid):
         psi_min_pf_2 = self.yaml['grid_params']['psi_pf2']
 
         # Process raw RZ coordinates of target plate data into Line objects.
-        LITP = Line(order_plate_points(Line([Point(i) for i in self.plate_W1]), location = 'LITP'))
-        LOTP = Line(order_plate_points(Line([Point(i) for i in self.plate_E1]), location = 'LOTP'))
-        UITP = Line(order_plate_points(Line([Point(i) for i in self.plate_E2]), location = 'UITP'))
-        UOTP = Line(order_plate_points(Line([Point(i) for i in self.plate_W2]), location = 'UOTP'))
+        LITP = Line(self.order_plate_points(self.psi_norm, Line([Point(i) for i in self.plate_W1]), location = 'LITP'))
+        LOTP = Line(self.order_plate_points(self.psi_norm, Line([Point(i) for i in self.plate_E1]), location = 'LOTP'))
+        UITP = Line(self.order_plate_points(self.psi_norm, Line([Point(i) for i in self.plate_E2]), location = 'UITP'))
+        UOTP = Line(self.order_plate_points(self.psi_norm, Line([Point(i) for i in self.plate_W2]), location = 'UOTP'))
 
         # Generate INNER Horizontal Mid-Plane line and apply inner-tilt radian adjustment (if any)
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
@@ -2554,6 +2539,9 @@ class LSN(SNL, Ingrid):
         except KeyError:
             outer_tilt = 0.0
 
+        import pdb
+        pdb.set_trace()
+
         self.itp = self.plate_data['plate_W1']['coordinates']
         self.otp = self.plate_data['plate_E1']['coordinates']
 
@@ -2565,8 +2553,8 @@ class LSN(SNL, Ingrid):
         psi_min_core = self.yaml['grid_params']['psi_min_core']
         psi_min_pf = self.yaml['grid_params']['psi_min_pf']
 
-        ITP = Line(self.order_plate_points(Line([Point(i) for i in self.itp]), location = 'LITP', orientation = 'cw'))
-        OTP = Line(self.order_plate_points(Line([Point(i) for i in self.otp]), location = 'LOTP', orientation = 'cw'))
+        ITP = Line(self.order_plate_points(self.psi_norm, Line([Point(i) for i in self.itp]), location = 'LITP', orientation = 'cw'))
+        OTP = Line(self.order_plate_points(self.psi_norm, Line([Point(i) for i in self.otp]), location = 'LOTP', orientation = 'cw'))
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
@@ -2628,6 +2616,10 @@ class LSN(SNL, Ingrid):
                 direction = 'cw', show_plot = visual, text = verbose)
         topLine_psiMinCore = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_min_core}, option = 'r_const', \
                 direction = 'ccw', show_plot = visual, text = verbose)
+
+
+        import pdb
+        pdb.set_trace()
 
         # IDL Patch
         location = 'W'
@@ -2923,8 +2915,8 @@ class USN(SNL, Ingrid):
         psi_min_core = self.yaml['grid_params']['psi_min_core']
         psi_min_pf = self.yaml['grid_params']['psi_min_pf']
 
-        ITP = Line(self.order_plate_points(Line([Point(i) for i in self.itp]), location = 'UITP', orientation = 'cw'))
-        OTP = Line(self.order_plate_points(Line([Point(i) for i in self.otp]), location = 'UOTP', orientation = 'cw'))
+        ITP = Line(self.order_plate_points(self.psi_norm, Line([Point(i) for i in self.itp]), location = 'UITP', orientation = 'cw'))
+        OTP = Line(self.order_plate_points(self.psi_norm, Line([Point(i) for i in self.otp]), location = 'UOTP', orientation = 'cw'))
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))

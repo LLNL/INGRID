@@ -2539,9 +2539,6 @@ class LSN(SNL, Ingrid):
         except KeyError:
             outer_tilt = 0.0
 
-        import pdb
-        pdb.set_trace()
-
         self.itp = self.plate_data['plate_W1']['coordinates']
         self.otp = self.plate_data['plate_E1']['coordinates']
 
@@ -2616,10 +2613,6 @@ class LSN(SNL, Ingrid):
                 direction = 'cw', show_plot = visual, text = verbose)
         topLine_psiMinCore = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_min_core}, option = 'r_const', \
                 direction = 'ccw', show_plot = visual, text = verbose)
-
-
-        import pdb
-        pdb.set_trace()
 
         # IDL Patch
         location = 'W'

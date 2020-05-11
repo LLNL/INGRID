@@ -1,2 +1,12 @@
 
 *.pyc
+.DS_Store
+data/.DS_Store
+data/SNL/.DS_Store
+seq#1/grid
+seq#1/ip.txt
+seq#1/jgrid
+seq#1/op.txt
+seq#1/print
+seq#1/vessel
+src/.DS_Store

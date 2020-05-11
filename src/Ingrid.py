@@ -1308,6 +1308,50 @@ class LSN(SNL, Ingrid):
         self.catagorize_patches()
 
 
+    def set_gridue_manual(self,rm,zm,nx,ny,ixpt1,ixpt2,iysptrx):
+        """
+        Prepare the relevant arrays for writing to GRIDUE.
+        """
+
+        # RECALL: self.rm has FORTRAN style ordering (columns are accessed via the first entry)
+        # Getting relevant values for gridue file
+        ixrb = len(rm) - 2
+        nxm = len(rm) - 2
+        nym = len(rm[0]) - 2
+
+        psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+
+        rb_prod = self.efit_psi.rcenter * self.efit_psi.bcenter
+
+        for i in range(len(b)):
+            for j in range(len(b[0])):
+                for k in range(5):
+                    _r = rm[i][j][k]
+                    _z = zm[i][j][k]
+
+                    _psi = self.efit_psi.get_psi(_r, _z)
+                    _br = self.efit_psi.get_psi(_r, _z, tag = 'vz') / _r
+                    _bz = -self.efit_psi.get_psi(_r, _z, tag = 'vr') / _r
+                    _bpol = np.sqrt(_br ** 2 + _bz ** 2)
+                    _bphi = rb_prod / _r
+                    _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
+
+                    psi[i][j][k] = _psi
+                    br[i][j][k] = _br
+                    bz[i][j][k] = _bz
+                    bpol[i][j][k] = _bpol
+                    bphi[i][j][k] = _bphi
+                    b[i][j][k] = _b
+
+        self.gridue_params = {'nxm' : nx, 'nym' : ny, 'ixpt1' : ixpt1, 'ixpt2' : ixpt2, 'iyseptrx1' : iysptrx, \
+            'rm' : rm, 'zm' : zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b}
+
+
     def set_gridue(self):
         """
         Prepare the relevant arrays for writing to GRIDUE.

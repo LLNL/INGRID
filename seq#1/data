@@ -1,0 +1,71 @@
+================================================================================
+                             CODE INPUT NAMELIST FILE
+================================================================================
+
+Application                    : GRID2D
+JAMS Version                   : v280818
+Date                           : 18/10/2018
+Time                           : 08:04:40
+ 
+JAMS GIT information:-
+
+Current GIT repository         : /u/sim/cmg/jams/default/java
+Current GIT release tag        : Release-v280818
+Current GIT branch             : 
+Last commit SHA1-key           : 483f89718169d374cd666e42fab0dbd0e7da31f0
+Repository status              : Clean
+
+
+--------------------------------------------------------------------------------
+ Namelist : NPUT
+--------------------------------------------------------------------------------
+
+ &NPUT
+  CASE     =  'DIII-D L-mode with elevated X-point',
+  DLFT(1)  =  0.006    ,
+  DLFT(2)  =  0.008    ,
+  DRGT(1)  =  0.004    ,
+  DRGT(2)  =  0.006    ,
+  JMLHSD(2)=  2        ,
+  JMRHSD(1)=  1        ,
+  JMRHSD(2)=  1        ,
+  LB2GRID  =  F        ,
+  LININTPOLREG=  3        ,
+  LSEPX    =  T        ,
+  NLLHSD   =  16       ,
+  NLRHSD   =  1        ,
+  NPPAR    =  400      ,
+  NXMP     =  8        ,
+  NXPRIG   =  8        ,
+  NXSOL    =  14       ,
+  NYINP    =  31       ,
+  NYLFT    =  26       ,
+  NYRGT    =  14       ,
+  RL1      =  2.2108235,
+  RL3      =  2.3185   ,
+  USEHIRESPAR=  1        ,
+  VESSEL   =  '/u/aholm/.grid2d/vessel',
+  XMP      =  0.4      ,
+  XPRIG    =  1        ,
+  XSOL     =  0.4      ,
+  YINP     =  0.2      ,
+  YLFT     =  0.4      ,
+  YRGT     =  0.2      ,
+  ZCUT     =  1.5      ,
+  ZL4      =  1.224    ,
+  ZXCUT    =  -1e5     ,
+ &END
+
+
+--------------------------------------------------------------------------------
+ Namelist : SHOT
+--------------------------------------------------------------------------------
+
+ &SHOT
+  CBANK    =  ''       ,
+  EQDSK    =  '/u/aholm/.grid2d/eqdsk',
+  IGO      =  62       ,
+  ISHOT    =  160299   ,
+  MACHID   =  'D3D'    ,
+  TSHOT    =  2230     ,
+ &END

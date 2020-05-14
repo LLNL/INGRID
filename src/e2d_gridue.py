@@ -49,7 +49,7 @@ for n in [50,64,65,66,100]:
 
     ax.contour(grid1.r, grid1.z, grid1.get_v(tag), lev, colors='r',linewidths=0.5,linestyles='solid')
 
-    ax.set_title('n_orig=56x65 vs n_interpol={}x{}'.format(n,n))
+    ax.set_title('n_orig=65x65 vs n_interpol={}x{}'.format(n,n))
     f.show()
     f.savefig('interpolcomp_{}x{}.png'.format(n,n))
 

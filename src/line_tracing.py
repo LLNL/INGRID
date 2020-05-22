@@ -22,7 +22,7 @@ class LineTracing:
     """
     This class traces the polodal and radial lines of a given psi
     function based of the points where the user clicks.
-    
+
     Parameters
     ----------
     grid : Setup_Grid_Data.Efit_Data
@@ -51,22 +51,25 @@ class LineTracing:
         tracing.
     """
 
-    def __init__(self, grid, params, eps=1e-5, tol=5e-3, first_step = 1e-5,
-                 numPoints=25, dt=0.01, option='xpt_circ', direction='cw'):
-        
+    def __init__(self, grid, params, eps=1e-5, tol=5e-5, first_step = 1e-5,
+                 numPoints=25, dt=0.01, option='xpt_circ', direction='cw',interactive=True):
+
         self.grid = grid
         self.params = params
         self.option = option
-        self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event', self)
+        if interactive:
+            self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event', self)
+        else:
+            self.cid=None
 
         if self.option == 'xpt_circ':
-            self.root = RootFinder(self.grid)
+            self.root = RootFinder(self.grid,active=interactive)
 
         try:
             params['integrator_params']['eps']
         except KeyError:
             params['integrator_params'].update({'eps' : eps})
-        
+
         self.eps = params['integrator_params']['eps']
         print('eps set to {}'.format(self.eps))
 
@@ -74,7 +77,7 @@ class LineTracing:
             params['integrator_params']['tol']
         except KeyError:
             params['integrator_params'].update({'tol' : tol})
-        
+
         self.tol = params['integrator_params']['tol']
         print('tol set to {}'.format(self.tol))
 
@@ -82,7 +85,7 @@ class LineTracing:
             params['integrator_params']['dt']
         except KeyError:
             params['integrator_params'].update({'dt' : dt})
-        
+
         self.dt = params['integrator_params']['dt']
         print('dt set to {}'.format(self.dt))
 
@@ -90,7 +93,7 @@ class LineTracing:
             params['integrator_params']['first_step']
         except KeyError:
             params['integrator_params'].update({'first_step' : first_step})
-        
+
         self.first_step = params['integrator_params']['first_step']
         print('first_step set to {}'.format(self.first_step))
 
@@ -98,9 +101,9 @@ class LineTracing:
             params['integrator_params']['step_ratio']
         except KeyError:
             params['integrator_params'].update({'step_ratio' : step_ratio})
-        
+
         self.step_ratio = params['integrator_params']['step_ratio']
-        print('step_ratio set to {}'.format(self.step_ratio))       
+        print('step_ratio set to {}'.format(self.step_ratio))
 
         zdim = grid.zmax-grid.zmin
         rdim = grid.rmax-grid.rmin
@@ -216,7 +219,7 @@ class LineTracing:
             self.root.find_root(x0, y0)
             r, z = self.root.final_root
             self.calc_equal_psi_points(r, z)
-           
+
             # this part is just plotting
             for key, (x, y) in self.eq_psi.items():
                 plt.plot(x, y, 'x', label=key)
@@ -255,7 +258,7 @@ class LineTracing:
         vzz = self.grid.get_psi(rxpt, zxpt, tag = 'vzz')
 
         print('psi check: {}, {}, {}'.format(vrz, vrr, vzz))
-        
+
         def get_theta(r, z):
             """
             Finds min/max theta values at x-point.
@@ -265,7 +268,7 @@ class LineTracing:
             # Prepping theta value vector.
             theta = np.zeros(4)
             for i in range(len(theta)):
-                theta[i - 1] = 1/2 * np.arctan(alpha) + np.pi/2 * (i - 1) 
+                theta[i - 1] = 1/2 * np.arctan(alpha) + np.pi/2 * (i - 1)
             return theta
 
         def get_concave_theta(theta):
@@ -286,18 +289,18 @@ class LineTracing:
 
         def find_true_directions(NSEW_coor, theta, magx):
             """
-            Sets the correct N/S directions such that 
+            Sets the correct N/S directions such that
             N will truly lead towards the magnetic axis.
 
             Parameters:
             ----------
             NSEW_coor : dict
-                        Dictionary storing our initial North 
+                        Dictionary storing our initial North
                         and South coordinates:
                         NSEW_coor['N'] and NSEW_coor['S']
 
             mag       : array/tuple-like
-                        (R,Z) coordinate of our magnetic 
+                        (R,Z) coordinate of our magnetic
                         axis.
 
             Return Vals:
@@ -395,7 +398,7 @@ class LineTracing:
 
 
             if self.is_true_north:
-                # print('NSEW_coor[N] was true-north!') 
+                # print('NSEW_coor[N] was true-north!')
                 return NSEW_coor, theta
             else:
                 # print('NSEW_coor[S] was true-north! Updating values.')
@@ -435,12 +438,12 @@ class LineTracing:
         #   theta_max[0] will correspond to true-east. (E)
         #   theta_max[1] will correspond to true-west. (W)
         NSEW_coor, theta_min = find_true_directions(NSEW_coor, theta_min, magx)
-        
+
         # Set E and W based off N and S.
         theta_max = theta_min - np.pi/2
 
         print('NSEW Theta Values: ({}, {}, {}, {})'.format(theta_min[0], theta_min[1], theta_max[0], theta_max[1]))
-        
+
         # NE
         NSEW_coor.append((rxpt + self.eps*np.cos(theta_min[0] - np.pi/4), \
                           zxpt + self.eps*np.sin(theta_min[0] - np.pi/4) ))
@@ -455,7 +458,7 @@ class LineTracing:
                           zxpt + self.eps*np.sin(theta_min[1] - np.pi/4) ))
         # E
         NSEW_coor.append((rxpt + self.eps*np.cos(theta_max[0]), \
-                          zxpt + self.eps*np.sin(theta_max[0]) )) 
+                          zxpt + self.eps*np.sin(theta_max[0]) ))
         # W
         NSEW_coor.append((rxpt + self.eps*np.cos(theta_max[1]), \
                           zxpt + self.eps*np.sin(theta_max[1]) ))
@@ -476,7 +479,7 @@ class LineTracing:
                              }
         # Determine if these NSEW values give us an USN or LSN configuration.
         sign_test = np.sign([np.cos(self.eq_psi_theta['N']), np.sin(self.eq_psi_theta['N'])])
-        
+
         self.config = 'LSN' if sign_test[1] == 1 else 'USN'
         print('===================\nGenerating {} grid...\n==================='.format(self.config))
 
@@ -526,7 +529,7 @@ class LineTracing:
                 # Prepping theta value vector.
                 theta = np.zeros(4)
                 for i in range(len(theta)):
-                    theta[i - 1] = 1/2 * np.arctan(alpha) + np.pi/2 * (i - 1) 
+                    theta[i - 1] = 1/2 * np.arctan(alpha) + np.pi/2 * (i - 1)
                 return theta
 
             def get_concave_theta(theta):
@@ -548,18 +551,18 @@ class LineTracing:
 
             def find_true_directions(NSEW_coor, theta, magx):
                 """
-                Sets the correct N/S directions such that 
+                Sets the correct N/S directions such that
                 N will truly lead towards the magnetic axis.
 
                 Parameters:
                 ----------
                 NSEW_coor : dict
-                            Dictionary storing our initial North 
+                            Dictionary storing our initial North
                             and South coordinates:
                             NSEW_coor['N'] and NSEW_coor['S']
 
                 mag       : array/tuple-like
-                            (R,Z) coordinate of our magnetic 
+                            (R,Z) coordinate of our magnetic
                             axis.
 
                 Return Vals:
@@ -655,7 +658,7 @@ class LineTracing:
 
 
                 if self.is_true_north:
-                    # print('NSEW_coor[N] was true-north!') 
+                    # print('NSEW_coor[N] was true-north!')
                     return NSEW_coor, theta
                 else:
                     # print('NSEW_coor[S] was true-north! Updating values.')
@@ -697,12 +700,12 @@ class LineTracing:
             # import pdb
             # pdb.set_trace()
             NSEW_coor, theta_min = find_true_directions(NSEW_coor, theta_min, magx)
-            
+
             # Set E and W based off N and S.
             theta_max = theta_min - np.pi/2
 
             print('NSEW Theta Values: ({}, {}, {}, {})'.format(theta_min[0], theta_min[1], theta_max[0], theta_max[1]))
-            
+
             # NE
             NSEW_coor.append((rxpt + self.eps*np.cos(theta_min[0] - np.pi/4), \
                               zxpt + self.eps*np.sin(theta_min[0] - np.pi/4) ))
@@ -717,7 +720,7 @@ class LineTracing:
                               zxpt + self.eps*np.sin(theta_min[1] - np.pi/4) ))
             # E
             NSEW_coor.append((rxpt + self.eps*np.cos(theta_max[0]), \
-                              zxpt + self.eps*np.sin(theta_max[0]) )) 
+                              zxpt + self.eps*np.sin(theta_max[0]) ))
             # W
             NSEW_coor.append((rxpt + self.eps*np.cos(theta_max[1]), \
                               zxpt + self.eps*np.sin(theta_max[1]) ))
@@ -740,12 +743,12 @@ class LineTracing:
                                  }
             # Determine if these NSEW values give us an USN or LSN configuration.
             # sign_test = np.sign([np.cos(self.eq_psi_theta[]['N']), np.sin(self.eq_psi_theta['N'])])
-            
+
         self.config = 'DNL'
         print('===================\nGenerating {} grid...\n==================='.format(self.config))
 
     def draw_line(self, rz_start, rz_end=None, color= 'purple',
-                  option=None, direction=None, show_plot=False, text=False, dynamic_step = None, debug = False):
+                  option=None, direction=None, show_plot=False, text=False, dynamic_step = None, debug = False,Verbose=False):
         """
         Uses scipy.integrate.solve_ivp to trace poloidal or radial
         lines. Uses the LSODA method to solve the differential
@@ -798,19 +801,19 @@ class LineTracing:
             ynot = rz_start
 
         key_list = list()
-        
+
         for item in rz_end.keys():
             key_list.append(item)
 
         # check rz_end:
         if rz_end is None:
-            print('testing for loop completion')
+            if Verbose: print('testing for loop completion')
             test = 'point'
             rz_end = ynot
             xf, yf = rz_end
 
         elif key_list == ['point']:
-            print('Testing for point convergence')
+            if Verbose: print('Testing for point convergence')
             test = 'point'
             if isinstance(rz_end['point'], geo.Point):
                 xf = rz_end['point'].x
@@ -820,7 +823,7 @@ class LineTracing:
                 yf = rz_end['point'][1]
 
         elif key_list == ['line']:
-            print('Testing for line convergence')
+            if Verbose: print('Testing for line convergence')
             test = 'line'
             try:
                 self.tilt_angle = rz_end['line'][1]
@@ -839,7 +842,7 @@ class LineTracing:
                     endLine = rz_end['line']
 
         elif key_list == ['psi']:
-            print('Testing for psi convergence')
+            if Verbose: print('Testing for psi convergence')
             test = 'psi'
             psi_test = rz_end['psi']
 
@@ -848,15 +851,15 @@ class LineTracing:
                 psi_test = rz_end['psi_horizontal'][0]
                 self.tilt_angle = rz_end['psi_horizontal'][1]
                 test = 'psi' if self.tilt_angle != 0.0 else 'psi_horizontal'
-                print('Testing for psi convergence (sloped trajectory)')
+                if Verbose: print('Testing for psi convergence (sloped trajectory)')
             except:
                 psi_test = rz_end['psi_horizontal']
                 self.tilt_angle = 0.0
                 test = 'psi_horizontal'
-                print('Testing for psi convergence (horizontal trajectory)')
+                if Verbose: print('Testing for psi convergence (horizontal trajectory)')
 
         elif key_list == ['psi_vertical']:
-            print('Testing for psi convergence (vertical trajectory)')
+            if Verbose: print('Testing for psi convergence (vertical trajectory)')
             test = 'psi_vertical'
             psi_test = rz_end['psi_vertical']
         else:
@@ -919,7 +922,7 @@ class LineTracing:
             # TODO: develope a method to check if the point is close
             # to a line defined by two points.
             if test == 'point':
-                # Check if any of our points are withing the given 
+                # Check if any of our points are withing the given
                 # tol value in both the x & y directions, and check if
                 # we have at least 5 segments in making up our line.
                 if (any(abs(points[0]-xf) < self.tol)
@@ -957,10 +960,10 @@ class LineTracing:
 
                 psi1 = self.grid.get_psi(x1, y1)
                 psi2 = self.grid.get_psi(x2, y2)
-                
+
 
                 if (psi1 - psi_test)*(psi2 - psi_test) < 0:
-                    if text: 
+                    if text:
                         success('psi test')
                     # need to find coords for the value of psi that we want
                     def f(x):
@@ -968,13 +971,13 @@ class LineTracing:
                         # the line of interest
                         y = (y2-y1)/(x2-x1)*(x-x1)+y1
                         return psi_test - self.grid.get_psi(x, y)
-                    
+
                     sol = root_scalar(f, bracket=[x1, x2])
                     r_psi = sol.root
                     z_psi = (y2-y1)/(x2-x1)*(r_psi-x1)+y1
                     if text:
-                        print('[x1, y1]: [{}, {}]'.format(x1, y1))
-                        print('[x2, y2]: [{}, {}]'.format(x2, y2))
+                        if Verbose: print('[x1, y1]: [{}, {}]'.format(x1, y1))
+                        if Verbose: print('[x2, y2]: [{}, {}]'.format(x2, y2))
                     x_end = x1 + (x2 - x1)/(psi2 - psi1) * (psi_test - psi1)
                     y_end = y1 + (y2 - y1)/(psi2 - psi1) * (psi_test - psi1)
 
@@ -986,7 +989,7 @@ class LineTracing:
                         print('Psi Residual via root_scalar: {}'.format(abs(psi_test - self.grid.get_psi(r_psi, z_psi))))
                     save_line([x1, r_psi], [y1, z_psi])
                     return True
-                    
+
             elif test == 'psi_horizontal':
                 x1, y1 = points[0][0], points[1][0]
                 x2, y2 = points[0][-1], points[1][-1]
@@ -1001,8 +1004,8 @@ class LineTracing:
                     def fend_R(x):
                         return self.grid.get_psi(x, y2) - psi_test
                     if text:
-                        print('[x1, y1]: [{}, {}]'.format(x1, y1))
-                        print('[x2, y2]: [{}, {}]'.format(x2, y2))
+                        if Verbose: print('[x1, y1]: [{}, {}]'.format(x1, y1))
+                        if Verbose: print('[x2, y2]: [{}, {}]'.format(x2, y2))
                     sol = root_scalar(fend_R, bracket = [x1, x2])
                     r_psi = sol.root
                     save_line([x1, r_psi], [y1, y1])
@@ -1025,14 +1028,14 @@ class LineTracing:
                     def fend_Z(y):
                         return self.grid.get_psi(x2, y) - psi_test
                     if text:
-                        print('[x1, y1]: [{}, {}]'.format(x1, y1))
-                        print('[x2, y2]: [{}, {}]'.format(x2, y2))
+                        if Verbose: print('[x1, y1]: [{}, {}]'.format(x1, y1))
+                        if Verbose: print('[x2, y2]: [{}, {}]'.format(x2, y2))
                     sol = root_scalar(fend_Z, bracket = [y1, y2])
                     z_psi = sol.root
                     save_line([x1, x1], [y1, z_psi])
                     if text:
-                        print('Terminated at: ({}, {})'.format(x1, z_psi))
-                        print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(x1, z_psi))))
+                        if Verbose: print('Terminated at: ({}, {})'.format(x1, z_psi))
+                        if Verbose: print('Psi Residual: {}'.format(abs(psi_test - self.grid.get_psi(x1, z_psi))))
                     return True
             else:
                 print('Error: No termination criteria specified.')
@@ -1058,7 +1061,7 @@ class LineTracing:
         if dynamic_step:
             dt = np.amin([self.dt, dynamic_step])
             if dt < self.dt:
-                print('Using dynamic_step value!\n')
+                if Verbose: print('Using dynamic_step value!\n')
         else:
             dt = self.dt
 
@@ -1096,7 +1099,11 @@ class LineTracing:
 
         return geo.Line(line)
 
+#def DrawLineBase(self, rz_start, rz_end=None, color= 'purple',
+#                  option=None, direction=None, show_plot=False, text=False, dynamic_step = None, debug = #False,Verbose=False):
+    
 
+   
 if __name__ == '__main__':
     from Read_Psi_Data import read_psi_data
 
@@ -1105,3 +1112,4 @@ if __name__ == '__main__':
     grid.Calculate_PDeriv()
     grid.plot_data()
     click = LineTracing(grid, option='rho')
+    

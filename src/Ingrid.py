@@ -8,37 +8,44 @@ Created on Fri Jun 21 15:17:21 2019
 from __future__ import print_function, division, absolute_import
 import numpy as np
 import matplotlib
-matplotlib.use("TkAgg")
+import pathlib
+import inspect
+try:
+    matplotlib.use("TkAgg")
+except:
+    pass
 import matplotlib.pyplot as plt
 import yaml as _yaml_
-import GUI.IngridApp as IA
+import os
+import GUI
+from GUI import IngridApp as IA
 
 from OMFITgeqdsk import OMFITgeqdsk
 from Interpol.Setup_Grid_Data import Efit_Data
 from line_tracing import LineTracing
 from Root_Finder import RootFinder
 from geometry import Point, Line, SNL_Patch, DNL_Patch, segment_intersect
-
+from scipy.optimize import root
 
 class Ingrid:
     """
     The Ingrid class manages all processes pertaining to patch map and grid generation.
     File I/O, Geometry file prep, parameter instantiation, and configuration classification
     are driven by Ingrid.
-    
+
     Parameters
     ----------
     params : dict (optional)
-        Dictionary object containing the following YAML entries: 
+        Dictionary object containing the following YAML entries:
         'eqdsk'
         'grid_params'
         'integrator_params'
         'target_plates'
         'DEBUG'
-        
+
         A copy of 'params' is stored within this Ingrid object.
         Should the user not provide 'param', or entries are missing within the YAML file,
-        default values will populate the YAML copy that is within the Ingrid object. 
+        default values will populate the YAML copy that is within the Ingrid object.
     Description of YAML file and 'param' dictionary:
     # =================================================================================================
     # grid_params:
@@ -54,7 +61,7 @@ class Ingrid:
     # -------------------------------------------------------------------------------------------------
     #     num_xpt - (int) Number of x-points
     # -------------------------------------------------------------------------------------------------
-    #     psi_* - (double) Bounds of grid domain determined 
+    #     psi_* - (double) Bounds of grid domain determined
     #              by normalized psi efit data.
     # -------------------------------------------------------------------------------------------------
     #     patch_generation - (dict) User settings related to patch map generation.
@@ -67,11 +74,11 @@ class Ingrid:
     #                        boundary that intersects the magnetic-axis
     #          outer_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
     #                        boundary that intersects the magnetic-axis
-    #          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction 
+    #          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction
     #                    rather than tracing 'W' in rho.
     #          NW_adjust - (double) RADIAN value to adjust the direction of the 'NW' linear trace.
     #
-    #          use_NE - (bool/logical-int) Trace linearly from primary-xpt in the 'NE' direction 
+    #          use_NE - (bool/logical-int) Trace linearly from primary-xpt in the 'NE' direction
     #                    rather than tracing 'E' in rho.
     #          NE_adjust - (double) RADIAN value to adjust the direction of the 'NE' linear trace.
     # -------------------------------------------------------------------------------------------------
@@ -81,21 +88,21 @@ class Ingrid:
     #                       patches not adjacent to a target plate.
     #          nr_global - (int) Default number of RADIAL cells to generate for all
     #                       patches not adjacent to a target plate.
-    #     
+    #
     #          np_core - (int) Number of POLOIDAL cells in the core plasma region
     #          nr_core - (int) Number of RADIAL cells in the core plasma region
     #          radial_f_core - (str) User defined cell "distortion" function for
     #                           radial cells in the core plasma region.
-    #          
+    #
     #          np_sol - (int) Number of POLOIDAL cells in the scrape-off layer
     #          nr_sol - (int) Number of RADIAL cells in the scrape-off layer
     #          radial_f_sol - (str) User defined cell "distortion" function for
     #                           radial cells in the scrape off layer.
-    #          
+    #
     #          np_pf - (int) Number of POLOIDAL cells in the private-flux region
     #          nr_pf - (int) Number of RADIAL cells in the private-flux region
     #          radial_f_pf - (str) User defined cell "distortion" function for
-    #                           radial cells in the private-flux region.   
+    #                           radial cells in the private-flux region.
     # -------------------------------------------------------------------------------------------------
     #     rmagx - (double) r coordinate of magnetic axis
     # -------------------------------------------------------------------------------------------------
@@ -122,8 +129,8 @@ class Ingrid:
     # -------------------------------------------------------------------------------------------------
     #     step_ratio - (double) A ratio of RZ-domain dimensions to
     #                   determine max_step parameter for LSODA integrator.
-    # ------------------------------------------------------------------------------------------------- 
-    #     tol - (double) Tolerance value defining convergence criterion   
+    # -------------------------------------------------------------------------------------------------
+    #     tol - (double) Tolerance value defining convergence criterion
     #            for integration with line_tracing class.
     # =================================================================================================
     # =================================================================================================
@@ -163,9 +170,9 @@ class Ingrid:
     #                   after the ',' delimiter utilizing the variable
     #                   VAR defined before-hand.
     #
-    #                 - The package SymPy is used to convert user-input 
-    #                   to a mathematical expression. This requires the 
-    #                   input to be a valid Python expression. 
+    #                 - The package SymPy is used to convert user-input
+    #                   to a mathematical expression. This requires the
+    #                   input to be a valid Python expression.
     #
     #                 - For detailed information on available functions,
     #                   see Sympy docs pertaining to "Functions" module.
@@ -178,36 +185,74 @@ class Ingrid:
     # -------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------
     # -------------------------------------------------------------------------------------------------
-    #     visual - (dict) Dictionary of bool/logical-int values to 
+    #     visual - (dict) Dictionary of bool/logical-int values to
     #               activate live-plotting during INGRID operations.
     #
     #         find_NSEW - (bool/logical-int) Show line_tracing during
     #                      search for North/South from primary x-point
-    #         patch_map - (bool/logical-int) Show line_tracing during 
+    #         patch_map - (bool/logical-int) Show line_tracing during
     #                      generation of patch-map
     #         subgrid - (bool/logical-int) Show line_tracing during
     #                      generation of subgrids within each patch
-    #         gridue - (bool/logical-int) Plot gridue data with 
-    #                      guard cells in order of increasing poloidal 
+    #         gridue - (bool/logical-int) Plot gridue data with
+    #                      guard cells in order of increasing poloidal
     #                      and radial indices
     # -------------------------------------------------------------------------------------------------
     #     verbose - (dict) Dictionary of bool/logical-int values to
     #                activate verbose output during INGRID operations.
     #
-    #         target_plates - (bool/logical-int) Print all target plate 
+    #         target_plates - (bool/logical-int) Print all target plate
     #                          coordinates to terminal.
-    #         patch_generation - (bool/logical-int) Print all patch names 
+    #         patch_generation - (bool/logical-int) Print all patch names
     #                             and intersection/convergence events
     #                             that occur during patch generation
-    #         grid_generation - (bool/logical-int) Print cell information 
-    #                            of a patch, and the populating of arrays 
-    #                            containing gridue data during meshgrid 
-    #                            generation.                    
+    #         grid_generation - (bool/logical-int) Print cell information
+    #                            of a patch, and the populating of arrays
+    #                            containing gridue data during meshgrid
+    #                            generation.
     # =================================================================================================
     """
 
-    def __init__(self, params = {}):
+    def __init__(self, params = {},**kwargs):
+        self.InputFile=None
 
+        self.yaml_lookup = ['grid_params', 'integrator_params', \
+                            'target_plates', 'DEBUG']
+
+        self.SetDefaultParams()
+        self.process_yaml(params)
+        self.yaml['eqdsk']=None
+        #Process input
+        self.ProcessKeywords(**kwargs)
+
+        self.PrintSummaryInput()
+
+    def StartGUI(self):
+        """
+
+        GUI version for Ingrid. Gets the files used, and opens a plot
+        of the Efit data. Allows user to input values for magx, xpt,
+        and psi levels.
+
+        """
+        try:
+            import tkinter as tk
+        except:
+            import Tkinter as tk
+        try:
+            import tkinter.messagebox as messagebox
+        except:
+            import tkMessageBox as messagebox
+        def on_closing():
+            if messagebox.askyesno('', 'Are you sure you want to quit?'):
+                plt.close('all')
+                self.IngridWindow.destroy()
+        self.IngridWindow = IA.IngridApp(IngridSession=self)
+        self.IngridWindow.title('INGRID v0.0')
+        self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
+        self.IngridWindow.mainloop()
+
+    def SetDefaultParams(self):
         self.default_grid_params = { \
             'config' : '', 'num_xpt' : 1, 'nlevs' : 30, \
             'psi_max' : 0.0, 'psi_max_r' : 0.0, 'psi_max_z' : 0.0, \
@@ -255,19 +300,46 @@ class Ingrid:
 
         self.default_DEBUG_params = { \
             'visual' : {'find_NSEW' : False, 'patch_map' : False, 'subgrid' : False, 'gridue' : False}, \
-            'verbose' : {'target_plates' : False, 'patch_generation' : False, 'grid_generation' : False} 
+            'verbose' : {'target_plates' : False, 'patch_generation' : False, 'grid_generation' : False}
         }
-
-        self.yaml_lookup = ['grid_params', 'integrator_params', \
-                            'target_plates', 'DEBUG']
 
         self.default_values_lookup = {'grid_params' : self.default_grid_params, 'integrator_params' : self.default_integrator_params, \
             'target_plates' : self.default_target_plates_params, 'DEBUG' : self.default_DEBUG_params}
 
-        self.process_yaml(params)
-        self.print_yaml()
-
-    def process_yaml(self, params):
+    def ProcessKeywords(self,**kwargs):
+        for k, v in kwargs.items():
+            if k=='InputFile' or k=='yaml':
+                print('# Processing Input File:',v)
+                self.InputFile=v
+                self.process_yaml(Ingrid.ReadyamlFile(v))
+                continue
+            if k=='W1TargetFile' or k=='w1':
+                self.yaml['target_plates']['plate_W1']['file']=v
+                continue
+            if k=='E1TargetFile' or k=='e1':
+                self.yaml['target_plates']['plate_E1']['file']=v
+                continue
+            if k=='E2TargetFile' or k=='e2':
+                self.yaml['target_plates']['plate_E2']['file']=v
+                continue
+            if k=='W2TargetFile' or k=='w2':
+                self.yaml['target_plates']['plate_W2']['file']=v
+                continue
+            if k=='EqFile' or k=='eq':
+                self.yaml['eqdsk']=v
+                continue
+            print('Keyword "'+k +'" unknown and ignored...')
+    def PrintSummaryInput(self):
+        print('Equilibrium File:',self.yaml['eqdsk'])
+        print('Target Files:')
+        #try:
+        print( ' # W1:',self.yaml['target_plates']['plate_W1']['file'])
+        print( ' # E1:',self.yaml['target_plates']['plate_E1']['file'])
+        print( ' # E2:',self.yaml['target_plates']['plate_E2']['file'])
+        print( ' # W2:',self.yaml['target_plates']['plate_W2']['file'])
+       # except:
+          #  print('error')
+    def process_yaml(self, params,verbose=False):
         """
         Parse the contents of a YAML dump (dictionary object).
         Parameter:
@@ -303,9 +375,9 @@ class Ingrid:
                 # Check to see if the item is in the YAML dump.
                 params[item]
             except KeyError:
-                print('Could not find "{}" in YAML file.'.format(item))
+                if verbose: print('Could not find "{}" in YAML file.'.format(item))
                 params[item] = get_default_values(item)
-                print('Populated "{}" with default value of "{}".\n'.format(item, params[item]))
+                if verbose: print('Populated "{}" with default value of "{}".\n'.format(item, params[item]))
                 continue
 
             # Second level entries within YAML file dump.
@@ -313,9 +385,9 @@ class Ingrid:
                 try:
                     params[item][sub_item]
                 except KeyError:
-                    print('Could not find "{}/{}" in YAML file.'.format(item, sub_item))
+                    if verbose: print('Could not find "{}/{}" in YAML file.'.format(item, sub_item))
                     params[item][sub_item] = get_default_values(item, sub_item)
-                    print('Populated "{}/{}" with default value of "{}".\n'.format(item, sub_item, params[item][sub_item]))
+                    if verbose: print('Populated "{}/{}" with default value of "{}".\n'.format(item, sub_item, params[item][sub_item]))
                     continue
                 if item in ['grid_params', 'target_plates'] \
                 and sub_item in ['patch_generation', 'grid_generation', 'plate_E1', 'plate_W1', 'plate_E2', 'plate_W2']:
@@ -382,7 +454,7 @@ class Ingrid:
         # reproduce efit grid
         self.efit_psi = Efit_Data(rmin, rmax, nxefit,
                                   zmin, zmax, nyefit,
-                                  rcenter, bcenter, 
+                                  rcenter, bcenter,
                                   rmagx, zmagx, name='Efit Data')
         self.efit_psi.set_v(psi)
 
@@ -391,7 +463,7 @@ class Ingrid:
         self.OMFIT_psi = g
 
     def read_target_plates(self):
-        """ 
+        """
         Reads the coordinates for a line defining the inner
         and outer target plates.
         The lines to define target plates end up with the shape ((x,y),(x,y)).
@@ -412,18 +484,23 @@ class Ingrid:
         for plate in target_plates:
 
             # Check for valid file path.
-            try:
-                open(target_plates[plate]['file'])
-            except FileNotFoundError:
-                continue
+            #JG: not good because it does not check if file exists
+            # That only makes sense when used with the GUI where file existence is automatic with the FilePicker method get_file()
+            # We assume that not relevant plate files are either set to None
+            # Could be managed through knowing the topology since we know which plate are needed
+            print('# Processing file for plate {} : {}'.format(plate,target_plates[plate]['file']))
+
+
+
 
             # Some target plate geometries have an associated 'z-shift' that
             # translates the geometry. Application of 'z-shift' occurs during reading.
+
             zshift = target_plates[plate]['zshift']
 
             # plate_data contains a list of geometric coordinates, and the min/max psi values
             # that lie on the plate geometry. This can be used (and is) for checking for valid
-            # psi entries during patch map generation. 
+            # psi entries during patch map generation.
             plate_data[plate] = {'coordinates' : [], 'psi_min_rz' : (), 'psi_max_rz' : ()}
 
             # Associated label with a target_plate (remove this feature?)
@@ -432,43 +509,76 @@ class Ingrid:
             elif target_plates[plate]['name'] == '':
                 target_plates[plate]['name'] = plate
 
-            with open(target_plates[plate]['file']) as f:
-                for line in f:
-                    point = line.strip()
-                    if point.startswith('#'):
-                        # move along to the next iteration
-                        # this simulates a comment
-                        continue
-                    x = float(point.split(',')[0])
-                    y = float(point.split(',')[1])
-                    plate_data[plate]['coordinates'].append((x, y - zshift))
+            if target_plates[plate]['file'] is not None:
+                try:
+                    with open(target_plates[plate]['file']) as f:
+                        #First we check if zshift is given
+                        for line in f:
+                            if line.count('zshift')>0:
+                                zshift=float(line.split('=')[-1])
+                                if debug: print('zshift=',zshift)
+                        f.seek(0)
+                        for line in f:
 
-            temp_max = temp_min = plate_data[plate]['coordinates'][0]
+                            point = line.strip()
+                            if point.startswith('#'):
+                                # move along to the next iteration
+                                # this simulates a comment
+                                continue
 
-            # Determine the min/max psi values that lie on the current target plate.
-            for (r, z) in plate_data[plate]['coordinates']:
-                curr_v = self.efit_psi.get_psi(r, z)
-                min_v_test = self.efit_psi.get_psi(temp_min[0], temp_min[1])
-                max_v_test = self.efit_psi.get_psi(temp_max[0], temp_max[1])
-                temp_min = (r, z) if curr_v <= min_v_test else temp_min
-                temp_max = (r, z) if curr_v >= max_v_test else temp_max
-            
-            plate_data[plate]['psi_min_rz'] = temp_min
-            plate_data[plate]['psi_max_rz'] = temp_max
+                            if line.count('zshift')>0:
+                                continue
+                            # we deal with separator ',' or ' '
 
-            if debug:
-                print('Using target plate "{}": {}'.format(target_plates[plate]['name'], plate_data[plate]))
+                            if point.count(',')>0:
+                                x = float(point.split(',')[0])
+                                y = float(point.split(',')[1])
+                            else:
 
+                                x = float(point.split(' ')[0])
+                                y = float(point.split(' ')[1])
+
+                            plate_data[plate]['coordinates'].append((x, y - zshift))
+
+                    # Check that data points are unique.
+                    # If not, the fitting with splines during the grid generation will fail
+                    data=np.array(plate_data[plate]['coordinates'])
+                    a,index=np.unique(data,return_index=True,axis=0)
+                    index.sort()
+                    plate_data[plate]['coordinates']=[(x,y) for x,y in data[index]]
+
+                    temp_max = temp_min = plate_data[plate]['coordinates'][0]
+
+
+
+                    # Determine the min/max psi values that lie on the current target plate.
+                    for (r, z) in plate_data[plate]['coordinates']:
+                        curr_v = self.efit_psi.get_psi(r, z)
+                        min_v_test = self.efit_psi.get_psi(temp_min[0], temp_min[1])
+                        max_v_test = self.efit_psi.get_psi(temp_max[0], temp_max[1])
+                        temp_min = (r, z) if curr_v <= min_v_test else temp_min
+                        temp_max = (r, z) if curr_v >= max_v_test else temp_max
+
+                    plate_data[plate]['psi_min_rz'] = temp_min
+                    plate_data[plate]['psi_max_rz'] = temp_max
+
+                except Exception as e:
+                    print(repr(e))
+                    raise ValueError("Something went wrong when processing the target plate file:{}. \
+                                     No entry is expected in the yaml file when no file is required".format(target_plates[plate]['file']))
+
+            else:
+                print('No file provided for plate:{} '.format(plate))
         # Save plate_data dictionary within the Ingrid object.
         self.plate_data = plate_data
 
     def plot_target_plates(self):
         """
         Plot the plate_data stored within the Ingrid object to the current figure.
-        
+
         @author: watkins35, garcia299
         """
-        
+
         try:
             for plate in self.plate_data:
                 try:
@@ -489,8 +599,8 @@ class Ingrid:
         Parameters:
             - plate : Line object
             - location: string
-            This string value should start with an 'L' or 'U'. These values correspond to the 
-            target plate names: 
+            This string value should start with an 'L' or 'U'. These values correspond to the
+            target plate names:
                 'LITP' : (lower-inner target-plate)
                 'LOTP' : (lower-outer target-plate)
                 'UITP' : (upper-inner target-plate)
@@ -540,7 +650,7 @@ class Ingrid:
             return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
 
     def calc_efit_derivs(self):
-        """ 
+        """
         Calculates the partial derivatives using finite differences.
         Wrapper for the member function in the efit class.
         @author: watkins35
@@ -548,14 +658,38 @@ class Ingrid:
         self.efit_psi.Calculate_PDeriv()
 
     def plot_efit_data(self):
-        """ 
+        """
         Generates the plot that we will be able to manipulate
-        using the root finder 
+        using the root finder
         @author: watkins35
         """
         self.efit_psi.clear_plot()
         self.efit_psi.plot_data(self.yaml['grid_params']['nlevs'])
-    
+
+    def FindMagAxis(self,x:float,y:float)->None:
+        sol = root(self.efit_psi.Gradient,[x,y])
+        self.yaml['grid_params']['rmagx']=sol.x[0]
+        self.yaml['grid_params']['zmagx']=sol.x[1]
+
+    def FindXPoint(self,x:float,y:float)->None:
+        sol = root(self.efit_psi.Gradient,[x,y])
+        self.yaml['grid_params']['rxpt']=sol.x[0]
+        self.yaml['grid_params']['zxpt']=sol.x[1]
+
+    def FindXPoint2(self,x:float,y:float)->None:
+        sol = root(self.efit_psi.Gradient,[x,y])
+        self.yaml['grid_params']['rxpt2']=sol.x[0]
+        self.yaml['grid_params']['zxpt2']=sol.x[1]
+
+    def AutoRefineMagAxis(self):
+        self.FindMagAxis(self.yaml['grid_params']['rmagx'],self.yaml['grid_params']['zmagx'])
+
+    def AutoRefineXPoint(self):
+        self.FindXPoint(self.yaml['grid_params']['rxpt'],self.yaml['grid_params']['zxpt'])
+
+    def AutoRefineXPoint2(self):
+        self.FindXPoint2(self.yaml['grid_params']['rxpt2'],self.yaml['grid_params']['zxpt2'])
+
     def find_roots(self, tk_controller = None):
         """ Displays a plot, and has the user click on an approximate
         zero point. Uses a root finder to adjust to the more exact point.
@@ -569,7 +703,7 @@ class Ingrid:
         self.root_finder = RootFinder(self.efit_psi, controller = tk_controller)
 
     def toggle_root_finder(self):
-        """ 
+        """
         Activates or deactivates the root finder ability. Enables
         the user to save the location where they last clicked.
         @author: watkins35
@@ -578,7 +712,7 @@ class Ingrid:
 
     def calc_psinorm(self):
         """ Uses magx and xpt1 to normalize the psi data. Furthur calculations
-        will use this information 
+        will use this information
         @author: watkins35, garcia299
         """
         from Interpol.Setup_Grid_Data import Efit_Data
@@ -596,20 +730,20 @@ class Ingrid:
         self.psi_norm.set_v(psinorm)
         self.psi_norm.Calculate_PDeriv()
 
-    def plot_psinorm(self):
+    def plot_psinorm(self,interactive=True):
         """
         Plot the psi_norm data stored in the Ingrid object.
         """
-        self.psi_norm.plot_data(self.yaml['grid_params']['nlevs'])
+        self.psi_norm.plot_data(self.yaml['grid_params']['nlevs'],interactive)
         self.plot_target_plates()
 
     def find_psi_lines(self, tk_controller = None):
         self.psi_finder = RootFinder(self.psi_norm, mode = 'psi_finder', controller = tk_controller)
 
-    def init_LineTracing(self, refresh = False):
-        """ 
+    def init_LineTracing(self, refresh = False,interactive=True):
+        """
         Initializes the line tracing class for the construction
-        of the grid. 
+        of the grid.
         Parameter:
             - refresh : boolean
             Re-initialize the LineTracing class.
@@ -622,9 +756,9 @@ class Ingrid:
                 raise AttributeError
 
         except AttributeError:
-            self.eq = LineTracing(self.psi_norm, self.yaml)
+            self.eq = LineTracing(self.psi_norm, self.yaml,interactive=interactive)
         if refresh:
-            self.eq = LineTracing(self.psi_norm, self.yaml)
+            self.eq = LineTracing(self.psi_norm, self.yaml,interactive=interactive)
         self.eq.disconnect()
 
     def refresh_LineTracing(self):
@@ -654,6 +788,7 @@ class Ingrid:
         This is a wrapper for the LineTracing class method SNL_find_NSEW.
         @author: garcia299
         """
+        print(" # Analyzing topology....")
         try:
             debug = self.yaml['DEBUG']['visual']['find_NSEW']
         except:
@@ -662,11 +797,12 @@ class Ingrid:
             self.eq.SNL_find_NSEW(self.xpt1, self.magx, debug)
         elif self.yaml['grid_params']['num_xpt'] == 2:
             self.eq.DNL_find_NSEW(self.xpt1, self.xpt2, self.magx, debug)
-        
+
         self.yaml['grid_params']['config'] = self.eq.config
         return self.yaml['grid_params']['config']
 
-    def _analyze_topology(self):
+    def _analyze_topology(self,verbose=False):
+        if verbose: print(" # Analyzing topology....")
         config = self._classify_gridtype()
         if config == 'LSN':
             ingrid_topology = LSN(self)
@@ -683,12 +819,12 @@ class Ingrid:
     def export(self, fname = 'gridue'):
         """ Saves the grid as an ascii file """
         if isinstance(self.current_topology, SNL):
-            self.write_gridue_SNL(self.current_topology.gridue_params, fname)
+            self.WritegridueSNL(self.current_topology.gridue_params, fname)
         elif isinstance(self.current_topology, DNL):
-            self.write_gridue_DNL(self.current_topology.gridue_params, fname)
+            self.WritegridueDNL(self.current_topology.gridue_params, fname)
 
-    def write_gridue_SNL(self, gridue_params, fname = 'gridue'):
-        
+    def WritegridueSNL(self, gridue_params, fname = 'gridue'):
+
         def format_header(gridue):
             header_items = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
             header = ''
@@ -727,14 +863,14 @@ class Ingrid:
         body_items = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
         for item in body_items:
             f.write(format_body(gridue_params[item]) + '\n')
-        
+
         runidg = 'iogridue'
         f.write(runidg + '\n')
 
         f.close()
 
-    def write_gridue_DNL(self, gridue_params, fname = 'gridue'):
-        
+    def WriteGridueDNL(self, gridue_params, fname = 'gridue'):
+
         def format_header(gridue):
             header_rows = [['nxm', 'nym'], \
                     ['iyseparatrix1', 'iyseparatrix2'], \
@@ -742,7 +878,7 @@ class Ingrid:
                     ['iyseparatrix3', 'iyseparatrix4'], \
                     ['ix_plate3', 'ix_cut3', '_FILLER_', 'ix_cut4', 'ix_plate4']]
 
-            header = '' 
+            header = ''
             for header_items in header_rows:
                 for item in header_items:
                     header += '{}'.format(gridue[item]).rjust(4)
@@ -778,11 +914,140 @@ class Ingrid:
         body_items = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
         for item in body_items:
             f.write(format_body(gridue_params[item]) + '\n')
-        
+
         runidg = 'iogridue'
         f.write(runidg + '\n')
 
         f.close()
+
+    def ReadyamlFile(FileName:str)->dict:
+        '''
+        Read a yaml file and return a dictionnary
+
+        Parameters
+        ----------
+        FileName : str
+
+
+        Raises
+        ------
+        IOError
+
+
+        Returns
+        -------
+        dict
+            Params dictionnary
+
+        '''
+        File=pathlib.Path(FileName).expanduser()
+        if File.exists() and File.is_file():
+            try:
+                ymlDict=_yaml_.full_load(File.read_text())
+                return ymlDict
+            except:
+                raise IOError('Cannot load the yml file: '+FileName)
+
+        else:
+            print('Current Working Directory:'+os.getcwd())
+            raise IOError('Cannot find the file: ' +FileName)
+
+    def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all'):
+
+
+        try:
+            np_cells = self.yaml['grid_params']['grid_generation']['np_global']
+        except KeyError:
+            np_cells = 2
+            print('yaml file did not contain parameter np_global. Set to default value of 2...')
+
+        try:
+            nr_cells = self.yaml['grid_params']['grid_generation']['nr_global']
+        except KeyError:
+            nr_cells = 2
+            print('yaml file did not contain parameter nr_global. Set to default value of 2...')
+
+
+        print('Value Check for local plates:')
+        _i = self.current_topology.yaml['target_plates']
+        for plate in _i:
+            print('Name: {}\n np_local: {}\n'.format(_i[plate]['name'], _i[plate]['np_local']))
+        if NewFig:
+            self.FigGrid=plt.figure('INGRID: Grid', figsize=(10,10))
+            ax=self.FigGrid.gca()
+        self.current_topology.construct_grid(np_cells, nr_cells,ShowVertices=ShowVertices,RestartScratch=RestartScratch,OptionTrace=OptionTrace,ExtraSettings=ExtraSettings,ListPatches=ListPatches)
+
+
+            #Plotgridue(self.current_topology.gridue_params,ax=ax,Verbose=True,facecolor=None,edgecolor=color)
+            #self.current_topology.grid_diagram()
+            #self.current_topology.grid_diagram()
+        #     return True
+        # except Exception as e:
+        #     print('=' * 80)
+        #     print('ERROR DURING GRID GENERATION: {}'.format(repr(e)))
+        #     print('=' * 80 + '\n')
+
+    def SetMagReference(self:object,topology:str='SNL')->None:
+        self.magx= (self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx'])
+        self.Xpt = (self.yaml['grid_params']['rxpt'],self.yaml['grid_params']['zxpt'])
+        self.xpt1 = self.Xpt
+
+        if topology == 'DNL':
+            self.xpt2 = (self.yaml['grid_params']['rxpt2'], self.yaml['grid_params']['zxpt2'])
+
+    def PlotMagReference(self):
+        (x,y)=self.xpt1
+        plt.plot(x,y,'+',color='red',ms=15)
+        (x,y)=self.magx
+        plt.plot(x,y,'+',color='magenta',ms=15)
+        plt.show()
+
+    def PlotPsiNormBounds(self:object)->None:
+        Dic={'psi_max':'blue',
+              'psi_min_core':'magenta',
+              'psi_max_outer':'blue',
+              'psi_max_inner':'blue',
+              'psi_min_pf':'green',
+              'psi_pf2':'yellow'}
+        for k,c in Dic.items():
+                print(k)
+                print(self.yaml['grid_params'][k])
+                self.psi_norm.PlotLevel(self.yaml['grid_params'][k],color=Dic[k],label=k)
+
+
+
+        self.psi_norm.PlotLevel(1.0,color='red',label='Separatrix')
+        plt.legend()
+
+
+    def PlotPsiLevel(efit_psi:object,level:float,Label:str='')->None:
+        plt.contour(efit_psi.r, efit_psi.z, efit_psi.v, [level], colors = 'red', label = Label)
+
+    def Setup(self,interactive=True):
+        # TODO have an option to not connect event on figure in command-line mode (so no tk needed)
+        print('### Setup INGRID')
+        self.OMFIT_read_psi()
+        self.calc_efit_derivs()
+        self.read_target_plates()
+        self.AutoRefineMagAxis()
+        self.AutoRefineXPoint()
+        self.SetMagReference()
+        self.calc_psinorm()
+        self.plot_psinorm(interactive=interactive)
+        self.init_LineTracing(interactive=interactive)
+        self._analyze_topology()
+
+    def ShowSetup(self):
+        self.PlotPsiNormBounds()
+        self.plot_target_plates()
+        self.PlotMagReference()
+
+    def ConstructPatches(self):
+        self.current_topology.construct_patches()
+        self.current_topology.patch_diagram()
+        self.current_topology.CheckPatches()
+
+
 
 
 class DNL(Ingrid):
@@ -799,12 +1064,12 @@ class DNL(Ingrid):
 
     def patch_diagram(self):
         """ Generates the patch diagram for a given configuration. """
-        
+
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
                   'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
-                  'seagreen', 'firebrick', 'saddlebrown', 'c', 
-                  'm', 'dodgerblue', 'darkorchid', 'crimson', 
-                  'darkorange', 'lightgreen', 'lightseagreen', 'indigo', 
+                  'seagreen', 'firebrick', 'saddlebrown', 'c',
+                  'm', 'dodgerblue', 'darkorchid', 'crimson',
+                  'darkorange', 'lightgreen', 'lightseagreen', 'indigo',
                   'mediumvioletred', 'mistyrose', 'darkolivegreen', 'rebeccapurple']
 
         try:
@@ -824,7 +1089,7 @@ class DNL(Ingrid):
             self.patches[i].plot_border('green')
             self.patches[i].fill(colors[i])
 
-        plt.show() 
+        plt.show()
 
     def grid_diagram(self):
 
@@ -836,7 +1101,7 @@ class DNL(Ingrid):
         plt.figure('INGRID: Grid', figsize=(6,10))
         for patch in self.patches:
             patch.plot_subgrid()
-        
+
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
         plt.gca().set_aspect('equal', adjustable='box')
@@ -868,7 +1133,7 @@ class DNL(Ingrid):
 
     def concat_grid(self):
         """
-        Concatenate all local grids on individual patches into a single 
+        Concatenate all local grids on individual patches into a single
         array with branch cuts
         Parameters:
         ----------
@@ -878,7 +1143,7 @@ class DNL(Ingrid):
         # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
         patch_matrix = self.patch_matrix
 
-        # Get some poloidal and radial information from each patch to attribute to the 
+        # Get some poloidal and radial information from each patch to attribute to the
         # local subgrid.
         # NOTE: npol and nrad refer to the actual lines in the subgrid. Because of this, we must add
         #       the value of 1 to the cell number to get the accurate number of lines.
@@ -912,7 +1177,7 @@ class DNL(Ingrid):
 
         # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
         for ixp in range(1, 5):
-            
+
             nr_sum = 0
             for jyp in range(1, 4):
                 # Point to the current patch we are operating on.
@@ -923,7 +1188,7 @@ class DNL(Ingrid):
 
                 nr_sum += local_patch.nrad - 1
 
-                # Access the grid that is contained within this local_patch. 
+                # Access the grid that is contained within this local_patch.
                 # ixl - number of poloidal cells in the patch.
                 for ixl in range(len(local_patch.cell_grid[0])):
                     # jyl - number of radial cells in the patch
@@ -939,7 +1204,7 @@ class DNL(Ingrid):
                             rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
                             zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
                             ind += 1
-                        print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
+                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
 
         # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
 
@@ -947,7 +1212,7 @@ class DNL(Ingrid):
         jycell = 0
 
         for ixp in range(7, 11):
-            
+
             nr_sum = 0
             for jyp in range(1, 4):
                 # Point to the current patch we are operating on.
@@ -958,7 +1223,7 @@ class DNL(Ingrid):
 
                 nr_sum += local_patch.nrad - 1
 
-                # Access the grid that is contained within this local_patch. 
+                # Access the grid that is contained within this local_patch.
                 # ixl - number of poloidal cells in the patch.
                 for ixl in range(len(local_patch.cell_grid[0])):
                     # jyl - number of radial cells in the patch
@@ -974,7 +1239,7 @@ class DNL(Ingrid):
                             rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
                             zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
                             ind += 1
-                        print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
+                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
 
         # Flip indices into gridue format.
         for i in range(len(rm1)):
@@ -1004,7 +1269,7 @@ class DNL(Ingrid):
             debug = self.yaml['DEBUG']['visual']['gridue']
         except:
             debug = False
-        
+
         if debug:
             self.animate_grid()
 
@@ -1030,7 +1295,7 @@ class DNL(Ingrid):
                 cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
                 cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
                 cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-            
+
             elif boundary == 'bottom':
                 ixn = ix
                 iyn = iy + 1
@@ -1127,7 +1392,7 @@ class DNL(Ingrid):
                 'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b, '_FILLER_' : -1}
 
 
-    def construct_grid(self, np_cells = 3, nr_cells = 3):
+    def construct_grid(self, np_cells = 3, nr_cells = 3,Verbose=False):
 
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
@@ -1140,6 +1405,8 @@ class DNL(Ingrid):
             verbose = self.yaml['DEBUG']['verbose']['grid_generation']
         except:
             verbose = False
+
+        verbose=verbose or Verbose
 
         try:
             np_primary_sol = self.yaml['grid_params']['grid_generation']['np_primary_sol']
@@ -1265,7 +1532,7 @@ class DNL(Ingrid):
     def construct_patches(self):
         """
         Draws lines and creates patches for both USN and LSN configurations.
-            
+
         Patch Labeling Key:
             I: Inner,
             O: Outer,
@@ -1464,7 +1731,7 @@ class DNL(Ingrid):
         else:
             xpt2__psiMaxOuter = self.eq.draw_line(xpt2_dict['W'], {'psi' : psi_max_outer}, \
                 option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
-        
+
         psiMaxInner__UITP = self.eq.draw_line(xpt2__psiMaxInner.p[-1], {'line' : UITP}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         psiMaxOuter__UOTP = self.eq.draw_line(xpt2__psiMaxOuter.p[-1], {'line' : UOTP}, \
@@ -1524,7 +1791,7 @@ class DNL(Ingrid):
         # -------------------------------------------------------------------------------------
         # Recall LITP has a clockwise orientation.
         #
-        # The inner 'split' trims all Point objects BEFORE the point of intersection of LITP 
+        # The inner 'split' trims all Point objects BEFORE the point of intersection of LITP
         # and A1_S. Call this new Line object Line_A.
         #
         # The outer 'split' trims all Point objects AFTER the point of intersection of Line_A
@@ -1726,7 +1993,7 @@ class DNL(Ingrid):
 class SNL(Ingrid):
     """
     The SNL (Single-Null) class is the parent class for both upper-single null (USN)
-    and lower-single null (LSN) configurations. 
+    and lower-single null (LSN) configurations.
     This base class handles the formatting and plotting of data obtained from an LSN or USN
     object.
     Parameter:
@@ -1742,10 +2009,12 @@ class SNL(Ingrid):
         self.efit_psi = INGRID_object.efit_psi
         self.psi_norm = INGRID_object.psi_norm
         self.eq = INGRID_object.eq
-
+        self.CurrentListPatch=[]
+        self.Verbose=False
         self.plate_data = INGRID_object.plate_data
+        self.CorrectDistortion={}
 
-    def grid_diagram(self):
+    def grid_diagram(self,ax=None):
         """
         Create Grid matplotlib figure for an SNL object.
         @author: watkins35, garcia299
@@ -1754,16 +2023,17 @@ class SNL(Ingrid):
           'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
           'seagreen', 'firebrick', 'saddlebrown']
 
-        try:
-            plt.close('INGRID: Grid')
-        except:
-            pass
-
-        plt.figure('INGRID: Grid', figsize=(6,10))
+        #try:
+            #plt.close('INGRID: Grid')
+        #except:
+            #pass
+        fig=plt.figure('INGRID: Grid', figsize=(6,10))
+        if ax is None:
+            ax=fig.gca()
         for patch in self.patches:
-            patch.plot_subgrid()
+            patch.plot_subgrid(ax)
             print('patch completed...')
-        
+
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
         plt.gca().set_aspect('equal', adjustable='box')
@@ -1773,43 +2043,43 @@ class SNL(Ingrid):
         plt.show()
 
     def patch_diagram(self):
-        """ 
-        Generates the patch diagram for a given configuration. 
+        """
+        Generates the patch diagram for a given configuration.
         @author: watkins35, garcia299
         """
-        
+
         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
                   'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
                   'seagreen', 'firebrick', 'saddlebrown']
 
-        try:
-            plt.close('INGRID: Patch Map')
-        except:
-            pass
 
-        plt.figure('INGRID: Patch Map', figsize=(6, 10))
+        self.FigPatch=plt.figure('INGRID: Patch Map', figsize=(6, 10))
+        self.FigPatch.clf()
+        ax=self.FigPatch.subplots(1,1)
         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-        plt.gca().set_aspect('equal', adjustable='box')
-        plt.xlabel('R')
-        plt.ylabel('Z')
-        plt.title('SNL Patch Diagram')
+        ax.set_aspect('equal', adjustable='box')
+
+        ax.set_xlabel('R')
+        ax.set_ylabel('Z')
+        self.FigPatch.suptitle('SNL Patch Diagram')
 
         for i in range(len(self.patches)):
             self.patches[i].plot_border('green')
             self.patches[i].fill(colors[i])
-
-        plt.show() 
+            self.patches[i].color=colors[i]
+        ax.legend()
+        plt.show()
 
     def get_configuration(self):
-        """ 
-        Returns a string indicating whether the 
+        """
+        Returns a string indicating whether the
         """
         return self.config
 
-    def concat_grid(self, config):
+    def concat_grid(self, config,Verbose=False):
         """
-        Concatenate all local grids on individual patches into a single 
+        Concatenate all local grids on individual patches into a single
         array with branch cuts
         Parameters:
         ----------
@@ -1819,7 +2089,7 @@ class SNL(Ingrid):
         # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
         patch_matrix = self.patch_matrix
 
-        # Get some poloidal and radial information from each patch to attribute to the 
+        # Get some poloidal and radial information from each patch to attribute to the
         # local subgrid.
         # NOTE: npol and nrad refer to the actual lines in the subgrid. Because of this, we must add
         #       the value of 1 to the cell number to get the accurate number of lines.
@@ -1843,14 +2113,14 @@ class SNL(Ingrid):
 
         # Iterate over all the patches in our SNL configuration (we exclude guard cells denoted by '[None]')
         for ixp in range(1, 7):
-            
+
             nr_sum = 0
             for jyp in range(1, 3):
                 # Point to the current patch we are operating on.
                 local_patch = patch_matrix[jyp][ixp]
                 nr_sum += local_patch.nrad - 1
 
-                # Access the grid that is contained within this local_patch. 
+                # Access the grid that is contained within this local_patch.
                 # ixl - number of poloidal cells in the patch.
                 for ixl in range(len(local_patch.cell_grid[0])):
                     # jyl - number of radial cells in the patch
@@ -1866,7 +2136,7 @@ class SNL(Ingrid):
                             rm[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
                             zm[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
                             ind += 1
-                        print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
+                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
 
         # Flip indices into gridue format.
         for i in range(len(rm)):
@@ -1884,7 +2154,7 @@ class SNL(Ingrid):
             debug = self.yaml['DEBUG']['visual']['gridue']
         except:
             debug = False
-        
+
         if debug:
             self.animate_grid()
 
@@ -1911,7 +2181,7 @@ class SNL(Ingrid):
                 cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
                 cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
                 cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-            
+
             elif boundary == 'bottom':
                 ixn = ix
                 iyn = iy + 1
@@ -1970,29 +2240,113 @@ class SNL(Ingrid):
                 plt.plot(self.rm[i][j][k], self.zm[i][j][k])
                 plt.pause(0.01)
 
-class LSN(SNL, Ingrid):
+    def get_func(self, _func):
 
-    def __init__(self, INGRID_object):
-        super().__init__(INGRID_object)
-        self.config = 'LSN'
-        print('=' * 80)
-        print('LSN Object!')
-        print('=' * 80 + '\n')
+            def make_sympy_func(var, expression):
+                import sympy as sp
+                _f = sp.lambdify(var, expression, 'numpy')
+                return _f
 
-    def construct_grid(self, np_cells = 1, nr_cells = 1):
+            f_str_raw = _func
 
-        # Straighten up East and West segments of our patches,
-        # Plot borders and fill patches.
+            f_str_raw = f_str_raw.replace(' ', '')
+            delim = f_str_raw.index(',')
 
+            var = f_str_raw[0 : delim]
+            expression = f_str_raw[delim + 1 :]
+
+            _func = make_sympy_func(var, expression)
+            # TODO: Check Normalization of the function to 1
+            return _func
+
+    def CheckFunction(self,Str,Verbose=False):
+        # can use a fancier test of tehe lambda function like in get_func above
         try:
-            visual = self.yaml['DEBUG']['visual']['subgrid']
+            com='lambda {}:{}'.format(Str.split(',')[0],Str.split(',')[1])
+            if Verbose: print(com)
+            eval(com)
+            ExpValid=True
         except:
-            visual = False
-        try:
-            verbose = self.yaml['DEBUG']['verbose']['grid_generation']
-        except:
-            verbose = False
+            raise ValueError('Unable to parse function {} for entry {}. Lambda function expected:"x,f(x)"'.format(self.val,Name))
+            ExpValid=False
+        return ExpValid
 
+    def GetFunctions(self,Patch,Enforce=True,Verbose=False,ExtraSettings={}):
+        if Patch in self.SOL:
+            _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_sol']
+            valid_function=self.CheckFunction(_radial_f,Enforce)
+            if Verbose: print('SOL radial transformation: "{}"'.format(_radial_f))
+        elif Patch in self.CORE:
+            _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_core']
+            valid_function=self.CheckFunction(_radial_f,Enforce)
+            if Verbose: print('Core radial transformation: "{}"'.format(_radial_f))
+        elif Patch in self.PF:
+            _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_pf']
+            valid_function=self.CheckFunction(_radial_f,Enforce)
+            if Verbose: print('Core radial transformation: "{}"'.format(_radial_f))
+        if valid_function:
+            _radial_f = self.get_func( _radial_f)
+        else:
+            _radial_f=lambda x:x
+
+        if Patch in self.SOL:
+            _poloidal_f = self.yaml['grid_params']['grid_generation']['poloidal_f']
+            valid_function=self.CheckFunction(_poloidal_f,Enforce)
+            if Verbose: print('SOL poloidal transformation: "{}"'.format(_poloidal_f))
+        elif Patch in self.CORE:
+            _poloidal_f = self.yaml['grid_params']['grid_generation']['poloidal_f']
+            valid_function=self.CheckFunction(_poloidal_f,Enforce)
+            if Verbose: print('Core poloidal transformation: "{}"'.format(_poloidal_f))
+        elif Patch in self.PF:
+            _poloidal_f = self.yaml['grid_params']['grid_generation']['poloidal_f']
+            valid_function=self.CheckFunction(_poloidal_f,Enforce)
+            if Verbose: print('Core poloidal transformation: "{}"'.format(_poloidal_f))
+        if valid_function:
+            _poloidal_f = self.get_func( _poloidal_f)
+        else:
+            _poloidal_f=lambda x:x
+
+
+        if Patch.platePatch:
+            if self.config == 'LSN':
+                if Patch.plateLocation == 'W':
+                    _poloidal_f = self.yaml['target_plates']['plate_E1']['poloidal_f']
+                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
+                elif Patch.plateLocation == 'E':
+                    _poloidal_f = self.yaml['target_plates']['plate_W1']['poloidal_f']
+                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
+            if self.config == 'USN':
+                if Patch.plateLocation == 'E':
+                    _poloidal_f = self.yaml['target_plates']['plate_E1']['poloidal_f']
+                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
+                elif Patch.plateLocation == 'W':
+                    _poloidal_f = self.yaml['target_plates']['plate_W1']['poloidal_f']
+                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
+            if valid_function:
+                _poloidal_f = self.get_func( _poloidal_f)
+            else:
+                _poloidal_f = lambda x: x
+        print('Extra Settings:',ExtraSettings)
+        
+        if ExtraSettings.get(Patch.patchName) is not None:
+            Extra=ExtraSettings.get(Patch.patchName)
+            print('Extra:',Extra)
+            if Extra.get('poloidal_f') is not None:
+                if self.CheckFunction(Extra.get('poloidal_f'),Enforce):
+                    print('Overriding poloidal function for patch {} with f={}'.format(Patch.patchName,Extra.get('poloidal_f')))
+                    _poloidal_f=self.get_func(Extra.get('poloidal_f'))
+            if Extra.get('radial_f') is not None:
+                if self.CheckFunction(Extra.get('radial_f'),Enforce):
+                    print('Overriding radial function for patch {} with f={}'.format(Patch.patchName,Extra.get('radial_f')))
+                    _radial_f=self.get_func(Extra.get('radial_f'))
+            
+                 
+        
+
+        return (_radial_f,_poloidal_f)
+
+
+    def GetNpoints(self,Patch,Enforce=True,Verbose=False):
         try:
             np_sol = self.yaml['grid_params']['grid_generation']['np_sol']
         except:
@@ -2007,8 +2361,11 @@ class LSN(SNL, Ingrid):
             np_pf = self.yaml['grid_params']['grid_generation']['np_global']
 
         if np_sol != np_core:
-            print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
-                + ' to the minimum of np_sol and np_core.\n')
+            if Enforce:
+                raise ValueError('SOL and CORE must have equal POLOIDAL np values')
+            else:
+                print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
+                + ' to the minimum of np_sol={} and np_core={}.\n'.format(np_sol,np_core))
             np_sol = np_core = np.amin([np_sol, np_core])
 
         try:
@@ -2026,27 +2383,64 @@ class LSN(SNL, Ingrid):
             nr_pf = self.yaml['grid_params']['grid_generation']['nr_global']
 
         if nr_pf != nr_core:
-            print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
-                + ' to the minimum of nr_pf and nr_core.\n')
-            nr_pf = nr_core = np.amin([nr_pf, nr_core])
+            if Enforce:
+                raise ValueError('PF and CORE must have equal RADIAL nr values')
+            else:
+                print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
+                + ' to the minimum of nr_pf={} and nr_core={}.\n'.format(nr_pf,nr_core))
+                nr_pf = nr_core = np.amin([nr_pf, nr_core])
 
+        if Verbose:
+            print("nr_sol={}; nr_pf={};nr_core={}".format(nr_sol,nr_pf,nr_core))
+            print("np_sol={}; np_pf={};np_core={}".format(np_sol,np_pf,np_core))
+
+        if Patch in self.SOL:
+            nr_cells = nr_sol
+            np_cells = np_sol
+            if Verbose: print('Patch "{}" is in SOL'.format(patch.patchName))
+        elif Patch in self.CORE:
+            nr_cells = nr_core
+            np_cells = np_core
+            if Verbose: print('Patch "{}" is in CORE'.format(patch.patchName))
+        elif Patch in self.PF:
+            nr_cells = nr_pf
+            np_cells = np_pf
+            if Verbose: print('Patch "{}" is in PF with nr={} and np={}'.format(patch.patchName,np_cells,nr_cells))
+
+        # overwrite poloidal values for target patches
+        if Patch.platePatch:
+            if self.config == 'LSN':
+                if Patch.plateLocation == 'W':
+                    np_cells = self.yaml['target_plates']['plate_W1']['np_local']
+                elif Patch.plateLocation == 'E':
+                    np_cells = self.yaml['target_plates']['plate_E1']['np_local']
+            if self.config == 'USN':
+                if Patch.plateLocation == 'E':
+                    np_cells = self.yaml['target_plates']['plate_W1']['np_local']
+                elif Patch.plateLocation == 'W':
+                    np_cells = self.yaml['target_plates']['plate_E1']['np_local']
+
+        return (nr_cells,np_cells)
+    def AdjustPatch(self,patch):
         primary_xpt = Point([self.yaml['grid_params']['rxpt'], self.yaml['grid_params']['zxpt']])
-        for patch in self.patches:
-            if patch in self.SOL:
-                nr_cells = nr_sol
-                np_cells = np_sol
-                print('Patch "{}" is in SOL'.format(patch.patchName))
-            elif patch in self.CORE:
-                nr_cells = nr_core
-                np_cells = np_core
-                print('Patch "{}" is in CORE'.format(patch.patchName))
-            elif patch in self.PF:
-                nr_cells = nr_pf
-                np_cells = np_pf
-                print('Patch "{}" is in PF'.format(patch.patchName))
-
-            patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
-
+        if self.config == 'USN':
+            if patch.patchName == 'ODL':
+                patch.adjust_corner(primary_xpt, 'SE')
+            elif patch.patchName == 'OPF':
+                patch.adjust_corner(primary_xpt, 'NE')
+            elif patch.patchName == 'OSB':
+                patch.adjust_corner(primary_xpt, 'SW')
+            elif patch.patchName == 'OCB':
+                patch.adjust_corner(primary_xpt, 'NW')
+            elif patch.patchName == 'ICB':
+                patch.adjust_corner(primary_xpt, 'NE')
+            elif patch.patchName == 'ISB':
+                patch.adjust_corner(primary_xpt, 'SE')
+            elif patch.patchName == 'IPF':
+                patch.adjust_corner(primary_xpt, 'NW')
+            elif patch.patchName == 'IDL':
+                patch.adjust_corner(primary_xpt, 'SW')
+        if self.config == 'LSN':    
             if patch.patchName == 'IDL':
                 patch.adjust_corner(primary_xpt, 'SE')
             elif patch.patchName == 'IPF':
@@ -2063,14 +2457,147 @@ class LSN(SNL, Ingrid):
                 patch.adjust_corner(primary_xpt, 'NW')
             elif patch.patchName == 'ODL':
                 patch.adjust_corner(primary_xpt, 'SW')
+                
+                
+                
+    def CheckPatches(self,verbose=False):
+        for patch in self.patches:
+            if patch.platePatch:
+                print(' # Checking patch: ', patch.patchName)
+                patch.CheckPatch(self)
 
-        self.concat_grid(self.get_configuration())
-        self.set_gridue()
+    def SavePatches(self,FileName):
+        with open(FileName,'w') as File:
+            _yaml_.dump(self.patches,File)
+
+            # self.platePatch = platePatch
+            # self.plateLocation = plateLocation
+            # self.patchName = patchName
+            # self.lines
+    def LoadPatches(self,FileName):
+        with open(FileName,'r') as File:
+            self.patches = _yaml_.load(File,Loader=_yaml_.Loader)
+        patch_lookup = {}
+        print(self.patches)
+        for patch in self.patches:
+            patch_lookup[patch.patchName] = patch
+            patch.plot_border()
+            patch.fill()
+        self.patch_lookup = patch_lookup
+        p = self.patch_lookup
+
+        if self.config == 'USN':
+            self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
+                        [[None], p['ODL'], p['OSB'], p['OST'], p['IST'], p['ISB'], p['IDL'], [None]], \
+                        [[None], p['OPF'], p['OCB'], p['OCT'], p['ICT'], p['ICB'], p['IPF'], [None]], \
+                        [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
+                        ]
+
+        if self.config == 'LSN':
+            self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
+                        [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
+                        [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
+                        [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
+                        ]
+        self.catagorize_patches()
+
+    def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all'):
+
+        # Straighten up East and West segments of our patches,
+        # Plot borders and fill patches.
+        if Verbose: print('Construct Grid')
+        try:
+            visual = self.yaml['DEBUG']['visual']['subgrid']
+        except:
+            visual = False
+        try:
+            verbose = self.yaml['DEBUG']['verbose']['grid_generation']
+        except:
+            verbose = False
+
+        verbose=Verbose or verbose
+        
+            
+        print('>>> Patches:',[patch.patchName for patch in self.patches])
+        if  RestartScratch:
+            self.CurrentListPatch=[]
+        self.GetConnexionMap() 
     
+        for patch in self.patches:
+            
+            if self.CorrectDistortion.get(patch.patchName) is not None:
+               patch.CorrectDistortion=self.CorrectDistortion.get(patch.patchName)
+            elif self.CorrectDistortion.get('all') is not None:
+                patch.CorrectDistortion=self.CorrectDistortion.get('all')
+            else:
+                patch.CorrectDistortion={'Active':False}
+            if (ListPatches=='all' and patch not in self.CurrentListPatch) or (ListPatches!='all' and patch.patchName in ListPatches):
+                self.SetPatchBoundaryPoints(patch)
+                (nr_cells,np_cells)=self.GetNpoints(patch)
+                (_radial_f,_poloidal_f)=self.GetFunctions(patch,ExtraSettings=ExtraSettings)
+                print('>>> Making subgrid in patch:{} with np={},nr={},fp={},fr={}'.format(patch.patchName,np_cells,nr_cells,inspect.getsource(_poloidal_f),inspect.getsource(_radial_f)))
+                patch.make_subgrid(self, np_cells, nr_cells, _poloidal_f=_poloidal_f,_radial_f=_radial_f,verbose = verbose, visual = visual,ShowVertices=ShowVertices,OptionTrace=OptionTrace)
+                self.AdjustPatch(patch)
+                patch.plot_subgrid()
+                plt.pause(1)
+                plt.show()
+                plt.ion()
+                self.CurrentListPatch.append(patch)
+
+
+
+        if all(['cell_grid' in patch.__dict__ for p in self.patches]):
+            self.concat_grid(self.get_configuration())
+            self.set_gridue()
+        
+    def SetPatchBoundaryPoints(self,Patch):
+            if self.ConnexionMap.get(Patch.patchName) is not None:
+                if self.Verbose: print('Find connexion map for patch {}'.format(Patch.patchName))
+                for Boundary,AdjacentPatch in self.ConnexionMap.get(Patch.patchName).items():
+                    Patch.BoundaryPoints[Boundary]=self.GetBoundaryPoints(AdjacentPatch)
+                    if self.Verbose: print('Find Boundaries points for {}'.format(Patch.patchName))
+                
+    def GetBoundaryPoints(self,AdjacentPatch):
+        if AdjacentPatch is not None:
+            PatchName=AdjacentPatch[0]
+            Boundary=AdjacentPatch[1]
+            for p in  self.patches:
+                if p.patchName==PatchName:
+                   if Boundary=='S':
+                       return p.S_vertices
+                   elif Boundary=='N':
+                       return p.N_vertices
+                   elif Boundary=='E':
+                       return p.W_vertices
+                   elif Boundary=='W':
+                       return p.W_vertices 
+        return None
+            
+    def GetConnexionMap(self):
+        # Connexion MAP for LSN
+        self.ConnexionMap={}
+        for p in self.patches:
+            Name=p.patchName
+            if Name[1]=='C':
+                self.ConnexionMap[Name]={'N':(Name[0]+'S'+Name[2],'S')}
+        self.ConnexionMap['IPF']={'N':('IDL','S')}
+        self.ConnexionMap['OPF']={'N':('ODL','S')}
+        if self.Verbose: print('ConnexionMap:',self.ConnexionMap)
+    
+class LSN(SNL, Ingrid):
+
+    def __init__(self, INGRID_object):
+        super().__init__(INGRID_object)
+        self.config = 'LSN'
+        print('=' * 80)
+        print('LSN Object!')
+        print('=' * 80 + '\n')
+
+
     def construct_patches(self):
         """
         Draws lines and creates patches for both USN and LSN configurations.
-            
+
         Patch Labeling Key:
             I: Inner,
             O: Outer,
@@ -2135,7 +2662,7 @@ class LSN(SNL, Ingrid):
         xptNW_midLine = self.eq.draw_line(xpt['NW'], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         xptN_psiMinCore = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
         xptNE_midLine = self.eq.draw_line(xpt['NE'], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        
+
         # Drawing Lower-SNL region
         if self.yaml['grid_params']['patch_generation']['use_NW']:
             tilt = self.eq.eq_psi_theta['NW'] + self.yaml['grid_params']['patch_generation']['NW_adjust']
@@ -2148,10 +2675,10 @@ class LSN(SNL, Ingrid):
             xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi_horizontal' : (psi_max, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
         else:
             xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
-        
-        xpt_ITP = self.eq.draw_line(xpt['SW'], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)        
+
+        xpt_ITP = self.eq.draw_line(xpt['SW'], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         xptS_psiMinPF = self.eq.draw_line(xpt['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        xpt_OTP = self.eq.draw_line(xpt['SE'], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)        
+        xpt_OTP = self.eq.draw_line(xpt['SE'], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         iPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : ITP},option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         oPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
@@ -2159,7 +2686,7 @@ class LSN(SNL, Ingrid):
 
         imidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         omidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        
+
         # Integrating horizontally along mid-line towards psiMax and psiMinCore
         imidLine_psiMax = self.eq.draw_line(xptNW_midLine.p[-1], {'psi_horizontal' : (psi_max, inner_tilt)}, option = 'z_const', \
                 direction = 'ccw', show_plot = visual, text = verbose)
@@ -2169,7 +2696,7 @@ class LSN(SNL, Ingrid):
                 direction = 'cw', show_plot = visual, text = verbose)
         omidLine_psiMinCore = self.eq.draw_line(xptNE_midLine.p[-1], {'psi_horizontal' : (psi_min_core, outer_tilt)}, option = 'z_const', \
                 direction = 'ccw', show_plot = visual, text = verbose)
-        
+
         # Integrating vertically along top-line towards psiMax and psiMinCore
         topLine_psiMax = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_max}, option = 'r_const', \
                 direction = 'cw', show_plot = visual, text = verbose)
@@ -2186,7 +2713,7 @@ class LSN(SNL, Ingrid):
         # -------------------------------------------------------------------------------------
         # Recall ITP has a clockwise orientation.
         #
-        # The inner 'split' trims all Point objects BEFORE the point of intersection of ITP 
+        # The inner 'split' trims all Point objects BEFORE the point of intersection of ITP
         # and IDL_S. Call this new Line object Line_A.
         #
         # The outer 'split' trims all Point objects AFTER the point of intersection of Line_A
@@ -2198,12 +2725,14 @@ class LSN(SNL, Ingrid):
         # IPF Patch
         location = 'W'
         IPF_N = IDL_S.reverse_copy()
+        
         IPF_S = psiMinPF_ITP
         IPF_E = xptS_psiMinPF
         IPF_W = (ITP.split(IPF_S.p[-1])[1]).split(IPF_N.p[0], add_split_point = True)[0]
         IPF = SNL_Patch([IPF_N, IPF_E, IPF_S, IPF_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # ISB Patch
+        
         ISB_N = self.eq.draw_line(IDL_N.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         ISB_S = xptNW_midLine.reverse_copy()
         ISB_E = Line([ISB_N.p[-1], ISB_S.p[0]])
@@ -2231,7 +2760,7 @@ class LSN(SNL, Ingrid):
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
 
-        # ODL Patch 
+        # ODL Patch
         location = 'E'
         ODL_N = oPsiMax_TP
         ODL_S = xpt_OTP.reverse_copy()
@@ -2247,7 +2776,7 @@ class LSN(SNL, Ingrid):
         OPF_W = xptS_psiMinPF.reverse_copy()
         OPF = SNL_Patch([OPF_N, OPF_E, OPF_S, OPF_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
-        # OSB Patch 
+        # OSB Patch
         OSB_N = self.eq.draw_line(ODL_N.p[0], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         OSB_S = xptNE_midLine
         OSB_E = xptE_psiMax.reverse_copy()
@@ -2352,93 +2881,8 @@ class USN(SNL, Ingrid):
         super().__init__(INGRID_object)
 
 
-    def construct_grid(self, np_cells = 1, nr_cells = 1):
+    
 
-        # Straighten up East and West segments of our patches,
-        # Plot borders and fill patches.
-
-        try:
-            visual = self.yaml['DEBUG']['visual']['subgrid']
-        except:
-            visual = False
-        try:
-            verbose = self.yaml['DEBUG']['verbose']['grid_generation']
-        except:
-            verbose = False
-
-        try:
-            np_sol = self.yaml['grid_params']['grid_generation']['np_sol']
-        except:
-            np_sol = self.yaml['grid_params']['grid_generation']['np_global']
-        try:
-            np_core = self.yaml['grid_params']['grid_generation']['np_core']
-        except:
-            np_core = self.yaml['grid_params']['grid_generation']['np_global']
-        try:
-            np_pf = self.yaml['grid_params']['grid_generation']['np_pf']
-        except:
-            np_pf = self.yaml['grid_params']['grid_generation']['np_global']
-
-        if np_sol != np_core:
-            print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
-                + ' to the minimum of np_sol and np_core.\n')
-            np_sol = np_core = np.amin([np_sol, np_core])
-
-        try:
-            nr_sol = self.yaml['grid_params']['grid_generation']['nr_sol']
-        except:
-            nr_sol = self.yaml['grid_params']['grid_generation']['nr_global']
-
-        try:
-            nr_core = self.yaml['grid_params']['grid_generation']['nr_core']
-        except:
-            nr_core = self.yaml['grid_params']['grid_generation']['nr_global']
-        try:
-            nr_pf = self.yaml['grid_params']['grid_generation']['nr_pf']
-        except:
-            nr_pf = self.yaml['grid_params']['grid_generation']['nr_global']
-
-        if nr_pf != nr_core:
-            print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
-                + ' to the minimum of nr_pf and nr_core.\n')
-            nr_pf = nr_core = np.amin([nr_pf, nr_core])
-
-        primary_xpt = Point([self.yaml['grid_params']['rxpt'], self.yaml['grid_params']['zxpt']])
-        for patch in self.patches:
-            if patch in self.SOL:
-                nr_cells = nr_sol
-                np_cells = np_sol
-                print('Patch "{}" is in SOL'.format(patch.patchName))
-            elif patch in self.CORE:
-                nr_cells = nr_core
-                np_cells = np_core
-                print('Patch "{}" is in CORE'.format(patch.patchName))
-            elif patch in self.PF:
-                nr_cells = nr_pf
-                np_cells = np_pf
-                print('Patch "{}" is in PF'.format(patch.patchName))
-
-            patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
-
-            if patch.patchName == 'ODL':
-                patch.adjust_corner(primary_xpt, 'SE')
-            elif patch.patchName == 'OPF':
-                patch.adjust_corner(primary_xpt, 'NE')
-            elif patch.patchName == 'OSB':
-                patch.adjust_corner(primary_xpt, 'SW')
-            elif patch.patchName == 'OCB':
-                patch.adjust_corner(primary_xpt, 'NW')
-            elif patch.patchName == 'ICB':
-                patch.adjust_corner(primary_xpt, 'NE')
-            elif patch.patchName == 'ISB':
-                patch.adjust_corner(primary_xpt, 'SE')
-            elif patch.patchName == 'IPF':
-                patch.adjust_corner(primary_xpt, 'NW')
-            elif patch.patchName == 'IDL':
-                patch.adjust_corner(primary_xpt, 'SW')
-
-        self.concat_grid(self.get_configuration())
-        self.set_gridue()
 
     def construct_patches(self):
 
@@ -2493,7 +2937,7 @@ class USN(SNL, Ingrid):
         xptNW_midLine = self.eq.draw_line(xpt['NW'], {'line' : outer_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         xptN_psiMinCore = self.eq.draw_line(xpt['N'], {'psi': psi_min_core}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
         xptNE_midLine = self.eq.draw_line(xpt['NE'], {'line' : inner_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        
+
         # Drawing Lower-SNL region
         if self.yaml['grid_params']['patch_generation']['use_NW']:
             tilt = self.eq.eq_psi_theta['NW'] + self.yaml['grid_params']['patch_generation']['NW_adjust']
@@ -2506,14 +2950,14 @@ class USN(SNL, Ingrid):
             xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi_horizontal' : (psi_max, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
         else:
             xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
-        
+
         xpt_OTP = self.eq.draw_line(xpt['SW'], {'line' : OTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         xptS_psiMinPF = self.eq.draw_line(xpt['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        xpt_ITP = self.eq.draw_line(xpt['SE'], {'line' : ITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)        
+        xpt_ITP = self.eq.draw_line(xpt['SE'], {'line' : ITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         oPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : OTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : OTP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         iPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : ITP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : ITP},option = 'theta', direction = 'cw', show_plot = visual, text = verbose)        
+        psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : ITP},option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
 
         imidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         omidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
@@ -2527,7 +2971,7 @@ class USN(SNL, Ingrid):
                 direction = 'ccw', show_plot = visual, text = verbose, color = 'green')
         imidLine_psiMinCore = self.eq.draw_line(xptNE_midLine.p[-1], {'psi_horizontal' : (psi_min_core, inner_tilt)}, option = 'z_const', \
                 direction = 'cw', show_plot = visual, text = verbose, color = 'black')
-        
+
         # Integrating vertically along top-line towards psiMax and psiMinCore
         topLine_psiMax = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_max}, option = 'r_const', \
                 direction = 'ccw', show_plot = visual, text = verbose)
@@ -2535,18 +2979,18 @@ class USN(SNL, Ingrid):
                 direction = 'cw', show_plot = visual, text = verbose)
 
         # IDL Patch
-        location = 'E'   
+        location = 'E'
         IDL_N = iPsiMax_TP
-        IDL_S = xpt_ITP.reverse_copy()  
+        IDL_S = xpt_ITP.reverse_copy()
         # =====================================================================================
-        # The inner 'split' trims all Point objects BEFORE the point of intersection of ITP 
+        # The inner 'split' trims all Point objects BEFORE the point of intersection of ITP
         # and IDL_N. Call this new Line object Line_A.
         #
         # The outer 'split' trims all Point objects AFTER the point of intersection of Line_A
         # and IDL_S. This new Line object is the plate facing boundary of the Patch.
         # =====================================================================================
         IDL_E = (ITP.split(IDL_N.p[-1])[1]).split(IDL_S.p[0], add_split_point = True)[0]
-        IDL_W = xptE_psiMax   
+        IDL_W = xptE_psiMax
         IDL = SNL_Patch([IDL_N, IDL_E, IDL_S, IDL_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
         # IPF Patch
@@ -2570,7 +3014,7 @@ class USN(SNL, Ingrid):
         ICB_E = xptN_psiMinCore
         ICB_W = Line([ICB_S.p[-1], ICB_N.p[0]])
         ICB = SNL_Patch([ICB_N, ICB_E, ICB_S, ICB_W], patchName = 'ICB')
-        
+
         # IST Patch
         IST_N = self.eq.draw_line(ISB_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         IST_S = imidLine_topLine
@@ -2584,7 +3028,7 @@ class USN(SNL, Ingrid):
         ICT_E = Line([ICT_N.p[-1], ICT_S.p[0]])
         ICT_W = Line([ICT_S.p[-1], ICT_N.p[0]])
         ICT = SNL_Patch([ICT_N, ICT_E, ICT_S, ICT_W], patchName = 'ICT')
-        
+
         # ODL Patch
         location = 'W'
         ODL_N = oPsiMax_TP.reverse_copy()
@@ -2692,28 +3136,107 @@ class USN(SNL, Ingrid):
 
         self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'ixpt1' : ixpt1, 'ixpt2' : ixpt2, 'iyseptrx1' : iyseparatrix1, \
             'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b}
-
-
-def set_params_GUI():
-    """
-    
-    GUI version for Ingrid. Gets the files used, and opens a plot
-    of the Efit data. Allows user to input values for magx, xpt, 
-    and psi levels.
-
-    """
+        print('>>>UEDGE Grid: Nx={} ;Ny={}'.format(nxm,nym))
+def Importgridue(fname:str = 'gridue')->dict:
+    """Import UEDGE grid file as dictionary."""
     try:
-        import tkinter as tk
-    except:
-        import Tkinter as tk
-    try:
-        import tkinter.messagebox as messagebox
-    except:
-        import tkMessageBox as messagebox 
-    def on_closing():
-        if messagebox.askyesno('', 'Are you sure you want to quit?'):
-            plt.close('all')
-            IngridWindow.destroy()
-    IngridWindow = IA.IngridApp()
-    IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
-    IngridWindow.mainloop()
+        f= open(fname, mode = 'r')
+        Values = [int(x) for x in next(f).split()]
+        HeaderItems = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
+        gridue_params=dict(zip(HeaderItems, Values))
+        next(f)
+        BodyItems = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
+        Str={ i : [] for i in BodyItems }
+        k=iter(Str.keys())
+        Key=next(k)
+        for line in f:
+            if line=='iogridue\n':
+                continue
+            if line=='\n':
+                try:
+                    Key=next(k)
+                except:
+                    continue
+                print(Key)
+            else:
+                Str[Key].append(line)
+        f.close()
+        nx=gridue_params['nxm']+2
+        ny=gridue_params['nym']+2
+        for k,v in Str.items():
+            L=(''.join(v).replace('\n','').replace('D','e')).split()
+            l=iter(L)
+            vv= next(l)
+
+            data_=np.zeros((nx,ny,5))
+            for n in range(5):
+                    for j in range(ny):
+                        for i in range(nx):
+
+                            data_[i][j][n]=float(vv)
+
+                            try:
+                                vv=next(l)
+                            except:
+                                continue
+            gridue_params[k]=data_
+        return gridue_params
+    except Exception as e:
+        print(repr(e))
+def CheckOverlapCells(Grid,Verbose=False):
+    from shapely.geometry import Polygon
+    r=Grid['rm']
+    z=Grid['zm']
+    idx=[1,2,4,3]
+    p=[]                  
+    pinfo=[]    
+    Nx=len(r)
+    Ny=len(r[0])
+    # polygon = [[Polygon([(x,y) for (x,y) in zip(r[i,j,idx],z[i,j,idx]]) for y in range(0,Ny)] for i range(0,Nx)]
+                      
+    for i in range(Nx):
+      for j in range(Ny):
+          c=[(r[i,j,idxx],z[i,j,idxx]) for idxx in idx]
+          if Verbose: print(c)
+          p.append(Polygon(c))
+          pinfo.append((i,j))
+    ListIntersect=[]  
+    for p1,pinfo1 in zip(p,pinfo):
+        for p2,pinfo2 in zip(p,pinfo):
+          if p1.intersects(p2) and np.sum(abs(np.array(pinfo1)-np.array(pinfo2)))>2:
+              ListIntersect.append((pinfo1,pinfo2))
+              print('p1:{} and p2:{} intersect!'.format(pinfo1,pinfo2))
+    return ListIntersect
+  
+                
+            
+def Plotgridue(GridueParams,Fill=False,ax=None,Verbose=False,facecolor=None,edgecolor='black'):
+    """Plot UEDGE grid."""
+    if Verbose:
+        print('PlotGridue')
+    r=GridueParams['rm']
+    z=GridueParams['zm']
+    Nx=len(r)
+    Ny=len(r[0])
+    patches=[]
+    if ax is None:
+        ax=plt.gca()
+    idx=[np.array([1,2,4,3,1])]
+    for i in range(Nx):
+        for j in range(Ny):
+                p=matplotlib.patches.Polygon(np.concatenate((r[i][j][idx],z[i][j][idx])).reshape(2,5).T,closed=True,fill=False,edgecolor=edgecolor)
+                if not Fill:
+                    ax.add_patch(p) #draw the contours
+                else:
+                        patches.append(p)
+
+    if Fill:
+        Collec=matplotlib.collections.PatchCollection(patches,match_original=True,facecolors=None,edgecolors=edgecolor)
+        #Collec.set_facecolor(None)
+        ax.add_collection(Collec)
+    plt.ylim(z.min(),z.max())
+    plt.xlim(r.min(),r.max())
+    plt.show()
+
+
+

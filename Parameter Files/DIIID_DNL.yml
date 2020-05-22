@@ -12,7 +12,7 @@
 # -------------------------------------------------------------------------------------------------
 #     num_xpt - (int) Number of x-points
 # -------------------------------------------------------------------------------------------------
-#     psi_* - (double) Bounds of grid domain determined 
+#     psi_* - (double) Bounds of grid domain determined
 #              by normalized psi efit data.
 # -------------------------------------------------------------------------------------------------
 #     patch_generation - (dict) User settings related to patch map generation.
@@ -25,11 +25,11 @@
 #                        boundary that intersects the magnetic-axis
 #          outer_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
 #                        boundary that intersects the magnetic-axis
-#          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction 
+#          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction
 #                    rather than tracing 'W' in rho.
 #          NW_adjust - (double) RADIAN value to adjust the direction of the 'NW' linear trace.
 #
-#          use_NE - (bool/logical-int) Trace linearly from primary-xpt in the 'NE' direction 
+#          use_NE - (bool/logical-int) Trace linearly from primary-xpt in the 'NE' direction
 #                    rather than tracing 'E' in rho.
 #          NE_adjust - (double) RADIAN value to adjust the direction of the 'NE' linear trace.
 # -------------------------------------------------------------------------------------------------
@@ -39,21 +39,21 @@
 #                       patches not adjacent to a target plate.
 #          nr_global - (int) Default number of RADIAL cells to generate for all
 #                       patches not adjacent to a target plate.
-#     
+#
 #          np_core - (int) Number of POLOIDAL cells in the core plasma region
 #          nr_core - (int) Number of RADIAL cells in the core plasma region
 #          radial_f_core - (str) User defined cell "distortion" function for
 #                           radial cells in the core plasma region.
-#          
+#
 #          np_sol - (int) Number of POLOIDAL cells in the scrape-off layer
 #          nr_sol - (int) Number of RADIAL cells in the scrape-off layer
 #          radial_f_sol - (str) User defined cell "distortion" function for
 #                           radial cells in the scrape off layer.
-#          
+#
 #          np_pf - (int) Number of POLOIDAL cells in the private-flux region
 #          nr_pf - (int) Number of RADIAL cells in the private-flux region
 #          radial_f_pf - (str) User defined cell "distortion" function for
-#                           radial cells in the private-flux region.   
+#                           radial cells in the private-flux region.
 # -------------------------------------------------------------------------------------------------
 #     rmagx - (double) r coordinate of magnetic axis
 # -------------------------------------------------------------------------------------------------
@@ -81,8 +81,8 @@
 # -------------------------------------------------------------------------------------------------
 #     step_ratio - (double) A ratio of RZ-domain dimensions to
 #                   determine max_step parameter for LSODA integrator.
-# ------------------------------------------------------------------------------------------------- 
-#     tol - (double) Tolerance value defining convergence criterion   
+# -------------------------------------------------------------------------------------------------
+#     tol - (double) Tolerance value defining convergence criterion
 #            for integration with line_tracing class.
 # =================================================================================================
 
@@ -123,9 +123,9 @@
 #                   after the ',' delimiter utilizing the variable
 #                   VAR defined before-hand.
 #
-#                 - The package SymPy is used to convert user-input 
-#                   to a mathematical expression. This requires the 
-#                   input to be a valid Python expression. 
+#                 - The package SymPy is used to convert user-input
+#                   to a mathematical expression. This requires the
+#                   input to be a valid Python expression.
 #
 #                 - For detailed information on available functions,
 #                   see Sympy docs pertaining to "Functions" module.
@@ -139,31 +139,31 @@
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------
-#     visual - (dict) Dictionary of bool/logical-int values to 
+#     visual - (dict) Dictionary of bool/logical-int values to
 #               activate live-plotting during INGRID operations.
 #
 #         find_NSEW - (bool/logical-int) Show line_tracing during
 #                      search for North/South from primary x-point
-#         patch_map - (bool/logical-int) Show line_tracing during 
+#         patch_map - (bool/logical-int) Show line_tracing during
 #                      generation of patch-map
 #         subgrid - (bool/logical-int) Show line_tracing during
 #                      generation of subgrids within each patch
-#         gridue - (bool/logical-int) Plot gridue data with 
-#                      guard cells in order of increasing poloidal 
+#         gridue - (bool/logical-int) Plot gridue data with
+#                      guard cells in order of increasing poloidal
 #                      and radial indices
 # -------------------------------------------------------------------------------------------------
 #     verbose - (dict) Dictionary of bool/logical-int values to
 #                activate verbose output during INGRID operations.
 #
-#         target_plates - (bool/logical-int) Print all target plate 
+#         target_plates - (bool/logical-int) Print all target plate
 #                          coordinates to terminal.
-#         patch_generation - (bool/logical-int) Print all patch names 
+#         patch_generation - (bool/logical-int) Print all patch names
 #                             and intersection/convergence events
 #                             that occur during patch generation
-#         grid_generation - (bool/logical-int) Print cell information 
-#                            of a patch, and the populating of arrays 
-#                            containing gridue data during meshgrid 
-#                            generation.                    
+#         grid_generation - (bool/logical-int) Print cell information
+#                            of a patch, and the populating of arrays
+#                            containing gridue data during meshgrid
+#                            generation.
 # =================================================================================================
 DEBUG:
     verbose:

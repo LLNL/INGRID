@@ -174,7 +174,7 @@ DEBUG:
         find_NSEW: 0
         gridue: 0
         patch_map: 0
-        subgrid: 0
+        subgrid: 1
 eqdsk: ../data/SNL/DIII-D/neqdsk
 grid_params:
     config: LSN
@@ -202,6 +202,7 @@ grid_params:
         radial_f_secondary_pf: x, x
         radial_f_secondary_sol: x, x
         radial_f_sol: x, x
+        poloidal_f: x, x
     nlevs: 30
     num_xpt: 1
     patch_generation:
@@ -230,7 +231,7 @@ grid_params:
     psi_max_z: -1.072207792208
     psi_max_z_inner: 0.0
     psi_max_z_outer: 0.0
-    psi_min_core: 0.9
+    psi_min_core: 0.8
     psi_min_core_r: 1.363766233766
     psi_min_core_z: -1.030649350649
     psi_min_pf: 0.99
@@ -247,7 +248,7 @@ grid_params:
     zxpt2: 0.0
 integrator_params:
     dt: 0.01
-    eps: 5.0e-05
+    eps: 5.0e-6
     first_step: 5.0e-05
     max_step: 0.064
     step_ratio: 0.02
@@ -260,8 +261,8 @@ target_plates:
         poloidal_f: x, x
         zshift: 1.6
     plate_E2:
-        file: ''
-        name: ''
+        file: 
+        name: 
         np_local: 3
         poloidal_f: x, x
         zshift: 0.0
@@ -272,8 +273,8 @@ target_plates:
         poloidal_f: x, x
         zshift: 1.6
     plate_W2:
-        file: ''
-        name: ''
+        file: 
+        name: 
         np_local: 3
         poloidal_f: x, x
         zshift: 0.0

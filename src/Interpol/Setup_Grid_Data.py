@@ -13,11 +13,11 @@ import matplotlib.pyplot as plt
 
 class Efit_Data:
     """
-    Structure to store the rectangular grid of psi data. It uses 
+    Structure to store the rectangular grid of psi data. It uses
     cylindrical coordinates, where R and Z are similar to the cartesian
-    x and y. The phi components goes away due to the symmetry of a 
+    x and y. The phi components goes away due to the symmetry of a
     tokamak.
-    
+
     Parameters
     ----------
     rmin : float, optional
@@ -34,7 +34,7 @@ class Efit_Data:
         number of grid points in the Z direction
     name : str, optional
         Specify the title of the figure the data will be plotted on.
-    
+
     """
 
     def __init__(self, rmin=0.0, rmax=1.0, nr=10, zmin=0.0, zmax=2.0, nz=20,
@@ -64,16 +64,36 @@ class Efit_Data:
         self.zmagx = zmagx
 
         self.name = name
+    def Gradient(self,xy:tuple)->np.ndarray:
+        """ Combines the first partial derivatives to solve the system for
+        maximum, minimum, and saddle locations.
+
+        Parameters
+        ----------
+        xy : array-like
+            Contains x and y. Ex: xy = (x0, y0).
+
+        Returns
+        -------
+        F : array
+            Vector function to be used in find root.
+        """
+        # combine the deriv functions to solve the system
+        x, y = xy
+        F = np.zeros(2)
+        F[0] = self.get_psi(x, y, tag='vr')
+        F[1] = self.get_psi(x, y, tag='vz')
+        return F
 
     def get_v(self, tag='v'):
         """ returns the entire array of v, vr, vz, or vrz.
         If you want a single value use self.get_psi
-        
+
         Parameters
         ----------
         tag : str, optional
             Specify the type of derivative. 'v', 'vr', 'vz', 'vrz'
-        
+
         Returns
         -------
         ndarray
@@ -90,8 +110,8 @@ class Efit_Data:
             return self.vrz
 
     def set_v(self, value, coords=None, tag='v'):
-        """ sets a value for v, vr, vz, or vrz.        
-        
+        """ sets a value for v, vr, vz, or vrz.
+
         Parameters
         ----------
         value : ndarray, float
@@ -101,7 +121,7 @@ class Efit_Data:
         coords : array-like, optional
             The coordinates of a single value, if you are setting one value.
             if set to none, it will set the entire value
-        
+
         """
         if coords is not None:
             if tag == 'v':
@@ -129,13 +149,13 @@ class Efit_Data:
         These formulas are derived from Taylor Series representations.
         Values for vr, vz, and vrz are produced and saved within the
         grid structure.
-        
+
         Parameters
         ----------
         unit_spacing : bool, optional
             Allow for the derivatives to be calculated on a unit cell,
             or on a grid with any other spacing. Default is true.
-        
+
         """
         # planning to make this more efficient using array slicing
         # need a place to store the new values of the grid
@@ -168,7 +188,7 @@ class Efit_Data:
 
                 vrz[i, j] = (self.v[i+1, j+1] + self.v[i-1, j-1]
                              - self.v[i-1, j+1] - self.v[i+1, j-1])/4/dr/dz
-                
+
         # missed a row in x
         for i in range(1, self.nr-1):
             for j in [0, self.nz-1]:
@@ -234,10 +254,10 @@ class Efit_Data:
         print("Time calculating derivatives", end-start)
 
     def locate_cell(self, r0, z0):
-        """ 
+        """
         Locate the cell on the rectangular grid that surrounds
         a point of interest.
-        
+
         Parameters
         ----------
         r0 : float
@@ -265,9 +285,9 @@ class Efit_Data:
     def get_psi(self, r0, z0, tag='v'):
         """ find grid cell encompassing (r0,z0)
         note: grid is the crude grid. Uses Bicubic Interpolation
-        to calculate the exact value at the point. Useful for 
+        to calculate the exact value at the point. Useful for
         finding information inbetween grid points.
-        
+
         Parameters
         ----------
         r0 : float
@@ -277,12 +297,12 @@ class Efit_Data:
         tag : str, optional
             tag is the type of derivative we want: v, vr, vz, vrz
             if nothing is provided, it assumes no derivative (v).
-        
+
         Returns
         -------
         float
             Value of psi or its derviative at the coordinate specified.
-            
+
         """
         cell = self.locate_cell(r0, z0)
         rcell = self.r[cell['ir'], cell['iz']]
@@ -319,28 +339,35 @@ class Efit_Data:
         points of intersection, and cannot be generalized. If you
         need just a segment of psi, use the draw_lines method in the
         line tracing class.
-        
+
         Parameters
         ----------
         level : float, optional
             Value of psi you wish to see
         color : str, optional
             color of the line.
-        
+
         """
         # draw contour line on top of existing figure
         level = float(level)
         self.ax.contour(self.r, self.z, self.v, level, colors=color)
+    def PlotLevel(self:object, level:float=1.0, color:str='red',label:str='')->None:
+        """
 
-    def plot_data(self, nlev=30):
+        """
+        c=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label)
+        plt.clabel(c, inline=True, fontsize=8)
+        c.collections[0].set_label(label)
+
+    def plot_data(self, nlev=30,interactive=True):
         """ generates the plot that we will be able to manipulate
-        using the root finder 
-        
+        using the root finder
+
         Parameters
         ----------
         nlev : int, optional
             number of levels we want to be plotted
-        
+
         """
         self.fig = plt.figure(self.name, figsize=(6, 10))
         self.ax = self.fig.add_subplot(111)
@@ -354,9 +381,10 @@ class Efit_Data:
         plt.ylabel('Z')
         plt.xlim(self.rmin, self.rmax)
         plt.ylim(self.zmin, self.zmax)
-        plt.ion()
+        if interactive:
+            plt.ion()
         plt.show()
-        
+
     def clear_plot(self):
         if plt.get_fignums():
             plt.clf()

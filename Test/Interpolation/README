@@ -1,0 +1,13 @@
+This test verifies interpolation of Psi in INGRID. The poloidal flux
+Psi is imported from an eqdsk file where it is defined on a cartesian
+grid in R,Z. Bicubic interpolation is used to calculate Psi and its
+derivatives at an arbitrary location within the original R,Z
+domain. In the test the original Psi is interpolated to a different
+cartesian grid, and contour plots of original Psi and interpolated Psi
+are shown together, demonstrating close agreement.
+
+
+Run the test as follows:
+python -i e2d_gridue.py
+
+Implemented by Andreas Holm (Aalto Univ.) on 26-may-2020.

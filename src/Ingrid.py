@@ -429,21 +429,21 @@ class Ingrid:
                     y = float(point.split(',')[1])
                     plate_data[plate]['coordinates'].append((x, y - zshift))
 
-            temp_max = temp_min = plate_data[plate]['coordinates'][0]
+            # temp_max = temp_min = plate_data[plate]['coordinates'][0]
 
-            # Determine the min/max psi values that lie on the current target plate.
-            for (r, z) in plate_data[plate]['coordinates']:
-                curr_v = self.efit_psi.get_psi(r, z)
-                min_v_test = self.efit_psi.get_psi(temp_min[0], temp_min[1])
-                max_v_test = self.efit_psi.get_psi(temp_max[0], temp_max[1])
-                temp_min = (r, z) if curr_v <= min_v_test else temp_min
-                temp_max = (r, z) if curr_v >= max_v_test else temp_max
+            # # Determine the min/max psi values that lie on the current target plate.
+            # for (r, z) in plate_data[plate]['coordinates']:
+            #     curr_v = self.efit_psi.get_psi(r, z)
+            #     min_v_test = self.efit_psi.get_psi(temp_min[0], temp_min[1])
+            #     max_v_test = self.efit_psi.get_psi(temp_max[0], temp_max[1])
+            #     temp_min = (r, z) if curr_v <= min_v_test else temp_min
+            #     temp_max = (r, z) if curr_v >= max_v_test else temp_max
             
-            plate_data[plate]['psi_min_rz'] = temp_min
-            plate_data[plate]['psi_max_rz'] = temp_max
+            # plate_data[plate]['psi_min_rz'] = temp_min
+            # plate_data[plate]['psi_max_rz'] = temp_max
 
-            if debug:
-                print('Using target plate "{}": {}'.format(target_plates[plate]['name'], plate_data[plate]))
+            # if debug:
+            #     print('Using target plate "{}": {}'.format(target_plates[plate]['name'], plate_data[plate]))
 
         # Save plate_data dictionary within the Ingrid object.
         self.plate_data = plate_data
@@ -467,7 +467,53 @@ class Ingrid:
         except:
             pass
 
-    def order_plate_points(self, plate, location = 'LITP', orientation = 'cw'):
+    def determine_plate_psi_min_max(self):
+
+
+        plate_data = self.plate_data
+
+
+        for plate in self.yaml['target_plates']:
+
+            # Check for valid file path
+            try:
+                open(self.yaml['target_plates'][plate]['file'])
+
+            except FileNotFoundError:
+                continue
+
+            temp_min_r, temp_min_z = plate_data[plate]['coordinates'][0]
+            temp_max_r, temp_max_z = plate_data[plate]['coordinates'][-1]
+            temp_min_psi = self.psi_norm.get_psi( temp_min_r, temp_min_z )
+            temp_max_psi = self.psi_norm.get_psi( temp_max_r, temp_max_z )
+
+            # Determine the min/max psi values that lie on the current target plate.
+            for (r, z) in plate_data[plate]['coordinates']:
+
+                current_psi = self.psi_norm.get_psi(r, z)
+
+                if current_psi < temp_min_psi:
+                    temp_min_psi = current_psi
+                    temp_min_r = r
+                    temp_min_z = z
+
+                if current_psi >= temp_max_psi:
+                    temp_max_psi = current_psi
+                    temp_max_r = r
+                    temp_max_z = z
+
+            plate_data[plate]['psi_min_rz'] = (temp_min_r, temp_min_z)
+            plate_data[plate]['psi_max_rz'] = (temp_max_r, temp_max_z)
+
+            print(f"{plate} psi_min_rz = {plate_data[plate]['psi_min_rz']}")
+            print(f"{plate} psi_max_rz = {plate_data[plate]['psi_max_rz']}")
+
+        self.plate_data = plate_data
+
+
+
+
+    def order_plate_points(self, plate, Efit_Data, location = 'LITP', orientation = 'cw', use_psi_norm = True):
         """
         Order the plate points within a Line object in a clockwise or counter-clockwise orientation.
         This is used for patch generation and determining boundaries for Patch objects adjacent to
@@ -494,38 +540,74 @@ class Ingrid:
         #
         # This sign-coefficient adapts the code to a plate below the magnetic axis.
 
-        loc_sgn = 1 if location[0] == 'U' else -1
 
-        # Assume the plate is already ordered.
+        def unit_vector(v):
+            """
+            Returns unit vector
+            """
+            return v / np.linalg.norm(v)
+
+        def angle_between(u, v):
+            """
+            Compute angle in radians between vectors u and v
+            """
+            u_norm = unit_vector(u)
+            v_norm = unit_vector(v)
+            return np.arccos(np.clip(np.dot(u_norm, v_norm), -1, 1))
+
         start = plate.p[0]
         end = plate.p[-1]
 
-        # Endpoints on same vertical line.
+        # Endpoints are on same vertical line
         if start.x == end.x:
-            # If 'end' point above 'start' point.
-            if end.y - start.y > 0:
+            # If end point is above start point
+            if start.y < end.y: 
                 # Return target plate as is
-                return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+                ordered_plate = plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
             else:
-                # Else flip plate orientation.
-                return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+                # Flip plate orientation
+                ordered_plate = plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
 
-        # Endpoints on same horizontal line.
+        # Endpoints are on same horizontal line
         elif start.y == end.y:
-            # If 'end' point to the right of 'start' point.
-            if end.x - start.x > 0:
-                # Return target plate as is
-                return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+            # If start point is right of end point
+            if start.x > end.x:
+                # Return strike plate as is
+                ordered_plate = plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
             else:
-                # Else flip plate orientation
-                return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+                # Flip plate orientation
+                ordered_plate = plate.copy().p if orientation == 'cw' else plate.copy()
 
-        # Endpoints are on sloped line.
-        # Check if 'end' point to the right of 'start' point.
-        elif loc_sgn * (end.x - start.x) > 0:
-            return plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
         else:
-            return plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+
+            # Check the angle between the plate endpoints and a reference vector
+            # constructed from Efit data boundaries rmin, rmax, zmin, zmax.
+
+            if location == "LITP" or location == 'LOTP':
+                # Create reference vector with lower left corner of EFIT domain
+                v_reference = np.array( [ Efit_Data.rmin, Efit_Data.zmin ])
+
+            elif location == "UITP" or location == 'UOTP':
+                # Create reference vector with upper left corner of EFIT domain
+                v_reference = np.array( [ Efit_Data.rmin, Efit_Data.zmax ])
+
+            # Test vectors
+            v1 = np.array( [ plate.p[0].x, plate.p[0].y ] )
+            v2 = np.array( [ plate.p[-1].x, plate.p[-1].y ] )
+
+            if location == 'LITP' or location == 'UOTP':
+                if angle_between(v_reference, v1) < angle_between(v_reference, v2):
+                    ordered_plate = plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+                else:
+                    ordered_plate = plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+            elif location == 'LOTP' or location == 'UITP':
+                if angle_between(v_reference, v1) > angle_between(v_reference, v2):
+                    ordered_plate = plate.copy().p if orientation == 'cw' else plate.copy().p[::-1]
+                else:
+                    ordered_plate = plate.copy().p[::-1] if orientation == 'cw' else plate.copy().p
+
+
+        return ordered_plate
 
     def calc_efit_derivs(self):
         """ 
@@ -588,6 +670,7 @@ class Ingrid:
         psi_xpt1 = self.efit_psi.get_psi(self.xpt1[0], self.xpt1[1])
         psinorm = (psi - np.full_like(psi, psi_magx))/(psi_xpt1 - psi_magx)
         self.psi_norm.set_v(psinorm)
+        self.determine_plate_psi_min_max()
         self.psi_norm.Calculate_PDeriv()
 
     def plot_psinorm(self):
@@ -1125,8 +1208,8 @@ class LSN(SNL, Ingrid):
         psi_min_core = self.yaml['grid_params']['psi_min_core']
         psi_min_pf = self.yaml['grid_params']['psi_min_pf']
 
-        ITP = Line(self.order_plate_points(Line([Point(i) for i in self.itp]), location = 'LITP', orientation = 'cw'))
-        OTP = Line(self.order_plate_points(Line([Point(i) for i in self.otp]), location = 'LOTP', orientation = 'cw'))
+        ITP = Line(self.order_plate_points(Line([Point(i) for i in self.itp]), Efit_Data = self.psi_norm, location = 'LITP', orientation = 'cw'))
+        OTP = Line(self.order_plate_points(Line([Point(i) for i in self.otp]), Efit_Data = self.psi_norm, location = 'LOTP', orientation = 'cw'))
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))

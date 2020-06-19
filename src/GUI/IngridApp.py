@@ -39,6 +39,7 @@ except:
     import tkMessageBox as tkMB
 
 import Ingrid
+import Topologies
 import Root_Finder
 
 import pdb
@@ -1052,10 +1053,10 @@ class ParamPicker(tk.Frame):
         self.Grid.yaml = self.controller.IngridSession.yaml
 
 
-        if isinstance(self.Grid, Ingrid.SNL):
+        if isinstance(self.Grid, Topologies.SNL):
             self.Grid.magx = self.MagAxis
             self.Grid.xpt1 = self.Xpt
-        elif isinstance(self.Grid, Ingrid.DNL):
+        elif isinstance(self.Grid, Topologies.DNL):
             self.Grid.magx = self.MagAxis
             self.Grid.xpt1 = self.Xpt
             self.Grid.xpt2 = self.Xpt2
@@ -1563,6 +1564,7 @@ class GridParameterFrame(tk.LabelFrame):
         return ExpValid
 
     def SetValues(self):
+        # TODO: Provide default values when starting GUI with no provided parameter file.
         for Name,Properties in self.ListNpts.items():
             com="self.{}.set(str(self.IngridSession.yaml['{}']['{}']['{}']))".format(Name,Properties[1][0],Properties[1][1],Properties[1][2])
             if self.Verbose: print(com)

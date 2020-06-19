@@ -174,7 +174,7 @@ DEBUG:
         find_NSEW: 0
         gridue: 0
         patch_map: 0
-        subgrid: 1
+        subgrid: 0
 eqdsk: ../data/SNL/DIII-D/neqdsk
 grid_params:
     config: LSN

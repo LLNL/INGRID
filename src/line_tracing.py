@@ -477,11 +477,11 @@ class LineTracing:
                              'SE': theta_min[1] + np.pi/4,\
                              'SW': theta_min[1] - np.pi/4
                              }
-        # Determine if these NSEW values give us an USN or LSN configuration.
-        sign_test = np.sign([np.cos(self.eq_psi_theta['N']), np.sin(self.eq_psi_theta['N'])])
+        # # Determine if these NSEW values give us an USN or LSN configuration.
+        # sign_test = np.sign([np.cos(self.eq_psi_theta['N']), np.sin(self.eq_psi_theta['N'])])
 
-        self.config = 'LSN' if sign_test[1] == 1 else 'USN'
-        print('===================\nGenerating {} grid...\n==================='.format(self.config))
+        # self.config = 'LSN' if sign_test[1] == 1 else 'USN'
+        # print('===================\nGenerating {} grid...\n==================='.format(self.config))
 
     def DNL_find_NSEW(self, xpt1, xpt2, magx, visual = False):
         """

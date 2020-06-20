@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib
 import pathlib
 import inspect
+import yaml as _yaml_
 try:
     matplotlib.use("TkAgg")
 except:
@@ -32,11 +33,15 @@ class SNL():
     @author: garcia299
     """
 
-    def __init__(self, Ingrid_obj):
+    def __init__(self, Ingrid_obj, config):
 
         self.parent = Ingrid_obj
+        self.config = config
         self.yaml = Ingrid_obj.yaml
         self.plate_data = Ingrid_obj.plate_data
+
+        self.parent.order_target_plates()
+
         self.eq = Ingrid_obj.eq
         self.efit_psi = Ingrid_obj.efit_psi
         self.psi_norm = Ingrid_obj.psi_norm
@@ -340,20 +345,20 @@ class SNL():
 
 
         if Patch.platePatch:
-            # if self.config == 'LSN':
-            if Patch.plateLocation == 'W':
-                _poloidal_f = self.yaml['target_plates']['plate_E1']['poloidal_f']
-                valid_function=self.CheckFunction(_poloidal_f,Enforce)
-            elif Patch.plateLocation == 'E':
-                _poloidal_f = self.yaml['target_plates']['plate_W1']['poloidal_f']
-                valid_function=self.CheckFunction(_poloidal_f,Enforce)
-            # if self.config == 'USN':
-            #     if Patch.plateLocation == 'E':
-            #         _poloidal_f = self.yaml['target_plates']['plate_E1']['poloidal_f']
-            #         valid_function=self.CheckFunction(_poloidal_f,Enforce)
-            #     elif Patch.plateLocation == 'W':
-            #         _poloidal_f = self.yaml['target_plates']['plate_W1']['poloidal_f']
-            #         valid_function=self.CheckFunction(_poloidal_f,Enforce)
+            if self.config == 'LSN':
+                if Patch.plateLocation == 'W':
+                    _poloidal_f = self.yaml['target_plates']['plate_E1']['poloidal_f']
+                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
+                elif Patch.plateLocation == 'E':
+                    _poloidal_f = self.yaml['target_plates']['plate_W1']['poloidal_f']
+                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
+            if self.config == 'USN':
+                if Patch.plateLocation == 'E':
+                    _poloidal_f = self.yaml['target_plates']['plate_E1']['poloidal_f']
+                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
+                elif Patch.plateLocation == 'W':
+                    _poloidal_f = self.yaml['target_plates']['plate_W1']['poloidal_f']
+                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
             if valid_function:
                 _poloidal_f = self.get_func( _poloidal_f)
             else:
@@ -441,16 +446,16 @@ class SNL():
 
         # overwrite poloidal values for target patches
         if Patch.platePatch:
-            #if self.config == 'LSN':
-            if Patch.plateLocation == 'W':
-                np_cells = self.yaml['target_plates']['plate_W1']['np_local']
-            elif Patch.plateLocation == 'E':
-                np_cells = self.yaml['target_plates']['plate_E1']['np_local']
-            # if self.config == 'USN':
-            #     if Patch.plateLocation == 'E':
-            #         np_cells = self.yaml['target_plates']['plate_W1']['np_local']
-            #     elif Patch.plateLocation == 'W':
-            #         np_cells = self.yaml['target_plates']['plate_E1']['np_local']
+            if self.config == 'LSN':
+                if Patch.plateLocation == 'W':
+                    np_cells = self.yaml['target_plates']['plate_W1']['np_local']
+                elif Patch.plateLocation == 'E':
+                    np_cells = self.yaml['target_plates']['plate_E1']['np_local']
+            if self.config == 'USN':
+                if Patch.plateLocation == 'E':
+                    np_cells = self.yaml['target_plates']['plate_W1']['np_local']
+                elif Patch.plateLocation == 'W':
+                    np_cells = self.yaml['target_plates']['plate_E1']['np_local']
 
         return (nr_cells,np_cells)
     def AdjustPatch(self,patch):
@@ -472,22 +477,24 @@ class SNL():
         #         patch.adjust_corner(primary_xpt, 'NW')
         #     elif patch.patchName == 'A2':
         #         patch.adjust_corner(primary_xpt, 'SW')
-        # if self.config == 'LSN':    
-        if patch.patchName == 'A2':
+        # if self.config == 'LSN':
+
+        tag = patch.name2tag()
+        if tag == 'A2':
             patch.adjust_corner(primary_xpt, 'SE')
-        elif patch.patchName == 'A1':
+        elif tag == 'A1':
             patch.adjust_corner(primary_xpt, 'NE')
-        elif patch.patchName == 'B2':
+        elif tag == 'B2':
             patch.adjust_corner(primary_xpt, 'SW')
-        elif patch.patchName == 'B1':
+        elif tag == 'B1':
             patch.adjust_corner(primary_xpt, 'NW')
-        elif patch.patchName == 'E1':
+        elif tag == 'E1':
             patch.adjust_corner(primary_xpt, 'NE')
-        elif patch.patchName == 'E2':
+        elif tag == 'E2':
             patch.adjust_corner(primary_xpt, 'SE')
-        elif patch.patchName == 'F1':
+        elif tag == 'F1':
             patch.adjust_corner(primary_xpt, 'NW')
-        elif patch.patchName == 'F2':
+        elif tag == 'F2':
             patch.adjust_corner(primary_xpt, 'SW')
                 
                 
@@ -510,6 +517,11 @@ class SNL():
         with open(FileName,'r') as File:
             self.patches = _yaml_.load(File,Loader=_yaml_.Loader)
         print(self.patches)
+        if isinstance(self.patches, list):
+            patch_dict = {}
+            for patch in self.patches:
+                patch_dict[patch.name2tag()] = patch
+            self.patches = patch_dict
         for patch in self.patches.values():
             patch.plot_border()
             patch.fill()
@@ -606,10 +618,10 @@ class SNL():
         # Connexion MAP for LSN
         self.ConnexionMap={}
         for name, patch in self.patches.items():
-            if name[1]=='1':
-                self.ConnexionMap[name]={'N':(name[0] + '2','S')}
-        self.ConnexionMap['A1']={'N':('A2','S')}
-        self.ConnexionMap['F1']={'N':('F2','S')}
+            if name[1]=='C':
+                self.ConnexionMap[name]={'N':(name[0]+'S'+name[2],'S')}
+        self.ConnexionMap['IPF']={'N':('IDL','S')}
+        self.ConnexionMap['OPF']={'N':('ODL','S')}
         if self.Verbose: print('ConnexionMap:',self.ConnexionMap)
 
     def construct_patches(self):
@@ -646,19 +658,17 @@ class SNL():
         except KeyError:
             outer_tilt = 0.0
 
-        self.itp = self.plate_data['plate_W1']['coordinates']
-        self.otp = self.plate_data['plate_E1']['coordinates']
 
-        xpt = self.eq.eq_psi
+        WestPlate = Line([Point(i) for i in self.plate_data['plate_W1']['coordinates']])
+        EastPlate = Line([Point(i) for i in self.plate_data['plate_E1']['coordinates']])
+
+        xpt = self.eq.NSEW_lookup['xpt1']['coor']
         magx = np.array([self.yaml['grid_params']['rmagx'] + self.yaml['grid_params']['patch_generation']['rmagx_shift'], \
             self.yaml['grid_params']['zmagx'] + self.yaml['grid_params']['patch_generation']['zmagx_shift']])
 
         psi_max = self.yaml['grid_params']['psi_max']
         psi_min_core = self.yaml['grid_params']['psi_min_core']
         psi_min_pf = self.yaml['grid_params']['psi_min_pf']
-
-        ITP = Line([Point(i) for i in self.itp])
-        OTP = Line([Point(i) for i in self.otp])
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
@@ -683,48 +693,52 @@ class SNL():
 
         # Drawing Lower-SNL region
         if self.yaml['grid_params']['patch_generation']['use_NW']:
-            tilt = self.eq.eq_psi_theta['NW'] + self.yaml['grid_params']['patch_generation']['NW_adjust']
+            tilt = self.eq.NSEW_lookup['xpt1']['theta']['NW'] + self.yaml['grid_params']['patch_generation']['NW_adjust']
             xptW_psiMax = self.eq.draw_line(xpt['W'], {'psi_horizontal' : (psi_max, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
         else:
             xptW_psiMax = self.eq.draw_line(xpt['W'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
 
         if self.yaml['grid_params']['patch_generation']['use_NE']:
-            tilt = self.eq.eq_psi_theta['NE'] + self.yaml['grid_params']['patch_generation']['NE_adjust']
+            tilt = self.eq.NSEW_lookup['xpt1']['theta']['NE'] + self.yaml['grid_params']['patch_generation']['NE_adjust']
             xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi_horizontal' : (psi_max, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
         else:
             xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
 
-        xpt_ITP = self.eq.draw_line(xpt['SW'], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        xpt_WestPlate = self.eq.draw_line(xpt['SW'], {'line' : WestPlate}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         xptS_psiMinPF = self.eq.draw_line(xpt['S'], {'psi' : psi_min_pf}, option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        xpt_OTP = self.eq.draw_line(xpt['SE'], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        iPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : ITP}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        psiMinPF_ITP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : ITP},option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        oPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        psiMinPF_OTP = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : OTP}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        xpt_EastPlate = self.eq.draw_line(xpt['SE'], {'line' : EastPlate}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        iPsiMax_TP = self.eq.draw_line(xptW_psiMax.p[-1], {'line' : WestPlate}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        psiMinPF_WestPlate = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : WestPlate},option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        oPsiMax_TP = self.eq.draw_line(xptE_psiMax.p[-1], {'line' : EastPlate}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+        psiMinPF_EastPlate = self.eq.draw_line(xptS_psiMinPF.p[-1], {'line' : EastPlate}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
 
-        imidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        omidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+        imidLine_topLine = self.eq.draw_line(xptNW_midLine.p[-1], {'line' : topLine}, option = 'theta', \
+            direction = 'cw', show_plot = visual, text = verbose)
+        
+        omidLine_topLine = self.eq.draw_line(xptNE_midLine.p[-1], {'line' : topLine}, option = 'theta', \
+            direction = 'ccw', show_plot = visual, text = verbose)
 
         # Integrating horizontally along mid-line towards psiMax and psiMinCore
+
         imidLine_psiMax = self.eq.draw_line(xptNW_midLine.p[-1], {'psi_horizontal' : (psi_max, inner_tilt)}, option = 'z_const', \
-                direction = 'ccw', show_plot = visual, text = verbose)
+                direction = 'ccw' if self.config == 'LSN' else 'cw', show_plot = visual, text = verbose)
         imidLine_psiMinCore = self.eq.draw_line(xptNW_midLine.p[-1], {'psi_horizontal' : (psi_min_core, inner_tilt)}, option = 'z_const', \
-                direction = 'cw', show_plot = visual, text = verbose)
+                direction = 'cw' if self.config == 'LSN' else 'ccw', show_plot = visual, text = verbose)
         omidLine_psiMax = self.eq.draw_line(xptNE_midLine.p[-1], {'psi_horizontal' : (psi_max, outer_tilt)}, option = 'z_const', \
-                direction = 'cw', show_plot = visual, text = verbose)
+                direction = 'cw' if self.config == 'LSN' else 'ccw', show_plot = visual, text = verbose)
         omidLine_psiMinCore = self.eq.draw_line(xptNE_midLine.p[-1], {'psi_horizontal' : (psi_min_core, outer_tilt)}, option = 'z_const', \
-                direction = 'ccw', show_plot = visual, text = verbose)
+                direction = 'ccw' if self.config == 'LSN' else 'cw', show_plot = visual, text = verbose)
 
         # Integrating vertically along top-line towards psiMax and psiMinCore
         topLine_psiMax = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_max}, option = 'r_const', \
-                direction = 'cw', show_plot = visual, text = verbose)
+                direction = 'cw' if self.config == 'LSN' else 'ccw', show_plot = visual, text = verbose)
         topLine_psiMinCore = self.eq.draw_line(omidLine_topLine.p[-1], {'psi_vertical' : psi_min_core}, option = 'r_const', \
-                direction = 'ccw', show_plot = visual, text = verbose)
+                direction = 'ccw' if self.config == 'LSN' else 'cw', show_plot = visual, text = verbose)
 
         # A1 Patch
         location = 'W'
         A2_N = iPsiMax_TP.reverse_copy()
-        A2_S = xpt_ITP
+        A2_S = xpt_WestPlate
         A2_E = xptW_psiMax.reverse_copy()
         # =====================================================================================
         # Trimming the target_plate to conform to the patch boundary.
@@ -737,17 +751,17 @@ class SNL():
         # The outer 'split' trims all Point objects AFTER the point of intersection of Line_A
         # and A2_N. This new Line object is the plate facing boundary of the Patch.
         # =====================================================================================
-        A2_W = (ITP.split(A2_S.p[-1])[1]).split(A2_N.p[0], add_split_point = True)[0]
-        A2 = SNL_Patch([A2_N, A2_E, A2_S, A2_W], patchName = 'A2', platePatch = True, plateLocation = location)
+        A2_W = (WestPlate.split(A2_S.p[-1])[1]).split(A2_N.p[0], add_split_point = True)[0]
+        A2 = SNL_Patch([A2_N, A2_E, A2_S, A2_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
         # A1 Patch
         location = 'W'
         A1_N = A2_S.reverse_copy()
         
-        A1_S = psiMinPF_ITP
+        A1_S = psiMinPF_WestPlate
         A1_E = xptS_psiMinPF
-        A1_W = (ITP.split(A1_S.p[-1])[1]).split(A1_N.p[0], add_split_point = True)[0]
-        A1 = SNL_Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'A1', platePatch = True, plateLocation = location)
+        A1_W = (WestPlate.split(A1_S.p[-1])[1]).split(A1_N.p[0], add_split_point = True)[0]
+        A1 = SNL_Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # B2 Patch
         
@@ -755,89 +769,91 @@ class SNL():
         B2_S = xptNW_midLine.reverse_copy()
         B2_E = Line([B2_N.p[-1], B2_S.p[0]])
         B2_W = xptW_psiMax
-        B2 = SNL_Patch([B2_N, B2_E, B2_S, B2_W], patchName = 'B2')
+        B2 = SNL_Patch([B2_N, B2_E, B2_S, B2_W], patchName = 'ISB')
 
         # B1 Patch
         B1_N = B2_S.reverse_copy()
         B1_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose).reverse_copy()
         B1_E = Line([B1_N.p[-1], B1_S.p[0]])
         B1_W = xptN_psiMinCore.reverse_copy()
-        B1 = SNL_Patch([B1_N, B1_E, B1_S, B1_W], patchName = 'B1')
+        B1 = SNL_Patch([B1_N, B1_E, B1_S, B1_W], patchName = 'ICB')
 
         # C2 Patch
         C2_N = self.eq.draw_line(B2_N.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         C2_S = imidLine_topLine.reverse_copy()
         C2_E = Line([C2_N.p[-1], C2_S.p[0]])
         C2_W = Line([C2_S.p[-1], C2_N.p[0]])
-        C2 = SNL_Patch([C2_N, C2_E, C2_S, C2_W], patchName = 'C2')
+        C2 = SNL_Patch([C2_N, C2_E, C2_S, C2_W], patchName = 'IST')
 
         # C1 Patch
         C1_N = C2_S.reverse_copy()
         C1_S = self.eq.draw_line(B1_S.p[0], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose).reverse_copy()
         C1_E = Line([C1_N.p[-1], C1_S.p[0]])
         C1_W = Line([C1_S.p[-1], C1_N.p[0]])
-        C1 = SNL_Patch([C1_N, C1_E, C1_S, C1_W], patchName = 'C1')
+        C1 = SNL_Patch([C1_N, C1_E, C1_S, C1_W], patchName = 'ICT')
 
         # F2 Patch
         location = 'E'
         F2_N = oPsiMax_TP
-        F2_S = xpt_OTP.reverse_copy()
-        F2_E = (OTP.split(F2_N.p[-1])[1]).split(F2_S.p[0], add_split_point = True)[0]
+        F2_S = xpt_EastPlate.reverse_copy()
+        F2_E = (EastPlate.split(F2_N.p[-1])[1]).split(F2_S.p[0], add_split_point = True)[0]
         F2_W = xptE_psiMax
-        F2 = SNL_Patch([F2_N, F2_E, F2_S, F2_W], patchName = 'F2', platePatch = True, plateLocation = location)
+        F2 = SNL_Patch([F2_N, F2_E, F2_S, F2_W], patchName = 'ODL', platePatch = True, plateLocation = location)
 
         # F1 Patch
         location = 'E'
         F1_N = F2_S.reverse_copy()
-        F1_S = psiMinPF_OTP.reverse_copy()
-        F1_E = (OTP.split(F1_N.p[-1])[1]).split(F1_S.p[0], add_split_point = True)[0]
+        F1_S = psiMinPF_EastPlate.reverse_copy()
+        F1_E = (EastPlate.split(F1_N.p[-1])[1]).split(F1_S.p[0], add_split_point = True)[0]
         F1_W = xptS_psiMinPF.reverse_copy()
-        F1 = SNL_Patch([F1_N, F1_E, F1_S, F1_W], patchName = 'F1', platePatch = True, plateLocation = location)
+        F1 = SNL_Patch([F1_N, F1_E, F1_S, F1_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
         # E2 Patch
         E2_N = self.eq.draw_line(F2_N.p[0], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         E2_S = xptNE_midLine
         E2_E = xptE_psiMax.reverse_copy()
         E2_W = Line([E2_S.p[-1], E2_N.p[0]])
-        E2 = SNL_Patch([E2_N, E2_E, E2_S, E2_W], patchName = 'E2')
+        E2 = SNL_Patch([E2_N, E2_E, E2_S, E2_W], patchName = 'OSB')
 
         # E1 Patch
         E1_N = E2_S.reverse_copy()
         E1_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         E1_E = xptN_psiMinCore
         E1_W = Line([E1_S.p[-1], E1_N.p[0]])
-        E1 = SNL_Patch([E1_N, E1_E, E1_S, E1_W], patchName = 'E1')
+        E1 = SNL_Patch([E1_N, E1_E, E1_S, E1_W], patchName = 'OCB')
 
         # D2 Patch
         D2_N = self.eq.draw_line(E2_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         D2_S = omidLine_topLine
         D2_E = Line([D2_N.p[-1], D2_S.p[0]])
         D2_W = Line([D2_S.p[-1], D2_N.p[0]])
-        D2 = SNL_Patch([D2_N, D2_E, D2_S, D2_W], patchName = 'D2')
+        D2 = SNL_Patch([D2_N, D2_E, D2_S, D2_W], patchName = 'OST')
 
         # D1 Patch
         D1_N = D2_S.reverse_copy()
         D1_S = self.eq.draw_line(E1_S.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         D1_E = Line([D1_N.p[-1], D1_S.p[0]])
         D1_W = Line([D1_S.p[-1], D1_N.p[0]])
-        D1 = SNL_Patch([D1_N, D1_E, D1_S, D1_W], patchName = 'D1')
+        D1 = SNL_Patch([D1_N, D1_E, D1_S, D1_W], patchName = 'OCT')
 
         patches = [A2, A1, B2, B1, C2, C1, D2, D1, E2, E1, F2, F1]
-        names = ['A2', 'A1', 'B2', 'B1', 'C2', 'C1', 'D2', 'D1', 'E2', 'E1', 'F2', 'F1']
 
         self.patches = {}
-        for name, patch in zip(names, patches):
-            self.patches[name] = patch
+        for patch in patches:
+            self.patches[patch,patchName] = patch
             patch.plot_border()
             patch.fill()
 
         p = self.patches
         self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-                        [[None], p['A2'], p['B2'], p['C2'], p['D2'], p['E2'], p['F2'], [None]], \
-                        [[None], p['A1'], p['B1'], p['C1'], p['D1'], p['E1'], p['F1'], [None]], \
+                        [[None], p[A2.patchName], p[B2.patchName], p[C2.patchName], p[D2.patchName], p[E2.patchName], p[F2.patchName], [None]], \
+                        [[None], p[A1.patchName], p[B1.patchName], p[C1.patchName], p[D1.patchName], p[E1.patchName], p[F1.patchName], [None]], \
                         [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
                         ]
 
+        self.categorize_patches()
+
+    def catagorize_patches(self):
         m = self.patch_matrix
         self.SOL = m[1][1:-1]
         self.CORE = m[2][2:-2]
@@ -851,9 +867,9 @@ class SNL():
         # RECALL: self.rm has FORTRAN style ordering (columns are accessed via the first entry)
         # Getting relevant values for gridue file
         ixrb = len(self.rm) - 2
-        ixpt1 = self.patches['A2'].npol - 1
-        ixpt2 = ixrb - self.patches['F2'].npol + 1
-        iyseparatrix1 = self.patches['A2'].nrad - 1
+        ixpt1 = self.patches['IDL'].npol - 1
+        ixpt2 = ixrb - self.patches['ODL'].npol + 1
+        iyseparatrix1 = self.patches['IDL'].nrad - 1
         nxm = len(self.rm) - 2
         nym = len(self.rm[0]) - 2
 
@@ -1446,10 +1462,10 @@ class SNL():
 #         self.plate_E2 = self.plate_data['plate_E2']['coordinates']
 #         self.plate_W2 = self.plate_data['plate_W2']['coordinates']
 
-#         xpt1_dict = self.eq.eq_psi['xpt1']
-#         xpt1_theta = self.eq.eq_psi_theta['xpt1']
-#         xpt2_dict = self.eq.eq_psi['xpt2']
-#         xpt1_theta = self.eq.eq_psi_theta['xpt2']
+#         xpt1_dict = self.eq.NSEW_lookup['xpt1']['coor']
+#         xpt1_theta = self.eq.NSEW_lookup['xpt1']['theta']
+#         xpt2_dict = self.eq.NSEW_lookup['xpt2']['coor']
+#         xpt1_theta = self.eq.NSEW_lookup['xpt2']['theta']
 
 #         sptrx1_v = self.psi_norm.get_psi(self.xpt1[0], self.xpt1[1])
 #         sptrx2_v = self.psi_norm.get_psi(self.xpt2[0], self.xpt2[1])

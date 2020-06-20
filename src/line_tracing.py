@@ -464,13 +464,15 @@ class LineTracing:
                           zxpt + self.eps*np.sin(theta_max[1]) ))
 
         # Dictionary containing NSEW coordinates.
-        self.eq_psi = {'N' : NSEW_coor[0], 'S' : NSEW_coor[1], \
-                       'NE': NSEW_coor[2], 'NW': NSEW_coor[3], \
-                       'SE': NSEW_coor[4], 'SW': NSEW_coor[5], \
-                       'E' : NSEW_coor[6], 'W' : NSEW_coor[7]  \
-                       }
+        self.NSEW_lookup = {'xpt1' : {}, 'xpt2' : {}}
+
+        self.NSEW_lookup['xpt1']['coor'] = {'N' : NSEW_coor[0], 'S' : NSEW_coor[1], \
+                               'NE': NSEW_coor[2], 'NW': NSEW_coor[3], \
+                               'SE': NSEW_coor[4], 'SW': NSEW_coor[5], \
+                               'E' : NSEW_coor[6], 'W' : NSEW_coor[7]  \
+                              }
         # Dictionary containing NSEW theta values.
-        self.eq_psi_theta = {'N' : theta_min[0], 'S' : theta_min[1], \
+        self.NSEW_lookup['xpt1']['theta'] = {'N' : theta_min[0], 'S' : theta_min[1], \
                              'E' : theta_max[0], 'W' : theta_max[1], \
                              'NE': theta_min[0] - np.pi/4,\
                              'NW': theta_min[0] + np.pi/4,\
@@ -478,10 +480,10 @@ class LineTracing:
                              'SW': theta_min[1] - np.pi/4
                              }
         # # Determine if these NSEW values give us an USN or LSN configuration.
-        # sign_test = np.sign([np.cos(self.eq_psi_theta['N']), np.sin(self.eq_psi_theta['N'])])
+        sign_test = np.sign([np.cos(self.NSEW_lookup['xpt1']['theta']['N']), np.sin(self.NSEW_lookup['xpt1']['theta']['N'])])
 
-        # self.config = 'LSN' if sign_test[1] == 1 else 'USN'
-        # print('===================\nGenerating {} grid...\n==================='.format(self.config))
+        self.config = 'LSN' if sign_test[1] == 1 else 'USN'
+        print('===================\nGenerating {} grid...\n==================='.format(self.config))
 
     def DNL_find_NSEW(self, xpt1, xpt2, magx, visual = False):
         """
@@ -727,14 +729,16 @@ class LineTracing:
 
 
             key = 'xpt1' if xpt is xpt1 else 'xpt2'
+
+            self.NSEW_lookup = {'xpt1' : {}, 'xpt2' : {}}
             # Dictionary containing NSEW coordinates.
-            self.eq_psi[key] = {'N' : NSEW_coor[0], 'S' : NSEW_coor[1], \
+            self.NSEW_lookup[key]['coor'] = {'N' : NSEW_coor[0], 'S' : NSEW_coor[1], \
                            'NE': NSEW_coor[2], 'NW': NSEW_coor[3], \
                            'SE': NSEW_coor[4], 'SW': NSEW_coor[5], \
                            'E' : NSEW_coor[6], 'W' : NSEW_coor[7]  \
                            }
             # Dictionary containing NSEW theta values.
-            self.eq_psi_theta[key] = {'N' : theta_min[0], 'S' : theta_min[1], \
+            self.NSEW_lookup[key]['theta'] = {'N' : theta_min[0], 'S' : theta_min[1], \
                                  'E' : theta_max[0], 'W' : theta_max[1], \
                                  'NE': theta_min[0] - np.pi/4,\
                                  'NW': theta_min[0] + np.pi/4,\

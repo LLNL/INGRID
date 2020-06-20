@@ -540,7 +540,7 @@ class SNL():
                     [[None], p['A1'], p['B1'], p['C1'], p['D1'], p['E1'], p['F1'], [None]], \
                     [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
                     ]
-        self.catagorize_patches()
+        self.categorize_patches()
 
     def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all'):
 
@@ -840,7 +840,7 @@ class SNL():
 
         self.patches = {}
         for patch in patches:
-            self.patches[patch,patchName] = patch
+            self.patches[patch.patchName] = patch
             patch.plot_border()
             patch.fill()
 
@@ -853,7 +853,7 @@ class SNL():
 
         self.categorize_patches()
 
-    def catagorize_patches(self):
+    def categorize_patches(self):
         m = self.patch_matrix
         self.SOL = m[1][1:-1]
         self.CORE = m[2][2:-2]

@@ -80,8 +80,8 @@ igrd.current_topology.Verbose=True
 plt.ion()
 plt.show()
 igrd.Verbose=True
-igrd.current_topology.patches['A1'].Verbose=True
-igrd.current_topology.patches['A2'].Verbose=True
+igrd.current_topology.patches['IDL'].Verbose=True
+igrd.current_topology.patches['IPF'].Verbose=True
 igrd.CreateSubgrid(ShowVertices='detailed',RestartScratch=True,NewFig=False,OptionTrace='theta',ExtraSettings=Dic,ListPatches='all')
 ['ISB','ICB']
 #%%

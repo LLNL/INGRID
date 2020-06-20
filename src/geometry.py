@@ -562,10 +562,26 @@ class Patch:
             self.cell_grid[-1][0].vertices[corner] = point
 
 
-
 class SNL_Patch(Patch):
     def __init__(self, lines, patchName = '', platePatch = False, plateLocation = None):
         super().__init__(lines, patchName, platePatch, plateLocation)
+
+    def name2tag(self):
+        name_tag_map={
+            'IDL' : 'A2',
+            'IPF' : 'A1',
+            'ISB' : 'B2',
+            'ICB' : 'B1',
+            'IST' : 'C2',
+            'ICT' : 'C1',
+            'OST' : 'D2',
+            'OCT' : 'D1',
+            'OSB' : 'E2',
+            'OCB' : 'E1',
+            'ODL' : 'F2',
+            'OPF' : 'F1'
+        }
+        return name_tag_map[self.patchName]
 
     def make_subgrid(self, grid, np_cells = 2, nr_cells = 2, _poloidal_f=lambda x:x, _radial_f=lambda x:x,verbose = False, visual = False,ShowVertices=False,OptionTrace='theta'):
         """

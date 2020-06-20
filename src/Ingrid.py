@@ -579,7 +579,6 @@ class Ingrid:
 
         # Save plate_data dictionary within the Ingrid object.
         self.plate_data = plate_data
-        self.order_target_plates()
 
     def order_target_plates(self):
         """
@@ -600,7 +599,8 @@ class Ingrid:
             """
             u_norm = unit_vector(u)
             v_norm = unit_vector(v)
-            return np.arccos(np.clip(np.dot(u_norm, v_norm), -1, 1))
+            return np.arctan2(u_norm[0] * v_norm[1] - u_norm[1] * v_norm[0], \
+                u_norm[0] * v_norm[0] + u_norm[0] * v_norm[1])
 
 
         for k in self.plate_data.keys():
@@ -648,11 +648,8 @@ class Ingrid:
                 v_start = np.array( [ start.x, start.y ] ) - v_reference
                 v_end = np.array( [ end.x, end.y ] ) - v_reference
 
-                # Return as is if already in cw orientation
                 if angle_between(v_start, v_end) <= 0:
                     ordered_plate = plate.copy()
-
-                # Else flip ordering
                 else:
                     ordered_plate = plate.reverse_copy()
 
@@ -804,23 +801,23 @@ class Ingrid:
             debug = self.yaml['DEBUG']['visual']['find_NSEW']
         except:
             debug = False
+
         if self.yaml['grid_params']['num_xpt'] == 1:
             self.eq.SNL_find_NSEW(self.xpt1, self.magx, debug)
-            config = "SNL"
+
         elif self.yaml['grid_params']['num_xpt'] == 2:
             self.eq.DNL_find_NSEW(self.xpt1, self.xpt2, self.magx, debug)
-            config = "DNL"
 
-        self.yaml['grid_params']['config'] = config
-        return config
+        self.yaml['grid_params']['config'] = self.eq.config
+        return self.eq.config
 
     def _analyze_topology(self,verbose=False):
         if verbose: print(" # Analyzing topology....")
         config = self._classify_gridtype()
-        if config == 'SNL':
-            ingrid_topology = SNL(self)
-        elif config == 'DNL':
-            ingrid_topology = DNL(self)
+        if config in ['LSN', 'USN']:
+            ingrid_topology = SNL(self, config)
+        elif config in ['DNL']:
+            ingrid_topology = DNL(self, config)
 
         self.current_topology = ingrid_topology
 

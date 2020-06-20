@@ -47,14 +47,14 @@ grid_params:
         use_SW: False
         use_SE: False
     grid_generation:
-        np_core: 14
-        np_global: 14
-        np_pf: 14
-        np_sol: 14
-        nr_core: 25
-        nr_global: 25
-        nr_pf: 25
-        nr_sol: 25
+        np_core: 3
+        np_global: 3
+        np_pf: 3
+        np_sol: 3
+        nr_core: 3
+        nr_global: 3
+        nr_pf: 3
+        nr_sol: 3
         radial_f_core: x, x
         radial_f_pf: x, x
         radial_f_sol: x, x
@@ -139,13 +139,25 @@ target_plates:
     plate_E1:
         file: ../data/SNL/USN/itp4.txt
         name: plate_E1
-        np_local: 14
+        np_local: 3
         poloidal_f: x, x
     plate_W1:
         file: ../data/SNL/USN/otp4.txt
         name: plate_W1
-        np_local: 14
+        np_local: 3
         poloidal_f: x, x
+    plate_E2:
+        file: 
+        name: 
+        np_local: 3
+        poloidal_f: x, x
+        zshift: 0.0
+    plate_W2:
+        file: 
+        name: 
+        np_local: 3
+        poloidal_f: x, x
+        zshift: 0.0
 # ===================================================================
 # DEBUG:
 #     Controls for DEBUG mode in INGRID.

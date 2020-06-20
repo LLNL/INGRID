@@ -520,12 +520,14 @@ class SNL():
         if isinstance(self.patches, list):
             patch_dict = {}
             for patch in self.patches:
-                patch_dict[patch.name2tag()] = patch
+                patch_dict[patch.patchName] = patch
             self.patches = patch_dict
         for patch in self.patches.values():
             patch.plot_border()
             patch.fill()
         p = self.patches
+        print('>>> Loaded Patches:', [k for k in self.patches.keys()])
+
 
         # if self.config == 'USN':
         #     self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
@@ -536,8 +538,8 @@ class SNL():
 
         # if self.config == 'LSN':
         self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-                    [[None], p['A2'], p['B2'], p['C2'], p['D2'], p['E2'], p['F2'], [None]], \
-                    [[None], p['A1'], p['B1'], p['C1'], p['D1'], p['E1'], p['F1'], [None]], \
+                    [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
+                    [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
                     [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
                     ]
         self.categorize_patches()

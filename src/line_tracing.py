@@ -11,6 +11,7 @@ Created on Wed Jul  3 14:07:45 2019
 from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from scipy.integrate import solve_ivp, LSODA
 from scipy.optimize import root_scalar
 from Root_Finder import RootFinder
@@ -1098,6 +1099,7 @@ class LineTracing:
                 break
             count += 1
         end = time()
+
         if text:
             print('Drew for {} seconds\n'.format(end-start))
 

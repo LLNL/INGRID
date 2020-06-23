@@ -17,6 +17,12 @@ try:
 except:
     pass
 import matplotlib.pyplot as plt
+import matplotlib.style as style
+try:
+    style.use('fast')
+except:
+    pass
+from matplotlib.patches import Polygon
 from geometry import Point, Line, SNL_Patch, DNL_Patch, segment_intersect
 
 
@@ -458,26 +464,9 @@ class SNL():
                     np_cells = self.yaml['target_plates']['plate_E1']['np_local']
 
         return (nr_cells,np_cells)
+
     def AdjustPatch(self,patch):
         primary_xpt = Point([self.yaml['grid_params']['rxpt'], self.yaml['grid_params']['zxpt']])
-        # if self.config == 'USN':
-        #     if patch.patchName == 'F2':
-        #         patch.adjust_corner(primary_xpt, 'SE')
-        #     elif patch.patchName == 'F1':
-        #         patch.adjust_corner(primary_xpt, 'NE')
-        #     elif patch.patchName == 'E2':
-        #         patch.adjust_corner(primary_xpt, 'SW')
-        #     elif patch.patchName == 'E1':
-        #         patch.adjust_corner(primary_xpt, 'NW')
-        #     elif patch.patchName == 'B1':
-        #         patch.adjust_corner(primary_xpt, 'NE')
-        #     elif patch.patchName == 'B2':
-        #         patch.adjust_corner(primary_xpt, 'SE')
-        #     elif patch.patchName == 'A1':
-        #         patch.adjust_corner(primary_xpt, 'NW')
-        #     elif patch.patchName == 'A2':
-        #         patch.adjust_corner(primary_xpt, 'SW')
-        # if self.config == 'LSN':
 
         tag = patch.name2tag()
         if tag == 'A2':
@@ -496,7 +485,6 @@ class SNL():
             patch.adjust_corner(primary_xpt, 'NW')
         elif tag == 'F2':
             patch.adjust_corner(primary_xpt, 'SW')
-                
                 
                 
     def CheckPatches(self,verbose=False):
@@ -544,7 +532,7 @@ class SNL():
                     ]
         self.categorize_patches()
 
-    def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all'):
+    def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=True):
 
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
@@ -576,8 +564,8 @@ class SNL():
                 patch.CorrectDistortion={'Active':False}
             if (ListPatches=='all' and patch not in self.CurrentListPatch) or (ListPatches!='all' and name in ListPatches):
                 self.SetPatchBoundaryPoints(patch)
-                (nr_cells,np_cells)=self.GetNpoints(patch)
-                (_radial_f,_poloidal_f)=self.GetFunctions(patch,ExtraSettings=ExtraSettings)
+                (nr_cells,np_cells)=self.GetNpoints(patch, Enforce=Enforce)
+                (_radial_f,_poloidal_f)=self.GetFunctions(patch,ExtraSettings=ExtraSettings,Enforce=Enforce)
                 print('>>> Making subgrid in patch:{} with np={},nr={},fp={},fr={}'.format(name, np_cells, nr_cells, inspect.getsource(_poloidal_f), inspect.getsource(_radial_f)))
                 patch.make_subgrid(self, np_cells, nr_cells, _poloidal_f=_poloidal_f,_radial_f=_radial_f,verbose = verbose, visual = visual,ShowVertices=ShowVertices,OptionTrace=OptionTrace)
                 self.AdjustPatch(patch)

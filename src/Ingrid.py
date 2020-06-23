@@ -965,7 +965,7 @@ class Ingrid:
             print('Current Working Directory:'+os.getcwd())
             raise IOError('Cannot find the file: ' +FileName)
 
-    def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all'):
+    def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=True):
 
 
         try:
@@ -988,7 +988,7 @@ class Ingrid:
         if NewFig:
             self.FigGrid=plt.figure('INGRID: Grid', figsize=(10,10))
             ax=self.FigGrid.gca()
-        self.current_topology.construct_grid(np_cells, nr_cells,ShowVertices=ShowVertices,RestartScratch=RestartScratch,OptionTrace=OptionTrace,ExtraSettings=ExtraSettings,ListPatches=ListPatches)
+        self.current_topology.construct_grid(np_cells, nr_cells,ShowVertices=ShowVertices,RestartScratch=RestartScratch,OptionTrace=OptionTrace,ExtraSettings=ExtraSettings,ListPatches=ListPatches,Enforce=Enforce)
 
 
             #Plotgridue(self.current_topology.gridue_params,ax=ax,Verbose=True,facecolor=None,edgecolor=color)

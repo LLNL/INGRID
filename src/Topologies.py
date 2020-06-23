@@ -532,7 +532,7 @@ class SNL():
                     ]
         self.categorize_patches()
 
-    def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all'):
+    def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=True):
 
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
@@ -564,8 +564,8 @@ class SNL():
                 patch.CorrectDistortion={'Active':False}
             if (ListPatches=='all' and patch not in self.CurrentListPatch) or (ListPatches!='all' and name in ListPatches):
                 self.SetPatchBoundaryPoints(patch)
-                (nr_cells,np_cells)=self.GetNpoints(patch)
-                (_radial_f,_poloidal_f)=self.GetFunctions(patch,ExtraSettings=ExtraSettings)
+                (nr_cells,np_cells)=self.GetNpoints(patch, Enforce=Enforce)
+                (_radial_f,_poloidal_f)=self.GetFunctions(patch,ExtraSettings=ExtraSettings,Enforce=Enforce)
                 print('>>> Making subgrid in patch:{} with np={},nr={},fp={},fr={}'.format(name, np_cells, nr_cells, inspect.getsource(_poloidal_f), inspect.getsource(_radial_f)))
                 patch.make_subgrid(self, np_cells, nr_cells, _poloidal_f=_poloidal_f,_radial_f=_radial_f,verbose = verbose, visual = visual,ShowVertices=ShowVertices,OptionTrace=OptionTrace)
                 self.AdjustPatch(patch)

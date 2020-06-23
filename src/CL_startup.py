@@ -5,11 +5,13 @@ USN_case = "../Parameter Files/USN_YAML_EXAMPLE.yml"
 DIIID_case = "../Parameter Files/DIIID_SNL.yml"
 SAS_case = "/Users/torvaltz/Desktop/JeromeGridGenerator/GridGenerator/D3DSAS/SAS1_modif.yml"
 
-fname = DIIID_case
+fname = SAS_case
 
 GridDemo = Ingrid(InputFile=fname)
+GridDemo.yaml['target_plates']['plate_W1']['file'] = "/Users/torvaltz/Desktop/JeromeGridGenerator/GridGenerator/D3DSAS/SAS_odt.txt"
+GridDemo.yaml['target_plates']['plate_E1']['file'] = "/Users/torvaltz/Desktop/INGRID/data/SNL/USN/itp4.txt"
 GridDemo.Setup()
 GridDemo.ConstructPatches()
 GridDemo.ShowSetup()
-GridDemo.CreateSubgrid()
+GridDemo.CreateSubgrid(Enforce=False)
 GridDemo.export()

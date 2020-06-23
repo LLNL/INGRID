@@ -443,6 +443,9 @@ class Ingrid:
         rmagx = g['RMAXIS']
         zmagx = g['ZMAXIS']
 
+        rlimiter = g['RLIM']
+        zlimiter = g['ZLIM']
+
         psi = g['PSIRZ'].T
 
         # TODO: possibly use the limiters to determine where the strke plates
@@ -462,6 +465,7 @@ class Ingrid:
         self.efit_psi = Efit_Data(rmin, rmax, nxefit,
                                   zmin, zmax, nyefit,
                                   rcenter, bcenter,
+                                  rlimiter, zlimiter,
                                   rmagx, zmagx, name='Efit Data')
         self.efit_psi.set_v(psi)
 
@@ -748,6 +752,7 @@ class Ingrid:
                                   self.efit_psi.nr, self.efit_psi.zmin,
                                   self.efit_psi.zmax, self.efit_psi.nz,
                                   self.efit_psi.rcenter, self.efit_psi.bcenter,
+                                  self.efit_psi.rlimiter, self.efit_psi.zlimiter,
                                   self.efit_psi.rmagx, self.efit_psi.zmagx, name='psi norm')
         psi = self.efit_psi.v
         psi_magx = self.efit_psi.get_psi(self.magx[0], self.magx[1])
@@ -960,7 +965,7 @@ class Ingrid:
             print('Current Working Directory:'+os.getcwd())
             raise IOError('Cannot find the file: ' +FileName)
 
-    def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all'):
+    def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=True):
 
 
         try:
@@ -983,7 +988,7 @@ class Ingrid:
         if NewFig:
             self.FigGrid=plt.figure('INGRID: Grid', figsize=(10,10))
             ax=self.FigGrid.gca()
-        self.current_topology.construct_grid(np_cells, nr_cells,ShowVertices=ShowVertices,RestartScratch=RestartScratch,OptionTrace=OptionTrace,ExtraSettings=ExtraSettings,ListPatches=ListPatches)
+        self.current_topology.construct_grid(np_cells, nr_cells,ShowVertices=ShowVertices,RestartScratch=RestartScratch,OptionTrace=OptionTrace,ExtraSettings=ExtraSettings,ListPatches=ListPatches,Enforce=Enforce)
 
 
             #Plotgridue(self.current_topology.gridue_params,ax=ax,Verbose=True,facecolor=None,edgecolor=color)

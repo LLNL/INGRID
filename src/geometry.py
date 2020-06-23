@@ -96,8 +96,10 @@ class Point:
     def __init__(self, *pts):
         if np.shape(pts) == (2,):
             self.x, self.y = pts
+            self.coor = (self.x, self.y)
         elif np.shape(pts) == (1, 2):
             self.x, self.y = pts[0]
+            self.coor = (self.x, self.y)
         else:
             print('incompatible form')
             print(np.shape(pts), pts)
@@ -219,6 +221,7 @@ class Line:
         color : str, optional
             Defaults to a light blue.
         """
+
         plt.plot(self.xval, self.yval, color=color, linewidth='1', zorder = 5)
 
 
@@ -253,9 +256,11 @@ class Line:
 
     def fluff_copy(self, num = 5):
         pts = []
-        for i in zip(self.fluff(num)):
+        xf, yf = self.fluff(num)
+        for i in zip(xf, yf):
             pts.append(Point(i))
         return Line(pts)
+
 
     def split(self, split_point, add_split_point = False):
         """

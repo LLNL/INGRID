@@ -25,7 +25,7 @@ from line_tracing import LineTracing
 from Root_Finder import RootFinder
 from Topologies import SNL
 from geometry import Point, Line, SNL_Patch, DNL_Patch, segment_intersect
-from scipy.optimize import root
+from scipy.optimize import root, minimize
 
 class Ingrid:
     """
@@ -697,6 +697,10 @@ class Ingrid:
         self.efit_psi.plot_data(self.yaml['grid_params']['nlevs'])
 
     def FindMagAxis(self,x:float,y:float)->None:
+        # r_bounds = (self.efit_psi.rmin, self.efit_psi.rmax)
+        # z_bounds = (self.efit_psi.zmin, self.efit_psi.zmax)
+        # sol = minimize(fun=self.efit_psi.PsiFunction, x0=np.array([x,y]),
+        #     method='L-BFGS-B', jac=self.efit_psi.Gradient, bounds=[r_bounds, z_bounds])
         sol = root(self.efit_psi.Gradient,[x,y])
         self.yaml['grid_params']['rmagx']=sol.x[0]
         self.yaml['grid_params']['zmagx']=sol.x[1]

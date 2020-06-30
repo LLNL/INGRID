@@ -88,6 +88,10 @@ class Efit_Data:
         F[1] = self.get_psi(x, y, tag='vz')
         return F
 
+    def PsiFunction(self, xy):
+        x, y = xy
+        return self.get_psi(x, y)
+
     def get_v(self, tag='v'):
         """ returns the entire array of v, vr, vz, or vrz.
         If you want a single value use self.get_psi

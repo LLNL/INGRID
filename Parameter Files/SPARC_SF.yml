@@ -1,0 +1,273 @@
+# =================================================================================================
+# grid_params:
+# -------------------------------------------------------------------------------------------------
+#     Topologically significant parameters for INGRID to
+#     utilize during runtime.
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+#     config - (str) Topology associated with current parameters.
+#               Currently supported: LSN and USN
+# -------------------------------------------------------------------------------------------------
+#     num_xpt - (int) Number of x-points
+# -------------------------------------------------------------------------------------------------
+#     psi_* - (double) Bounds of grid domain determined 
+#              by normalized psi efit data.
+# -------------------------------------------------------------------------------------------------
+#     patch_generation - (dict) User settings related to patch map generation.
+#
+#          rmagx_shift - (double) Translate the r-coordinate of the magnetic axis
+#                         used for patch bounds.
+#          zmagx_shift - (double) Translate the z-coordinate of the magnetic axis
+#                         for the patch bounds.
+#          inner_tilt - (double) RADIAN value to tilt the inner horizontal-line patch
+#                        boundary that intersects the magnetic-axis
+#          outer_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
+#                        boundary that intersects the magnetic-axis
+#          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction 
+#                    rather than tracing 'W' in rho.
+#          NW_adjust - (double) RADIAN value to adjust the direction of the 'NW' linear trace.
+#
+#          use_NE - (bool/logical-int) Trace linearly from primary-xpt in the 'NE' direction 
+#                    rather than tracing 'E' in rho.
+#          NE_adjust - (double) RADIAN value to adjust the direction of the 'NE' linear trace.
+# -------------------------------------------------------------------------------------------------
+#     grid_generation - (dict) User settings related to grid generation.
+#
+#          np_global - (int) Default number of POLOIDAL cells to generate for all
+#                       patches not adjacent to a target plate.
+#          nr_global - (int) Default number of RADIAL cells to generate for all
+#                       patches not adjacent to a target plate.
+#     
+#          np_core - (int) Number of POLOIDAL cells in the core plasma region
+#          nr_core - (int) Number of RADIAL cells in the core plasma region
+#          radial_f_core - (str) User defined cell "distortion" function for
+#                           radial cells in the core plasma region.
+#          
+#          np_sol - (int) Number of POLOIDAL cells in the scrape-off layer
+#          nr_sol - (int) Number of RADIAL cells in the scrape-off layer
+#          radial_f_sol - (str) User defined cell "distortion" function for
+#                           radial cells in the scrape off layer.
+#          
+#          np_pf - (int) Number of POLOIDAL cells in the private-flux region
+#          nr_pf - (int) Number of RADIAL cells in the private-flux region
+#          radial_f_pf - (str) User defined cell "distortion" function for
+#                           radial cells in the private-flux region.   
+# -------------------------------------------------------------------------------------------------
+#     rmagx - (double) r coordinate of magnetic axis
+# -------------------------------------------------------------------------------------------------
+#     rxpt - (double) r coordinate of primary x-point
+# -------------------------------------------------------------------------------------------------
+#     zmagx - (double) z coordinate of magnetic axis
+# -------------------------------------------------------------------------------------------------
+#     zxpt - (double) z coordinate of primary x-point
+# =================================================================================================
+
+# =================================================================================================
+# integrator_params:
+# -------------------------------------------------------------------------------------------------
+#     Integrator and line_tracing class settings.
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+#     dt - (double) Integration time-step for line_tracing class.
+# -------------------------------------------------------------------------------------------------
+#     eps - (double) Radius of epsilon neighborhood around x-point
+#            containing seed-point directions associated with NSEW.
+# -------------------------------------------------------------------------------------------------
+#     first_step - (double) Initial step size for LSODA integrator.
+# -------------------------------------------------------------------------------------------------
+#     step_ratio - (double) A ratio of RZ-domain dimensions to
+#                   determine max_step parameter for LSODA integrator.
+# ------------------------------------------------------------------------------------------------- 
+#     tol - (double) Tolerance value defining convergence criterion   
+#            for integration with line_tracing class.
+# =================================================================================================
+
+# =================================================================================================
+# target_plates:
+# -------------------------------------------------------------------------------------------------
+#     Settings for all target plates to be
+#     considered during INGRID runtime.
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+#     plate_E1: (dict) Plate EAST of primary x-point (where NORTH
+#                is defined as the path towards magnetic axis).
+# -------------------------------------------------------------------------------------------------
+#     plate_W1: (dict) Plate WEST of primary x-point (where NORTH
+#                is defined as the path towards magnetic axis).
+# -------------------------------------------------------------------------------------------------
+#     file: (str) Text file containing coordinates defining a target
+#            plate.
+# -------------------------------------------------------------------------------------------------
+#     name: (str) User-defined name associated with plate.
+# -------------------------------------------------------------------------------------------------
+#     np_local: (int) Number of POLOIDAL cells to generate within
+#                patches adjacent to the respective target plate.
+# -------------------------------------------------------------------------------------------------
+#     nr_local: (int) Number of RADIAL cells to generate within
+#                patches adjacent to the respective target plate.
+# -------------------------------------------------------------------------------------------------
+#     poloidal_f: (str) User defined function for 'distortion' of
+#                  cell placement within a target plate.
+# -------------------------------------------------------------------------------------------------
+#     USAGE OF "poloidal_f":
+#                 - The sequence of characters before ',' must
+#                   denote the variable name VAR to operate upon.
+#
+#                 - Place a user-defined mathematical expression
+#                   after the ',' delimiter utilizing the variable
+#                   VAR defined before-hand.
+#
+#                 - The package SymPy is used to convert user-input 
+#                   to a mathematical expression. This requires the 
+#                   input to be a valid Python expression. 
+#
+#                 - For detailed information on available functions,
+#                   see Sympy docs pertaining to "Functions" module.
+# =================================================================================================
+
+# =================================================================================================
+# DEBUG:
+# -------------------------------------------------------------------------------------------------
+#     Controls for DEBUG mode in INGRID.
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+#     visual - (dict) Dictionary of bool/logical-int values to 
+#               activate live-plotting during INGRID operations.
+#
+#         find_NSEW - (bool/logical-int) Show line_tracing during
+#                      search for North/South from primary x-point
+#         patch_map - (bool/logical-int) Show line_tracing during 
+#                      generation of patch-map
+#         subgrid - (bool/logical-int) Show line_tracing during
+#                      generation of subgrids within each patch
+#         gridue - (bool/logical-int) Plot gridue data with 
+#                      guard cells in order of increasing poloidal 
+#                      and radial indices
+# -------------------------------------------------------------------------------------------------
+#     verbose - (dict) Dictionary of bool/logical-int values to
+#                activate verbose output during INGRID operations.
+#
+#         target_plates - (bool/logical-int) Print all target plate 
+#                          coordinates to terminal.
+#         patch_generation - (bool/logical-int) Print all patch names 
+#                             and intersection/convergence events
+#                             that occur during patch generation
+#         grid_generation - (bool/logical-int) Print cell information 
+#                            of a patch, and the populating of arrays 
+#                            containing gridue data during meshgrid 
+#                            generation.                    
+# =================================================================================================
+DEBUG:
+    verbose:
+        grid_generation: false
+        patch_generation: false
+        target_plates: false
+    visual:
+        find_NSEW: false
+        gridue: false
+        patch_map: false
+        subgrid: false
+eqdsk: '/Users/torvaltz/Desktop/SPARC_XPTD/V2_FREEGS_geqdsk_LSNX'
+grid_params:
+    config: DNL
+    grid_generation:
+        np_core: 6
+        np_global: 6
+        np_primary_pf: 6
+        np_primary_sol: 6
+        np_secondary_pf: 6
+        np_secondary_sol: 6
+        nr_core: 8
+        nr_global: 8
+        nr_primary_pf: 8
+        nr_primary_sol: 8
+        nr_secondary_pf: 8
+        nr_secondary_sol: 8
+        radial_f_core: x, x
+        radial_f_primary_pf: x, x
+        radial_f_primary_sol: x, x
+        radial_f_secondary_pf: x, x
+        radial_f_secondary_sol: x, x
+    nlevs: 150
+    num_xpt: 1
+    patch_generation:
+        NE_adjust: 0.0
+        NW_adjust: 0.0
+        inner_tilt: 0.0
+        outer_tilt: 0.0
+        rmagx_shift: 0.0
+        rxpt: 0.0
+        secondary_NE_adjust: -0.55
+        secondary_NW_adjust: 0.55
+        use_NE: false
+        use_NW: false
+        use_SE: false
+        use_SW: false
+        use_secondary_NE: true
+        use_secondary_NW: true
+        zmagx_shift: 0.0
+        zxpt: 0.0
+    psi_max: 0.0
+    psi_max_inner: 1.005030611031
+    psi_max_outer: 1.00552682118
+    psi_max_r: 0.0
+    psi_max_r_inner: 1.422077922078
+    psi_max_r_outer: 1.554545454545
+    psi_max_z: 0.0
+    psi_max_z_inner: -1.075324675325
+    psi_max_z_outer: -1.153246753247
+    psi_min_core: 0.940265282465
+    psi_min_core_r: 1.609090909091
+    psi_min_core_z: -0.896103896104
+    psi_min_pf: 0.997157635444
+    psi_min_pf_r: 1.476623376623
+    psi_min_pf_z: -1.153246753247
+    psi_pf2: 1.000525228398
+    psi_pf2_r: 1.445454545455
+    psi_pf2_z: 1.137662337662
+    rmagx: 1.839069334
+    rxpt: 1.489777680336
+    rxpt2: 1.489734496243
+    zmagx: -0.000743286742
+    zxpt: -1.099819078021
+    zxpt2: 1.099422038985
+integrator_params:
+    dt: 0.01
+    eps: 5.0e-05
+    first_step: 1.0e-05
+    max_step: 0.12
+    step_ratio: 0.02
+    tol: 0.005
+target_plates:
+    plate_E1:
+        file: ../Data/DNL/SPARC/divRZv1d_lotp.txt
+        name: plate_E1
+        np_local: 6
+        poloidal_f: x, x
+        zshift: 0.0
+    plate_E2:
+        file: ../Data/DNL/SPARC/divRZv1d_uitp.txt
+        name: plate_E2
+        np_local: 6
+        poloidal_f: x, x
+        zshift: 0.0
+    plate_W1:
+        file: ../Data/DNL/SPARC/divRZv1d_litp.txt
+        name: plate_W1
+        np_local: 6
+        poloidal_f: x, x
+        zshift: 0.0
+    plate_W2:
+        file: ../Data/DNL/SPARC/divRZv1d_uotp.txt
+        name: plate_W2
+        np_local: 6
+        poloidal_f: x, x
+        zshift: 0.0

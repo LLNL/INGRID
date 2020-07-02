@@ -468,18 +468,19 @@ class Patch:
 
     """
 
-    def __init__(self, lines, patchName = '', platePatch = False, plateLocation = None,color='blue'):
+    def __init__(self, lines, patchName = '', parent=None, platePatch = False, plateLocation = None, color='blue'):
         self.lines = lines
         self.N = lines[0]
         self.E = lines[1]
         self.S = lines[2]
         self.W = lines[3]
         self.BoundaryPoints={}
+        self.parent = parent
 
         # This is the border for the fill function
         # It need to only include N and S lines
         self.p = list(self.N.p) + list(self.E.p) + list(self.S.p) + list(self.W.p)
-
+        self.NameTagMap = {}
         self.platePatch = platePatch
         self.plateLocation = plateLocation
         self.patchName = patchName
@@ -541,15 +542,6 @@ class Patch:
         for row in self.cell_grid:
             for cell in row:
                 cell.plot_border(color)
-                #cell.plot_center()
-
-    # def PlotGrid(self, ax=None,color = 'blue'):
-    #     if ax is None:
-    #         ax=plt.gca()
-    #         for row in self.cell_grid:
-    #             for cell in row:
-
-    #             #cell.plot_center()
 
 
     def adjust_corner(self, point, corner):
@@ -566,27 +558,9 @@ class Patch:
             self.cell_grid[-1][0].vertices[corner] = point
             self.cell_grid[-1][0].vertices[corner] = point
 
-
-class SNL_Patch(Patch):
-    def __init__(self, lines, patchName = '', platePatch = False, plateLocation = None):
-        super().__init__(lines, patchName, platePatch, plateLocation)
-
-    def name2tag(self):
-        name_tag_map={
-            'IDL' : 'A2',
-            'IPF' : 'A1',
-            'ISB' : 'B2',
-            'ICB' : 'B1',
-            'IST' : 'C2',
-            'ICT' : 'C1',
-            'OST' : 'D2',
-            'OCT' : 'D1',
-            'OSB' : 'E2',
-            'OCB' : 'E1',
-            'ODL' : 'F2',
-            'OPF' : 'F1'
-        }
-        return name_tag_map[self.patchName]
+    def get_tag(self):
+        name = self.patchName
+        return self.parent.PatchTagMap[name] if len(name) == 3 else self.parent.PatchTagMap[name[1:]]
 
     def make_subgrid(self, grid, np_cells = 2, nr_cells = 2, _poloidal_f=lambda x:x, _radial_f=lambda x:x,verbose = False, visual = False,ShowVertices=False,OptionTrace='theta'):
         """
@@ -680,17 +654,6 @@ class SNL_Patch(Patch):
             Psi=psi_parameterize(grid, W_vals[0], W_vals[1])
             self.W_spl, uW = splprep([W_vals[0], W_vals[1]], u = Psi, s = 0)
         except Exception as e:
-            # print(' Number of points on the boundary:', len(self.W.p))
-            # print(' Number of points on the boundary after fluff:', len(W_vals[0]))
-            # print('Psi=',len(Psi))
-            # for i in range(len(Psi)):
-            #     print(Psi[i],W_vals[0][i],W_vals[1][i])
-            # plt.plot(W_vals[0],W_vals[1],color='black')
-            # np.savetxt('dump.txt',np.column_stack((Psi,W_vals[0],W_vals[1])))
-            # print(repr(e))
-            # print(e.args)
-            # print(type(e))
-            # print(e)
             exc_type, exc_obj, tb = sys.exc_info()
             f = tb.tb_frame
             lineno = tb.tb_lineno
@@ -763,7 +726,6 @@ class SNL_Patch(Patch):
                 except:
                     print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
             if plate_south_index > plate_north_index:
-                # print('WARNING: Caught an index error... Fixing...')
                 plate_north_index, plate_south_index = plate_south_index, plate_north_index
 
             U_vals = [U_vals[0][plate_south_index:plate_north_index+1], U_vals[1][plate_south_index:plate_north_index+1]]
@@ -804,19 +766,7 @@ class SNL_Patch(Patch):
             self.S_vertices=self.BoundariesPoints.get('S')    
 
         u=[_radial_f(i / (nr_lines-1)) for i in range(nr_lines)]
-        # u1=u
-        # u1[0:-2]=u[1:-1]
-        # Resolution=20
-        # for i in range(nr_lines):
 
-        #     ev = np.array(splev(np.linspace(u[i],u1[i],Resolution), E_spl))
-        #     ev=ev/numpy.linalg.norm(ev,axis=1).reshape(ev.shape[0],1)
-        #     angle[0:-2]=[np.degrees(np.acos(np.array([ev[i-1,0]*ev[i-1,0]+ev[i,1]*ev[i,1] for i in range(1,v)]))
-
-        #                             #print("i={},u={}".format(i,u))
-        #     np.where(x,)
-
-        #  abs(degrees(acos(eV[0]*eV0[0]+eV[1]*eV0[1])))
         Npts=1000
         xy = splev(np.linspace(0,1,Npts), self.E_spl)
 
@@ -857,14 +807,6 @@ class SNL_Patch(Patch):
         if verbose: print('# Interpolate radial lines between North and South patch boundaries..')
         # Interpolate radial lines between North and South patch boundaries.
         self.radial_spl=[]
-        #data=[]
-        #for i in range(len(W_vertices) - 2):
-            
-
-            #radial_vals = radial_lines[i + 1].fluff(1000)
-            #radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s = 0)
-#            radial_spline = splev(uR, radial_spl)
-            #radial_lines.append(RadialLine[i])
             
         for i in range(len(W_vertices) - 2):
             #TODO: parallelize tracing of radial lines (draw_line function must be "externalized" in the scope of the script)

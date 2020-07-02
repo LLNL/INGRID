@@ -335,8 +335,6 @@ class LineTracing:
             if (np.linalg.norm(N_minimizer - target) >= self.eps):
                 self.flip_NSEW_lookup(xpt_ID)
 
-        self.NSEW_lookup[xpt_ID]['coor'] = NS_buffer
-
 
     def SNL_find_NSEW(self, xpt, magx, visual = False):
         """

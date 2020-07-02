@@ -2,11 +2,16 @@ from Ingrid import Ingrid
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.style as style
-from geometry import Point, Line, SNL_Patch, DNL_Patch, segment_intersect
+from geometry import Point, Line, Patch, segment_intersect
 from scipy.integrate import solve_ivp
 from scipy.optimize import minimize
 from matplotlib.patches import Polygon
 import pathlib
+
+class RegionEntered(Exception):
+    def __init__(self, message, region):
+        self.message=message
+        self.region=region
 
 def partition_domain(Ingrid_obj, xpt2=None, bounds = None):
     """
@@ -16,6 +21,13 @@ def partition_domain(Ingrid_obj, xpt2=None, bounds = None):
             Partition the domain into regions in order to identify whether snowflake plus or minus
             configuration.
     """
+    def cb(xk):
+        if core_polygon.get_path().contains_point(xk):
+            plt.plot(xk[0], xk[1], 'x', color='dodgerblue')
+            raise RegionEntered(message='# Entered Core...', region='Core')
+        elif pf_polygon.get_path().contains_point(xk):
+            plt.plot(xk[0], xk[1], 'x', color='magenta')
+            raise RegionEntered(message='# Entered PF...', region='PF')
 
     def sort_limiter(limiter):
         """
@@ -178,33 +190,23 @@ def partition_domain(Ingrid_obj, xpt2=None, bounds = None):
                 first_step=grid.eq.first_step, max_step=grid.eq.max_step, rtol=1e-13, atol=1e-12).y
         N_guess = (N_sol[0][-1], N_sol[1][-1])
         S_guess = (S_sol[0][-1], S_sol[1][-1])
-        r_bounds = (grid.psi_norm.rmin, grid.psi_norm.rmax)
-        z_bounds = (grid.psi_norm.zmin, grid.psi_norm.zmax)
-        N_minimizer = minimize(grid.eq.PsiCostFunc, N_guess, method='L-BFGS-B', \
-            jac=grid.psi_norm.Gradient, bounds=[r_bounds, z_bounds]).x
-        S_minimizer = minimize(grid.eq.PsiCostFunc, S_guess, method='L-BFGS-B', \
-            jac=grid.psi_norm.Gradient, bounds=[r_bounds, z_bounds]).x
 
-        # Search where minimizer landed.
-        if (core_polygon.get_path().contains_point(N_minimizer)):
-            print('# Identified SF15')
-            # True south should land in region of interest
-            grid.eq.flip_NSEW_lookup()
-
-        elif (pf_polygon.get_path().contains_point(N_minimizer)):
-            print('# Identified SF45')
-            # True south should land in region of interest
-            grid.eq.flip_NSEW_lookup()
-
-        elif (core_polygon.get_path().contains_point(S_minimizer)):
-            print('# Identified SF15')
-
-        elif (pf_polygon.get_path().contains_point(S_minimizer)):
-            print('# Identified SF45')
-        
-        else:
-            # TODO: Use line tracing to make sure minimizer didn't miss.
-            pass
+        for guess in [N_guess, S_guess]:
+            try:
+                minimize(grid.eq.PsiCostFunc, guess, method='trust-ncg', jac=grid.psi_norm.Gradient, hess=grid.psi_norm.Hessian,
+                    options={'initial_trust_radius' : grid.eq.eps, 'max_trust_radius' : grid.eq.dt}, callback=cb)
+            except RegionEntered as e:
+                region = e.region
+                if region == 'Core':
+                    print('# Identified SF15')
+                    # True south should land in region of interest
+                    if guess is N_guess: grid.eq.flip_NSEW_lookup()
+                    break
+                elif region == 'PF':
+                    print('# Identified SF45')
+                    # True south should land in region of interest
+                    if guess is N_guess: grid.eq.flip_NSEW_lookup()
+                    break
 
 def ADX_test():
     ADX_case = "../Parameter Files/ADX.yml"
@@ -220,11 +222,19 @@ def SF15_test():
     SF15_case = "../Parameter Files/SF15.yml"
     fname = SF15_case
     SF15 = Ingrid(InputFile=fname)
-    SF15.Setup()
-    xpt2 = (2.1, -0.557)
-    bounds = [1.0, 2.4, -1, 1.0]
+    SF15.OMFIT_read_psi()
+    SF15.calc_efit_derivs()
+    SF15.read_target_plates()
+    SF15.AutoRefineXPoint()
     SF15.FindXPoint(1.5, -0.62)
     SF15.FindMagAxis(1.71, 0.45)
+    SF15.SetMagReference()
+    SF15.calc_psinorm()
+    SF15.plot_psinorm(interactive=True)
+    SF15.init_LineTracing(interactive=True)
+    SF15._analyze_topology()
+    xpt2 = (2.1, -0.557)
+    bounds = [1.0, 2.4, -1, 1.0]
     partition_domain(SF15, xpt2, bounds)
     plt.ioff()
     plt.show()
@@ -251,18 +261,16 @@ def SF45_test():
     plt.show()
 
 def SPARC_test():
-    SPARC_case = "../Parameter Files/SPARC_DNL.yml"
+    SPARC_case = "../Parameter Files/SPARC_SF.yml"
     fname = SPARC_case
     SPARC = Ingrid(InputFile=fname)
     SPARC.Setup()
-    xpt2 = (1.5, 1.09)
-    bounds = [0.86, 2.0, -1.7, 1.56]
-    partition_domain(SPARC, xpt2, bounds)
+    xpt2 = (1.7, -1.51)
+    partition_domain(SPARC, xpt2)
     plt.ioff()
     plt.show()    
 
 SF15_test()
-SF45_test()
 ADX_test()
 SPARC_test()
 

@@ -23,7 +23,7 @@ try:
 except:
     pass
 from matplotlib.patches import Polygon
-from geometry import Point, Line, SNL_Patch, DNL_Patch, segment_intersect
+from geometry import Point, Line, Patch, DNL_Patch, segment_intersect
 
 
 class SNL():
@@ -516,15 +516,6 @@ class SNL():
         p = self.patches
         print('>>> Loaded Patches:', [k for k in self.patches.keys()])
 
-
-        # if self.config == 'USN':
-        #     self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-        #                 [[None], p['F2'], p['E2'], p['D2'], p['C2'], p['B2'], p['A2'], [None]], \
-        #                 [[None], p['F1'], p['E1'], p['D1'], p['C1'], p['B1'], p['A1'], [None]], \
-        #                 [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
-        #                 ]
-
-        # if self.config == 'LSN':
         self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
                     [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
                     [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
@@ -552,7 +543,6 @@ class SNL():
         print('>>> Patches:', [k for k in self.patches.keys()])
         if RestartScratch:
             self.CurrentListPatch={}
-        self.GetConnexionMap() 
     
         for name, patch in self.patches.items():
             
@@ -582,9 +572,9 @@ class SNL():
             self.set_gridue()
         
     def SetPatchBoundaryPoints(self,Patch):
-            if self.ConnexionMap.get(Patch.patchName) is not None:
+            if self.ConnexionMap.get(Patch.name2tag()) is not None:
                 if self.Verbose: print('Find connexion map for patch {}'.format(Patch.patchName))
-                for Boundary,AdjacentPatch in self.ConnexionMap.get(Patch.patchName).items():
+                for Boundary,AdjacentPatch in self.ConnexionMap.get(Patch.name2tag()).items():
                     Patch.BoundaryPoints[Boundary]=self.GetBoundaryPoints(AdjacentPatch)
                     if self.Verbose: print('Find Boundaries points for {}'.format(Patch.patchName))
                 
@@ -603,16 +593,6 @@ class SNL():
                    elif Boundary=='W':
                        return patch.W_vertices 
         return None
-            
-    def GetConnexionMap(self):
-        # Connexion MAP for LSN
-        self.ConnexionMap={}
-        for name, patch in self.patches.items():
-            if name[1]=='C':
-                self.ConnexionMap[name]={'N':(name[0]+'S'+name[2],'S')}
-        self.ConnexionMap['IPF']={'N':('IDL','S')}
-        self.ConnexionMap['OPF']={'N':('ODL','S')}
-        if self.Verbose: print('ConnexionMap:',self.ConnexionMap)
 
     def construct_patches(self):
         """
@@ -742,7 +722,7 @@ class SNL():
         # and A2_N. This new Line object is the plate facing boundary of the Patch.
         # =====================================================================================
         A2_W = (WestPlate.split(A2_S.p[-1])[1]).split(A2_N.p[0], add_split_point = True)[0]
-        A2 = SNL_Patch([A2_N, A2_E, A2_S, A2_W], patchName = 'IDL', platePatch = True, plateLocation = location)
+        A2 = Patch([A2_N, A2_E, A2_S, A2_W], patchName = 'IDL', platePatch = True, plateLocation = location)
 
         # A1 Patch
         location = 'W'
@@ -751,7 +731,7 @@ class SNL():
         A1_S = psiMinPF_WestPlate
         A1_E = xptS_psiMinPF
         A1_W = (WestPlate.split(A1_S.p[-1])[1]).split(A1_N.p[0], add_split_point = True)[0]
-        A1 = SNL_Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'IPF', platePatch = True, plateLocation = location)
+        A1 = Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'IPF', platePatch = True, plateLocation = location)
 
         # B2 Patch
         
@@ -759,28 +739,28 @@ class SNL():
         B2_S = xptNW_midLine.reverse_copy()
         B2_E = Line([B2_N.p[-1], B2_S.p[0]])
         B2_W = xptW_psiMax
-        B2 = SNL_Patch([B2_N, B2_E, B2_S, B2_W], patchName = 'ISB')
+        B2 = Patch([B2_N, B2_E, B2_S, B2_W], patchName = 'ISB')
 
         # B1 Patch
         B1_N = B2_S.reverse_copy()
         B1_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : inner_midLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose).reverse_copy()
         B1_E = Line([B1_N.p[-1], B1_S.p[0]])
         B1_W = xptN_psiMinCore.reverse_copy()
-        B1 = SNL_Patch([B1_N, B1_E, B1_S, B1_W], patchName = 'ICB')
+        B1 = Patch([B1_N, B1_E, B1_S, B1_W], patchName = 'ICB')
 
         # C2 Patch
         C2_N = self.eq.draw_line(B2_N.p[-1], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
         C2_S = imidLine_topLine.reverse_copy()
         C2_E = Line([C2_N.p[-1], C2_S.p[0]])
         C2_W = Line([C2_S.p[-1], C2_N.p[0]])
-        C2 = SNL_Patch([C2_N, C2_E, C2_S, C2_W], patchName = 'IST')
+        C2 = Patch([C2_N, C2_E, C2_S, C2_W], patchName = 'IST')
 
         # C1 Patch
         C1_N = C2_S.reverse_copy()
         C1_S = self.eq.draw_line(B1_S.p[0], {'line' : topLine}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose).reverse_copy()
         C1_E = Line([C1_N.p[-1], C1_S.p[0]])
         C1_W = Line([C1_S.p[-1], C1_N.p[0]])
-        C1 = SNL_Patch([C1_N, C1_E, C1_S, C1_W], patchName = 'ICT')
+        C1 = Patch([C1_N, C1_E, C1_S, C1_W], patchName = 'ICT')
 
         # F2 Patch
         location = 'E'
@@ -788,7 +768,7 @@ class SNL():
         F2_S = xpt_EastPlate.reverse_copy()
         F2_E = (EastPlate.split(F2_N.p[-1])[1]).split(F2_S.p[0], add_split_point = True)[0]
         F2_W = xptE_psiMax
-        F2 = SNL_Patch([F2_N, F2_E, F2_S, F2_W], patchName = 'ODL', platePatch = True, plateLocation = location)
+        F2 = Patch([F2_N, F2_E, F2_S, F2_W], patchName = 'ODL', platePatch = True, plateLocation = location)
 
         # F1 Patch
         location = 'E'
@@ -796,40 +776,41 @@ class SNL():
         F1_S = psiMinPF_EastPlate.reverse_copy()
         F1_E = (EastPlate.split(F1_N.p[-1])[1]).split(F1_S.p[0], add_split_point = True)[0]
         F1_W = xptS_psiMinPF.reverse_copy()
-        F1 = SNL_Patch([F1_N, F1_E, F1_S, F1_W], patchName = 'OPF', platePatch = True, plateLocation = location)
+        F1 = Patch([F1_N, F1_E, F1_S, F1_W], patchName = 'OPF', platePatch = True, plateLocation = location)
 
         # E2 Patch
         E2_N = self.eq.draw_line(F2_N.p[0], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         E2_S = xptNE_midLine
         E2_E = xptE_psiMax.reverse_copy()
         E2_W = Line([E2_S.p[-1], E2_N.p[0]])
-        E2 = SNL_Patch([E2_N, E2_E, E2_S, E2_W], patchName = 'OSB')
+        E2 = Patch([E2_N, E2_E, E2_S, E2_W], patchName = 'OSB')
 
         # E1 Patch
         E1_N = E2_S.reverse_copy()
         E1_S = self.eq.draw_line(xptN_psiMinCore.p[-1], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         E1_E = xptN_psiMinCore
         E1_W = Line([E1_S.p[-1], E1_N.p[0]])
-        E1 = SNL_Patch([E1_N, E1_E, E1_S, E1_W], patchName = 'OCB')
+        E1 = Patch([E1_N, E1_E, E1_S, E1_W], patchName = 'OCB')
 
         # D2 Patch
         D2_N = self.eq.draw_line(E2_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         D2_S = omidLine_topLine
         D2_E = Line([D2_N.p[-1], D2_S.p[0]])
         D2_W = Line([D2_S.p[-1], D2_N.p[0]])
-        D2 = SNL_Patch([D2_N, D2_E, D2_S, D2_W], patchName = 'OST')
+        D2 = Patch([D2_N, D2_E, D2_S, D2_W], patchName = 'OST')
 
         # D1 Patch
         D1_N = D2_S.reverse_copy()
         D1_S = self.eq.draw_line(E1_S.p[-1], {'line' : topLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
         D1_E = Line([D1_N.p[-1], D1_S.p[0]])
         D1_W = Line([D1_S.p[-1], D1_N.p[0]])
-        D1 = SNL_Patch([D1_N, D1_E, D1_S, D1_W], patchName = 'OCT')
+        D1 = Patch([D1_N, D1_E, D1_S, D1_W], patchName = 'OCT')
 
         patches = [A2, A1, B2, B1, C2, C1, D2, D1, E2, E1, F2, F1]
 
         self.patches = {}
         for patch in patches:
+            patch.parent = self
             self.patches[patch.patchName] = patch
             patch.plot_border()
             patch.fill()

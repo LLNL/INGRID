@@ -24,7 +24,7 @@ from Interpol.Setup_Grid_Data import Efit_Data
 from line_tracing import LineTracing
 from Root_Finder import RootFinder
 from Topologies import SNL
-from geometry import Point, Line, SNL_Patch, DNL_Patch, segment_intersect
+from geometry import Point, Line, Patch, segment_intersect
 from scipy.optimize import root, minimize
 
 class Ingrid:
@@ -984,7 +984,6 @@ class Ingrid:
             nr_cells = 2
             print('yaml file did not contain parameter nr_global. Set to default value of 2...')
 
-
         print('Value Check for local plates:')
         _i = self.current_topology.yaml['target_plates']
         for plate in _i:
@@ -992,17 +991,10 @@ class Ingrid:
         if NewFig:
             self.FigGrid=plt.figure('INGRID: Grid', figsize=(10,10))
             ax=self.FigGrid.gca()
+
+        self.GetConnexionMap()
+
         self.current_topology.construct_grid(np_cells, nr_cells,ShowVertices=ShowVertices,RestartScratch=RestartScratch,OptionTrace=OptionTrace,ExtraSettings=ExtraSettings,ListPatches=ListPatches,Enforce=Enforce)
-
-
-            #Plotgridue(self.current_topology.gridue_params,ax=ax,Verbose=True,facecolor=None,edgecolor=color)
-            #self.current_topology.grid_diagram()
-            #self.current_topology.grid_diagram()
-        #     return True
-        # except Exception as e:
-        #     print('=' * 80)
-        #     print('ERROR DURING GRID GENERATION: {}'.format(repr(e)))
-        #     print('=' * 80 + '\n')
 
     def SetMagReference(self:object,topology:str='SNL')->None:
         self.magx= (self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx'])
@@ -1060,9 +1052,48 @@ class Ingrid:
         self.PlotMagReference()
 
     def ConstructPatches(self):
+        self.GetPatchTagMap()
         self.current_topology.construct_patches()
         self.current_topology.patch_diagram()
         self.current_topology.CheckPatches()
+
+    def GetConnexionMap(self):
+        if isinstance(self.current_topology, SNL):
+            # SNL connexion map based off patch tag
+            ConnexionMap = {}
+            for patch in self.current_topology.patches.values():
+                tag = patch.get_tag()
+                if tag[1] == '1':
+                    ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '2', 'S')}
+            self.current_topology.ConnexionMap = ConnexionMap
+
+        elif isinstance(self.current_topology, DNL):
+            # DNL connexion map based off patch tag
+            ConnexionMap = {}
+            for patch in self.current_topology.patches.values():
+                tag = patch.get_tag()
+                if tag[1] == '1':
+                    ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '2', 'S')}
+                elif tag[1] == '2':
+                    ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '3', 'S')}
+            self.current_topology.ConnexionMap = ConnexionMap
+    
+    def GetPatchTagMap(self, custom_map=None):
+        if isinstance(self.current_topology, SNL):
+            PatchTagMap = {
+            'A1' : 'IPF', 'A2' : 'IDL',
+            'B1' : 'ICB', 'B2' : 'ISB',
+            'C1' : 'ICT', 'C2' : 'IST',
+            'D1' : 'OCT', 'D2' : 'OST',
+            'E1' : 'OCB', 'E2' : 'OSB',
+            'F1' : 'OPF', 'F2' : 'ODL',
+            }
+
+        # Make it bijective.
+        PatchNameMap = {}
+        for tag, name in PatchTagMap.items():
+            PatchNameMap[name] = tag
+        self.current_topology.PatchTagMap = {**PatchTagMap, **PatchNameMap}
 
 def Importgridue(fname:str = 'gridue')->dict:
     """Import UEDGE grid file as dictionary."""
@@ -1164,6 +1195,8 @@ def Plotgridue(GridueParams,Fill=False,ax=None,Verbose=False,facecolor=None,edge
     plt.ylim(z.min(),z.max())
     plt.xlim(r.min(),r.max())
     plt.show()
+
+
 
 
 

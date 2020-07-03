@@ -520,7 +520,7 @@ class Ingrid:
             elif target_plates[plate]['name'] == '':
                 target_plates[plate]['name'] = plate
 
-            if target_plates[plate]['file'] is not None:
+            if target_plates[plate]['file'] not in [None, '']:
                 try:
                     with open(target_plates[plate]['file']) as f:
                         #First we check if zshift is given

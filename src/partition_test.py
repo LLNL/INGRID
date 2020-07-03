@@ -28,6 +28,10 @@ def partition_domain(Ingrid_obj, xpt2=None, bounds = None):
         elif pf_polygon.get_path().contains_point(xk):
             plt.plot(xk[0], xk[1], 'x', color='magenta')
             raise RegionEntered(message='# Entered PF...', region='PF')
+    def cb_plot1(xk):
+        plt.plot(xk[0], xk[1], '.', color='dodgerblue')
+    def cb_plot2(xk):
+        plt.plot(xk[0], xk[1], '.', color='black')
 
     def sort_limiter(limiter):
         """
@@ -190,6 +194,11 @@ def partition_domain(Ingrid_obj, xpt2=None, bounds = None):
                 first_step=grid.eq.first_step, max_step=grid.eq.max_step, rtol=1e-13, atol=1e-12).y
         N_guess = (N_sol[0][-1], N_sol[1][-1])
         S_guess = (S_sol[0][-1], S_sol[1][-1])
+
+        minimize(grid.eq.PsiCostFunc, N_guess, method='trust-ncg', jac=grid.psi_norm.Gradient, hess=grid.psi_norm.Hessian,
+            options={'initial_trust_radius' : grid.eq.eps, 'max_trust_radius' : grid.eq.dt}, callback=cb_plot1)
+        minimize(grid.eq.PsiCostFunc, S_guess, method='trust-ncg', jac=grid.psi_norm.Gradient, hess=grid.psi_norm.Hessian,
+            options={'initial_trust_radius' : grid.eq.eps, 'max_trust_radius' : grid.eq.dt}, callback=cb_plot2)
 
         for guess in [N_guess, S_guess]:
             try:

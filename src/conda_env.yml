@@ -1,4 +1,4 @@
-name: py37
+name: ingrid
 channels:
   - anaconda
   - conda-forge

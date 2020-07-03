@@ -520,7 +520,7 @@ class FilePicker(tk.Frame):
             itp_file, valid_path = self.get_file()
             if valid_path and itp_file.suffix == '.txt':
                 self.controller.IngridSession
-                self.controller.IngridSession.yaml['target_plates']['plate_E1']['file'] = str(itp_file)
+                self.controller.IngridSession.yaml['target_plates']['plate_W1']['file'] = str(itp_file)
                 print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.itpFrame.fileLoaded(itp_file)
                 self.update_frame_state()
@@ -534,7 +534,7 @@ class FilePicker(tk.Frame):
             if valid_path and itp_file.suffix == '.txt':
                 print('In load_itp:',itp_file)
 
-                self.controller.IngridSession.yaml['target_plates']['plate_E1']['file'] = str(itp_file)
+                self.controller.IngridSession.yaml['target_plates']['plate_W1']['file'] = str(itp_file)
                 #print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.itpFrame.fileLoaded(itp_file)
                 self.update_frame_state()
@@ -553,7 +553,7 @@ class FilePicker(tk.Frame):
             itp_file, valid_path = self.get_file()
             if valid_path and itp_file.suffix == '.txt':
                 self.controller.IngridSession
-                self.controller.IngridSession.yaml['target_plates']['plate_E2']['file'] = str(itp_file)
+                self.controller.IngridSession.yaml['target_plates']['plate_W2']['file'] = str(itp_file)
                 print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.itp2Frame.fileLoaded(itp_file)
                 self.update_frame_state()
@@ -566,7 +566,7 @@ class FilePicker(tk.Frame):
                 itp_file = Path(toLoad)
                 valid_path = itp_file.is_file()
                 if valid_path and itp_file.suffix == '.txt':
-                    self.controller.IngridSession.yaml['target_plates']['plate_E2']['file'] = str(itp_file)
+                    self.controller.IngridSession.yaml['target_plates']['plate_W2']['file'] = str(itp_file)
                     #print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                     self.itp2Frame.fileLoaded(itp_file)
                     self.update_frame_state()
@@ -585,7 +585,7 @@ class FilePicker(tk.Frame):
             otp_file, valid_path = self.get_file()
             if valid_path and otp_file.suffix == '.txt':
                 print(self.controller.IngridSession.yaml)
-                self.controller.IngridSession.yaml['target_plates']['plate_W1']['file'] = str(otp_file)
+                self.controller.IngridSession.yaml['target_plates']['plate_E1']['file'] = str(otp_file)
                 self.otpFrame.fileLoaded(otp_file)
                 self.update_frame_state()
             elif not valid_path:
@@ -597,7 +597,7 @@ class FilePicker(tk.Frame):
             valid_path = otp_file.is_file()
             if valid_path and otp_file.suffix == '.txt':
                 print('In load_otp:', otp_file)
-                self.controller.IngridSession.yaml['target_plates']['plate_W1']['file'] = str(otp_file)
+                self.controller.IngridSession.yaml['target_plates']['plate_E1']['file'] = str(otp_file)
                 #print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.otpFrame.fileLoaded(otp_file)
                 self.update_frame_state()
@@ -616,7 +616,7 @@ class FilePicker(tk.Frame):
             otp_file, valid_path = self.get_file()
             if valid_path and otp_file.suffix == '.txt':
                 print(self.controller.IngridSession.yaml)
-                self.controller.IngridSession.yaml['target_plates']['plate_W2']['file'] = str(otp_file)
+                self.controller.IngridSession.yaml['target_plates']['plate_E2']['file'] = str(otp_file)
                 self.otp2Frame.fileLoaded(otp_file)
                 self.update_frame_state()
             elif not valid_path:
@@ -628,7 +628,7 @@ class FilePicker(tk.Frame):
                 otp_file = Path(toLoad)
                 valid_path = otp_file.is_file()
                 if valid_path and otp_file.suffix == '.txt':
-                    self.controller.IngridSession.yaml['target_plates']['plate_W2']['file'] = str(otp_file)
+                    self.controller.IngridSession.yaml['target_plates']['plate_E2']['file'] = str(otp_file)
                     #print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                     self.otp2Frame.fileLoaded(otp_file)
                     self.update_frame_state()
@@ -672,8 +672,8 @@ class FilePicker(tk.Frame):
     def parse_yaml(self, _yaml):
             lookup = { \
             'eqdsk' : self.load_eqdsk_file, \
-            'target_plates' : {'plate_E1' : self.load_itp_file, 'plate_W1' : self.load_otp_file,
-                               'plate_W2' : self.load_otp2_file, 'plate_E2' : self.load_itp2_file} \
+            'target_plates' : {'plate_W1' : self.load_itp_file, 'plate_E1' : self.load_otp_file,
+                               'plate_E2' : self.load_otp2_file, 'plate_W2' : self.load_itp2_file} \
             }
             for item in _yaml:
                 print(item)
@@ -687,8 +687,8 @@ class FilePicker(tk.Frame):
     def CheckFile(self,yaml):
             lookup = { \
             'eqdsk' : self.load_eqdsk_file, \
-            'target_plates' : {'plate_E1' : self.load_itp_file, 'plate_W1' : self.load_otp_file,
-                               'plate_W2' : self.load_otp2_file, 'plate_E2' : self.load_itp2_file} \
+            'target_plates' : {'plate_W1' : self.load_itp_file, 'plate_E1' : self.load_otp_file,
+                               'plate_E2' : self.load_otp2_file, 'plate_W2' : self.load_itp2_file} \
             }
             for item in yaml:
                 if item == 'eqdsk':
@@ -1337,7 +1337,7 @@ class PsiFinderFrame(tk.LabelFrame):
         self.R_Entry.grid(row = 0, column = 1, sticky = 'nsew', padx = 2, pady = 2)
         self.Z_Entry.grid(row = 1, column = 1, sticky = 'nsew', padx = 2, pady = 2)
         self.Psi_Entry.grid(row = 2, column = 1, sticky = 'nswe', padx = 2, pady = 2)
-        self.Psi_Entry.bind('<Return>', self.plot_level)
+        # self.Psi_Entry.bind('<Return>', self.plot_level)
 
         self.Edit_Button.grid(row = 2, column = 2, columnspan = 1, sticky = 'we', padx = 2, pady = 2)
 
@@ -1346,11 +1346,14 @@ class PsiFinderFrame(tk.LabelFrame):
         self.On_Radiobutton.grid(row = 1, column = 2, sticky = 'we', padx = 2, pady = 2)
         self.Off_Radiobutton.grid(row = 2, column = 2, sticky = 'we', padx = 2, pady = 2)
 
+
+        self.psi_lookup = {'Psi-Max' : 'psi_max', 'Psi-Core' : 'psi_min_core', 'Primary PF' : 'psi_min_pf'}
+
         self.disable_frame()
 
     def toggle_mouse(self):
         if self.active_mouse.get() is True:
-            self.controller.controller.IngridSession.psi_finder.connect()
+            self.controller.controller.IngridSession.psi_finder.connect(topofeature=self.current_psi_edit)
             print('psi_finder connected')
         else:
             self.controller.controller.IngridSession.psi_finder.disconnect()
@@ -1360,6 +1363,7 @@ class PsiFinderFrame(tk.LabelFrame):
         pass
         self.config(text = 'Editing ' + self.title, fg = 'blue')
         self.Edit_Button.config(text = 'Editing ' + self.title, fg = 'blue')
+        self.current_psi_edit = self.psi_lookup[self.title]
         self.controller.activate_frame(self)
         for F in self.controller.All_Frames:
             if F != self:
@@ -1367,6 +1371,7 @@ class PsiFinderFrame(tk.LabelFrame):
                 F.Edit_Button.config(text = 'Edit ' + F.title, fg = 'black')
 
     def disable_frame(self):
+        self.current_psi_edit = None
         self.active_frame = False
         self.active_mouse.set(0)
         self.Edit_Button.config(state = 'disabled')

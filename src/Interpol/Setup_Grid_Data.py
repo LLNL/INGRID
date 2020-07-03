@@ -66,6 +66,7 @@ class Efit_Data:
         self.rlimiter = rlimiter
         self.zlimiter = zlimiter
         self.name = name
+        self.psi_levels={}
 
     def Gradient(self,xy:tuple)->np.ndarray:
         """ Combines the first partial derivatives to solve the system for
@@ -370,9 +371,17 @@ class Efit_Data:
         """
 
         """
-        c=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label)
-        plt.clabel(c, inline=True, fontsize=8)
-        c.collections[0].set_label(label)
+        try:
+            self.psi_levels[label].collections[0].remove()
+            for l in self.psi_levels[label+'label']:
+                l.remove()
+            self.psi_levels[label]=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label)
+            self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=True, fontsize=8)
+            self.psi_levels[label].collections[0].set_label(label)
+        except:
+            self.psi_levels[label]=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label)
+            self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=True, fontsize=8)
+            self.psi_levels[label].collections[0].set_label(label)
 
     def plot_data(self, nlev=30,interactive=True):
         """ generates the plot that we will be able to manipulate

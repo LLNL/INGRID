@@ -2,15 +2,18 @@ from Ingrid import Ingrid
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.style as style
-try:
-    style.use('fast')
-except:
-    pass
+from geometry import Point, Line, Patch, segment_intersect
+from scipy.integrate import solve_ivp
+from scipy.optimize import minimize
 from matplotlib.patches import Polygon
-from geometry import Point, Line, SNL_Patch, DNL_Patch, segment_intersect
 import pathlib
 
-def partition_domain(Ingrid_obj):
+class RegionEntered(Exception):
+    def __init__(self, message, region):
+        self.message=message
+        self.region=region
+
+def partition_domain(Ingrid_obj, xpt2=None, bounds = None):
     """
     partition_domain 
 
@@ -18,6 +21,17 @@ def partition_domain(Ingrid_obj):
             Partition the domain into regions in order to identify whether snowflake plus or minus
             configuration.
     """
+    def cb(xk):
+        if core_polygon.get_path().contains_point(xk):
+            plt.plot(xk[0], xk[1], 'x', color='dodgerblue')
+            raise RegionEntered(message='# Entered Core...', region='Core')
+        elif pf_polygon.get_path().contains_point(xk):
+            plt.plot(xk[0], xk[1], 'x', color='magenta')
+            raise RegionEntered(message='# Entered PF...', region='PF')
+    def cb_plot1(xk):
+        plt.plot(xk[0], xk[1], '.', color='dodgerblue')
+    def cb_plot2(xk):
+        plt.plot(xk[0], xk[1], '.', color='black')
 
     def sort_limiter(limiter):
         """
@@ -50,12 +64,12 @@ def partition_domain(Ingrid_obj):
             try:
                 lookup[(p.x, p.y)]
             except:
-                if (p.x <= rmid) and (p.y >= zmid):
+                if (p.x >= rmid) and (p.y >= zmid):
                     lookup[(p.x, p.y)] = p
                     point_list.append(p)
 
         quadrant_boundary = Line(point_list)
-        quadrant_boundary.plot('dodgerblue')
+        quadrant_boundary.plot('red')
 
         ordered = False
         start = quadrant_boundary.p[0]
@@ -110,8 +124,12 @@ def partition_domain(Ingrid_obj):
     WestPlate = Line([Point(i) for i in grid.plate_data['plate_W1']['coordinates']])
     EastPlate = Line([Point(i) for i in grid.plate_data['plate_E1']['coordinates']])
 
+    if bounds:
+        rmin, rmax, zmin, zmax = bounds
+        grid.parent.OMFIT_psi['RLIM'] = [rmin, rmax, rmax, rmin, rmin]
+        grid.parent.OMFIT_psi['ZLIM'] = [zmax, zmax, zmin, zmin, zmax]
 
-    limiter = sort_limiter(Line([Point(p) for p in zip(grid.parent.OMFIT_psi['RLIM'], grid.parent.OMFIT_psi['ZLIM'])]).fluff_copy())
+    limiter = sort_limiter(Line([Point(p) for p in zip(grid.parent.OMFIT_psi['RLIM'], grid.parent.OMFIT_psi['ZLIM'])]).fluff_copy(100))
     limiter.plot('dodgerblue')
 
     xpt = grid.eq.NSEW_lookup['xpt1']['coor']
@@ -154,26 +172,118 @@ def partition_domain(Ingrid_obj):
     xptSW_limiter.plot('black')
     xptSE_limiter.plot('black')
 
-    grid.parent.FindXPoint2(0.95, -0.68)
+    rxpt2, zxpt2 = xpt2
+    grid.parent.FindXPoint2(rxpt2, zxpt2)
     xpt2_coor = (grid.yaml['grid_params']['rxpt2'], grid.yaml['grid_params']['zxpt2'])
     ax.plot(xpt2_coor[0], xpt2_coor[1], 'x', color = 'red')
     
     if (pf_polygon.get_path().contains_point(xpt2_coor)):
-        print("# Secondary x-point is contained in primary private flux region.")
+        print("# Snowflake-minus")
     else:
-        print("# Secondary x-point is NOT contained in primary private flux region.")
+        print("# Snowflake-plus")
+
+        # Obtain candidate NSEW directions
+        grid.eq.analyze_saddle(xpt2_coor, xpt_ID='xpt2')
+
+        # Prepare minimizer for identification of SF+ type
+        grid.eq._set_function('rho', 'cw')
+        NS_buffer = grid.eq.NSEW_lookup['xpt2']['coor']
+        N_sol = solve_ivp(grid.eq.function, (0, grid.eq.dt), NS_buffer['N'], method='LSODA',\
+                first_step=grid.eq.first_step, max_step=grid.eq.max_step, rtol=1e-13, atol=1e-12).y
+        S_sol = solve_ivp(grid.eq.function, (0, grid.eq.dt), NS_buffer['S'], method='LSODA',\
+                first_step=grid.eq.first_step, max_step=grid.eq.max_step, rtol=1e-13, atol=1e-12).y
+        N_guess = (N_sol[0][-1], N_sol[1][-1])
+        S_guess = (S_sol[0][-1], S_sol[1][-1])
+
+        minimize(grid.eq.PsiCostFunc, N_guess, method='trust-ncg', jac=grid.psi_norm.Gradient, hess=grid.psi_norm.Hessian,
+            options={'initial_trust_radius' : grid.eq.eps, 'max_trust_radius' : grid.eq.dt}, callback=cb_plot1)
+        minimize(grid.eq.PsiCostFunc, S_guess, method='trust-ncg', jac=grid.psi_norm.Gradient, hess=grid.psi_norm.Hessian,
+            options={'initial_trust_radius' : grid.eq.eps, 'max_trust_radius' : grid.eq.dt}, callback=cb_plot2)
+
+        for guess in [N_guess, S_guess]:
+            try:
+                minimize(grid.eq.PsiCostFunc, guess, method='trust-ncg', jac=grid.psi_norm.Gradient, hess=grid.psi_norm.Hessian,
+                    options={'initial_trust_radius' : grid.eq.eps, 'max_trust_radius' : grid.eq.dt}, callback=cb)
+            except RegionEntered as e:
+                region = e.region
+                if region == 'Core':
+                    print('# Identified SF15')
+                    # True south should land in region of interest
+                    if guess is N_guess: grid.eq.flip_NSEW_lookup()
+                    break
+                elif region == 'PF':
+                    print('# Identified SF45')
+                    # True south should land in region of interest
+                    if guess is N_guess: grid.eq.flip_NSEW_lookup()
+                    break
+
+def ADX_test():
+    ADX_case = "../Parameter Files/ADX.yml"
+    fname = ADX_case
+    ADX = Ingrid(InputFile=fname)
+    ADX.Setup()
+    xpt2 = (0.95, -0.68)
+    partition_domain(ADX, xpt2)
+    plt.ioff()
+    plt.show()
+
+def SF15_test():
+    SF15_case = "../Parameter Files/SF15.yml"
+    fname = SF15_case
+    SF15 = Ingrid(InputFile=fname)
+    SF15.OMFIT_read_psi()
+    SF15.calc_efit_derivs()
+    SF15.read_target_plates()
+    SF15.AutoRefineXPoint()
+    SF15.FindXPoint(1.5, -0.62)
+    SF15.FindMagAxis(1.71, 0.45)
+    SF15.SetMagReference()
+    SF15.calc_psinorm()
+    SF15.plot_psinorm(interactive=True)
+    SF15.init_LineTracing(interactive=True)
+    SF15._analyze_topology()
+    xpt2 = (2.1, -0.557)
+    bounds = [1.0, 2.4, -1, 1.0]
+    partition_domain(SF15, xpt2, bounds)
+    plt.ioff()
+    plt.show()
+
+def SF45_test():
+    SF45_case = "../Parameter Files/SF45.yml"
+    fname = SF45_case
+    SF45 = Ingrid(InputFile=fname)
+    SF45.OMFIT_read_psi()
+    SF45.calc_efit_derivs()
+    SF45.read_target_plates()
+    SF45.AutoRefineXPoint()
+    SF45.SetMagReference()
+    SF45.calc_psinorm()
+    SF45.plot_psinorm(interactive=True)
+    SF45.init_LineTracing(interactive=True)
+    SF45._analyze_topology()
+    xpt2 = (2.12, -1.13)
+    bounds = [1.0, 2.4, -1, 1.0]
+    SF45.FindXPoint(1.5, -0.47)
+    SF45.FindMagAxis(1.71, 0.45)
+    partition_domain(SF45, xpt2, bounds)
+    plt.ioff()
+    plt.show()
+
+def SPARC_test():
+    SPARC_case = "../Parameter Files/SPARC_SF.yml"
+    fname = SPARC_case
+    SPARC = Ingrid(InputFile=fname)
+    SPARC.Setup()
+    xpt2 = (1.7, -1.51)
+    partition_domain(SPARC, xpt2)
+    plt.ioff()
+    plt.show()    
+
+SF15_test()
+ADX_test()
+SPARC_test()
 
 
 
-USN_case = "../Parameter Files/USN_YAML_EXAMPLE.yml"
-DIIID_case = "../Parameter Files/DIIID_SNL.yml"
-SAS_case = "/Users/torvaltz/Desktop/JeromeGridGenerator/GridGenerator/D3DSAS/SAS1_modif.yml"
-ADX_case = "../Parameter Files/ADX.yml"
 
-fname = ADX_case
 
-ADX = Ingrid(InputFile=fname)
-ADX.Setup()
-partition_domain(ADX)
-plt.ioff()
-plt.show()

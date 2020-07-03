@@ -35,6 +35,10 @@ class RootFinder:
         self.curr_x = 0.0
         self.curr_y = 0.0
         self.final_root = ()
+        self.root_trace={'default' : {'point' : None, 'separatrix' : None},
+            'xpt1' : {'point' : None, 'separatrix' : None},
+            'xpt2' : {'point' : None, 'separatrix' : None},
+            'magx' : {'point' : None, 'separatrix' : None}}
 
         if active:
             self.cid = grid.ax.figure.canvas.mpl_connect('button_press_event', self)
@@ -78,7 +82,7 @@ class RootFinder:
         if self.root_finding: 
             self.find_root(self.curr_x, self.curr_y)
         elif self.psi_finding:
-            self.find_psi(self.curr_x, self.curr_y)
+            self.find_psi(self.curr_x, self.curr_y, self.topofeature)
         else:
             print("You chose ({0:.5f}, {1:.5f}). ".format(self.curr_x, self.curr_y))
             self.final_root = (self.curr_x, self.curr_y)
@@ -96,13 +100,15 @@ class RootFinder:
         """ Turn off the click functionality for the root finder. """
         self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
         print('RF Disabled')
+        self.topofeature=None
    
-    def connect(self):
+    def connect(self, topofeature=None):
         """ Turn on the click functionality for the root finder. """
+        self.topofeature = topofeature
         self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event', self)
         print('RF Enabled')
     
-    def find_root(self, x, y):
+    def find_root(self, x, y, topofeature='default'):
         """        
         Accepts an initial guess for the root, then uses scipy.optimize.root
         to refine the zero point. Saves the root as a tuple
@@ -116,9 +122,9 @@ class RootFinder:
             y or z value for the guess
 
         """
-        plt.cla()
-        self.controller.IngridSession.plot_efit_data()
-        self.controller.IngridSession.plot_target_plates()
+        # plt.cla()
+        # self.controller.IngridSession.plot_efit_data()
+        # self.controller.IngridSession.plot_target_plates()
         #plt.plot(x, y, '*', color = 'blue')
         sol = root(self.func, [x, y])
         r, z = sol.x[0], sol.x[1]
@@ -129,33 +135,36 @@ class RootFinder:
         else:
             print("You chose ({0:.5f}, {1:.5f}). ".format(x, y) +
                   "The zero point is ({0:.5f},{1:.5f})".format(r, z))
-            plt.plot(r, z, '.', color = 'blue') 
-            plt.contour(self.grid.r, self.grid.z, self.grid.v, [self.grid.get_psi(r,z)], colors = 'purple')
-            plt.draw()
+        
+        try:
+            self.root_trace[topofeature]['separatrix'].collections[0].remove()
+            self.grid.ax.lines[-1].remove()
+        except:
+            pass
+        self.root_trace[topofeature]['point'] = plt.plot(r, z, '.', color = 'blue')
+        self.root_trace[topofeature]['separatrix'] = plt.contour(self.grid.r, self.grid.z, self.grid.v, [self.grid.get_psi(r,z)], colors = 'purple')
+        plt.draw()
+        self.final_root = (r, z)
 
-            self.final_root = (r, z)
+        self.controller.frames[IngridApp.ParamPicker].curr_click = self.final_root
+        # self.controller.curr_root = self.final_root
+        self.controller.frames[IngridApp.ParamPicker].update_root_finder()
 
-            self.controller.frames[IngridApp.ParamPicker].curr_click = self.final_root
-            # self.controller.curr_root = self.final_root
-            self.controller.frames[IngridApp.ParamPicker].update_root_finder()
-
-    def find_psi(self, x, y):
+    def find_psi(self, x, y, topofeature=None):
         self.controller.frames[IngridApp.ParamPicker].curr_click = (x, y)
         self.controller.frames[IngridApp.ParamPicker].update_root_finder()
 
-        plt.cla()
-        self.grid.plot_data(self.controller.IngridSession.yaml['grid_params']['nlevs'])
-        self.controller.IngridSession.plot_target_plates()
-        plt.contour(self.grid.r, self.grid.z, self.grid.v, [self.grid.get_psi(x,y)], colors = 'red', label = 'psi_line')
+        Dic={'psi_max':'blue',
+            'psi_min_core':'magenta',
+            'psi_max_outer':'blue',
+            'psi_max_inner':'blue',
+            'psi_min_pf':'green',
+            'psi_pf2':'yellow'}
 
-    def _level(self):
-
-        level = float(self.controller.frames[IngridApp.ParamPicker].ActiveFrame[0].Psi_EntryText.get())
-
-        plt.cla()
-        self.grid.plot_data(self.controller.IngridSession.yaml['grid_params']['nlevs'])
-        self.controller.IngridSession.plot_target_plates()
-        plt.contour(self.grid.r, self.grid.z, self.grid.v, [level], colors = 'red', label = 'psi_line')
+        if topofeature in [k for k in Dic.keys()]:
+            self.grid.PlotLevel(self.grid.get_psi(x, y), color=Dic[topofeature], label=topofeature)
+        else:
+            plt.contour(self.grid.r, self.grid.z, self.grid.v, [self.grid.get_psi(x,y)], colors = 'red', label = 'psi_line')
 
 if __name__ == "__main__":
 #    from Interpol.Setup_Grid_Data import Efit_Data

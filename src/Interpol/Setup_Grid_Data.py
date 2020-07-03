@@ -66,6 +66,7 @@ class Efit_Data:
         self.rlimiter = rlimiter
         self.zlimiter = zlimiter
         self.name = name
+        self.psi_levels={}
 
     def Gradient(self,xy:tuple)->np.ndarray:
         """ Combines the first partial derivatives to solve the system for
@@ -87,6 +88,18 @@ class Efit_Data:
         F[0] = self.get_psi(x, y, tag='vr')
         F[1] = self.get_psi(x, y, tag='vz')
         return F
+    def Hessian(self, xy):
+        x, y = xy
+        H = np.zeros((2,2))
+        H[0, 0] = self.get_psi(x, y, 'vrr')
+        H[1, 1] = self.get_psi(x, y, 'vzz')
+        H[0, 1] = self.get_psi(x, y, 'vrz')
+        H[1, 0] = self.get_psi(x, y, 'vrz')
+        return H
+
+    def PsiFunction(self, xy):
+        x, y = xy
+        return self.get_psi(x, y)
 
     def get_v(self, tag='v'):
         """ returns the entire array of v, vr, vz, or vrz.
@@ -358,9 +371,17 @@ class Efit_Data:
         """
 
         """
-        c=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label)
-        plt.clabel(c, inline=True, fontsize=8)
-        c.collections[0].set_label(label)
+        try:
+            self.psi_levels[label].collections[0].remove()
+            for l in self.psi_levels[label+'label']:
+                l.remove()
+            self.psi_levels[label]=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label)
+            self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=True, fontsize=8)
+            self.psi_levels[label].collections[0].set_label(label)
+        except:
+            self.psi_levels[label]=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label)
+            self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=True, fontsize=8)
+            self.psi_levels[label].collections[0].set_label(label)
 
     def plot_data(self, nlev=30,interactive=True):
         """ generates the plot that we will be able to manipulate

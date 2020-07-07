@@ -393,14 +393,14 @@ class Efit_Data:
             number of levels we want to be plotted
 
         """
-        self.fig = plt.figure(self.name, figsize=(6, 10))
+        self.fig = plt.figure('INGRID: ' + self.name, figsize=(6, 10))
         self.ax = self.fig.add_subplot(111)
         lev = (self.v.min() + (self.v.max()
                - self.v.min()) * np.arange(nlev) / (nlev-1))
         self.ax.contour(self.r, self.z, self.v, lev)
         plt.plot(self.rmagx, self.zmagx, 'x', color = 'black')
         plt.gca().set_aspect('equal', adjustable='box')
-        plt.title('psi')
+        plt.title(self.name)
         plt.xlabel('R')
         plt.ylabel('Z')
         plt.xlim(self.rmin, self.rmax)

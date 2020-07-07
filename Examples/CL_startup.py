@@ -1,22 +1,45 @@
+"""
+CL_startup
+
+    Description:
+        A script demonstrating basic command line workflow with Ingrid when utilizing the YAML
+        parameter file as a driver.
+
+"""
+
+import sys
+sys.path.append('../src/')
 from Ingrid import Ingrid
 import pathlib
 
-USN_case = "../Parameter Files/USN_YAML_EXAMPLE.yml"
+# Path to parameter file cases
+LSN_case = "../Parameter Files/SNL/LSN_YAML_EXAMPLE.yml"
+CMOD_case = "../Parameter Files/SNL/cmod_param.yml"
 DIIID_case = "../Parameter Files/DIIID_SNL.yml"
-SAS_case = "/Users/torvaltz/Desktop/JeromeGridGenerator/GridGenerator/D3DSAS/SAS1_modif.yml"
-SPARC_case = "../Parameter Files/SPARC_DNL.yml"
+SAS_case = "../Parameter Files/SNL/SAS1_modif.yml"
+# < Your path to Ingrid formatted parameter file here >
 
-fname = SAS_case
+# Select a case.
+case = LSN_case
 
-GridDemo = Ingrid(InputFile=fname)
-GridDemo.yaml['target_plates']['plate_W1']['file'] = "/Users/torvaltz/Desktop/JeromeGridGenerator/GridGenerator/D3DSAS/SAS_odt.txt"
-GridDemo.yaml['target_plates']['plate_E1']['file'] = "/Users/torvaltz/Desktop/INGRID/data/SNL/USN/itp4.txt"
-import pdb
-pdb.set_trace()
-GridDemo.Setup()
-GridDemo.ConstructPatches()
-GridDemo.ShowSetup()
-import pdb
-pdb.set_trace()
-GridDemo.CreateSubgrid(Enforce=False)
-GridDemo.export()
+
+if __name__ == '__main__':
+
+    # Construction of Ingrid object with parameter file parsing.
+    GridDemo = Ingrid(InputFile=case)
+
+    # Read EFIT data, target plate data, and plot data.
+    GridDemo.Setup()
+
+    # Begin patch construction with parameter file psi values.
+    GridDemo.ConstructPatches()
+
+    # Plot constructed patches.
+    GridDemo.ShowSetup()
+
+    # Begin patch refinement and actively plot grid.
+    GridDemo.CreateSubgrid()
+
+    # Export gridue file.
+    fname = 'gridue'
+    GridDemo.export(fname=fname)

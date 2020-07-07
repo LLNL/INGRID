@@ -23,7 +23,7 @@ try:
 except:
     pass
 from matplotlib.patches import Polygon
-from geometry import Point, Line, Patch, DNL_Patch, segment_intersect
+from geometry import Point, Line, Patch, DNL_Patch, segment_intersect, angle_between, rotate
 
 
 class SNL():
@@ -47,6 +47,7 @@ class SNL():
         self.plate_data = Ingrid_obj.plate_data
 
         self.parent.order_target_plates()
+        self.PatchTagMap = self.parent.GetPatchTagMap(config='SNL')
 
         self.eq = Ingrid_obj.eq
         self.efit_psi = Ingrid_obj.efit_psi
@@ -114,7 +115,7 @@ class SNL():
         ax.legend()
         plt.show()
 
-    def get_configuration(self):
+    def get_config(self):
         """
         Returns a string indicating whether the
         """
@@ -316,7 +317,10 @@ class SNL():
 
     def GetFunctions(self,Patch,Enforce=True,Verbose=False,ExtraSettings={}):
         if Patch in self.SOL:
-            _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_sol']
+            try:
+                _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_sol']
+            except:
+                _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_primary_sol']
             valid_function=self.CheckFunction(_radial_f,Enforce)
             if Verbose: print('SOL radial transformation: "{}"'.format(_radial_f))
         elif Patch in self.CORE:
@@ -324,7 +328,10 @@ class SNL():
             valid_function=self.CheckFunction(_radial_f,Enforce)
             if Verbose: print('Core radial transformation: "{}"'.format(_radial_f))
         elif Patch in self.PF:
-            _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_pf']
+            try:
+                _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_pf']
+            except:
+                _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_primary_pf']
             valid_function=self.CheckFunction(_radial_f,Enforce)
             if Verbose: print('Core radial transformation: "{}"'.format(_radial_f))
         if valid_function:
@@ -466,9 +473,9 @@ class SNL():
         return (nr_cells,np_cells)
 
     def AdjustPatch(self,patch):
-        primary_xpt = Point([self.yaml['grid_params']['rxpt'], self.yaml['grid_params']['zxpt']])
+        primary_xpt = Point(self.eq.NSEW_lookup['xpt1']['coor']['center'])
 
-        tag = patch.name2tag()
+        tag = patch.get_tag()
         if tag == 'A2':
             patch.adjust_corner(primary_xpt, 'SE')
         elif tag == 'A1':
@@ -485,7 +492,10 @@ class SNL():
             patch.adjust_corner(primary_xpt, 'NW')
         elif tag == 'F2':
             patch.adjust_corner(primary_xpt, 'SW')
-                
+    
+    def AdjustPatches(self):
+        for patch in self.patches.values():
+            self.AdjustPatch(patch)
                 
     def CheckPatches(self,verbose=False):
         for name, patch in self.patches.items():
@@ -497,10 +507,6 @@ class SNL():
         with open(FileName,'w') as File:
             _yaml_.dump(self.patches,File)
 
-            # self.platePatch = platePatch
-            # self.plateLocation = plateLocation
-            # self.patchName = patchName
-            # self.lines
     def LoadPatches(self,FileName):
         with open(FileName,'r') as File:
             self.patches = _yaml_.load(File,Loader=_yaml_.Loader)
@@ -560,9 +566,6 @@ class SNL():
                 patch.make_subgrid(self, np_cells, nr_cells, _poloidal_f=_poloidal_f,_radial_f=_radial_f,verbose = verbose, visual = visual,ShowVertices=ShowVertices,OptionTrace=OptionTrace)
                 self.AdjustPatch(patch)
                 patch.plot_subgrid()
-                plt.pause(1)
-                plt.show()
-                plt.ion()
                 self.CurrentListPatch[name] = patch
 
 
@@ -572,9 +575,9 @@ class SNL():
             self.set_gridue()
         
     def SetPatchBoundaryPoints(self,Patch):
-            if self.ConnexionMap.get(Patch.name2tag()) is not None:
+            if self.ConnexionMap.get(Patch.get_tag()) is not None:
                 if self.Verbose: print('Find connexion map for patch {}'.format(Patch.patchName))
-                for Boundary,AdjacentPatch in self.ConnexionMap.get(Patch.name2tag()).items():
+                for Boundary,AdjacentPatch in self.ConnexionMap.get(Patch.get_tag()).items():
                     Patch.BoundaryPoints[Boundary]=self.GetBoundaryPoints(AdjacentPatch)
                     if self.Verbose: print('Find Boundaries points for {}'.format(Patch.patchName))
                 
@@ -663,14 +666,14 @@ class SNL():
 
         # Drawing Lower-SNL region
         if self.yaml['grid_params']['patch_generation']['use_NW']:
-            tilt = self.eq.NSEW_lookup['xpt1']['theta']['NW'] + self.yaml['grid_params']['patch_generation']['NW_adjust']
-            xptW_psiMax = self.eq.draw_line(xpt['W'], {'psi_horizontal' : (psi_max, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+            tilt = self.yaml['grid_params']['patch_generation']['NW_adjust']
+            xptW_psiMax = self.eq.draw_line(rotate(xpt['W'], tilt, xpt['center']), {'psi_horizontal' : (psi_max, tilt)}, option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
         else:
             xptW_psiMax = self.eq.draw_line(xpt['W'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
 
         if self.yaml['grid_params']['patch_generation']['use_NE']:
-            tilt = self.eq.NSEW_lookup['xpt1']['theta']['NE'] + self.yaml['grid_params']['patch_generation']['NE_adjust']
-            xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi_horizontal' : (psi_max, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
+            tilt = self.yaml['grid_params']['patch_generation']['NE_adjust']
+            xptE_psiMax = self.eq.draw_line(rotate(xpt['E'], tilt, xpt['center']), {'psi_horizontal' : (psi_max, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
         else:
             xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
 
@@ -811,9 +814,8 @@ class SNL():
         self.patches = {}
         for patch in patches:
             patch.parent = self
+            patch.NameTagMap = self.PatchTagMap
             self.patches[patch.patchName] = patch
-            patch.plot_border()
-            patch.fill()
 
         p = self.patches
         self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \

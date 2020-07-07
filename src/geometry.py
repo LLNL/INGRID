@@ -40,7 +40,40 @@ def which_increasing(L):
 def non_decreasing(L):
     return all(x<=y for x, y in zip(L, L[1:]))
 
+def rotmatrix(theta):
+    rot = np.zeros((2, 2))
+    rot[0, 0] = np.cos(theta)
+    rot[1, 1] = np.cos(theta)
+    rot[0, 1] = -np.sin(theta)
+    rot[1, 0] = np.sin(theta)
+    return rot
 
+def rotate(vec, theta, origin):
+    return np.matmul(rotmatrix(theta), vec - origin) + origin
+
+def unit_vector(v):
+    """
+    Returns unit vector
+    """
+    return v / np.linalg.norm(v)
+
+def angle_between(u, v, origin, relative = False):
+    """
+    Compute angle in radians between vectors u and v
+    """
+    u_norm = unit_vector(u-origin)
+    v_norm = unit_vector(v-origin)
+    angle = np.arccos(np.clip(np.dot(u_norm, v_norm), -1, 1))
+    return orientation_between(u, v, origin) * angle if relative else angle
+
+def orientation_between(u, v, origin):
+    """
+    Compute angle in radians between vectors u and v
+    """
+    u_norm = unit_vector(u-origin)
+    v_norm = unit_vector(v-origin)
+    return np.sign(np.arctan2(u_norm[0] * v_norm[1] - u_norm[1] * v_norm[0], \
+        u_norm[0] * v_norm[0] + u_norm[0] * v_norm[1]))
 
 
 class Vector:
@@ -468,7 +501,7 @@ class Patch:
 
     """
 
-    def __init__(self, lines, patchName = '', parent=None, platePatch = False, plateLocation = None, color='blue'):
+    def __init__(self, lines, patchName = '', parent=None, NameTagMap=None, platePatch = False, plateLocation = None, color='blue'):
         self.lines = lines
         self.N = lines[0]
         self.E = lines[1]
@@ -480,7 +513,7 @@ class Patch:
         # This is the border for the fill function
         # It need to only include N and S lines
         self.p = list(self.N.p) + list(self.E.p) + list(self.S.p) + list(self.W.p)
-        self.NameTagMap = {}
+        self.NameTagMap = NameTagMap
         self.platePatch = platePatch
         self.plateLocation = plateLocation
         self.patchName = patchName
@@ -542,6 +575,7 @@ class Patch:
         for row in self.cell_grid:
             for cell in row:
                 cell.plot_border(color)
+        plt.pause(0.1)
 
 
     def adjust_corner(self, point, corner):
@@ -577,8 +611,6 @@ class Patch:
                 Number to be used to generate num x num
                 cells within our Patch.
         """
-
-
 
         def psi_parameterize(grid, r, z):
             """

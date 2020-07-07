@@ -42,8 +42,6 @@ import Ingrid
 import Topologies
 import Root_Finder
 
-import pdb
-
 helv_large = 'Helvetica 13 bold'
 helv_medium = 'Helvetica 9 bold'
 
@@ -74,7 +72,7 @@ class IngridApp(tk.Tk):
 
         # attached to the parent Ingrid instance instead of new instance
         if IngridSession is None:
-            self.IngridSession = Ingrid.Ingrid(params = {'grid_params' : {'num_xpt' : 1}})
+            self.IngridSession = Ingrid.Ingrid()
         else:
             self.IngridSession = IngridSession
         self.populate_GUI()
@@ -166,7 +164,7 @@ class IngridApp(tk.Tk):
                 nxpt = 1
             elif self.gui_mode == 'DNL':
                 nxpt = 2
-            self.IngridSession = Ingrid.Ingrid({'grid_params' : {'num_xpt' : nxpt}})
+            self.IngridSession = Ingrid.Ingrid()
 
             self.show_frame(ParamPicker)
             self.geometry(self.gui_dimensions[ParamPicker])
@@ -197,6 +195,7 @@ class MenuBarControl(tk.Tk):
         ingridTab.add_command(label='Preferences...', command=self.open_preferences)
         ingridTab.add_separator()
         ingridTab.add_command(label='Select Data', command=controller.frames[ParamPicker].load_files)
+        ingridTab.add_command(label='New YAML Parameter File', command=self.new_yaml)
         ingridTab.add_command(label='Load YAML Parameter File', command = self.load_yaml)
         ingridTab.add_command(label='Save Parameters', command=controller.frames[ParamPicker].saveParameters)
         ingridTab.add_separator()
@@ -212,6 +211,7 @@ class MenuBarControl(tk.Tk):
         self.menubar.add_cascade(label = 'Patch Controls', menu = patchTab)
         self.menubar.add_cascade(label = 'Grid Controls', menu = gridTab)
 
+        ingridTab.entryconfig('Save Parameters', state = 'disabled')
         patchTab.entryconfig('Generate Patches', state = 'disabled')
         gridTab.entryconfig('Generate Grid', state = 'disabled')
         gridTab.entryconfig('Export gridue', state = 'disabled')
@@ -222,7 +222,15 @@ class MenuBarControl(tk.Tk):
 
         self.preferences_window = None
 
-
+    def new_yaml(self):
+        fname = Path(tkFD.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='.yml'))
+        if fname.name != '':
+            try:
+                documentation = Path('../Docs/INGRID_YAML_CONTROLS.txt')
+                fname.write_text(documentation.resolve().read_text() + '\n' + yaml.dump(Ingrid.Ingrid().yaml, indent = 4))
+            except:
+                fname.write_text(yaml.dump(Ingrid.Ingrid.yaml(), indent = 4))  # force tag is to overwrite the previous file
+            print("Saved parameters to '{}'.".format(fname))        
 
     def load_yaml(self):
         self.controller.frames[ParamPicker].load_files()
@@ -230,6 +238,9 @@ class MenuBarControl(tk.Tk):
 
     def enable_patch_generation(self):
         self.patchTab.entryconfig('Generate Patches', state = 'normal')
+
+    def enable_save_parameters(self):
+        self.ingridTab.entryconfig('Save Parameters', state = 'normal')
 
     def enable_grid_generation(self):
         self.gridTab.entryconfig('Generate Grid', state = 'normal')
@@ -888,13 +899,15 @@ class ParamPicker(tk.Frame):
 
     def EnableGridGeneration(self):
         self.GridParameterFrame.enable_frame()
+        self.controller.IngridMenubar.enable_grid_generation()
         self.GenerateGrid_Button.config(state = 'normal')
 
 
     def GenerateGrid(self):
         if self.GridParameterFrame.GetValues():
-            if self.IngridSession.CreateSubgrid():
+            if self.Grid.parent.CreateSubgrid():
                 self.controller.IngridMenubar.enable_gridue_export()
+                self.GenerateGrid_Button.config(fg='lime green')
 
 
 
@@ -973,7 +986,10 @@ class ParamPicker(tk.Frame):
 
         self.acceptRF_Button.config(text = 'Entries Saved!', fg = 'lime green')
         # plt.close('all')
-        self.controller.IngridSession.root_finder.disconnect()
+        try:
+            self.controller.IngridSession.root_finder.disconnect()
+        except:
+            pass
         for F in self.RF_Frames:
             if F.active_frame:
                 F.update_frame()
@@ -1019,6 +1035,7 @@ class ParamPicker(tk.Frame):
         self.controller.IngridSession.target_plates = self.controller.IngridSession.yaml['target_plates']
 
         self.controller.IngridMenubar.enable_patch_generation()
+        self.controller.IngridMenubar.enable_save_parameters()
 
     def set_INGRID_params(self):
 
@@ -1067,9 +1084,7 @@ class ParamPicker(tk.Frame):
             F.disable_frame()
 
         try:
-            self.Grid.construct_patches()
-            self.Grid.patch_diagram()
-            self.controller.IngridMenubar.enable_grid_generation()
+            self.Grid.parent.ConstructPatches()
             self.EnableGridGeneration()
             self.CreatePatches_Button.config(fg='lime green')
         except Exception as e:
@@ -1132,12 +1147,13 @@ class ParamPicker(tk.Frame):
     def saveParameters(self):
         self.set_INGRID_params()
         fname = Path(tkFD.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='.yml'))
-        try:
-            documentation = Path('../Docs/INGRID_YAML_CONTROLS.txt')
-            fname.write_text(documentation.resolve().read_text() + '\n' + yaml.dump(self.controller.IngridSession.yaml, indent = 4))
-        except:
-            fname.write_text(yaml.dump(self.controller.IngridSession.yaml, indent = 4))  # force tag is to overwrite the previous file
-        print("Saved parameters to '{}'.".format(fname))
+        if fname.name != '':
+            try:
+                documentation = Path('../Docs/INGRID_YAML_CONTROLS.txt')
+                fname.write_text(documentation.resolve().read_text() + '\n' + yaml.dump(self.controller.IngridSession.yaml, indent = 4))
+            except:
+                fname.write_text(yaml.dump(self.controller.IngridSession.yaml, indent = 4))  # force tag is to overwrite the previous file
+            print("Saved parameters to '{}'.".format(fname))
     #TODO: why adding a layer on top of the yaml dic?
     def load_frame_entries(self):
 
@@ -1207,7 +1223,9 @@ class RootFinderFrame(tk.LabelFrame):
         self.title = title
         self.controller = controller
         self.R_EntryText = tk.StringVar()
+        self.R_EntryText.set('0.0')
         self.Z_EntryText = tk.StringVar()
+        self.Z_EntryText.set('0.0')
         self.All_EntryText = (self.R_EntryText, self.Z_EntryText)
 
         self.R_Entry = tk.Entry(self, text = self.R_EntryText, disabledbackground = '#eee9e9')
@@ -1304,8 +1322,11 @@ class PsiFinderFrame(tk.LabelFrame):
 
         rbWrapper = tk.LabelFrame(self, text = 'Mouse Entry:', font = helv_medium)
         self.R_EntryText = tk.StringVar()
+        self.R_EntryText.set('0.0')
         self.Z_EntryText = tk.StringVar()
+        self.Z_EntryText.set('0.0')
         self.Psi_EntryText = tk.StringVar()
+        self.Psi_EntryText.set('0.0')
         self.All_EntryText = [self.R_EntryText, self.Z_EntryText, self.Psi_EntryText]
 
         self.R_Entry = tk.Entry(self, text = self.R_EntryText, disabledbackground = '#eee9e9')

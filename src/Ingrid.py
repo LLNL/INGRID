@@ -24,7 +24,7 @@ from Interpol.Setup_Grid_Data import Efit_Data
 from line_tracing import LineTracing
 from Root_Finder import RootFinder
 from Topologies import SNL
-from geometry import Point, Line, Patch, segment_intersect
+from geometry import Point, Line, Patch, segment_intersect, orientation_between
 from scipy.optimize import root, minimize
 
 class Ingrid:
@@ -275,7 +275,7 @@ class Ingrid:
                 'nr_secondary_sol' : 2, 'nr_secondary_pf' : 2, \
                 'radial_f_primary_sol' : 'x, x', 'radial_f_secondary_sol' : 'x, x', \
                 'radial_f_primary_pf' : 'x, x', 'radial_f_secondary_pf' : 'x, x', \
-                'radial_f_core' : 'x, x', \
+                'radial_f_core' : 'x, x', 'poloidal_f' : 'x, x',\
 
                 # Temporary attributes
                 'np_sol' : 2, 'nr_sol' : 2, 'np_pf' : 2, 'nr_pf' : 2
@@ -287,8 +287,8 @@ class Ingrid:
                 'use_NW' : False, 'use_NE' : False, \
                 'use_secondary_NW' : False, 'use_secondary_NE' : False, \
                 'use_SW' : False, 'use_SE' : False, \
-                'NW_adjust' : 0.0, 'NE_adjust' : 0.0, \
-                'secondary_NW_adjust' : 0.0, 'secondary_NE_adjust' : 0.0, \
+                'NW_adjust' : -0.785398, 'NE_adjust' : 0.785398, \
+                'secondary_NW_adjust' : -0.785398, 'secondary_NE_adjust' : 0.785398, \
             } \
         }
 
@@ -591,21 +591,6 @@ class Ingrid:
 
         @author: garcia299
         """
-        def unit_vector(v):
-            """
-            Returns unit vector
-            """
-            return v / np.linalg.norm(v)
-
-        def angle_between(u, v):
-            """
-            Compute angle in radians between vectors u and v
-            """
-            u_norm = unit_vector(u)
-            v_norm = unit_vector(v)
-            return np.arctan2(u_norm[0] * v_norm[1] - u_norm[1] * v_norm[0], \
-                u_norm[0] * v_norm[0] + u_norm[0] * v_norm[1])
-
 
         for k in self.plate_data.keys():
 
@@ -649,10 +634,10 @@ class Ingrid:
                 v_reference = np.array( [ self.yaml['grid_params']['rmagx'], 
                     self.yaml['grid_params']['zmagx'] ])
 
-                v_start = np.array( [ start.x, start.y ] ) - v_reference
-                v_end = np.array( [ end.x, end.y ] ) - v_reference
+                v_start = np.array( [ start.x, start.y ] )
+                v_end = np.array( [ end.x, end.y ] )
 
-                if angle_between(v_start, v_end) <= 0:
+                if orientation_between(v_start, v_end, v_reference) <= 0:
                     ordered_plate = plate.copy()
                 else:
                     ordered_plate = plate.reverse_copy()
@@ -757,7 +742,7 @@ class Ingrid:
                                   self.efit_psi.zmax, self.efit_psi.nz,
                                   self.efit_psi.rcenter, self.efit_psi.bcenter,
                                   self.efit_psi.rlimiter, self.efit_psi.zlimiter,
-                                  self.efit_psi.rmagx, self.efit_psi.zmagx, name='psi norm')
+                                  self.efit_psi.rmagx, self.efit_psi.zmagx, name='Normalized Efit Data')
         psi = self.efit_psi.v
         psi_magx = self.efit_psi.get_psi(self.magx[0], self.magx[1])
         psi_xpt1 = self.efit_psi.get_psi(self.xpt1[0], self.xpt1[1])
@@ -836,7 +821,8 @@ class Ingrid:
     def export(self, fname = 'gridue'):
         """ Saves the grid as an ascii file """
         if isinstance(self.current_topology, SNL):
-            self.WritegridueSNL(self.current_topology.gridue_params, fname)
+            if self.WritegridueSNL(self.current_topology.gridue_params, fname):
+                print(f"# Saved gridue file as '{fname}'.")
         elif isinstance(self.current_topology, DNL):
             self.WritegridueDNL(self.current_topology.gridue_params, fname)
 
@@ -885,6 +871,8 @@ class Ingrid:
         f.write(runidg + '\n')
 
         f.close()
+
+        return True
 
     def WriteGridueDNL(self, gridue_params, fname = 'gridue'):
 
@@ -969,7 +957,7 @@ class Ingrid:
             print('Current Working Directory:'+os.getcwd())
             raise IOError('Cannot find the file: ' +FileName)
 
-    def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=True):
+    def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=False):
 
 
         try:
@@ -989,12 +977,14 @@ class Ingrid:
         for plate in _i:
             print('Name: {}\n np_local: {}\n'.format(_i[plate]['name'], _i[plate]['np_local']))
         if NewFig:
-            self.FigGrid=plt.figure('INGRID: Grid', figsize=(10,10))
+            self.FigGrid=plt.figure('INGRID: Grid', figsize=(6, 10))
             ax=self.FigGrid.gca()
+            ax.set_title(label='SNL Grid Diagram')
 
         self.GetConnexionMap()
 
         self.current_topology.construct_grid(np_cells, nr_cells,ShowVertices=ShowVertices,RestartScratch=RestartScratch,OptionTrace=OptionTrace,ExtraSettings=ExtraSettings,ListPatches=ListPatches,Enforce=Enforce)
+        return True
 
     def SetMagReference(self:object,topology:str='SNL')->None:
         self.magx= (self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx'])
@@ -1050,9 +1040,10 @@ class Ingrid:
         self.PlotPsiNormBounds()
         self.plot_target_plates()
         self.PlotMagReference()
+        plt.pause(0.01)
 
     def ConstructPatches(self):
-        self.GetPatchTagMap()
+        self.GetPatchTagMap(self.current_topology.get_config())
         self.current_topology.construct_patches()
         self.current_topology.patch_diagram()
         self.current_topology.CheckPatches()
@@ -1078,8 +1069,8 @@ class Ingrid:
                     ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '3', 'S')}
             self.current_topology.ConnexionMap = ConnexionMap
     
-    def GetPatchTagMap(self, custom_map=None):
-        if isinstance(self.current_topology, SNL):
+    def GetPatchTagMap(self, config):
+        if config in ['SNL', 'LSN', 'USN']:
             PatchTagMap = {
             'A1' : 'IPF', 'A2' : 'IDL',
             'B1' : 'ICB', 'B2' : 'ISB',
@@ -1093,7 +1084,7 @@ class Ingrid:
         PatchNameMap = {}
         for tag, name in PatchTagMap.items():
             PatchNameMap[name] = tag
-        self.current_topology.PatchTagMap = {**PatchTagMap, **PatchNameMap}
+        return {**PatchTagMap, **PatchNameMap}
 
 def Importgridue(fname:str = 'gridue')->dict:
     """Import UEDGE grid file as dictionary."""

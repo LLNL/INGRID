@@ -308,3 +308,117 @@
 #                   arrays containing gridue data during meshgrid generation.  
 #
 # =================================================================================================
+
+DEBUG:
+    verbose:
+        grid_generation: 0
+        patch_generation: 1
+        target_plates: 0
+    visual:
+        find_NSEW: 0
+        gridue: 0
+        patch_map: 0
+        subgrid: 1
+eqdsk: ../data/SNL/SAS1/g175816.03000
+grid_params:
+    config: USN
+    grid_generation:
+        np_core: 5
+        np_global: 5
+        np_pf: 5
+        np_primary_pf: 2
+        np_primary_sol: 2
+        np_secondary_pf: 2
+        np_secondary_sol: 2
+        np_sol: 14
+        nr_core: 4
+        nr_global: 4
+        nr_pf: 10
+        nr_primary_pf: 2
+        nr_primary_sol: 2
+        nr_secondary_pf: 2
+        nr_secondary_sol: 2
+        nr_sol: 14
+        radial_f_core: x, x
+        radial_f_pf: x, x
+        radial_f_primary_pf: x, x
+        radial_f_primary_sol: x, x
+        radial_f_secondary_pf: x, x
+        radial_f_secondary_sol: x, x
+        radial_f_sol: x, x
+        poloidal_f: x, x
+    nlevs: 30
+    num_xpt: 1
+    patch_generation:
+        NE_adjust: 0.0
+        NW_adjust: 0.0
+        inner_tilt: 0.0
+        outer_tilt: 0.0
+        rmagx_shift: 0.0
+        rxpt: 0.0
+        secondary_NE_adjust: 0.0
+        secondary_NW_adjust: 0.0
+        use_NE: false
+        use_NW: false
+        use_SE: false
+        use_SW: false
+        use_secondary_NE: false
+        use_secondary_NW: false
+        zmagx_shift: 0.0
+        zxpt: 0.0
+    psi_max: 1.040749105907
+    psi_max_inner: 0.0
+    psi_max_outer: 0.0
+    psi_max_r: 1.528056676632
+    psi_max_r_inner: 0.0
+    psi_max_r_outer: 0.0
+    psi_max_z: 1.106009796975
+    psi_max_z_inner: 0.0
+    psi_max_z_outer: 0.0
+    psi_min_core: 0.904041825299
+    psi_min_core_r: 1.212582672018
+    psi_min_core_z: 0.264745784672
+    psi_min_pf: 0.978234882796
+    psi_min_pf_r: 1.035917229434
+    psi_min_pf_z: 1.131247717344
+    psi_pf2: 0.0
+    psi_pf2_r: 0.0
+    psi_pf2_z: 0.0
+    rmagx: 1.74358642
+    rxpt: 1.370674632239
+    rxpt2: 0.0
+    zmagx: -0.0898046866
+    zxpt: 0.998624803572
+    zxpt2: 0.0
+integrator_params:
+    dt: 0.01
+    eps: 5.0e-05
+    first_step: 5.0e-05
+    max_step: 0.064
+    step_ratio: 0.02
+    tol: 0.005
+target_plates:
+    plate_E1:
+        file: '../data/SNL/SAS1/itp4.txt'
+        name: plate_E1
+        np_local: 12
+        poloidal_f: x, x
+        zshift: 0
+    plate_E2:
+        file:  
+        name: plate_E2
+        np_local: 3
+        poloidal_f: x, x
+        zshift: 1.6
+    plate_W1:
+        file: '../data/SNL/SAS1/SAS_odt.txt'
+        name: plate_W1
+        np_local: 12
+        poloidal_f: x, x
+        zshift: 0
+    plate_W2:
+        file:  
+        name: plate_W2
+        np_local: 3
+        poloidal_f: x, x
+        zshift: 1.6

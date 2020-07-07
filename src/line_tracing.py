@@ -243,17 +243,6 @@ class LineTracing:
         Finds theta values to be tested for N and S directions
         """
 
-        def rotmatrix(theta):
-            rot = np.zeros((2, 2))
-            rot[0, 0] = np.cos(theta)
-            rot[1, 1] = np.cos(theta)
-            rot[0, 1] = -np.sin(theta)
-            rot[1, 0] = np.sin(theta)
-            return rot
-
-        def rotate(vec, theta):
-            return np.matmul(rotmatrix(theta), vec)
-
         rxpt, zxpt = xpt
         hessian = np.zeros((2,2))
         hessian[0, 0] = self.grid.get_psi(rxpt, zxpt, tag = 'vrr')
@@ -267,16 +256,16 @@ class LineTracing:
         origin = np.array([rxpt, zxpt])
 
         N = np.array([rxpt + self.first_step * eigvect[0][index], zxpt + self.first_step * eigvect[1][index]])
-        W = rotate(N - origin, np.pi / 2) + origin
+        W = geo.rotate(N, np.pi / 2, origin)
         S = np.array([rxpt - self.first_step * eigvect[0][index], zxpt - self.first_step * eigvect[1][index]])
-        E = rotate(S - origin, np.pi / 2) + origin
+        E = geo.rotate(S, np.pi / 2, origin)
 
-        NW = rotate(N - origin, np.pi / 4) + origin
-        SW = rotate(W - origin, np.pi / 4) + origin
-        SE = rotate(S - origin, np.pi / 4) + origin
-        NE = rotate(E - origin, np.pi / 4) + origin
+        NW = geo.rotate(N, np.pi / 4, origin)
+        SW = geo.rotate(W, np.pi / 4, origin)
+        SE = geo.rotate(S, np.pi / 4, origin)
+        NE = geo.rotate(E, np.pi / 4, origin)
         
-        self.NSEW_lookup[xpt_ID]['coor'] = { 'N' : N, 'S' : S, 'E' : E, 'W' : W, 
+        self.NSEW_lookup[xpt_ID]['coor'] = { 'center' : xpt, 'N' : N, 'S' : S, 'E' : E, 'W' : W, 
                                             'NE' : NE, 'NW' : NW, 'SE' : SE, 'SW' : SW }
                              
     def determine_config(self, xpt, num_xpt):
@@ -290,7 +279,8 @@ class LineTracing:
         swap_key = {'N' : 'S', 'S' : 'N',
                     'W' : 'E', 'E' : 'W',
                     'NW' : 'SE', 'SE' : 'NW',
-                    'NE' : 'SW', 'SW' : 'NE'}
+                    'NE' : 'SW', 'SW' : 'NE',
+                    'center' : 'center'}
         temp_dict = {}
         for k, v in self.NSEW_lookup[xpt_ID]['coor'].items():
             temp_dict[swap_key[k]] = v

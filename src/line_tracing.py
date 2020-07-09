@@ -18,6 +18,10 @@ from Root_Finder import RootFinder
 from time import time
 import geometry as geo
 
+class RegionEntered(Exception):
+    def __init__(self, message, region):
+        self.message=message
+        self.region=region
 
 class LineTracing:
     """
@@ -267,13 +271,18 @@ class LineTracing:
         
         self.NSEW_lookup[xpt_ID]['coor'] = { 'center' : xpt, 'N' : N, 'S' : S, 'E' : E, 'W' : W, 
                                             'NE' : NE, 'NW' : NW, 'SE' : SE, 'SW' : SW }
-                             
-    def determine_config(self, xpt, num_xpt):
-        # Determine if these NSEW values give us an USN or LSN configuration.
-        if num_xpt == 1:
-            self.config = 'LSN' if self.NSEW_lookup['xpt1']['coor']['N'][1] > xpt[1] else 'USN'
-        else:
-            self.config = 'DNL'
+
+    def rotate_NSEW_lookup(self, xpt_ID, turns = 2):
+        swap_key = {'N' : 'NW', 'S' : 'SE',
+                    'W' : 'SW', 'E' : 'NE',
+                    'NW' : 'W', 'SE' : 'E',
+                    'NE' : 'N', 'SW' : 'S',
+                    'center' : 'center'}
+        for i in range(turns):
+            temp_dict = {}
+            for k, v in self.NSEW_lookup[xpt_ID]['coor'].items():
+                temp_dict[swap_key[k]] = v
+            self.NSEW_lookup[xpt_ID]['coor'] = temp_dict
 
     def flip_NSEW_lookup(self, xpt_ID):
         swap_key = {'N' : 'S', 'S' : 'N',
@@ -286,26 +295,13 @@ class LineTracing:
             temp_dict[swap_key[k]] = v
         self.NSEW_lookup[xpt_ID]['coor'] = temp_dict
 
-    def map_xpt(self, xpt, rz_end=None, xpt_ID='xpt1', method='optimize'):
+    def map_xpt(self, xpt, magx, xpt_ID='xpt1', visual=False, verbose=False):
 
-        self.analyze_saddle(xpt, xpt_ID)
-        self._set_function('rho', 'cw')
+        if xpt_ID == 'xpt1':
+            self.analyze_saddle(xpt, xpt_ID)
+            self._set_function('rho', 'cw')
 
-        NS_buffer = self.NSEW_lookup[xpt_ID]['coor']
-
-        if method == 'line_trace':
-            # Find sinks in north and south direction
-            # Line trace until we either reach
-            terminate_north = False
-            terminate_south = False
-            pass
-        elif method == 'optimize':
-            
-            for k, v in rz_end.items():
-                key = k
-                target = v
-            if key != 'point':
-                raise ValueError("Method 'optimize' must operate with a 'Point'")
+            NS_buffer = self.NSEW_lookup[xpt_ID]['coor']
 
             N_sol = solve_ivp(self.function, (0, self.dt), NS_buffer['N'], method='LSODA',\
                 first_step=self.first_step, max_step=self.max_step, rtol=1e-13, atol=1e-12).y
@@ -322,8 +318,157 @@ class LineTracing:
             S_minimizer = minimize(self.PsiCostFunc, S_guess, method='L-BFGS-B', \
                 jac=self.grid.Gradient, bounds=[r_bounds, z_bounds]).x
 
-            if (np.linalg.norm(N_minimizer - target) >= self.eps):
+            if (np.linalg.norm(N_minimizer - magx) >= self.eps):
                 self.flip_NSEW_lookup(xpt_ID)
+
+            self.config = 'LSN' if self.NSEW_lookup['xpt1']['coor']['N'][1] > xpt[1] else 'USN'
+
+        elif xpt_ID == 'xpt2':
+            
+            from matplotlib.patches import Polygon
+            def cb_region_check(xk):
+                if core_polygon.get_path().contains_point(xk):
+                    raise RegionEntered(message='# Entered Core...', region='Core')
+                elif pf_polygon.get_path().contains_point(xk):
+                    raise RegionEntered(message='# Entered PF...', region='PF')
+
+            def reorder_limiter(new_start, limiter):
+                start_index, = geo.find_split_index(new_start, limiter)
+                return limiter
+
+            def limiter_split(start, end, limiter):
+                start_index, sls = geo.find_split_index(start, limiter)
+                end_index, sls = geo.find_split_index(end, limiter)
+                if end_index <= start_index:
+                    limiter.p = limiter.p[start_index:] + limiter.p[:start_index]
+                return limiter
+
+
+
+            visual = 0
+            verbose = 0
+            
+            WestPlate = geo.Line([geo.Point(i) for i in self.grid.parent.plate_data['plate_W1']['coordinates']])
+            EastPlate = geo.Line([geo.Point(i) for i in self.grid.parent.plate_data['plate_E1']['coordinates']])
+
+            self.grid.parent.set_limiter()
+
+            limiter = self.grid.parent.limiter_data
+
+            xpt1 = self.NSEW_lookup['xpt1']['coor']
+            magx = np.array([self.grid.parent.yaml['grid_params']['rmagx'], self.grid.parent.yaml['grid_params']['zmagx']])
+
+            psi_max = self.grid.parent.yaml['grid_params']['psi_max']
+            psi_min_core = self.grid.parent.yaml['grid_params']['psi_min_core']
+            psi_min_pf = self.grid.parent.yaml['grid_params']['psi_min_pf']
+
+            # Create mid-line
+            LHS_Point = geo.Point(magx[0] - 1e6, magx[1])
+            RHS_Point = geo.Point(magx[0] + 1e6, magx[1])
+            midline = geo.Line([LHS_Point, RHS_Point])
+
+            # Generate Vertical Mid-Plane line
+            Lower_Point = geo.Point(magx[0], magx[1] - 1e6)
+            Upper_Point = geo.Point(magx[0], magx[1] + 1e6)
+            topline = geo.Line([Lower_Point, Upper_Point])
+
+            # Drawing Separatrix
+            xptNW_midLine = self.draw_line(xpt1['NW'], {'line' : midline}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+            xptNE_midLine = self.draw_line(xpt1['NE'], {'line' : midline}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+            midline_topline_west = self.draw_line(xptNW_midLine.p[-1], {'line' : topline}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+            midline_topline_east = self.draw_line(xptNE_midLine.p[-1], {'line' : topline}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
+            xptSW_limiter = self.draw_line(xpt1['SW'], {'line' : limiter}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
+            xptSE_limiter = self.draw_line(xpt1['SE'], {'line' : limiter}, option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
+            core_boundary = geo.Line((xptNW_midLine.p + midline_topline_west.p + midline_topline_east.reverse_copy().p + xptNE_midLine.reverse_copy().p))
+            core_polygon = Polygon(np.column_stack(core_boundary.points()).T, fill = True, closed = True, color = 'violet', label='Core Region')
+
+            pf_boundary = geo.Line((xptSW_limiter.p + xptSE_limiter.p + \
+                (limiter_split(xptSE_limiter.p[-1], xptSW_limiter.p[0], limiter).split(xptSE_limiter.p[-1])[1]).split(xptSW_limiter.p[0], add_split_point = True)[0].p))
+            pf_polygon = Polygon(np.column_stack(pf_boundary.points()).T, fill = True, closed = True, color = 'dodgerblue', label='PF Region')
+
+            if (pf_polygon.get_path().contains_point(xpt)):
+                print("# Snowflake-plus...")
+                self.analyze_saddle(xpt, xpt_ID='xpt2')
+                # Rotate NSEW so that 'W' is set to 'N' and 'E' to 'S'
+                self.rotate_NSEW_lookup(xpt_ID=xpt_ID, turns = 6)
+                
+                self._set_function('rho', 'ccw')
+                xpt2 = self.NSEW_lookup['xpt2']['coor']
+                N_sol = solve_ivp(self.function, (0, self.dt), xpt2['N'], method='LSODA',\
+                        first_step=self.first_step, max_step=self.max_step, rtol=1e-13, atol=1e-12).y
+                N_guess = (N_sol[0][-1], N_sol[1][-1])
+
+                self.draw_line(xpt2['N'], {'line_group': [xptSW_limiter, xptSE_limiter, limiter]}, \
+                    option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+
+                if self.line_group_intersect == limiter.points():
+                    self.flip_NSEW_lookup()
+                    xpt2 = self.NSEW_lookup['xpt2']['coor']
+                    self.draw_line(xpt2['N'], {'line_group': [xptSW_limiter, xptSE_limiter, limiter]}, \
+                        option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
+
+                if self.line_group_intersect == xptSE_limiter.points():
+                    self.config = 'SF75'
+                elif self.line_group_intersect == xptSW_limiter.points():
+                    self.config = 'SF105'
+
+            else:
+                print("# Snowflake-minus...")
+
+                # Obtain candidate NSEW directions
+                self.analyze_saddle(xpt, xpt_ID='xpt2')
+
+                # Prepare minimizer for identification of SF- type
+                self._set_function('rho', 'cw')
+                xpt2 = self.NSEW_lookup['xpt2']['coor']
+                N_sol = solve_ivp(self.function, (0, self.dt), xpt2['N'], method='LSODA',\
+                        first_step=self.first_step, max_step=self.max_step, rtol=1e-13, atol=1e-12).y
+                S_sol = solve_ivp(self.function, (0, self.dt), xpt2['S'], method='LSODA',\
+                        first_step=self.first_step, max_step=self.max_step, rtol=1e-13, atol=1e-12).y
+
+                N_guess = (N_sol[0][-1], N_sol[1][-1])
+                S_guess = (S_sol[0][-1], S_sol[1][-1])
+
+                for guess in [N_guess, S_guess]:
+                    try:
+                        minimize(self.PsiCostFunc, guess, method='trust-ncg', jac=self.grid.parent.psi_norm.Gradient, hess=self.grid.parent.psi_norm.Hessian,
+                            options={'initial_trust_radius' : self.eps, 'max_trust_radius' : self.dt}, callback=cb_region_check)
+                    except RegionEntered as e:
+                        region = e.region
+
+                        if region == 'Core':
+                            # True south should land in region of interest
+                            if guess is S_guess:
+                                self.flip_NSEW_lookup(xpt_ID)
+                                xpt2 = self.NSEW_lookup['xpt2']['coor']
+
+                            # Determine whether SF15 or SF165 based off of intersection with core boundary
+                            self.draw_line(xpt2['N'], {'line_group': [xptNW_midLine, xptNE_midLine]}, \
+                                option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
+
+                            if self.line_group_intersect == xptNE_midLine.points():
+                                self.config = 'SF15'
+                            elif self.line_group_intersect == xptNW_midLine.points():
+                                self.config = 'SF165'
+                            break
+
+                        elif region == 'PF':
+                            # True south should land in region of interest
+                            if guess is S_guess:
+                                self.flip_NSEW_lookup(xpt_ID)
+                                xpt2 = self.NSEW_lookup['xpt2']['coor']
+
+                            # Determine whether SF15 or SF165 based off of intersection with core boundary
+                            self.draw_line(xpt2['N'], {'line_group': [xptSW_limiter, xptSE_limiter]}, \
+                                option = 'rho', direction = 'cw', show_plot=visual, text=verbose)
+                            
+                            if self.line_group_intersect == xptSE_limiter.points():
+                                self.config = 'SF45'
+                            elif self.line_group_intersect == xptSW_limiter.points():
+                                self.config = 'SF135'
+                            break
+        else:
+            raise ValueError(f'# Invalid xpt_ID "{xpt_ID}"in function map_xpt(). Valid IDs are "xpt1" and "xpt2".')
 
 
     def SNL_find_NSEW(self, xpt, magx, visual = False):
@@ -339,13 +484,10 @@ class LineTracing:
 
         Post-Call:
         self.eq_psi will contain NSEW information.
-        """        
-        self.map_xpt(xpt, {'point' : magx}, xpt_ID='xpt1', method='optimize')
-        self.determine_config(xpt, num_xpt=1)
+        """
+        self.map_xpt(xpt, magx, xpt_ID='xpt1')
 
         print('===================\nGenerating {} grid...\n==================='.format(self.config))
-
-
 
     def DNL_find_NSEW(self, xpt1, xpt2, magx, visual = False):
         """
@@ -361,261 +503,11 @@ class LineTracing:
         Post-Call:
         self.eq_psi will contain NSEW information.
         """
-
-        # # Primary and Secondary x-point respectively
-        # xpt_list = [xpt1, xpt2]
-        # # Dictionary containing NSEW directions
-        # self.eq_psi = {}
-        # # Dictionary containing associated theta values with NSEW directions
-        # self.eq_psi_theta = {}
-
-        # # Apply SNL find_NSEW algorithm to each x-point...
-        # # Hence, for loop...
-        # for xpt in xpt_list:
-        #     rxpt, zxpt = xpt
-        #     rmag, zmag = magx
-
-        #     # Assume NSEW_coor['N'] in 'find_true_directions' is not actually the north direction.
-        #     self.is_true_north = False
-
-        #     vrz = self.grid.get_psi(rxpt, zxpt, tag = 'vrz')
-        #     vrr = self.grid.get_psi(rxpt, zxpt, tag = 'vrr')
-        #     vzz = self.grid.get_psi(rxpt, zxpt, tag = 'vzz')
-        #     # ====================================================================================
-        #     # Helper functions for DNL_find_NSEW and find_true_directions
-        #     # ====================================================================================
-        #     def get_theta(r, z):
-        #         """
-        #         Finds min/max theta values at x-point.
-        #         """
-        #         # Alpha is our parameter for arctan.
-        #         alpha = (2 * vrz) / (vrr - vzz)
-        #         # Prepping theta value vector.
-        #         theta = np.zeros(4)
-        #         for i in range(len(theta)):
-        #             theta[i - 1] = 1/2 * np.arctan(alpha) + np.pi/2 * (i - 1)
-        #         return theta
-
-        #     def get_concave_theta(theta):
-        #         """
-        #         Finds theta values with concave qualities.
-        #         """
-        #         concave_theta = np.zeros(2)
-        #         ind = 0
-        #         for i in range(len(theta)):
-        #             # Check concavity...
-        #             res = -vrr * np.cos(2 * theta[i]) \
-        #                     + vzz * np.cos(2 * theta[i]) \
-        #                     - 2 * vrz * np.sin(2 * theta[i])
-        #             if np.sign(res) == 1:
-        #                 concave_theta[ind] = theta[i]
-        #                 ind += 1
-        #         return concave_theta
-        #     # ====================================================================================
-
-        #     def find_true_directions(NSEW_coor, theta, magx):
-        #         """
-        #         Sets the correct N/S directions such that
-        #         N will truly lead towards the magnetic axis.
-
-        #         Parameters:
-        #         ----------
-        #         NSEW_coor : dict
-        #                     Dictionary storing our initial North
-        #                     and South coordinates:
-        #                     NSEW_coor['N'] and NSEW_coor['S']
-
-        #         mag       : array/tuple-like
-        #                     (R,Z) coordinate of our magnetic
-        #                     axis.
-
-        #         Return Vals:
-        #         ------------
-        #         NSEW_coor : dict
-        #                     Our (potentially) updated N/S starting
-        #                     coordinates.
-
-        #         """
-        #         # Set our inital conditions
-
-        #         N_0 = NSEW_coor[0]
-        #         S_0 = NSEW_coor[1]
-        #         tstart = 0
-        #         tfinal = self.dt
-
-        #         N_path = np.zeros([2, 2])
-        #         S_path = np.zeros([2, 2])
-
-        #         magx = np.array([magx[0], magx[1]])
-
-        #         Nline = [geo.Point((N_0[0], N_0[1]))]
-        #         Sline = [geo.Point((S_0[0], S_0[1]))]
-
-        #         def save_line(x, y, line, visual = False, color = 'red'):
-        #             # Plots the current line segments and saves
-        #             # it for future use
-        #             # x: list -- r endpoints
-        #             # y: list -- z endpoints
-        #             line.append(geo.Point(x[-1], y[-1]))
-        #             if visual:
-        #                 try:
-        #                     plt.plot(x, y, '.-', linewidth='2', color=color)
-        #                 except:
-        #                     self.grid.ax = plt.gcf().add_subplot(111)
-        #                     self.grid.ax.plot(x, y, '.-', linewidth='2', color=color)
-
-        #                 plt.draw()
-        #                 plt.pause(np.finfo(float).eps)
-        #         def converged(N_path, S_path, visual = False):
-        #             """
-        #             Helper function to check which trajectory
-        #             is converging to magx.
-        #             """
-        #             if visual:
-        #                 print('N_path dist to mag-x: {}'.format(np.sqrt((N_path[0][-1]-magx[0])**2 + (N_path[1][-1] - magx[1])**2 )))
-        #                 print('S_path dist to mag-x: {}'.format(np.sqrt((S_path[0][-1]-magx[0])**2 + (S_path[1][-1] - magx[1])**2 )))
-        #                 print('\n\n')
-        #                 print('N_path _differential_rho: {}'.format(self._differential_rho(0, (N_path[0][-1], N_path[1][-1]))))
-        #                 print('S_path _differential_rho: {}'.format(self._differential_rho(0, (S_path[0][-1], S_path[1][-1]))))
-        #             # Check if the N_path is converging to magx.
-        #             if (abs(N_path[0][-1] - magx[0]) < self.tol) \
-        #                 and (abs(N_path[1][-1] - magx[1]) < self.tol):
-        #                 # Adjust our flag accordingly.
-        #                 print('N_path went to magnetic axis.')
-        #                 self.is_true_north = True
-        #                 return True
-        #             # Check if the S_path is converging to magx.
-        #             elif (abs(S_path[0][-1] - magx[0]) < self.tol) \
-        #                 and (abs(S_path[1][-1] - magx[1]) < self.tol):
-        #                 # Reassigning for code-clarity.
-        #                 print('S_path went to magnetic axis.')
-        #                 self.is_true_north = False
-        #                 return True
-        #             # We haven't converged.
-        #             else:
-        #                 save_line([N_path[0][0], N_path[0][-1]], [ N_path[1][0], N_path[1][-1]], Nline, visual = visual, color = 'red')
-        #                 save_line([S_path[0][0], S_path[0][-1]], [ S_path[1][0], S_path[1][-1]], Sline, visual = visual, color = 'blue')
-        #                 return False
-
-        #         while not converged(N_path, S_path, visual):
-
-        #             # Set current time interval.
-        #             tspan = (tstart, tfinal)
-        #             # Integrate N_path)
-        #             N_sol = solve_ivp(self._differential_rho, tspan, N_0, method='LSODA',\
-        #                               first_step=self.first_step, max_step=self.max_step)
-        #             # Integrate S_path
-        #             S_sol = solve_ivp(self._differential_rho, tspan, S_0, method='LSODA',\
-        #                               first_step=self.first_step, max_step=self.max_step)
-        #             # Get new (r,z) values.
-        #             Nx, Ny = N_sol.y[0], N_sol.y[1]
-        #             Sx, Sy = S_sol.y[0], S_sol.y[1]
-        #             # Update time values.
-        #             tstart = tfinal
-        #             tfinal += self.dt
-
-        #             N_0 = [ Nx[-1], Ny[-1] ]
-        #             S_0 = [ Sx[-1], Sy[-1] ]
-
-        #             N_path = [Nx, Ny]
-        #             S_path = [Sx, Sy]
-
-
-        #         if self.is_true_north:
-        #             # print('NSEW_coor[N] was true-north!')
-        #             return NSEW_coor, theta
-        #         else:
-        #             # print('NSEW_coor[S] was true-north! Updating values.')
-        #             S_coor = NSEW_coor[0]
-        #             S_theta = theta[0]
-        #             NSEW_coor[0] = NSEW_coor[1]
-        #             NSEW_coor[1] = S_coor
-        #             theta[0] = theta[1]
-        #             theta[1] = S_theta
-
-        #             return NSEW_coor, theta
-
-        #     theta_crit = get_theta(rxpt, zxpt)
-
-        #     print('THETA CRIT IS: {}'.format(theta_crit))
-        #     theta_min = get_concave_theta(theta_crit)
-
-        #     print('THETA MIN IS: {}'.format(theta_min))
-
-        #     NSEW_coor = []
-
-        #     # N guess
-        #     NSEW_coor.append((rxpt + self.eps*np.cos(theta_min[0]), \
-        #                       zxpt + self.eps*np.sin(theta_min[0])) \
-        #                     )
-        #     # S guess
-        #     NSEW_coor.append((rxpt + self.eps*np.cos(theta_min[1]), \
-        #                       zxpt + self.eps*np.sin(theta_min[1])) \
-        #                     )
-
-        #     # Refine our initial guess of which way is true-north
-        #     #
-        #     # Format:
-        #     # ------
-        #     #   theta_min[0] will correspond to true-north.(N)
-        #     #   theta_min[1] will correspond to true-south.(S)
-        #     #   theta_max[0] will correspond to true-east. (E)
-        #     #   theta_max[1] will correspond to true-west. (W)
-        #     # import pdb
-        #     # pdb.set_trace()
-        #     NSEW_coor, theta_min = find_true_directions(NSEW_coor, theta_min, magx)
-
-        #     # Set E and W based off N and S.
-        #     theta_max = theta_min - np.pi/2
-
-        #     print('NSEW Theta Values: ({}, {}, {}, {})'.format(theta_min[0], theta_min[1], theta_max[0], theta_max[1]))
-
-        #     # NE
-        #     NSEW_coor.append((rxpt + self.eps*np.cos(theta_min[0] - np.pi/4), \
-        #                       zxpt + self.eps*np.sin(theta_min[0] - np.pi/4) ))
-        #     # NW
-        #     NSEW_coor.append((rxpt + self.eps*np.cos(theta_min[0] + np.pi/4), \
-        #                       zxpt + self.eps*np.sin(theta_min[0] + np.pi/4) ))
-        #     # SE
-        #     NSEW_coor.append((rxpt + self.eps*np.cos(theta_min[1] + np.pi/4), \
-        #                       zxpt + self.eps*np.sin(theta_min[1] + np.pi/4) ))
-        #     # SW
-        #     NSEW_coor.append((rxpt + self.eps*np.cos(theta_min[1] - np.pi/4), \
-        #                       zxpt + self.eps*np.sin(theta_min[1] - np.pi/4) ))
-        #     # E
-        #     NSEW_coor.append((rxpt + self.eps*np.cos(theta_max[0]), \
-        #                       zxpt + self.eps*np.sin(theta_max[0]) ))
-        #     # W
-        #     NSEW_coor.append((rxpt + self.eps*np.cos(theta_max[1]), \
-        #                       zxpt + self.eps*np.sin(theta_max[1]) ))
-
-
-        #     key = 'xpt1' if xpt is xpt1 else 'xpt2'
-
-        #     self.NSEW_lookup = {'xpt1' : {}, 'xpt2' : {}}
-        #     # Dictionary containing NSEW coordinates.
-        #     self.NSEW_lookup[key]['coor'] = {'N' : NSEW_coor[0], 'S' : NSEW_coor[1], \
-        #                    'NE': NSEW_coor[2], 'NW': NSEW_coor[3], \
-        #                    'SE': NSEW_coor[4], 'SW': NSEW_coor[5], \
-        #                    'E' : NSEW_coor[6], 'W' : NSEW_coor[7]  \
-        #                    }
-        #     # Dictionary containing NSEW theta values.
-        #     self.NSEW_lookup[key]['theta'] = {'N' : theta_min[0], 'S' : theta_min[1], \
-        #                          'E' : theta_max[0], 'W' : theta_max[1], \
-        #                          'NE': theta_min[0] - np.pi/4,\
-        #                          'NW': theta_min[0] + np.pi/4,\
-        #                          'SE': theta_min[1] + np.pi/4,\
-        #                          'SW': theta_min[1] - np.pi/4
-        #                          }
-        #     # Determine if these NSEW values give us an USN or LSN configuration.
-        #     # sign_test = np.sign([np.cos(self.eq_psi_theta[]['N']), np.sin(self.eq_psi_theta['N'])])
-
-        # self.config = 'DNL'
-        self.map_xpt(xpt1, {'point' : magx}, xpt_ID='xpt1', method='optimize')
-        self.map_xpt(xpt2, {'point' : magx}, xpt_ID='xpt2', method='optimize')
-        self.determine_config(xpt, num_xpt=2)
+        self.map_xpt(xpt1, magx, xpt_ID='xpt1')
+        self.map_xpt(xpt2, magx, xpt_ID='xpt2')
 
         print('===================\nGenerating {} grid...\n==================='.format(self.config))
+
 
     def draw_line(self, rz_start, rz_end=None, color= 'purple',
                   option=None, direction=None, show_plot=False, text=False, dynamic_step = None, debug = False,Verbose=False):
@@ -710,6 +602,18 @@ class LineTracing:
                 else:
                     # form ((),())
                     endLine = rz_end['line']
+        elif key_list == ['line_group']:
+            if Verbose: print('Testing for line_group convergence')
+            test = 'line_group'
+            line_group = []
+            for L in rz_end['line_group']:
+
+                if isinstance(L, geo.Line):
+                    # extract
+                    line_group.append(L.points())
+                else:
+                    # form ((),())
+                    line_group.append(rz_end['line'])
 
         elif key_list == ['psi']:
             if Verbose: print('Testing for psi convergence')
@@ -823,6 +727,31 @@ class LineTracing:
                     #save_line([p1[0], r], [p1[1], z])
                     save_line((p1[0], segment[1][0]), (p1[1], segment[1][1]))
                     return True
+            elif test == 'line_group':
+                # endpoints define the latest line segment
+                # TODO change the point criteria
+                # p1 = ( x1, y1 )
+                p1 = (points[0][0], points[1][0])
+                # p2 = ( x2, y2 )
+                p2 = (points[0][-1], points[1][-1])
+
+                for L in line_group:
+                    result = geo.test2points(p1, p2, L)
+                    intersected, segment = geo.segment_intersect((p1, p2), L, text)
+                    if result and intersected:
+                        """
+                        import pdb
+                        pdb.set_trace()
+                        print('debug')
+                        """
+                        if text:
+                            success('line crossing')
+                        #segment = geo.Line([geo.Point(segment[0]), geo.Point(segment[-1])])
+                        #r, z = geo.intersect((p1, p2), segment, text)
+                        #save_line([p1[0], r], [p1[1], z])
+                        save_line((p1[0], segment[1][0]), (p1[1], segment[1][1]))
+                        self.line_group_intersect = L
+                        return True
 
             elif test in ['psi', 'psi_sloped']:
                 x1, y1 = points[0][0], points[1][0]

@@ -40,6 +40,37 @@ def which_increasing(L):
 def non_decreasing(L):
     return all(x<=y for x, y in zip(L, L[1:]))
 
+def find_split_index(split_point, line):
+    same_line_split = False
+    for i in range(len(line.p) - 1):
+        # Split point is exactly on a Line object's point. Occurs often
+        # when splitting a Line object with itself.
+
+        if split_point.y == line.p[i].y and split_point.x == line.p[i].x:
+            same_line_split = True
+            return i, same_line_split
+        # Create two vectors.
+        end_u = np.array([line.p[i+1].x - line.p[i].x, line.p[i+1].y - line.p[i].y])
+        split_v = np.array([split_point.x - line.p[i].x, split_point.y - line.p[i].y])
+
+        if is_between(end_u, split_v):
+            # store index corresponding to the start of the segment containing the split_point.
+            return i, same_line_split
+        else:
+            continue
+    return None, same_line_split
+
+def is_between(end_u, split_v):
+    eps = 1e-9
+    # check cross product vector norm against eps.
+    if np.linalg.norm(np.cross(end_u, split_v)) < eps:
+        # Colinear up to eps.
+        # Ensure dot product is positive and vector v lies in distance of u norm.
+        if (np.dot(end_u, split_v) > 0) and (np.linalg.norm(end_u) > np.linalg.norm(split_v)):
+            return True
+    else:
+        return False
+
 def rotmatrix(theta):
     rot = np.zeros((2, 2))
     rot[0, 0] = np.cos(theta)
@@ -305,43 +336,11 @@ class Line:
         add_split_point: Boolean
             - Append the split point to Segment A.
         """
-        eps = 1e-9
-        same_line_split = False
         d_arr = []
-
-        def is_between(end_u, split_v):
-            # check cross product vector norm against eps.
-            if np.linalg.norm(np.cross(end_u, split_v)) < eps:
-                # Colinear up to eps.
-                # Ensure dot product is positive and vector v lies in distance of u norm.
-                if (np.dot(end_u, split_v) > 0) and (np.linalg.norm(end_u) > np.linalg.norm(split_v)):
-                    return True
-            else:
-                return False
 
         # ind was not defined if the conditions are not met, e.g. when magnetic field lines do not intersect the targets
         # Safety check added with an exception
-        ind=None
-
-        for i in range(len(self.p) - 1):
-            # Split point is exactly on a Line object's point. Occurs often
-            # when splitting a Line object with itself.
-
-            if split_point.y == self.p[i].y and split_point.x == self.p[i].x:
-                same_line_split = True
-                ind = i
-                break
-            # Create two vectors.
-            end_u = np.array([self.p[i+1].x - self.p[i].x, self.p[i+1].y - self.p[i].y])
-            split_v = np.array([split_point.x - self.p[i].x, split_point.y - self.p[i].y])
-
-            if is_between(end_u, split_v):
-                # store index corresponding to the start of the segment containing the split_point.
-                ind = i
-                break
-            else:
-                continue
-
+        ind, same_line_split = find_split_index(split_point, self)
         if ind==None:
             for i in range(len(self.p) - 1):
                 plt.plot(self.p[i].x,self.p[i].y,'.',color='black',ms=8)

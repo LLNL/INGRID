@@ -466,7 +466,8 @@ class Ingrid:
                                   zmin, zmax, nyefit,
                                   rcenter, bcenter,
                                   rlimiter, zlimiter,
-                                  rmagx, zmagx, name='Efit Data')
+                                  rmagx, zmagx, 
+                                  name='Efit Data', parent=self)
         self.efit_psi.set_v(psi)
 
         self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx'] = (self.efit_psi.rmagx, self.efit_psi.zmagx)
@@ -645,6 +646,89 @@ class Ingrid:
             # Gather raw data
             self.plate_data[k]['coordinates'] = ordered_plate.points()
 
+    def set_limiter(self, coordinates=None, use_efit_bounds=False):
+        RLIM, ZLIM = [], []
+
+        if coordinates:
+            for c in coordinates:
+                r, z = c
+                RLIM.append(r)
+                ZLIM.append(z)
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
+
+        if use_efit_bounds or (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []):
+            coordinates = [(self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2),
+                           (self.efit_psi.rmax - 1e-2, self.efit_psi.zmin + 1e-2),
+                           (self.efit_psi.rmax - 1e-2, self.efit_psi.zmax - 1e-2),
+                           (self.efit_psi.rmin + 1e-2, self.efit_psi.zmax - 1e-2),
+                           (self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2)]
+            for c in coordinates:
+                r, z = c
+                RLIM.append(r)
+                ZLIM.append(z)
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
+        self.order_limiter()
+
+    def order_limiter(self):
+        """
+        Ensures limiter geometry is oriented clockwise around magnetic axis
+        """
+
+        limiter = Line([Point(p) for p in zip(self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'])]).fluff_copy(100)
+
+        rmid = (self.efit_psi.rmin + self.efit_psi.rmax) / 2
+        zmid = (self.efit_psi.zmin + self.efit_psi.zmax) / 2
+
+        lookup = {}
+        point_list = []
+        for p in limiter.p:
+            try:
+                lookup[(p.x, p.y)]
+            except:
+                if (p.x >= rmid) and (p.y >= zmid):
+                    lookup[(p.x, p.y)] = p
+                    point_list.append(p)
+
+        quadrant_boundary = Line(point_list)
+
+        ordered = False
+        start = quadrant_boundary.p[0]
+        for p in reversed(quadrant_boundary.p):
+            end = p
+            if end.coor != start.coor:
+                break
+
+        # Endpoints are on same vertical line
+        if start.x == end.x:
+            # If end point is above start point
+            if start.y < end.y: 
+                # Return target plate as is
+                ordered = True
+
+        # Endpoints are on same horizontal line
+        elif start.y == end.y:
+            # If start point is left of end point
+            if start.x < end.x:
+                # Return strike plate as is
+                ordered = True
+
+        else:
+
+            # Check the angle between the plate endpoints with
+            # tail fixed on the magnetic axis
+
+            self.AutoRefineMagAxis()
+            v_reference = np.array([self.yaml['grid_params']['rmagx'], 
+                self.yaml['grid_params']['zmagx']])
+
+            v_start = np.array( [ start.x, start.y ] )
+            v_end = np.array( [ end.x, end.y ] )
+
+            if orientation_between(v_start, v_end, v_reference) <= 0:
+                ordered = True
+
+        self.limiter_data = limiter.copy() if ordered else limiter.reverse_copy()
+
     def plot_target_plates(self):
         """
         Plot the plate_data stored within the Ingrid object to the current figure.
@@ -742,7 +826,8 @@ class Ingrid:
                                   self.efit_psi.zmax, self.efit_psi.nz,
                                   self.efit_psi.rcenter, self.efit_psi.bcenter,
                                   self.efit_psi.rlimiter, self.efit_psi.zlimiter,
-                                  self.efit_psi.rmagx, self.efit_psi.zmagx, name='Normalized Efit Data')
+                                  self.efit_psi.rmagx, self.efit_psi.zmagx, 
+                                  name='Normalized Efit Data', parent = self)
         psi = self.efit_psi.v
         psi_magx = self.efit_psi.get_psi(self.magx[0], self.magx[1])
         psi_xpt1 = self.efit_psi.get_psi(self.xpt1[0], self.xpt1[1])
@@ -812,6 +897,10 @@ class Ingrid:
             ingrid_topology = SNL(self, config)
         elif config in ['DNL']:
             ingrid_topology = DNL(self, config)
+        elif config[0:1] == 'SF':
+            print("# Snowflakez lol")
+            import pdb
+            pdb.set_trace()
 
         self.current_topology = ingrid_topology
 
@@ -1022,15 +1111,24 @@ class Ingrid:
     def PlotPsiLevel(efit_psi:object,level:float,Label:str='')->None:
         plt.contour(efit_psi.r, efit_psi.z, efit_psi.v, [level], colors = 'red', label = Label)
 
-    def Setup(self,interactive=True):
+    def Setup(self,interactive=True, topology='SNL', **kwargs):
         # TODO have an option to not connect event on figure in command-line mode (so no tk needed)
+        default_setup = {'limiter_coordinates' : None, 'use_efit_bounds' : False}
+        for k, v in kwargs.items():
+            try:
+                default_setup[k] = v
+            except:
+                pass
         print('### Setup INGRID')
         self.OMFIT_read_psi()
         self.calc_efit_derivs()
         self.read_target_plates()
+        self.set_limiter(coordinates=default_setup['limiter_coordinates'], use_efit_bounds=default_setup['use_efit_bounds'])
         self.AutoRefineMagAxis()
         self.AutoRefineXPoint()
-        self.SetMagReference()
+        if topology == 'DNL':
+            self.AutoRefineXPoint2()
+        self.SetMagReference(topology)
         self.calc_psinorm()
         self.plot_psinorm(interactive=interactive)
         self.init_LineTracing(interactive=interactive)

@@ -177,7 +177,7 @@ DEBUG:
         subgrid: 0
 eqdsk: ../data/SF15/neqdsk
 grid_params:
-    config: LSN
+    config: DNL
     grid_generation:
         np_core: 2
         np_global: 3
@@ -204,7 +204,7 @@ grid_params:
         radial_f_secondary_sol: x, x
         radial_f_sol: x, x
     nlevs: 30
-    num_xpt: 1
+    num_xpt: 2
     patch_generation:
         NE_adjust: 0.0
         NW_adjust: 0.0
@@ -240,12 +240,12 @@ grid_params:
     psi_pf2: 0.0
     psi_pf2_r: 0.0
     psi_pf2_z: 0.0
-    rmagx: 0.737056608823
-    rxpt: 0.642275231884
-    rxpt2: 0.0
-    zmagx: -0.012522046265
-    zxpt: -0.382600103911
-    zxpt2: 0.0
+    rmagx: 1.71
+    rxpt: 1.5
+    rxpt2: 2.1
+    zmagx: 0.45
+    zxpt: -0.62
+    zxpt2: -0.557
 integrator_params:
     dt: 0.01
     eps: 5.0e-06

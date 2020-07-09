@@ -1,8 +1,8 @@
 from Ingrid import Ingrid
 import matplotlib.pyplot as plt
 
-fpath = '/Users/torvaltz/Desktop/SPARC_XPTD/V2_FREEGS_geqdsk_LSNX'
-nlevs = 75
+fpath = '../data/SF95/neqdsk'
+nlevs = 200
 
 EfitPlot = Ingrid(EqFile=fpath)
 EfitPlot.yaml['grid_params']['nlevs'] = nlevs

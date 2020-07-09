@@ -39,7 +39,7 @@ class Efit_Data:
 
     def __init__(self, rmin=0.0, rmax=1.0, nr=10, zmin=0.0, zmax=2.0, nz=20,
                  rcenter = 1.6955000, bcenter = -2.1094041, rlimiter = None, zlimiter = None,
-                 rmagx = 0.0, zmagx = 0.0, name='unnamed'):
+                 rmagx = 0.0, zmagx = 0.0, name='unnamed', parent=None):
         r, dr = np.linspace(rmin, rmax, nr, retstep=True)
         z, dz = np.linspace(zmin, zmax, nz, retstep=True)
         rgrid, zgrid = np.meshgrid(r, z, indexing='ij')
@@ -66,6 +66,7 @@ class Efit_Data:
         self.rlimiter = rlimiter
         self.zlimiter = zlimiter
         self.name = name
+        self.parent = parent
         self.psi_levels={}
 
     def Gradient(self,xy:tuple)->np.ndarray:

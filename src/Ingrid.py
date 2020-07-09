@@ -265,7 +265,7 @@ class Ingrid:
             'psi_pf2' : 0.0, 'psi_pf2_r' : 0.0, 'psi_pf2_z' : 0.0, \
             'psi_max_inner' : 0.0, 'psi_max_r_inner' : 0.0, 'psi_max_z_inner' : 0.0, \
             'psi_max_outer' : 0.0, 'psi_max_r_outer' : 0.0, 'psi_max_z_outer' : 0.0, \
-            'rmagx' : 0.0, 'zmagx' : 0.0, \
+            'rmagx' : None, 'zmagx' : None, \
             'rxpt' : 0.0, 'zxpt' : 0.0, 'rxpt2' : 0.0, 'zxpt2' : 0.0, \
             'grid_generation' : { \
                 'np_global' : 3, 'nr_global' : 2, \
@@ -470,7 +470,8 @@ class Ingrid:
                                   name='Efit Data', parent=self)
         self.efit_psi.set_v(psi)
 
-        self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx'] = (self.efit_psi.rmagx, self.efit_psi.zmagx)
+        if self.yaml['grid_params']['rmagx'] == None or self.yaml['grid_params']['zmagx'] == None:
+            self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx'] = (self.efit_psi.rmagx, self.efit_psi.zmagx)
 
         self.OMFIT_psi = g
 
@@ -630,8 +631,6 @@ class Ingrid:
 
                 # Check the angle between the plate endpoints with
                 # tail fixed on the magnetic axis
-
-                self.AutoRefineMagAxis()
                 v_reference = np.array( [ self.yaml['grid_params']['rmagx'], 
                     self.yaml['grid_params']['zmagx'] ])
 
@@ -716,8 +715,6 @@ class Ingrid:
 
             # Check the angle between the plate endpoints with
             # tail fixed on the magnetic axis
-
-            self.AutoRefineMagAxis()
             v_reference = np.array([self.yaml['grid_params']['rmagx'], 
                 self.yaml['grid_params']['zmagx']])
 
@@ -1122,12 +1119,12 @@ class Ingrid:
         print('### Setup INGRID')
         self.OMFIT_read_psi()
         self.calc_efit_derivs()
-        self.read_target_plates()
-        self.set_limiter(coordinates=default_setup['limiter_coordinates'], use_efit_bounds=default_setup['use_efit_bounds'])
         self.AutoRefineMagAxis()
         self.AutoRefineXPoint()
         if topology == 'DNL':
             self.AutoRefineXPoint2()
+        self.read_target_plates()
+        self.set_limiter(coordinates=default_setup['limiter_coordinates'], use_efit_bounds=default_setup['use_efit_bounds'])
         self.SetMagReference(topology)
         self.calc_psinorm()
         self.plot_psinorm(interactive=interactive)

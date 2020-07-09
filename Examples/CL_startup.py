@@ -17,10 +17,11 @@ LSN_case = "../Parameter Files/SNL/LSN_YAML_EXAMPLE.yml"
 CMOD_case = "../Parameter Files/SNL/cmod_param.yml"
 DIIID_case = "../Parameter Files/DIIID_SNL.yml"
 SAS_case = "../Parameter Files/SNL/SAS1_modif.yml"
+SPARC_case = "../Parameter Files/DNL/SPARC_DNL.yml"
 # < Your path to Ingrid formatted parameter file here >
 
 # Select a case.
-case = LSN_case
+case = SPARC_case
 
 
 if __name__ == '__main__':

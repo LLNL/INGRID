@@ -8,25 +8,24 @@ from scipy.optimize import minimize
 from matplotlib.patches import Polygon
 import pathlib
 
-# def SF15_test():
-#     SF15_case = "../Parameter Files/SF15/SF15.yml"
-#     fname = SF15_case
-#     SF15 = Ingrid(InputFile=fname)
-#     try:
-#         import pdb
-#         pdb.set_trace()
-#         SF15.Setup(topology='DNL', use_efit_bounds=True)
-#     except:
-#         pass
-# def SF45_test():
-#     SF45_case = "../Parameter Files/SF45/SF45.yml"
-#     fname = SF45_case
-#     SF45 = Ingrid(InputFile=fname)
-#     coor=[(1.0, -1), (2.4, -1), (2.4, 1.0), (1.0, 1.0), (1.0, -1)]
-#     try:
-#         SF45.Setup(topology='DNL', limiter_coordinates=coor)
-#     except:
-#         pass
+def SF15_test():
+    SF15_case = "../Parameter Files/SF15/SF15.yml"
+    fname = SF15_case
+    SF15 = Ingrid(InputFile=fname)
+    try:
+        coor=[(1.0, -1), (2.4, -1), (2.4, 1.0), (1.0, 1.0), (1.0, -1)]
+        SF15.Setup(topology='DNL', limiter_coordinates=coor)
+    except:
+        return SF15.eq.config
+def SF45_test():
+    SF45_case = "../Parameter Files/SF45/SF45.yml"
+    fname = SF45_case
+    SF45 = Ingrid(InputFile=fname)
+    coor=[(1.0, -1), (2.4, -1), (2.4, 1.0), (1.0, 1.0), (1.0, -1)]
+    try:
+        SF45.Setup(topology='DNL', limiter_coordinates=coor)
+    except:
+        return SF45.eq.config
 
 def SF75_test():
     SF75_case = "../Parameter Files/SF75/SF75.yml"
@@ -64,12 +63,16 @@ def SPARC_test():
     except:
         return SPARC.eq.config
 
+sf15=SF15_test()
+sf45=SF45_test()
 sf75=SF75_test()
 sf105=SF105_test()
 adx=ADX_test()
 sparc=SPARC_test()
 
 print('\n-----------------------------------------------------')
+print(f"# SF15_test() classified '{sf15}' configuration...")
+print(f"# SF45_test() classified '{sf45}' configuration...")
 print(f"# SF75_test() classified '{sf75}' configuration...")
 print(f"# SF105_test() classified '{sf105}' configuration...")
 print(f"# ADX_test() classified '{adx}' configuration...")

@@ -175,7 +175,7 @@ DEBUG:
         gridue: 0
         patch_map: 0
         subgrid: 0
-eqdsk: ../data/ADX/neqdsk_adx
+eqdsk: ../data/SF75/neqdsk
 grid_params:
     config: LSN
     grid_generation:
@@ -240,19 +240,19 @@ grid_params:
     psi_pf2: 0.0
     psi_pf2_r: 0.0
     psi_pf2_z: 0.0
-    rmagx: 0.737056608823
-    rxpt: 0.642275231884
-    rxpt2: 0.95
-    zmagx: -0.012522046265
-    zxpt: -0.382600103911
-    zxpt2: -0.68
+    rmagx: 1.61
+    rxpt: 1.6
+    rxpt2: 1.74
+    zmagx: -0.06
+    zxpt: -0.8
+    zxpt2: -1.4
 integrator_params:
     dt: 0.01
     eps: 5.0e-06
     first_step: 5.0e-05
     max_step: 0.064
     step_ratio: 0.02
-    tol: 0.005
+    tol: 0.05
 target_plates:
     plate_E1:
         file: ../data/ADX/eplate.txt

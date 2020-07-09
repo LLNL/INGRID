@@ -197,7 +197,7 @@ grid_params:
         radial_f_secondary_pf: x, x
         radial_f_secondary_sol: x, x
     nlevs: 150
-    num_xpt: 1
+    num_xpt: 2
     patch_generation:
         NE_adjust: 0.0
         NW_adjust: 0.0
@@ -235,10 +235,10 @@ grid_params:
     psi_pf2_z: 1.137662337662
     rmagx: 1.839069334
     rxpt: 1.489777680336
-    rxpt2: 1.489734496243
+    rxpt2: 1.7
     zmagx: -0.000743286742
     zxpt: -1.099819078021
-    zxpt2: 1.099422038985
+    zxpt2: -1.51
 integrator_params:
     dt: 0.01
     eps: 5.0e-05

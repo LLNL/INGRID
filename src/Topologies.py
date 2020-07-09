@@ -67,10 +67,6 @@ class SNL():
           'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
           'seagreen', 'firebrick', 'saddlebrown']
 
-        #try:
-            #plt.close('INGRID: Grid')
-        #except:
-            #pass
         fig=plt.figure('INGRID: Grid', figsize=(6,10))
         if ax is None:
             ax=fig.gca()
@@ -881,65 +877,73 @@ class SNL():
             'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b}
 
 
-# class DNL(Ingrid.Ingrid):
-#     def __init__(self, INGRID_object):
-#         super().__init__(params = INGRID_object.yaml)
-#         self.efit_psi = INGRID_object.efit_psi
-#         self.psi_norm = INGRID_object.psi_norm
-#         self.eq = INGRID_object.eq
-#         self.plate_data = INGRID_object.plate_data
-#         self.config = 'DNL'
-#         print('=' * 80)
-#         print('DNL Object!')
-#         print('=' * 80 + '\n')
+class DNL():
+    def __init__(self, Ingrid_obj, config):
 
-#     def patch_diagram(self):
-#         """ Generates the patch diagram for a given configuration. """
+        self.parent = Ingrid_obj
+        self.config = config
+        self.yaml = Ingrid_obj.yaml
+        self.plate_data = Ingrid_obj.plate_data
 
-#         colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
-#                   'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
-#                   'seagreen', 'firebrick', 'saddlebrown', 'c',
-#                   'm', 'dodgerblue', 'darkorchid', 'crimson',
-#                   'darkorange', 'lightgreen', 'lightseagreen', 'indigo',
-#                   'mediumvioletred', 'mistyrose', 'darkolivegreen', 'rebeccapurple']
+        self.parent.order_target_plates()
+        self.PatchTagMap = self.parent.GetPatchTagMap(config='SNL')
 
-#         try:
-#             plt.close('INGRID: Patch Map')
-#         except:
-#             pass
+        self.eq = Ingrid_obj.eq
+        self.efit_psi = Ingrid_obj.efit_psi
+        self.psi_norm = Ingrid_obj.psi_norm
+        self.eq = Ingrid_obj.eq
+        self.CurrentListPatch={}
+        self.Verbose=False
+        self.plate_data = Ingrid_obj.plate_data
+        self.CorrectDistortion={}
 
-#         plt.figure('INGRID: Patch Map', figsize=(6, 10))
-#         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-#         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-#         plt.gca().set_aspect('equal', adjustable='box')
-#         plt.xlabel('R')
-#         plt.ylabel('Z')
-#         plt.title('DNL Patch Diagram')
+    def patch_diagram(self):
+        """ Generates the patch diagram for a given configuration. """
 
-#         for i in range(len(self.patches)):
-#             self.patches[i].plot_border('green')
-#             self.patches[i].fill(colors[i])
+        colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
+                  'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
+                  'seagreen', 'firebrick', 'saddlebrown', 'c',
+                  'm', 'dodgerblue', 'darkorchid', 'crimson',
+                  'darkorange', 'lightgreen', 'lightseagreen', 'indigo',
+                  'mediumvioletred', 'mistyrose', 'darkolivegreen', 'rebeccapurple']
 
-#         plt.show()
+        self.FigPatch=plt.figure('INGRID: Patch Map', figsize=(6, 10))
+        self.FigPatch.clf()
+        ax=self.FigPatch.subplots(1,1)
+        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
+        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
+        ax.set_aspect('equal', adjustable='box')
 
-#     def grid_diagram(self):
+        ax.set_xlabel('R')
+        ax.set_ylabel('Z')
+        self.FigPatch.suptitle('SNL Patch Diagram')
 
-#         try:
-#             plt.close('INGRID: Grid')
-#         except:
-#             pass
+        for i, patch in enumerate(self.patches.values()):
+            patch.plot_border('green')
+            patch.fill(colors[i])
+            patch.color=colors[i]
+        ax.legend()
+        plt.show()
 
-#         plt.figure('INGRID: Grid', figsize=(6,10))
-#         for patch in self.patches:
-#             patch.plot_subgrid()
+    def grid_diagram(self,ax=None):
+        """
+        Create Grid matplotlib figure for an SNL object.
+        @author: watkins35, garcia299
+        """
+        fig=plt.figure('INGRID: Grid', figsize=(6,10))
+        if ax is None:
+            ax=fig.gca()
+        for patch in self.patches:
+            patch.plot_subgrid(ax)
+            print('patch completed...')
 
-#         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-#         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-#         plt.gca().set_aspect('equal', adjustable='box')
-#         plt.xlabel('R')
-#         plt.ylabel('Z')
-#         plt.title('INGRID DNL Subgrid')
-#         plt.show()
+        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
+        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.xlabel('R')
+        plt.ylabel('Z')
+        plt.title('INGRID SNL Subgrid')
+        plt.show()
 
 #     def animate_grid(self):
 
@@ -962,147 +966,138 @@ class SNL():
 #                 plt.plot(self.rm[i][j][k], self.zm[i][j][k])
 #                 plt.pause(0.01)
 
-#     def concat_grid(self):
-#         """
-#         Concatenate all local grids on individual patches into a single
-#         array with branch cuts
-#         Parameters:
-#         ----------
-#             config : str
-#                 Type of SNL grid to concat.
-#         """
-#         # Patch Matrix corresponds to the SNL Patch Map (see GINGRED paper).
-#         patch_matrix = self.patch_matrix
+    def concat_grid(self):
+        """
+        Concatenate all local grids on individual patches into a single
+        array with branch cuts
+        Parameters:
+        ----------
+            config : str
+                Type of SNL grid to concat.
+        """
+        patch_matrix = self.patch_matrix
 
-#         # Get some poloidal and radial information from each patch to attribute to the
-#         # local subgrid.
-#         # NOTE: npol and nrad refer to the actual lines in the subgrid. Because of this, we must add
-#         #       the value of 1 to the cell number to get the accurate number of lines.
+        for patch in self.patches.values():
+            patch.npol = len(patch.cell_grid[0]) + 1
+            patch.nrad = len(patch.cell_grid) + 1
 
+        # Total number of poloidal indices in all subgrids.
+        np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:5]])) + 2
 
-#         for patch in self.patches:
-#             patch.npol = len(patch.cell_grid[0]) + 1
-#             patch.nrad = len(patch.cell_grid) + 1
+        # Total number of radial indices in all subgrids.
+        nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:4]])) + 2
 
-#             print('"{}" has npol = {} and nrad = {}'.format(patch.patchName, patch.npol, patch.nrad))
+        # Total number of poloidal indices in all subgrids.
+        np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:11]])) + 2
 
-#         # Total number of poloidal indices in all subgrids.
-#         np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:5]])) + 2
+        # Total number of radial indices in all subgrids.
+        nr_total2 = int(np.sum([patch[7].nrad - 1 for patch in patch_matrix[1:4]])) + 2
 
-#         # Total number of radial indices in all subgrids.
-#         nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:4]])) + 2
+        rm1 = np.zeros((np_total1, nr_total1, 5), order = 'F')
+        zm1  = np.zeros((np_total1, nr_total1, 5), order = 'F')
+        rm2 = np.zeros((np_total2, nr_total2, 5), order = 'F')
+        zm2  = np.zeros((np_total2, nr_total2, 5), order = 'F')
 
-#         # Total number of poloidal indices in all subgrids.
-#         np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:11]])) + 2
+        ixcell = 0
+        jycell = 0
 
-#         # Total number of radial indices in all subgrids.
-#         nr_total2 = int(np.sum([patch[7].nrad - 1 for patch in patch_matrix[1:4]])) + 2
+        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
+        for ixp in range(1, 5):
 
-#         rm1 = np.zeros((np_total1, nr_total1, 5), order = 'F')
-#         zm1  = np.zeros((np_total1, nr_total1, 5), order = 'F')
-#         rm2 = np.zeros((np_total2, nr_total2, 5), order = 'F')
-#         zm2  = np.zeros((np_total2, nr_total2, 5), order = 'F')
+            nr_sum = 0
+            for jyp in range(1, 4):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
 
-#         ixcell = 0
-#         jycell = 0
+                if local_patch == [None]:
+                    continue
 
-#         # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
-#         for ixp in range(1, 5):
+                nr_sum += local_patch.nrad - 1
 
-#             nr_sum = 0
-#             for jyp in range(1, 4):
-#                 # Point to the current patch we are operating on.
-#                 local_patch = patch_matrix[jyp][ixp]
+                # Access the grid that is contained within this local_patch.
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
 
-#                 if local_patch == [None]:
-#                     continue
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
+                                - len(local_patch.cell_grid[0]) + ixl + 1
 
-#                 nr_sum += local_patch.nrad - 1
+                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
 
-#                 # Access the grid that is contained within this local_patch.
-#                 # ixl - number of poloidal cells in the patch.
-#                 for ixl in range(len(local_patch.cell_grid[0])):
-#                     # jyl - number of radial cells in the patch
-#                     for jyl in range(len(local_patch.cell_grid)):
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
+                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
 
-#                         ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
-#                                 - len(local_patch.cell_grid[0]) + ixl + 1
+        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
 
-#                         jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+        ixcell = 0
+        jycell = 0
 
-#                         ind = 0
-#                         for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-#                             rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-#                             zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-#                             ind += 1
-#                             if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
+        for ixp in range(7, 11):
 
-#         # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
+            nr_sum = 0
+            for jyp in range(1, 4):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
 
-#         ixcell = 0
-#         jycell = 0
+                if local_patch == [None]:
+                    continue
 
-#         for ixp in range(7, 11):
+                nr_sum += local_patch.nrad - 1
 
-#             nr_sum = 0
-#             for jyp in range(1, 4):
-#                 # Point to the current patch we are operating on.
-#                 local_patch = patch_matrix[jyp][ixp]
+                # Access the grid that is contained within this local_patch.
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
 
-#                 if local_patch == [None]:
-#                     continue
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:ixp+1]])) \
+                                - len(local_patch.cell_grid[0]) + ixl + 1
 
-#                 nr_sum += local_patch.nrad - 1
+                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
 
-#                 # Access the grid that is contained within this local_patch.
-#                 # ixl - number of poloidal cells in the patch.
-#                 for ixl in range(len(local_patch.cell_grid[0])):
-#                     # jyl - number of radial cells in the patch
-#                     for jyl in range(len(local_patch.cell_grid)):
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
+                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
 
-#                         ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:ixp+1]])) \
-#                                 - len(local_patch.cell_grid[0]) + ixl + 1
+        # Flip indices into gridue format.
+        for i in range(len(rm1)):
+            rm1[i] = rm1[i][::-1]
+        for i in range(len(zm1)):
+            zm1[i] = zm1[i][::-1]
+        for i in range(len(rm2)):
+            rm2[i] = rm2[i][::-1]
+        for i in range(len(zm2)):
+            zm2[i] = zm2[i][::-1]
 
-#                         jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+        # Add guard cells to the concatenated grid.
+        ixrb1 = len(rm1) - 2
+        ixlb1 = 0
+        ixrb2 = len(rm2) - 2
+        ixlb2 = 0
 
-#                         ind = 0
-#                         for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-#                             rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-#                             zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-#                             ind += 1
-#                             if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
+        rm1 = self.add_guardc(rm1, ixlb1, ixrb1)
+        zm1 = self.add_guardc(zm1, ixlb1, ixrb1)
+        rm2 = self.add_guardc(rm2, ixlb2, ixrb2)
+        zm2 = self.add_guardc(zm2, ixlb2, ixrb2)
 
-#         # Flip indices into gridue format.
-#         for i in range(len(rm1)):
-#             rm1[i] = rm1[i][::-1]
-#         for i in range(len(zm1)):
-#             zm1[i] = zm1[i][::-1]
-#         for i in range(len(rm2)):
-#             rm2[i] = rm2[i][::-1]
-#         for i in range(len(zm2)):
-#             zm2[i] = zm2[i][::-1]
+        self.rm = np.concatenate((rm1, rm2))
+        self.zm = np.concatenate((zm1, zm2))
 
-#         # Add guard cells to the concatenated grid.
-#         ixrb1 = len(rm1) - 2
-#         ixlb1 = 0
-#         ixrb2 = len(rm2) - 2
-#         ixlb2 = 0
+        try:
+            debug = self.yaml['DEBUG']['visual']['gridue']
+        except:
+            debug = False
 
-#         rm1 = self.add_guardc(rm1, ixlb1, ixrb1)
-#         zm1 = self.add_guardc(zm1, ixlb1, ixrb1)
-#         rm2 = self.add_guardc(rm2, ixlb2, ixrb2)
-#         zm2 = self.add_guardc(zm2, ixlb2, ixrb2)
-
-#         self.rm = np.concatenate((rm1, rm2))
-#         self.zm = np.concatenate((zm1, zm2))
-
-#         try:
-#             debug = self.yaml['DEBUG']['visual']['gridue']
-#         except:
-#             debug = False
-
-#         if debug:
-#             self.animate_grid()
+        if debug:
+            self.animate_grid()
 
 #     def add_guardc(self, cell_map, ixlb, ixrb, eps = 1e-3):
 

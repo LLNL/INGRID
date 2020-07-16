@@ -1,8 +1,8 @@
+
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jun  7 15:31:15 2019
-
 @author: watkins35
 """
 from __future__ import division, print_function, absolute_import
@@ -17,7 +17,6 @@ class Efit_Data:
     cylindrical coordinates, where R and Z are similar to the cartesian
     x and y. The phi components goes away due to the symmetry of a
     tokamak.
-
     Parameters
     ----------
     rmin : float, optional
@@ -34,7 +33,6 @@ class Efit_Data:
         number of grid points in the Z direction
     name : str, optional
         Specify the title of the figure the data will be plotted on.
-
     """
 
     def __init__(self, rmin=0.0, rmax=1.0, nr=10, zmin=0.0, zmax=2.0, nz=20,
@@ -72,12 +70,10 @@ class Efit_Data:
     def Gradient(self,xy:tuple)->np.ndarray:
         """ Combines the first partial derivatives to solve the system for
         maximum, minimum, and saddle locations.
-
         Parameters
         ----------
         xy : array-like
             Contains x and y. Ex: xy = (x0, y0).
-
         Returns
         -------
         F : array
@@ -105,12 +101,10 @@ class Efit_Data:
     def get_v(self, tag='v'):
         """ returns the entire array of v, vr, vz, or vrz.
         If you want a single value use self.get_psi
-
         Parameters
         ----------
         tag : str, optional
             Specify the type of derivative. 'v', 'vr', 'vz', 'vrz'
-
         Returns
         -------
         ndarray
@@ -128,7 +122,6 @@ class Efit_Data:
 
     def set_v(self, value, coords=None, tag='v'):
         """ sets a value for v, vr, vz, or vrz.
-
         Parameters
         ----------
         value : ndarray, float
@@ -138,7 +131,6 @@ class Efit_Data:
         coords : array-like, optional
             The coordinates of a single value, if you are setting one value.
             if set to none, it will set the entire value
-
         """
         if coords is not None:
             if tag == 'v':
@@ -166,13 +158,11 @@ class Efit_Data:
         These formulas are derived from Taylor Series representations.
         Values for vr, vz, and vrz are produced and saved within the
         grid structure.
-
         Parameters
         ----------
         unit_spacing : bool, optional
             Allow for the derivatives to be calculated on a unit cell,
             or on a grid with any other spacing. Default is true.
-
         """
         # planning to make this more efficient using array slicing
         # need a place to store the new values of the grid
@@ -274,14 +264,12 @@ class Efit_Data:
         """
         Locate the cell on the rectangular grid that surrounds
         a point of interest.
-
         Parameters
         ----------
         r0 : float
             R or x coordinate of the point
         z0 : float
             Z or y coordinate of the tested point
-
         Returns
         -------
         dict
@@ -304,7 +292,6 @@ class Efit_Data:
         note: grid is the crude grid. Uses Bicubic Interpolation
         to calculate the exact value at the point. Useful for
         finding information inbetween grid points.
-
         Parameters
         ----------
         r0 : float
@@ -314,12 +301,10 @@ class Efit_Data:
         tag : str, optional
             tag is the type of derivative we want: v, vr, vz, vrz
             if nothing is provided, it assumes no derivative (v).
-
         Returns
         -------
         float
             Value of psi or its derviative at the coordinate specified.
-
         """
         cell = self.locate_cell(r0, z0)
         rcell = self.r[cell['ir'], cell['iz']]
@@ -356,21 +341,18 @@ class Efit_Data:
         points of intersection, and cannot be generalized. If you
         need just a segment of psi, use the draw_lines method in the
         line tracing class.
-
         Parameters
         ----------
         level : float, optional
             Value of psi you wish to see
         color : str, optional
             color of the line.
-
         """
         # draw contour line on top of existing figure
         level = float(level)
         self.ax.contour(self.r, self.z, self.v, level, colors=color)
     def PlotLevel(self:object, level:float=1.0, color:str='red',label:str='')->None:
         """
-
         """
         try:
             self.psi_levels[label].collections[0].remove()
@@ -387,12 +369,10 @@ class Efit_Data:
     def plot_data(self, nlev=30,interactive=True):
         """ generates the plot that we will be able to manipulate
         using the root finder
-
         Parameters
         ----------
         nlev : int, optional
             number of levels we want to be plotted
-
         """
         self.fig = plt.figure('INGRID: ' + self.name, figsize=(6, 10))
         self.ax = self.fig.add_subplot(111)

@@ -13,17 +13,15 @@ def SF15_test():
     fname = SF15_case
     SF15 = Ingrid(InputFile=fname)
     try:
-        coor=[(1.0, -1), (2.4, -1), (2.4, 1.0), (1.0, 1.0), (1.0, -1)]
-        SF15.Setup(topology='DNL', limiter_coordinates=coor)
+        SF15.Setup()
     except:
         return SF15.eq.config
 def SF45_test():
     SF45_case = "../Parameter Files/SF45/SF45.yml"
     fname = SF45_case
     SF45 = Ingrid(InputFile=fname)
-    coor=[(1.0, -1), (2.4, -1), (2.4, 1.0), (1.0, 1.0), (1.0, -1)]
     try:
-        SF45.Setup(topology='DNL', limiter_coordinates=coor)
+        SF45.Setup()
     except:
         return SF45.eq.config
 
@@ -32,7 +30,7 @@ def SF75_test():
     fname = SF75_case
     SF75 = Ingrid(InputFile=fname)
     try:
-        SF75.Setup(topology='DNL', use_efit_bounds=True)
+        SF75.Setup()
     except:
         return SF75.eq.config
 
@@ -41,7 +39,7 @@ def SF105_test():
     fname = SF105_case
     SF105 = Ingrid(InputFile=fname)
     try:
-        SF105.Setup(topology='DNL', use_efit_bounds=True)
+        SF105.Setup()
     except:
         return SF105.eq.config
 
@@ -50,7 +48,7 @@ def ADX_test():
     fname = ADX_case
     ADX = Ingrid(InputFile=fname)
     try:
-        ADX.Setup(topology='DNL', user_efit_bounds=True)
+        ADX.Setup()
     except:
         return ADX.eq.config
 
@@ -59,7 +57,7 @@ def SPARC_test():
     fname = SPARC_case
     SPARC = Ingrid(InputFile=fname)
     try:
-        SPARC.Setup(topology='DNL')
+        SPARC.Setup()
     except:
         return SPARC.eq.config
 

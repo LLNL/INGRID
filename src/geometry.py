@@ -277,7 +277,7 @@ class Line:
 
         return Line([self.p[0], self.p[-1]])
 
-    def plot(self, color='#1f77b4'):
+    def plot(self, color='#1f77b4', label=None):
         """ Plots the line of the current figure.
 
         Parameters
@@ -286,7 +286,7 @@ class Line:
             Defaults to a light blue.
         """
 
-        plt.plot(self.xval, self.yval, color=color, linewidth='1', zorder = 5)
+        plt.plot(self.xval, self.yval, color=color, zorder = 5, label=label)
 
 
     def print_points(self):

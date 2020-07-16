@@ -15,8 +15,9 @@ try:
 except:
     pass
 import matplotlib.pyplot as plt
-import yaml as _yaml_
+import yaml as yml
 import os
+from pathlib import Path
 from GUI import IngridApp as IA
 
 from OMFITgeqdsk import OMFITgeqdsk
@@ -247,7 +248,7 @@ class Ingrid:
             if messagebox.askyesno('', 'Are you sure you want to quit?'):
                 plt.close('all')
                 self.IngridWindow.destroy()
-        self.IngridWindow = IA.IngridApp(IngridSession=self)
+        self.IngridWindow = sg.IngridApp(IngridSession=self)
         self.IngridWindow.title('INGRID v0.0')
         self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
         self.IngridWindow.mainloop()
@@ -258,7 +259,7 @@ class Ingrid:
 
         # TODO: Provide default values for GUI version of SetValues function (see IngridApp.py)
         self.default_grid_params = { \
-            'config' : '', 'num_xpt' : 1, 'nlevs' : 30, \
+            'config' : '', 'num_xpt' : 1, 'nlevs' : 30, 'full_domain' : True, \
             'psi_max' : 0.0, 'psi_max_r' : 0.0, 'psi_max_z' : 0.0, \
             'psi_min_core' : 0.0, 'psi_min_core_r' : 0.0, 'psi_min_core_z' : 0.0, \
             'psi_min_pf' : 0.0, 'psi_min_pf_r' : 0.0, 'psi_min_pf_z' : 0.0, \
@@ -305,13 +306,18 @@ class Ingrid:
             'plate_W2' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0} \
         }
 
+        self.default_limiter_params = {
+            'file' : '', 'use_limiter' : False, 'use_efit_bounds' : False
+        }
+
         self.default_DEBUG_params = { \
             'visual' : {'find_NSEW' : False, 'patch_map' : False, 'subgrid' : False, 'gridue' : False}, \
             'verbose' : {'target_plates' : False, 'patch_generation' : False, 'grid_generation' : False}
         }
 
         self.default_values_lookup = {'grid_params' : self.default_grid_params, 'integrator_params' : self.default_integrator_params, \
-            'target_plates' : self.default_target_plates_params, 'DEBUG' : self.default_DEBUG_params}
+            'target_plates' : self.default_target_plates_params, 'limiter' : self. default_limiter_params, 
+            'DEBUG' : self.default_DEBUG_params}
 
     def ProcessKeywords(self,**kwargs):
         for k, v in kwargs.items():
@@ -332,18 +338,40 @@ class Ingrid:
             if k=='W2TargetFile' or k=='w2':
                 self.yaml['target_plates']['plate_W2']['file']=v
                 continue
+            if k=='LimiterFile' or k=='limiter':
+                self.yaml['limiter']['file']=v
             if k=='EqFile' or k=='eq':
                 self.yaml['eqdsk']=v
                 continue
             print('Keyword "'+k +'" unknown and ignored...')
+
     def PrintSummaryInput(self):
+        print('')
         print('Equilibrium File:',self.yaml['eqdsk'])
-        print('Target Files:')
-        #try:
-        print( ' # W1:',self.yaml['target_plates']['plate_W1']['file'])
-        print( ' # E1:',self.yaml['target_plates']['plate_E1']['file'])
-        print( ' # E2:',self.yaml['target_plates']['plate_E2']['file'])
-        print( ' # W2:',self.yaml['target_plates']['plate_W2']['file'])
+
+        if self.yaml['limiter']['use_limiter']:
+            print('Limiter File:')
+            if self.yaml['limiter']['file'] == '':
+                print( ' # Limiter:','Using default eqdsk (RLIM, ZLIM) coordinates')
+            else:
+                print( ' # Limiter',self.yaml['limiter']['file'])
+        else:
+            print('Target Files:')
+            #try:
+            print( ' # W1:',self.yaml['target_plates']['plate_W1']['file'])
+            print( ' # E1:',self.yaml['target_plates']['plate_E1']['file'])
+            print( ' # E2:',self.yaml['target_plates']['plate_E2']['file'])
+            print( ' # W2:',self.yaml['target_plates']['plate_W2']['file'])
+        print('')
+
+    def PrintSummaryParams(self):
+        print('')
+        print('Summary:')
+        print( ' # Number of x-points:',self.yaml['grid_params']['num_xpt'])
+        print( ' # Use full domain:',self.yaml['grid_params']['full_domain'])
+        print( ' # Use limiter:',self.yaml['limiter']['use_limiter'])
+        print('')
+        self.PrintSummaryInput()
        # except:
           #  print('error')
     def process_yaml(self, params,verbose=False):
@@ -474,6 +502,56 @@ class Ingrid:
             self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx'] = (self.efit_psi.rmagx, self.efit_psi.zmagx)
 
         self.OMFIT_psi = g
+
+    def set_limiter(self):
+        RLIM, ZLIM = [], []
+
+        try:
+            if Path(self.yaml['limiter']['file']).is_file() and Path(self.yaml['limiter']['file']).suffix in ['.txt']:
+                print('# Processing file for limiter data : {}'.format(self.yaml['limiter']['file']))
+
+                try:
+                    with open(self.yaml['limiter']['file']) as f:
+                        #First we check if zshift is given
+                        for line in f:
+
+                            point = line.strip()
+                            if point.startswith('#'):
+                                # move along to the next iteration
+                                # this simulates a comment
+                                continue
+                            # we deal with separator ',' or ' '
+
+                            if point.count(',')>0:
+                                x = float(point.split(',')[0])
+                                y = float(point.split(',')[1])
+                            else:
+
+                                x = float(point.split(' ')[0])
+                                y = float(point.split(' ')[1])
+
+                            RLIM.append(x)
+                            ZLIM.append(y)
+                except:
+                    raise ValueError("# Error occured when reading limiter data from txt file.")
+
+                self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
+        except:
+            pass
+
+        if (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []) or self.yaml['limiter']['use_efit_bounds']:
+            coordinates = [(self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2),
+                           (self.efit_psi.rmax - 1e-2, self.efit_psi.zmin + 1e-2),
+                           (self.efit_psi.rmax - 1e-2, self.efit_psi.zmax - 1e-2),
+                           (self.efit_psi.rmin + 1e-2, self.efit_psi.zmax - 1e-2),
+                           (self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2)]
+            for c in coordinates:
+                r, z = c
+                RLIM.append(r)
+                ZLIM.append(z)
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
+
+        self.order_limiter()
 
     def read_target_plates(self):
         """
@@ -645,29 +723,6 @@ class Ingrid:
             # Gather raw data
             self.plate_data[k]['coordinates'] = ordered_plate.points()
 
-    def set_limiter(self, coordinates=None, use_efit_bounds=False):
-        RLIM, ZLIM = [], []
-
-        if coordinates:
-            for c in coordinates:
-                r, z = c
-                RLIM.append(r)
-                ZLIM.append(z)
-            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
-
-        if use_efit_bounds or (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []):
-            coordinates = [(self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2),
-                           (self.efit_psi.rmax - 1e-2, self.efit_psi.zmin + 1e-2),
-                           (self.efit_psi.rmax - 1e-2, self.efit_psi.zmax - 1e-2),
-                           (self.efit_psi.rmin + 1e-2, self.efit_psi.zmax - 1e-2),
-                           (self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2)]
-            for c in coordinates:
-                r, z = c
-                RLIM.append(r)
-                ZLIM.append(z)
-            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
-        self.order_limiter()
-
     def order_limiter(self):
         """
         Ensures limiter geometry is oriented clockwise around magnetic axis
@@ -734,16 +789,27 @@ class Ingrid:
         """
 
         try:
+            ind = -1
+            colorbank = {0 : 'blue', 1 : 'orange', 2 : 'firebrick', 3 : 'green'}
             for plate in self.plate_data:
+                ind += 1
                 try:
                     if self.plate_data[plate]:
-                        coor = np.array(self.plate_data[plate]['coordinates'])
-                        plt.plot(coor[:, 0], coor[:, 1], label=plate)
-                        plt.draw()
+                        Line([Point(P) for P in self.plate_data[plate]['coordinates']]).plot(label=plate, color=colorbank[ind])
                 except:
                     continue
         except:
             pass
+
+    def plot_limiter_data(self):
+        self.limiter_data.plot(color='dodgerblue', label='Limiter')
+
+    def plot_strike_geometry(self):
+        try:
+            if self.yaml['limiter']['use_limiter']: self.plot_limiter_data()
+            else: self.plot_target_plates()
+        except:
+            self.plot_target_plates()
 
     def calc_efit_derivs(self):
         """
@@ -759,7 +825,6 @@ class Ingrid:
         using the root finder
         @author: watkins35
         """
-        self.efit_psi.clear_plot()
         self.efit_psi.plot_data(self.yaml['grid_params']['nlevs'])
 
     def FindMagAxis(self,x:float,y:float)->None:
@@ -770,16 +835,19 @@ class Ingrid:
         sol = root(self.efit_psi.Gradient,[x,y])
         self.yaml['grid_params']['rmagx']=sol.x[0]
         self.yaml['grid_params']['zmagx']=sol.x[1]
+        self.magx = (sol.x[0], sol.x[1])
 
     def FindXPoint(self,x:float,y:float)->None:
         sol = root(self.efit_psi.Gradient,[x,y])
         self.yaml['grid_params']['rxpt']=sol.x[0]
         self.yaml['grid_params']['zxpt']=sol.x[1]
+        self.xpt1 = (sol.x[0], sol.x[1])
 
     def FindXPoint2(self,x:float,y:float)->None:
         sol = root(self.efit_psi.Gradient,[x,y])
         self.yaml['grid_params']['rxpt2']=sol.x[0]
         self.yaml['grid_params']['zxpt2']=sol.x[1]
+        self.xpt2 = (sol.x[0], sol.x[1])
 
     def AutoRefineMagAxis(self):
         self.FindMagAxis(self.yaml['grid_params']['rmagx'],self.yaml['grid_params']['zmagx'])
@@ -832,12 +900,11 @@ class Ingrid:
         self.psi_norm.set_v(psinorm)
         self.psi_norm.Calculate_PDeriv()
 
-    def plot_psinorm(self,interactive=True):
+    def plot_psinorm(self,interactive=True, target_plates=False):
         """
         Plot the psi_norm data stored in the Ingrid object.
         """
         self.psi_norm.plot_data(self.yaml['grid_params']['nlevs'],interactive)
-        self.plot_target_plates()
 
     def find_psi_lines(self, tk_controller = None):
         self.psi_finder = RootFinder(self.psi_norm, mode = 'psi_finder', controller = tk_controller)
@@ -872,7 +939,6 @@ class Ingrid:
         This is a wrapper for the LineTracing class method SNL_find_NSEW.
         @author: garcia299
         """
-        print(" # Analyzing topology....")
         try:
             debug = self.yaml['DEBUG']['visual']['find_NSEW']
         except:
@@ -888,16 +954,21 @@ class Ingrid:
         return self.eq.config
 
     def _analyze_topology(self,verbose=False):
-        if verbose: print(" # Analyzing topology....")
+        
+        print('')
+        print('Topology Analysis:')
+        print(" # Begin classification....")
+        print('')
         config = self._classify_gridtype()
+        
+        print('')
+        print('Topology Analysis:')
+        print(' # Identified {} configuration.'.format(config))
+        print('')
         if config in ['LSN', 'USN']:
             ingrid_topology = SNL(self, config)
         elif config in ['DNL']:
             ingrid_topology = DNL(self, config)
-        elif config[0:1] == 'SF':
-            print("# Snowflakez lol")
-            import pdb
-            pdb.set_trace()
 
         self.current_topology = ingrid_topology
 
@@ -1034,7 +1105,7 @@ class Ingrid:
         File=pathlib.Path(FileName).expanduser()
         if File.exists() and File.is_file():
             try:
-                ymlDict=_yaml_.full_load(File.read_text())
+                ymlDict=yml.full_load(File.read_text())
                 return ymlDict
             except:
                 raise IOError('Cannot load the yml file: '+FileName)
@@ -1095,28 +1166,20 @@ class Ingrid:
               'psi_min_pf':'green',
               'psi_pf2':'yellow'}
         for k,c in Dic.items():
-                print(k)
-                print(self.yaml['grid_params'][k])
                 self.psi_norm.PlotLevel(self.yaml['grid_params'][k],color=Dic[k],label=k)
 
-
-
         self.psi_norm.PlotLevel(1.0,color='red',label='Separatrix')
-        plt.legend()
+        self.psi_norm.PlotLegend()
 
 
     def PlotPsiLevel(efit_psi:object,level:float,Label:str='')->None:
         plt.contour(efit_psi.r, efit_psi.z, efit_psi.v, [level], colors = 'red', label = Label)
 
-    def Setup(self,interactive=True, topology='SNL', **kwargs):
+    def Setup(self,interactive=True, **kwargs):
         # TODO have an option to not connect event on figure in command-line mode (so no tk needed)
-        default_setup = {'limiter_coordinates' : None, 'use_efit_bounds' : False}
-        for k, v in kwargs.items():
-            try:
-                default_setup[k] = v
-            except:
-                pass
-        print('### Setup INGRID')
+
+        topology = 'SNL' if self.yaml['grid_params']['num_xpt'] == 1 else 'DNL'
+
         self.OMFIT_read_psi()
         self.calc_efit_derivs()
         self.AutoRefineMagAxis()
@@ -1124,10 +1187,11 @@ class Ingrid:
         if topology == 'DNL':
             self.AutoRefineXPoint2()
         self.read_target_plates()
-        self.set_limiter(coordinates=default_setup['limiter_coordinates'], use_efit_bounds=default_setup['use_efit_bounds'])
+        self.set_limiter()
         self.SetMagReference(topology)
         self.calc_psinorm()
         self.plot_psinorm(interactive=interactive)
+        self.plot_strike_geometry()
         self.init_LineTracing(interactive=interactive)
         self._analyze_topology()
 
@@ -1283,6 +1347,52 @@ def Plotgridue(GridueParams,Fill=False,ax=None,Verbose=False,facecolor=None,edge
     plt.show()
 
 
+def QuickStart():
+    try:
+        import tkinter as tk
+    except:
+        import Tkinter as tk
+    try:
+        import tkinter.messagebox as messagebox
+    except:
+        import tkMessageBox as messagebox
+    try:
+        from tkinter import filedialog
+    except:
+        from Tkinter import tkFileDialog as filedialog
+
+    active_session = True
+    root = tk.Tk()
+    root.withdraw()
+
+    while active_session:
+        IG = Ingrid()
+        IG.process_yaml(Ingrid.ReadyamlFile(filedialog.askopenfilename(title='Select YAML File')))
+        topology = 'SNL' if IG.yaml['grid_params']['num_xpt'] == 1 else 'DNL'
+        IG.OMFIT_read_psi()
+        IG.calc_efit_derivs()
+        IG.AutoRefineMagAxis()
+        IG.AutoRefineXPoint()
+        if topology == 'DNL':
+            IG.AutoRefineXPoint2()
+        IG.read_target_plates()
+        IG.set_limiter()
+        IG.SetMagReference(topology)
+        IG.calc_psinorm()
+        IG.plot_psinorm()
+        IG.plot_strike_geometry()
+        IG.PrintSummaryParams()
+        if messagebox.askyesno("Ingrid", "Proceed to analyzing topology?"):
+            IG.init_LineTracing()
+            try:
+                IG._analyze_topology()
+            except:
+                active_session = False
+
+            if messagebox.askyesno("Ingrid", "Analyze new topology?"):
+                active_session = True
+        plt.close(IG.psi_norm.fig)
+    root.destroy()
 
 
 

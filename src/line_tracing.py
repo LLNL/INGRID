@@ -487,8 +487,6 @@ class LineTracing:
         """
         self.map_xpt(xpt, magx, xpt_ID='xpt1')
 
-        print('===================\nGenerating {} grid...\n==================='.format(self.config))
-
     def DNL_find_NSEW(self, xpt1, xpt2, magx, visual = False):
         """
         Find NSEW based off primary x-point and magnetic axis,
@@ -505,9 +503,6 @@ class LineTracing:
         """
         self.map_xpt(xpt1, magx, xpt_ID='xpt1')
         self.map_xpt(xpt2, magx, xpt_ID='xpt2')
-
-        print('===================\nGenerating {} grid...\n==================='.format(self.config))
-
 
     def draw_line(self, rz_start, rz_end=None, color= 'purple',
                   option=None, direction=None, show_plot=False, text=False, dynamic_step = None, debug = False,Verbose=False):

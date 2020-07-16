@@ -9,6 +9,7 @@ Created on Wed Sep 11 08:58:43 2019
 from __future__ import print_function
 
 from sys import platform as sys_pf
+from os.path import getmtime
 import matplotlib
 try:
     matplotlib.use("TkAgg")
@@ -67,37 +68,31 @@ class IngridApp(tk.Tk):
         self.container.pack(side="top", fill="both", expand = True)
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
-        self.gui_mode = 'SNL'
         self.update_gui_dimensions()
 
         # attached to the parent Ingrid instance instead of new instance
         if IngridSession is None:
-            self.IngridSession = Ingrid.Ingrid()
+            self.Ingrid = Ingrid.Ingrid()
         else:
-            self.IngridSession = IngridSession
+            self.Ingrid = IngridSession
         self.populate_GUI()
 
         #automatic loading of input files
-        if self.IngridSession.InputFile is not None:
-            self.frames[FilePicker].load_param_file(ExistingParamFile=self.IngridSession.yaml)
-            self.frames[ParamPicker].load_files()
-
-
-
+        if self.Ingrid.InputFile is not None:
+            self.frames[FilePicker].load_param_file(ExistingParamFile=self.Ingrid.yaml)
 
     def populate_GUI(self):
         self.frames = {}
 
-        for F in (FilePicker, ParamPicker):
+        for F in (FilePicker):
             frame = F(self.container, self)
-            frame.IngridSession=self.IngridSession
+            frame.Ingrid=self.Ingrid
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
         self.FilePickerFrame=self.frames[FilePicker]
-        self.ParamPickerFrame=self.frames[ParamPicker]
         self.set_global_lookup()
-        self.show_frame(ParamPicker)
+        self.show_frame(FilePicker)
         self.IngridMenubar = MenuBarControl(self)
 
     def show_frame(self, item):
@@ -106,40 +101,39 @@ class IngridApp(tk.Tk):
         self.geometry(self.gui_dimensions[item])
 
     def change_numxpt(self, config = 'SNL'):
-        self.gui_mode = config
-        self.update_gui_dimensions()
-        return self.reset_data(message = 'Changing number of x-points requires a reset.\nContinue?')
+        pass
 
     def set_global_lookup(self):
         # TODO collect data from entry. Why not doing it straight into yaml file?
-        _ref = self.frames[ParamPicker]
-        if self.gui_mode == 'SNL':
-            self.global_lookup = {'rmagx' : _ref.MagFrame.R_EntryText, 'zmagx' : _ref.MagFrame.Z_EntryText,\
-                      'rxpt'  : _ref.XptFrame1.R_EntryText, 'zxpt'  : _ref.XptFrame1.Z_EntryText,\
-                      'psi_max_r' : _ref.PsiMaxFrame.R_EntryText, 'psi_max_z' : _ref.PsiMaxFrame.Z_EntryText,\
-                      'psi_min_core_r' : _ref.PsiMinFrame.R_EntryText, 'psi_min_core_z' : _ref.PsiMinFrame.Z_EntryText,\
-                      'psi_min_pf_r' : _ref.PsiPrivateFrame.R_EntryText, 'psi_min_pf_z' : _ref.PsiPrivateFrame.Z_EntryText,\
-                      'psi_max' : _ref.PsiMaxFrame.Psi_EntryText, 'psi_min_core' : _ref.PsiMinFrame.Psi_EntryText,\
-                      'psi_min_pf' : _ref.PsiPrivateFrame.Psi_EntryText
+        pass
+        # _ref = self.frames[ParamPicker]
+        # if self.gui_mode == 'SNL':
+        #     self.global_lookup = {'rmagx' : _ref.MagFrame.R_EntryText, 'zmagx' : _ref.MagFrame.Z_EntryText,\
+        #               'rxpt'  : _ref.XptFrame1.R_EntryText, 'zxpt'  : _ref.XptFrame1.Z_EntryText,\
+        #               'psi_max_r' : _ref.PsiMaxFrame.R_EntryText, 'psi_max_z' : _ref.PsiMaxFrame.Z_EntryText,\
+        #               'psi_min_core_r' : _ref.PsiMinFrame.R_EntryText, 'psi_min_core_z' : _ref.PsiMinFrame.Z_EntryText,\
+        #               'psi_min_pf_r' : _ref.PsiPrivateFrame.R_EntryText, 'psi_min_pf_z' : _ref.PsiPrivateFrame.Z_EntryText,\
+        #               'psi_max' : _ref.PsiMaxFrame.Psi_EntryText, 'psi_min_core' : _ref.PsiMinFrame.Psi_EntryText,\
+        #               'psi_min_pf' : _ref.PsiPrivateFrame.Psi_EntryText
 
-            }
+        #     }
 
-        elif self.gui_mode == 'DNL':
-            self.global_lookup = {'rmagx' : _ref.MagFrame.R_EntryText, 'zmagx' : _ref.MagFrame.Z_EntryText,\
-                      'rxpt'  : _ref.XptFrame1.R_EntryText, 'zxpt'  : _ref.XptFrame1.Z_EntryText,\
-                      'rxpt2' : _ref.XptFrame2.R_EntryText, 'zxpt2' : _ref.XptFrame2.Z_EntryText, \
-                      'psi_max_r' : _ref.PsiMaxFrame.R_EntryText, 'psi_max_z' : _ref.PsiMaxFrame.Z_EntryText,\
-                      'psi_min_core_r' : _ref.PsiMinFrame.R_EntryText, 'psi_min_core_z' : _ref.PsiMinFrame.Z_EntryText,\
-                      'psi_min_pf_r' : _ref.PsiPrivateFrame.R_EntryText, 'psi_min_pf_z' : _ref.PsiPrivateFrame.Z_EntryText,\
-                      'psi_max' : _ref.PsiMaxFrame.Psi_EntryText, 'psi_min_core' : _ref.PsiMinFrame.Psi_EntryText,\
-                      'psi_min_pf' : _ref.PsiPrivateFrame.Psi_EntryText,\
-                      'psi_max_r_outer' : _ref.PsiMaxOuterFrame.R_EntryText, 'psi_max_z_outer' : _ref.PsiMaxOuterFrame.Z_EntryText, \
-                      'psi_max_outer' : _ref.PsiMaxOuterFrame.Psi_EntryText, \
-                      'psi_max_r_inner' : _ref.PsiMaxInnerFrame.R_EntryText, 'psi_max_z_inner' : _ref.PsiMaxInnerFrame.Z_EntryText, \
-                      'psi_max_inner' : _ref.PsiMaxInnerFrame.Psi_EntryText, \
-                      'psi_pf2_r' : _ref.PsiPrivate2Frame.R_EntryText, 'psi_pf2_z' : _ref.PsiPrivate2Frame.Z_EntryText, \
-                      'psi_pf2' : _ref.PsiPrivate2Frame.Psi_EntryText,
-            }
+        # elif self.gui_mode == 'DNL':
+        #     self.global_lookup = {'rmagx' : _ref.MagFrame.R_EntryText, 'zmagx' : _ref.MagFrame.Z_EntryText,\
+        #               'rxpt'  : _ref.XptFrame1.R_EntryText, 'zxpt'  : _ref.XptFrame1.Z_EntryText,\
+        #               'rxpt2' : _ref.XptFrame2.R_EntryText, 'zxpt2' : _ref.XptFrame2.Z_EntryText, \
+        #               'psi_max_r' : _ref.PsiMaxFrame.R_EntryText, 'psi_max_z' : _ref.PsiMaxFrame.Z_EntryText,\
+        #               'psi_min_core_r' : _ref.PsiMinFrame.R_EntryText, 'psi_min_core_z' : _ref.PsiMinFrame.Z_EntryText,\
+        #               'psi_min_pf_r' : _ref.PsiPrivateFrame.R_EntryText, 'psi_min_pf_z' : _ref.PsiPrivateFrame.Z_EntryText,\
+        #               'psi_max' : _ref.PsiMaxFrame.Psi_EntryText, 'psi_min_core' : _ref.PsiMinFrame.Psi_EntryText,\
+        #               'psi_min_pf' : _ref.PsiPrivateFrame.Psi_EntryText,\
+        #               'psi_max_r_outer' : _ref.PsiMaxOuterFrame.R_EntryText, 'psi_max_z_outer' : _ref.PsiMaxOuterFrame.Z_EntryText, \
+        #               'psi_max_outer' : _ref.PsiMaxOuterFrame.Psi_EntryText, \
+        #               'psi_max_r_inner' : _ref.PsiMaxInnerFrame.R_EntryText, 'psi_max_z_inner' : _ref.PsiMaxInnerFrame.Z_EntryText, \
+        #               'psi_max_inner' : _ref.PsiMaxInnerFrame.Psi_EntryText, \
+        #               'psi_pf2_r' : _ref.PsiPrivate2Frame.R_EntryText, 'psi_pf2_z' : _ref.PsiPrivate2Frame.Z_EntryText, \
+        #               'psi_pf2' : _ref.PsiPrivate2Frame.Psi_EntryText,
+        #     }
 
     def update_gui_dimensions(self):
         self.gui_dimensions = {}
@@ -180,8 +174,6 @@ class IngridApp(tk.Tk):
             except:
                 pass
             self.destroy()
-
-
 
 class MenuBarControl(tk.Tk):
 
@@ -384,49 +376,57 @@ class FilePicker(tk.Frame):
 
         self.preview_loaded = False
 
-        Title = tk.Label(self, text = "Ingrid.", font=helv_large)
-        Title.grid(row = 0, column = 0, columnspan = 3, \
-            padx = 10, pady = 5, sticky = 'NSEW')
-        Title.grid(row = 0, column = 0, padx = 10, pady = 10, sticky = 'EW')
+        # Title = tk.Label(self, text = "Ingrid.", font=helv_large)
+        # Title.grid(row = 0, column = 0, columnspan = 3, \
+        #     padx = 10, pady = 5, sticky = 'NSEW')
+        # Title.grid(row = 0, column = 0, padx = 10, pady = 10, sticky = 'EW')
 
-        self.eqdskFrame = FilePickerFrame(self, controller, \
-            {'ButtonText' : 'Select EQDSK File', \
+        EntryFrame = tk.Frame(self)
+        EntryFrame.grid(row=1, column=0, padx=10,pady=10, sticky='NSEW')
+
+        self.yamlFrame = FilePickerFrame(EntryFrame, controller, \
+            {'ButtonText' : 'Load YAML File', \
+             'EntryText'  : 'YAML File:', \
+             'ButtonCommand' : self.load_param_file \
+            })
+        self.eqdskFrame = FilePickerFrame(EntryFrame, controller, \
+            {'ButtonText' : 'YAML File:', \
              'EntryText'  : 'Select an EQDSK File', \
              'ButtonCommand' : self.load_eqdsk_file \
             })
-        self.itpFrame = FilePickerFrame(self, controller, \
+        self.itpFrame = FilePickerFrame(EntryFrame, controller, \
             {'ButtonText' : 'Select Inner Plate', \
              'EntryText'  : 'Select an inner strike plate configuration file.', \
              'ButtonCommand' : self.load_itp_file \
             })
-        self.otpFrame = FilePickerFrame(self, controller, \
+        self.otpFrame = FilePickerFrame(EntryFrame, controller, \
             {'ButtonText' : 'Select Outer Plate', \
              'EntryText'  : 'Select an outer strike plate configuration file.', \
              'ButtonCommand' : self.load_otp_file \
             })
 
-        self.itp2Frame = FilePickerFrame(self, controller, \
+        self.itp2Frame = FilePickerFrame(EntryFrame, controller, \
             {'ButtonText' : 'Select Inner Plate 2', \
              'EntryText'  : 'Select inner strike plate 2 configuration file.', \
              'ButtonCommand' : self.load_itp2_file \
             })
-        self.otp2Frame = FilePickerFrame(self, controller, \
+        self.otp2Frame = FilePickerFrame(EntryFrame, controller, \
             {'ButtonText' : 'Select Outer Plate 2', \
              'EntryText'  : 'Select outer strike plate 2 configuration file.', \
              'ButtonCommand' : self.load_otp2_file \
             })
 
-        self.paramFrame = FilePickerFrame(self, controller,\
+        self.paramFrame = FilePickerFrame(EntryFrame, controller,\
             {'ButtonText' : 'Load Parameter File', \
              'EntryText'  : 'Select a pre-existing YAML format file.', \
              'ButtonCommand' : self.load_param_file \
              })
 
         if self.controller.gui_mode == 'DNL':
-            self.FP_Frames = [self.eqdskFrame, self.itpFrame, self.otpFrame,\
+            self.FP_Frames = [self.yamlFrame, self.eqdskFrame, self.itpFrame, self.otpFrame,\
                               self.itp2Frame, self.otp2Frame]
         elif self.controller.gui_mode == 'SNL':
-            self.FP_Frames = [self.eqdskFrame, self.itpFrame, self.otpFrame]
+            self.FP_Frames = [self.yamlFrame, self.eqdskFrame, self.itpFrame, self.otpFrame]
 
         self.FP_handles = [f._handle for f in self.FP_Frames]
 
@@ -434,20 +434,17 @@ class FilePicker(tk.Frame):
             self.FP_Frames[i].grid(row = i + 1, column = 0, \
                 padx = 10, pady = 5, sticky = 'NSEW')
 
-        self.ControlPanel = tk.Frame(self)
-        self.ControlPanel.grid(row = len(self.FP_Frames) + 1, column = 0, \
-                padx = 10, pady = 5, sticky = 'NSEW')
-        self.previewButton = tk.Button(self.ControlPanel, text = 'Preview Loaded Data', \
+        self.previewButton = tk.Button(EntryFrame, text = 'Preview Loaded Data', \
             font = helv_medium, state = 'disabled', command = self.preview_data)
-        self.confirmButton = tk.Button(self.ControlPanel, text = 'Confirm', \
+        self.confirmButton = tk.Button(EntryFrame, text = 'Confirm', \
             font = helv_medium, state = 'disabled', command = self.confirm_data)
-        self.resetButton = tk.Button(self.ControlPanel, text = 'Reset', \
+        self.resetButton = tk.Button(EntryFrame, text = 'Reset', \
             font = helv_medium, command = self.controller.reset_data)
 
-        self.previewButton.grid(row = 0, column = 0, columnspan = 1, padx = 10, pady = 10, \
+        self.previewButton.grid(row = len(self.FP_Frames)+2, column = 0, padx = 10, pady = 10, \
             sticky = 'NSEW')
-        self.confirmButton.grid(row = 0, column = 1, padx = 10, pady = 10, sticky = 'NSEW')
-        self.resetButton.grid(row = 0, column = 2, padx = 10, pady = 10, sticky = 'NSEW')
+        self.confirmButton.grid(row = len(self.FP_Frames)+3, column = 0, padx = 10, pady = 10, sticky = 'NSEW')
+        self.resetButton.grid(row = len(self.FP_Frames)+4, column = 0, padx = 10, pady = 10, sticky = 'NSEW')
 
 
     def get_file(self):
@@ -501,6 +498,7 @@ class FilePicker(tk.Frame):
             eqdsk_file, valid_path = self.get_file()
             if valid_path:
                 self.controller.IngridSession.yaml['eqdsk'] = str(eqdsk_file)
+                self.eqdsk_mtime = getmtime(str(eqdsk_file))
                 self.eqdskFrame.fileLoaded(eqdsk_file)
                 self.update_frame_state()
         elif not showFileDialog:
@@ -532,6 +530,7 @@ class FilePicker(tk.Frame):
             if valid_path and itp_file.suffix == '.txt':
                 self.controller.IngridSession
                 self.controller.IngridSession.yaml['target_plates']['plate_W1']['file'] = str(itp_file)
+                self.itp1_mtime = getmtime(str(itp_file))
                 print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.itpFrame.fileLoaded(itp_file)
                 self.update_frame_state()
@@ -565,6 +564,7 @@ class FilePicker(tk.Frame):
             if valid_path and itp_file.suffix == '.txt':
                 self.controller.IngridSession
                 self.controller.IngridSession.yaml['target_plates']['plate_W2']['file'] = str(itp_file)
+                self.itp2_mtime = getmtime(str(itp_file))
                 print(yaml.dump(self.controller.IngridSession.yaml, indent = 4))
                 self.itp2Frame.fileLoaded(itp_file)
                 self.update_frame_state()
@@ -597,6 +597,7 @@ class FilePicker(tk.Frame):
             if valid_path and otp_file.suffix == '.txt':
                 print(self.controller.IngridSession.yaml)
                 self.controller.IngridSession.yaml['target_plates']['plate_E1']['file'] = str(otp_file)
+                self.otp1_mtime = getmtime(str(otp_file))
                 self.otpFrame.fileLoaded(otp_file)
                 self.update_frame_state()
             elif not valid_path:
@@ -628,6 +629,7 @@ class FilePicker(tk.Frame):
             if valid_path and otp_file.suffix == '.txt':
                 print(self.controller.IngridSession.yaml)
                 self.controller.IngridSession.yaml['target_plates']['plate_E2']['file'] = str(otp_file)
+                self.otp2_mtime = getmtime(str(otp_file))
                 self.otp2Frame.fileLoaded(otp_file)
                 self.update_frame_state()
             elif not valid_path:
@@ -670,6 +672,7 @@ class FilePicker(tk.Frame):
                 print(yaml.dump(_yaml, indent = 4))
                 self.parse_yaml(_yaml)
                 self.paramFrame.fileLoaded(param_file)
+                self.yaml_mtime = getmtime(str(param_file))
                 self.update_frame_state()
                 #print(self.controller.IngridSession.yaml)
             elif not valid_path:
@@ -749,20 +752,30 @@ class FilePicker(tk.Frame):
                 files_ready = False
         return files_ready
 
-    def preview_data(self):
+    # def preview_data(self):
 
-        # self.controller.IngridSession = Ingrid.Ingrid(params = self.controller.IngridSession.yaml)
-        self.controller.IngridSession.OMFIT_read_psi()
 
-        if self.itpFrame.isLoaded:
-            self.controller.IngridSession.read_target_plates()
-            self.update_plate_handles()
-        if self.otpFrame.isLoaded:
-            self.controller.IngridSession.read_target_plates()
-            self.update_plate_handles()
-        self.controller.IngridSession.calc_efit_derivs()
-        self.controller.IngridSession.plot_efit_data()
-        self.controller.IngridSession.plot_target_plates()
+    #     if self.eqdsk_mtime != getmtime(self.controller.IngridSession.yaml['eqdsk'])
+    #         self.controller.IngridSession.OMFIT_read_psi()
+    #     if self.itp1_mtime != getmtime(self.controller.IngridSession.yaml['target_plates']['plate_W1']['file']):
+    #         self.controller.IngridSession.read_target_plates()
+    #         self.update_plate_handles()
+    #     if self.otp1_mtime != getmtime(self.controller.IngridSession.yaml['target_plates']['plate_E1']['file']):
+    #         self.controller.IngridSession.read_target_plates()
+    #         self.update_plate_handles()
+    #     if self.itp2_mtime != getmtime(self.controll)
+
+    #     self.controller.IngridSession.set_limiter()
+    #     self.controller.IngridSession.calc_efit_derivs()
+    #     self.controller.IngridSession.AutoRefineMagAxis()
+    #     self.controller.IngridSession.AutoRefineXPoint()
+    #     self.controller.IngridSession.calc_psinorm()
+    #     self.controller.IngridSession.SetMagReference('SNL')
+    #     self.controller.IngridSession.plot_psinorm()
+    #     self.controller.IngridSession.plot_strike_geometry()
+    #     self.controller.IngridSession.PlotPsiNormBounds()
+    #     print(len(self.controller.IngridSession.psi_norm.ax.lines))
+    #     print(len(self.controller.IngridSession.psi_norm.ax.collections))
 
 
     def confirm_data(self):

@@ -175,7 +175,7 @@ DEBUG:
         gridue: false
         patch_map: false
         subgrid: false
-eqdsk: '/Users/torvaltz/Desktop/SPARC_XPTD/V2_FREEGS_geqdsk_LSNX'
+eqdsk: '../data/SPARC/SPARC_XPTD/V2_FREEGS_geqdsk_LSNX'
 grid_params:
     config: DNL
     grid_generation:
@@ -246,6 +246,10 @@ integrator_params:
     max_step: 0.12
     step_ratio: 0.02
     tol: 0.005
+limiter:
+    limiter: ''
+    use_limiter: False
+    use_efit_bounds:
 target_plates:
     plate_E1:
         file: ../Data/DNL/SPARC/divRZv1d_lotp.txt

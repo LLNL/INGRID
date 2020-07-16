@@ -806,8 +806,12 @@ class Ingrid:
 
     def plot_strike_geometry(self):
         try:
-            if self.yaml['limiter']['use_limiter']: self.plot_limiter_data()
-            else: self.plot_target_plates()
+            if self.yaml['grid_params']['num_xpt'] == 2 or self.yaml['limiter']['use_limiter']:
+                self.plot_limiter_data()
+                if self.yaml['limiter']['use_limiter'] == False: 
+                    self.plot_target_plates()
+            else:
+                self.plot_target_plates()
         except:
             self.plot_target_plates()
 
@@ -1382,6 +1386,7 @@ def QuickStart():
         IG.plot_psinorm()
         IG.plot_strike_geometry()
         IG.PrintSummaryParams()
+        plt.ion()
         if messagebox.askyesno("Ingrid", "Proceed to analyzing topology?"):
             IG.init_LineTracing()
             try:

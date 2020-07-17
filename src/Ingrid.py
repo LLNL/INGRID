@@ -19,6 +19,7 @@ import yaml as yml
 import os
 from pathlib import Path
 from GUI import IngridApp as IA
+from GUI import SimpleGUI as sg
 
 from OMFITgeqdsk import OMFITgeqdsk
 from Interpol.Setup_Grid_Data import Efit_Data
@@ -250,6 +251,24 @@ class Ingrid:
                 self.IngridWindow.destroy()
         self.IngridWindow = sg.IngridApp(IngridSession=self)
         self.IngridWindow.title('INGRID v0.0')
+        self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
+        self.IngridWindow.mainloop()
+
+    def SimpleGUI(self):
+        try:
+            import tkinter as tk
+        except:
+            import Tkinter as tk
+        try:
+            import tkinter.messagebox as messagebox
+        except:
+            import tkMessageBox as messagebox
+        def on_closing():
+            if messagebox.askyesno('', 'Are you sure you want to quit?'):
+                plt.close('all')
+                self.IngridWindow.destroy()
+        self.IngridWindow = sg.Ingrid_GUI(IngridSession=self)
+        self.IngridWindow.title('INGRID v0.1')
         self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
         self.IngridWindow.mainloop()
 
@@ -1086,38 +1105,6 @@ class Ingrid:
 
         f.close()
 
-    def ReadyamlFile(FileName:str)->dict:
-        '''
-        Read a yaml file and return a dictionnary
-
-        Parameters
-        ----------
-        FileName : str
-
-
-        Raises
-        ------
-        IOError
-
-
-        Returns
-        -------
-        dict
-            Params dictionnary
-
-        '''
-        File=pathlib.Path(FileName).expanduser()
-        if File.exists() and File.is_file():
-            try:
-                ymlDict=yml.full_load(File.read_text())
-                return ymlDict
-            except:
-                raise IOError('Cannot load the yml file: '+FileName)
-
-        else:
-            print('Current Working Directory:'+os.getcwd())
-            raise IOError('Cannot find the file: ' +FileName)
-
     def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=False):
 
 
@@ -1163,17 +1150,20 @@ class Ingrid:
         plt.show()
 
     def PlotPsiNormBounds(self:object)->None:
-        Dic={'psi_max':'blue',
-              'psi_min_core':'magenta',
-              'psi_max_outer':'blue',
-              'psi_max_inner':'blue',
-              'psi_min_pf':'green',
-              'psi_pf2':'yellow'}
+        Dic={'psi_max':'magenta',
+              'psi_min_core':'blue',
+              'psi_max_outer':'steelblue',
+              'psi_max_inner':'dodgerblue',
+              'psi_min_pf':'limegreen',
+              'psi_pf2':'darkorange'}
         for k,c in Dic.items():
                 self.psi_norm.PlotLevel(self.yaml['grid_params'][k],color=Dic[k],label=k)
 
-        self.psi_norm.PlotLevel(1.0,color='red',label='Separatrix')
-        self.psi_norm.PlotLegend()
+        self.psi_norm.PlotLevel(1.0,color='black',label='Primary Separatrix')
+        if self.yaml['grid_params']['num_xpt'] == 2:
+            self.psi_norm.PlotLevel(self.psi_norm.get_psi(self.xpt2[0], self.xpt2[1]), 
+                color='red', label = 'Secondary Separatrix')
+        plt.legend(loc='bottom').set_alpha(0.5)
 
 
     def PlotPsiLevel(efit_psi:object,level:float,Label:str='')->None:
@@ -1350,54 +1340,43 @@ def Plotgridue(GridueParams,Fill=False,ax=None,Verbose=False,facecolor=None,edge
     plt.xlim(r.min(),r.max())
     plt.show()
 
+def ReadyamlFile(FileName:str)->dict:
+    '''
+    Read a yaml file and return a dictionnary
+
+    Parameters
+    ----------
+    FileName : str
+
+
+    Raises
+    ------
+    IOError
+
+
+    Returns
+    -------
+    dict
+        Params dictionnary
+
+    '''
+    File=pathlib.Path(FileName).expanduser()
+    if File.exists() and File.is_file():
+        try:
+            ymlDict=yml.full_load(File.read_text())
+            return ymlDict
+        except:
+            raise IOError('Cannot load the yml file: '+FileName)
+
+    else:
+        print('Current Working Directory:'+os.getcwd())
+        raise IOError('Cannot find the file: ' +FileName)
+
 
 def QuickStart():
-    try:
-        import tkinter as tk
-    except:
-        import Tkinter as tk
-    try:
-        import tkinter.messagebox as messagebox
-    except:
-        import tkMessageBox as messagebox
-    try:
-        from tkinter import filedialog
-    except:
-        from Tkinter import tkFileDialog as filedialog
+    QuickGrid = Ingrid()
+    QuickGrid.SimpleGUI()
 
-    active_session = True
-    root = tk.Tk()
-    root.withdraw()
-
-    while active_session:
-        IG = Ingrid()
-        IG.process_yaml(Ingrid.ReadyamlFile(filedialog.askopenfilename(title='Select YAML File')))
-        topology = 'SNL' if IG.yaml['grid_params']['num_xpt'] == 1 else 'DNL'
-        IG.OMFIT_read_psi()
-        IG.calc_efit_derivs()
-        IG.AutoRefineMagAxis()
-        IG.AutoRefineXPoint()
-        if topology == 'DNL':
-            IG.AutoRefineXPoint2()
-        IG.read_target_plates()
-        IG.set_limiter()
-        IG.SetMagReference(topology)
-        IG.calc_psinorm()
-        IG.plot_psinorm()
-        IG.plot_strike_geometry()
-        IG.PrintSummaryParams()
-        plt.ion()
-        if messagebox.askyesno("Ingrid", "Proceed to analyzing topology?"):
-            IG.init_LineTracing()
-            try:
-                IG._analyze_topology()
-            except:
-                active_session = False
-
-            if messagebox.askyesno("Ingrid", "Analyze new topology?"):
-                active_session = True
-        plt.close(IG.psi_norm.fig)
-    root.destroy()
 
 
 

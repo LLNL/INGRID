@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import root
 
-import GUI.IngridApp as IngridApp
+import GUI.SimpleGUI as IngridApp
 
 class RootFinder:
     """

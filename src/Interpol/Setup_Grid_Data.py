@@ -351,19 +351,19 @@ class Efit_Data:
         # draw contour line on top of existing figure
         level = float(level)
         self.ax.contour(self.r, self.z, self.v, level, colors=color)
-    def PlotLevel(self:object, level:float=1.0, color:str='red',label:str='')->None:
+    def PlotLevel(self:object, level:float=1.0, color:str='red',label:str='',linestyles:str='solid')->None:
         """
         """
         try:
             self.psi_levels[label].collections[0].remove()
-            for l in self.psi_levels[label+'label']:
-                l.remove()
-            self.psi_levels[label]=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label)
-            self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=True, fontsize=8)
+            #for l in self.psi_levels[label+'label']:
+                #l.remove()
+            self.psi_levels[label]=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label,linestyles=linestyles)
+            #self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=False, fontsize=10, fmt='%1.9f')
             self.psi_levels[label].collections[0].set_label(label)
         except:
-            self.psi_levels[label]=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label)
-            self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=True, fontsize=8)
+            self.psi_levels[label]=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label,linestyles=linestyles)
+            #self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=False, fontsize=10, fmt='%1.9f')
             self.psi_levels[label].collections[0].set_label(label)
 
     def plot_data(self, nlev=30,interactive=True):
@@ -378,10 +378,9 @@ class Efit_Data:
         self.ax = self.fig.add_subplot(111)
         lev = (self.v.min() + (self.v.max()
                - self.v.min()) * np.arange(nlev) / (nlev-1))
-        self.ax.contour(self.r, self.z, self.v, lev)
-        plt.plot(self.rmagx, self.zmagx, 'x', color = 'black')
+        self.ax.contourf(self.r, self.z, self.v, lev, cmap='gist_gray')
         plt.gca().set_aspect('equal', adjustable='box')
-        plt.title(self.name)
+        plt.suptitle(self.name)
         plt.xlabel('R')
         plt.ylabel('Z')
         plt.xlim(self.rmin, self.rmax)

@@ -218,7 +218,7 @@ class MenuBarControl(tk.Tk):
         fname = Path(tkFD.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='.yml'))
         if fname.name != '':
             try:
-                documentation = Path('../Docs/INGRID_YAML_CONTROLS.txt')
+                documentation = Path('../Docs/IngridParameterDescriptions.txt')
                 fname.write_text(documentation.resolve().read_text() + '\n' + yaml.dump(Ingrid.Ingrid().yaml, indent = 4))
             except:
                 fname.write_text(yaml.dump(Ingrid.Ingrid.yaml(), indent = 4))  # force tag is to overwrite the previous file

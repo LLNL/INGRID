@@ -400,6 +400,7 @@ integrator_params:
 limiter:
     file: ''
     use_limiter : True
+    use_efit_bounds : True
 target_plates:
     plate_E1:
         file: ../data/SNL/DIII-D/d3d_otp.txt

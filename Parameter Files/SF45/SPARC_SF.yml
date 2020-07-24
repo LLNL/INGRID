@@ -168,7 +168,7 @@
 DEBUG:
     verbose:
         grid_generation: false
-        patch_generation: false
+        patch_generation: true
         target_plates: false
     visual:
         find_NSEW: false
@@ -196,7 +196,7 @@ grid_params:
         radial_f_primary_sol: x, x
         radial_f_secondary_pf: x, x
         radial_f_secondary_sol: x, x
-    nlevs: 150
+    nlevs: 100
     num_xpt: 2
     patch_generation:
         NE_adjust: 0.0
@@ -216,21 +216,21 @@ grid_params:
         zmagx_shift: 0.0
         zxpt: 0.0
     psi_max: 0.0
-    psi_max_inner: 1.005030611031
-    psi_max_outer: 1.00552682118
+    psi_max_west: 1.0025
+    psi_max_east: 1.001
     psi_max_r: 0.0
     psi_max_r_inner: 1.422077922078
     psi_max_r_outer: 1.554545454545
     psi_max_z: 0.0
     psi_max_z_inner: -1.075324675325
     psi_max_z_outer: -1.153246753247
-    psi_min_core: 0.940265282465
+    psi_min_core: 0.99
     psi_min_core_r: 1.609090909091
     psi_min_core_z: -0.896103896104
-    psi_min_pf: 0.997157635444
+    psi_min_pf: 0.9989
     psi_min_pf_r: 1.476623376623
     psi_min_pf_z: -1.153246753247
-    psi_pf2: 1.000525228398
+    psi_pf2: 0.999
     psi_pf2_r: 1.445454545455
     psi_pf2_z: 1.137662337662
     rmagx: 1.839069334
@@ -248,15 +248,15 @@ integrator_params:
     tol: 0.005
 limiter:
     limiter: ''
-    use_limiter: False
-    use_efit_bounds:
+    use_limiter: True
+    use_efit_bounds: False
 target_plates:
     plate_E1:
         file: ../Data/DNL/SPARC/divRZv1d_lotp.txt
         name: plate_E1
         np_local: 6
         poloidal_f: x, x
-        zshift: 0.0
+        zshift: 0.06183
     plate_E2:
         file: ../Data/DNL/SPARC/divRZv1d_uitp.txt
         name: plate_E2
@@ -268,7 +268,7 @@ target_plates:
         name: plate_W1
         np_local: 6
         poloidal_f: x, x
-        zshift: 0.0
+        zshift: 0.06183
     plate_W2:
         file: ../Data/DNL/SPARC/divRZv1d_uotp.txt
         name: plate_W2

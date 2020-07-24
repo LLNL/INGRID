@@ -1421,6 +1421,7 @@ def segment_intersect(line1, line2, verbose = False):
     (xa, ya), (xb, yb) = line1
     if isinstance(line2, Line):
         line2 = [(p.x, p.y) for p in line2.p]
+
     for i in range(len(line2) - 1):
         (xc, yc), (xd, yd) = line2[i], line2[i+1]
 
@@ -1429,16 +1430,10 @@ def segment_intersect(line1, line2, verbose = False):
         try:
             sol = np.linalg.solve(M, r)
         except np.linalg.LinAlgError:
-            if verbose:
-                print('Searching for intersection...')
             continue
 
         if (sol[0] <= 1) and (sol[1] <= 1) \
             and (sol[0] >= 0) and (sol[1] >= 0):
-            if verbose:
-                print('~ Intersection occurred!')
-            print(sol)
-
             return True, [(xc, yc), (xc + sol[1]*(xd-xc), yc + sol[1]*(yd - yc))]
     return False, [(np.nan, np.nan), (np.nan, np.nan)]
 

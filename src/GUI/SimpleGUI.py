@@ -29,11 +29,10 @@ except:
 
 import yaml
 import Ingrid
-import Topologies
 import Root_Finder
 
-helv_large = 'Helvetica 13 bold'
-helv_medium = 'Helvetica 9 bold'
+#helv_large = 'Helvetica 13 bold'
+#helv_medium = 'Helvetica 9 bold'
 
 class Ingrid_GUI(tk.Tk):
     def __init__(self, master = None,IngridSession=None,*args, **kwargs):
@@ -47,7 +46,7 @@ class Ingrid_GUI(tk.Tk):
 
         # attached to the parent Ingrid instance instead of new instance
         if IngridSession is None:
-            self.Ingrid = Ingrid.Ingrid()
+            self.ResetIngrid()
         else:
             self.Ingrid = IngridSession
         
@@ -62,6 +61,7 @@ class Ingrid_GUI(tk.Tk):
         frame = self.frames[item]
         frame.tkraise()
         self.geometry(self.gui_dimensions[FilePicker])
+
 
     def Reset(self, message = 'Are you sure you want to reset?'):
         if tkMB.askyesno('', message):
@@ -89,8 +89,11 @@ class Ingrid_GUI(tk.Tk):
                 pass
             self.destroy()
 
-    def ResetIG(self):
+    def NewIG(self):
         self.Ingrid = Ingrid.Ingrid()
+
+    def ResetIG(self):
+        self.Ingrid = None
 
     def PopulateGUI(self):
         self.frames = {}
@@ -135,26 +138,36 @@ class FilePicker(tk.Tk):
 
         self.ViewDataButton = tk.Button(self.ControlFrame,
             text='View Loaded File', command=self.ViewData)
-        self.AnalyzeTopology = tk.Button(self.ControlFrame,
+        self.AnalyzeTopologyButton = tk.Button(self.ControlFrame,
             text='Analyze Topology', command=self.AnalyzeTopology)
+        self.CreatePatchesButton = tk.Button(self.ControlFrame,
+            text='Create Patches', command=self.CreatePatches)
         self.QuitButton = tk.Button(self.ControlFrame,
             text='Quit', command=self.Quit)
 
         self.ViewDataButton.grid(row=0,column=0,padx=10,pady=10,sticky='nsew')
-        self.AnalyzeTopology.grid(row=0,column=1,padx=10,pady=10,sticky='nsew')
+        self.AnalyzeTopologyButton.grid(row=0,column=1,padx=10,pady=10,sticky='nsew')
+        self.CreatePatchesButton.grid(row=0,column=2,padx=10,pady=10,sticky='nsew')
         self.QuitButton.grid(row=0,column=3,padx=10,pady=10,sticky='nsew')
 
+    def ProcessParameterFile(self, fname):
+        self.Ingrid.process_yaml(Ingrid.ReadyamlFile(fname))
+        self.ParamFileMtime = getmtime(fname)
+        self.ParamFileName = fname
 
     def LoadParameterFile(self):
         fname = filedialog.askopenfilename(title='Select YAML File')
         fpath = Path(fname)
         if fpath.is_file() and fpath.suffix in ['.yml', '.yaml']:
-            self.controller.ResetIG()
-            self.Ingrid.process_yaml(Ingrid.ReadyamlFile(fname))
+            self.controller.NewIG()
+            self.ProcessParameterFile(fname)
+            self.ReadyIngridData()
         else:
             self.ParamFileEntry_String.set('Invalid file extension "{fpath.suffix}"')
 
     def ReadyIngridData(self):
+        if self.ParamFileMtime != getmtime(self.ParamFileName):
+            self.ProcessParameterFile(self.ParamFileName)
         IG = self.Ingrid
         topology = 'SNL' if IG.yaml['grid_params']['num_xpt'] == 1 else 'DNL'
         IG.OMFIT_read_psi()
@@ -167,19 +180,33 @@ class FilePicker(tk.Tk):
         IG.set_limiter()
         IG.SetMagReference(topology)
         IG.calc_psinorm()
-        IG.plot_psinorm()
+
+    def CloseOpenViews(self):
+        try:
+            plt.close('all')
+        except:
+            pass
 
     def PreviewIngridData(self):
+        self.CloseOpenViews()
         IG = self.Ingrid
+        IG.plot_psinorm()
+        IG.PlotPsiNormMagReference()
         IG.plot_strike_geometry()
         IG.PlotPsiNormBounds()
         IG.PrintSummaryParams()
-        plt.ion()
 
     def AnalyzeTopology(self):
         IG = self.Ingrid
-        IG.init_LineTracing()
-        IG._analyze_topology()
+        self.ViewData()
+        IG.AnalyzeTopology()
+
+        if IG.current_topology.config in ['SF15', 'SF45']:
+            IG.PlotTopologyAnalysis()
+
+    def CreatePatches(self):
+        IG = self.Ingrid
+        IG.ConstructPatches()
 
     def ViewData(self):
         self.ReadyIngridData()

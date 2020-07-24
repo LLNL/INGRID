@@ -25,7 +25,11 @@ from OMFITgeqdsk import OMFITgeqdsk
 from Interpol.Setup_Grid_Data import Efit_Data
 from line_tracing import LineTracing
 from Root_Finder import RootFinder
-from Topologies import SNL
+
+from Topologies.SNL import SNL
+from Topologies.SF15 import SF15
+from Topologies.SF45 import SF45
+
 from geometry import Point, Line, Patch, segment_intersect, orientation_between
 from scipy.optimize import root, minimize
 
@@ -326,12 +330,12 @@ class Ingrid:
         }
 
         self.default_limiter_params = {
-            'file' : '', 'use_limiter' : False, 'use_efit_bounds' : False
+            'file' : '', 'use_limiter' : False, 'use_efit_bounds' : False, 'rshift' : 0.0, 'zshift' : 0.0
         }
 
         self.default_DEBUG_params = { \
-            'visual' : {'find_NSEW' : False, 'patch_map' : False, 'subgrid' : False, 'gridue' : False}, \
-            'verbose' : {'target_plates' : False, 'patch_generation' : False, 'grid_generation' : False}
+            'visual' : {'find_NSEW' : False, 'patch_map' : False, 'subgrid' : False, 'gridue' : False, 'SF_analysis' : False}, \
+            'verbose' : {'target_plates' : False, 'patch_generation' : False, 'grid_generation' : False, 'SF_analysis' : False}
         }
 
         self.default_values_lookup = {'grid_params' : self.default_grid_params, 'integrator_params' : self.default_integrator_params, \
@@ -393,6 +397,7 @@ class Ingrid:
         self.PrintSummaryInput()
        # except:
           #  print('error')
+
     def process_yaml(self, params,verbose=False):
         """
         Parse the contents of a YAML dump (dictionary object).
@@ -458,15 +463,6 @@ class Ingrid:
         self.target_plates = params['target_plates']
         self.DEBUG = params['DEBUG']
 
-    def print_yaml(self):
-        """
-        Print the YAML file copy stored within the Ingrid object.
-        @author: garcia299
-        """
-        for item in self.yaml.keys():
-            print('=' * 80)
-            print('INGRID {}: {}'.format(item, self.yaml[item]))
-            print('=' * 80 + '\n')
 
     def OMFIT_read_psi(self):
         """
@@ -495,13 +491,6 @@ class Ingrid:
 
         psi = g['PSIRZ'].T
 
-        # TODO: possibly use the limiters to determine where the strke plates
-        # are located. rlim and zlim contain lists of the r and z coordinates
-        # for the limiter surrounding the plasma
-        # rlim = g['RLIM']  # limiter - similar to strike plates
-        # zlim = g['ZLIM']
-
-
         # calc array for r and z
         rmin = rgrid1
         rmax = rmin + rdim
@@ -523,7 +512,10 @@ class Ingrid:
         self.OMFIT_psi = g
 
     def set_limiter(self):
+        
         RLIM, ZLIM = [], []
+        rshift = self.yaml['limiter']['rshift']
+        zshift = self.yaml['limiter']['zshift']
 
         try:
             if Path(self.yaml['limiter']['file']).is_file() and Path(self.yaml['limiter']['file']).suffix in ['.txt']:
@@ -531,7 +523,7 @@ class Ingrid:
 
                 try:
                     with open(self.yaml['limiter']['file']) as f:
-                        #First we check if zshift is given
+
                         for line in f:
 
                             point = line.strip()
@@ -549,8 +541,8 @@ class Ingrid:
                                 x = float(point.split(' ')[0])
                                 y = float(point.split(' ')[1])
 
-                            RLIM.append(x)
-                            ZLIM.append(y)
+                            RLIM.append(x - rshift)
+                            ZLIM.append(y - zshift)
                 except:
                     raise ValueError("# Error occured when reading limiter data from txt file.")
 
@@ -559,16 +551,20 @@ class Ingrid:
             pass
 
         if (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []) or self.yaml['limiter']['use_efit_bounds']:
-            coordinates = [(self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2),
-                           (self.efit_psi.rmax - 1e-2, self.efit_psi.zmin + 1e-2),
-                           (self.efit_psi.rmax - 1e-2, self.efit_psi.zmax - 1e-2),
-                           (self.efit_psi.rmin + 1e-2, self.efit_psi.zmax - 1e-2),
-                           (self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2)]
+            coordinates = [(self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
+                           (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
+                           (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
+                           (self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
+                           (self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift)]
             for c in coordinates:
                 r, z = c
-                RLIM.append(r)
-                ZLIM.append(z)
-            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
+                RLIM.append(r - rshift)
+                ZLIM.append(z - zshift)
+
+        else:
+            g=OMFITgeqdsk(self.yaml['eqdsk'])
+            RLIM, ZLIM = g['RLIM'], g['ZLIM']
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = [r - rshift for r in RLIM], [z - zshift for z in ZLIM]
 
         self.order_limiter()
 
@@ -932,7 +928,7 @@ class Ingrid:
     def find_psi_lines(self, tk_controller = None):
         self.psi_finder = RootFinder(self.psi_norm, mode = 'psi_finder', controller = tk_controller)
 
-    def init_LineTracing(self, refresh = False,interactive=True):
+    def PrepLineTracing(self, interactive=True):
         """
         Initializes the line tracing class for the construction
         of the grid.
@@ -941,61 +937,58 @@ class Ingrid:
             Re-initialize the LineTracing class.
         @author: watkins35, garcia299
         """
-        try:
-            # Check if the LineTracing class has been initialized.
-            # Exception will be thrown if it no initialization has occured.
-            if not self.eq:
-                raise AttributeError
+        
+        self.eq = LineTracing(self.psi_norm, self.yaml, interactive=interactive)
+        if interactive:
+            self.eq.disconnect()
 
-        except AttributeError:
-            self.eq = LineTracing(self.psi_norm, self.yaml,interactive=interactive)
-        if refresh:
-            self.eq = LineTracing(self.psi_norm, self.yaml,interactive=interactive)
-        self.eq.disconnect()
+    def ClassifyTopology(self, visual=False):
 
-    def refresh_LineTracing(self):
-        self.init_LineTracing(refresh = True)
+        print('')
+        print("# Begin classification....")
+        print('')
 
-    def _classify_gridtype(self):
-        """
-        Analyze the topology around the primary x-point in order to determine the configuration.
-        This is a wrapper for the LineTracing class method SNL_find_NSEW.
-        @author: garcia299
-        """
-        try:
-            debug = self.yaml['DEBUG']['visual']['find_NSEW']
-        except:
-            debug = False
+        self.PrepLineTracing(interactive=False)
 
         if self.yaml['grid_params']['num_xpt'] == 1:
-            self.eq.SNL_find_NSEW(self.xpt1, self.magx, debug)
+            self.eq.SNL_find_NSEW(self.xpt1, self.magx, visual)
 
         elif self.yaml['grid_params']['num_xpt'] == 2:
-            self.eq.DNL_find_NSEW(self.xpt1, self.xpt2, self.magx, debug)
+            self.eq.DNL_find_NSEW(self.xpt1, self.xpt2, self.magx, visual)
 
         self.yaml['grid_params']['config'] = self.eq.config
-        return self.eq.config
 
-    def _analyze_topology(self,verbose=False):
+    def AnalyzeTopology(self,verbose=False):
+
+        try:
+            visual = self.yaml['DEBUG']['visual']['find_NSEW']
+        except:
+            visual = False
+
+        self.ClassifyTopology(visual=visual)
+
+        # Updated after call to ClassifyTopology
+        config = self.yaml['grid_params']['config']
         
         print('')
-        print('Topology Analysis:')
-        print(" # Begin classification....")
+        print('# Identified {} configuration.'.format(config))
         print('')
-        config = self._classify_gridtype()
-        
-        print('')
-        print('Topology Analysis:')
-        print(' # Identified {} configuration.'.format(config))
-        print('')
+
         if config in ['LSN', 'USN']:
             ingrid_topology = SNL(self, config)
-        elif config in ['DNL']:
+
+        elif self.yaml['grid_params']['config'] in ['DNL']:
             ingrid_topology = DNL(self, config)
+
+        elif self.yaml['grid_params']['config'] == 'SF15':
+            ingrid_topology = SF15(self, config)
+
+        elif self.yaml['grid_params']['config'] == 'SF45':
+            ingrid_topology = SF45(self, config)
 
         self.current_topology = ingrid_topology
 
-    def _get_configuration(self):
+    def get_config(self):
         return self.eq.config
 
     def export(self, fname = 'gridue'):
@@ -1107,7 +1100,6 @@ class Ingrid:
 
     def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=False):
 
-
         try:
             np_cells = self.yaml['grid_params']['grid_generation']['np_global']
         except KeyError:
@@ -1142,29 +1134,45 @@ class Ingrid:
         if topology == 'DNL':
             self.xpt2 = (self.yaml['grid_params']['rxpt2'], self.yaml['grid_params']['zxpt2'])
 
-    def PlotMagReference(self):
-        (x,y)=self.xpt1
-        plt.plot(x,y,'+',color='red',ms=15)
+    def PlotPsiNormMagReference(self):
         (x,y)=self.magx
-        plt.plot(x,y,'+',color='magenta',ms=15)
-        plt.show()
+        self.psi_norm.ax.plot(x,y,'+',color='white',ms=15,linewidth=5)
+        (x,y)=self.xpt1
+        self.psi_norm.ax.plot(x,y,'+',color='white',ms=15,linewidth=5)
+        if self.yaml['grid_params']['num_xpt'] == 2:
+            try:
+                (x,y)=self.xpt2
+                self.psi_norm.ax.plot(x,y,'+',color='white',ms=15,linewidth=5)
+            except:
+                pass
 
     def PlotPsiNormBounds(self:object)->None:
-        Dic={'psi_max':'magenta',
-              'psi_min_core':'blue',
-              'psi_max_outer':'steelblue',
-              'psi_max_inner':'dodgerblue',
-              'psi_min_pf':'limegreen',
-              'psi_pf2':'darkorange'}
+        nxpt = self.yaml['grid_params']['num_xpt']
+        if nxpt == 1:
+            Dic={'psi_max':'lime',
+                  'psi_min_core':'cyan',
+                  'psi_min_pf':'white'}
+        elif nxpt == 2:
+            Dic={ 'psi_min_core':'cyan',
+                  'psi_max_west':'magenta',
+                  'psi_max_east':'lime',
+                  'psi_min_pf':'white',
+                  'psi_pf2':'yellow'}
         for k,c in Dic.items():
                 self.psi_norm.PlotLevel(self.yaml['grid_params'][k],color=Dic[k],label=k)
 
-        self.psi_norm.PlotLevel(1.0,color='black',label='Primary Separatrix')
-        if self.yaml['grid_params']['num_xpt'] == 2:
-            self.psi_norm.PlotLevel(self.psi_norm.get_psi(self.xpt2[0], self.xpt2[1]), 
-                color='red', label = 'Secondary Separatrix')
-        plt.legend(loc='bottom').set_alpha(0.5)
+        self.psi_norm.PlotLevel(1.0,color='red',label='Primary Separatrix')
+        if nxpt == 2: 
+            self.psi_norm.PlotLevel(
+            self.psi_norm.get_psi(self.xpt2[0], self.xpt2[1]), color='blue',label = 'Secondary Separatrix'
+            )
 
+        self.psi_norm.ax.legend(bbox_to_anchor=(0.5, -0.15), loc='lower center', ncol=len(Dic) // 2)
+
+    def PlotTopologyAnalysis(self):
+        self.psi_norm.ax.add_patch(self.eq.RegionPolygon['core'])
+        self.psi_norm.ax.add_patch(self.eq.RegionPolygon['pf'])
+        self.eq.RegionLineCut.plot(color='white')
 
     def PlotPsiLevel(efit_psi:object,level:float,Label:str='')->None:
         plt.contour(efit_psi.r, efit_psi.z, efit_psi.v, [level], colors = 'red', label = Label)
@@ -1186,14 +1194,13 @@ class Ingrid:
         self.calc_psinorm()
         self.plot_psinorm(interactive=interactive)
         self.plot_strike_geometry()
-        self.init_LineTracing(interactive=interactive)
-        self._analyze_topology()
+        self.PrepLineTracing(interactive=interactive)
+        self.ClassifyTopology()
 
     def ShowSetup(self):
+        self.PlotPsiNormMagReference()
         self.PlotPsiNormBounds()
-        self.plot_target_plates()
-        self.PlotMagReference()
-        plt.pause(0.01)
+        self.plot_strike_geometry()
 
     def ConstructPatches(self):
         self.GetPatchTagMap(self.current_topology.get_config())
@@ -1232,6 +1239,12 @@ class Ingrid:
             'E1' : 'OCB', 'E2' : 'OSB',
             'F1' : 'OPF', 'F2' : 'ODL',
             }
+        else:
+            PatchTagMap = {}
+            TempLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+            for l in TempLabels:
+                for i in range(1,4):
+                    PatchTagMap[l+str(i)] = l+str(i)
 
         # Make it bijective.
         PatchNameMap = {}

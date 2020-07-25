@@ -500,19 +500,18 @@ class Patch:
 
     """
 
-    def __init__(self, lines, patchName = '', parent=None, NameTagMap=None, platePatch = False, plateLocation = None, color='blue'):
+    def __init__(self, lines, patchName = '', PatchTagMap=None, platePatch = False, plateLocation = None, color='blue'):
         self.lines = lines
         self.N = lines[0]
         self.E = lines[1]
         self.S = lines[2]
         self.W = lines[3]
         self.BoundaryPoints={}
-        self.parent = parent
 
         # This is the border for the fill function
         # It need to only include N and S lines
         self.p = list(self.N.p) + list(self.E.p) + list(self.S.p) + list(self.W.p)
-        self.NameTagMap = NameTagMap
+        self.PatchTagMap = PatchTagMap
         self.platePatch = platePatch
         self.plateLocation = plateLocation
         self.patchName = patchName
@@ -593,7 +592,7 @@ class Patch:
 
     def get_tag(self):
         name = self.patchName
-        return self.parent.PatchTagMap[name] if len(name) == 3 else self.parent.PatchTagMap[name[1:]]
+        return self.PatchTagMap[name] if len(name) == 3 else self.PatchTagMap[name[1:]]
 
     def make_subgrid(self, grid, np_cells = 2, nr_cells = 2, _poloidal_f=lambda x:x, _radial_f=lambda x:x,verbose = False, visual = False,ShowVertices=False,OptionTrace='theta'):
         """

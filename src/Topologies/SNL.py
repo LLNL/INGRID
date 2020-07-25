@@ -520,7 +520,7 @@ class SNL():
                     ]
         self.categorize_patches()
 
-    def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=True):
+    def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all', Enforce=True):
 
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
@@ -804,8 +804,7 @@ class SNL():
 
         self.patches = {}
         for patch in patches:
-            patch.parent = self
-            patch.NameTagMap = self.PatchTagMap
+            patch.PatchTagMap = self.PatchTagMap
             self.patches[patch.patchName] = patch
 
         p = self.patches

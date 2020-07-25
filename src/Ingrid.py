@@ -347,7 +347,7 @@ class Ingrid:
             if k=='InputFile' or k=='yaml':
                 print('# Processing Input File:',v)
                 self.InputFile=v
-                self.process_yaml(Ingrid.ReadyamlFile(v))
+                self.process_yaml(ReadyamlFile(v))
                 continue
             if k=='W1TargetFile' or k=='w1':
                 self.yaml['target_plates']['plate_W1']['file']=v

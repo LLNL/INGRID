@@ -38,7 +38,7 @@ class SNL():
 
         self.parent = Ingrid_obj
         self.config = config
-        self.yaml = Ingrid_obj.yaml
+        self.settings = Ingrid_obj.parameters
         self.plate_data = Ingrid_obj.plate_data
 
         self.parent.order_target_plates()
@@ -186,7 +186,7 @@ class SNL():
         self.zm = self.add_guardc(zm, ixlb, ixrb)
 
         try:
-            debug = self.yaml['DEBUG']['visual']['gridue']
+            debug = self.settings['DEBUG']['visual']['gridue']
         except:
             debug = False
 
@@ -309,20 +309,20 @@ class SNL():
     def GetFunctions(self,Patch,Enforce=True,Verbose=False,ExtraSettings={}):
         if Patch in self.SOL:
             try:
-                _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_sol']
+                _radial_f = self.settings['grid_params']['grid_generation']['radial_f_sol']
             except:
-                _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_primary_sol']
+                _radial_f = self.settings['grid_params']['grid_generation']['radial_f_primary_sol']
             valid_function=self.CheckFunction(_radial_f,Enforce)
             if Verbose: print('SOL radial transformation: "{}"'.format(_radial_f))
         elif Patch in self.CORE:
-            _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_core']
+            _radial_f = self.settings['grid_params']['grid_generation']['radial_f_core']
             valid_function=self.CheckFunction(_radial_f,Enforce)
             if Verbose: print('Core radial transformation: "{}"'.format(_radial_f))
         elif Patch in self.PF:
             try:
-                _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_pf']
+                _radial_f = self.settings['grid_params']['grid_generation']['radial_f_pf']
             except:
-                _radial_f = self.yaml['grid_params']['grid_generation']['radial_f_primary_pf']
+                _radial_f = self.settings['grid_params']['grid_generation']['radial_f_primary_pf']
             valid_function=self.CheckFunction(_radial_f,Enforce)
             if Verbose: print('Core radial transformation: "{}"'.format(_radial_f))
         if valid_function:
@@ -331,15 +331,15 @@ class SNL():
             _radial_f=lambda x:x
 
         if Patch in self.SOL:
-            _poloidal_f = self.yaml['grid_params']['grid_generation']['poloidal_f']
+            _poloidal_f = self.settings['grid_params']['grid_generation']['poloidal_f']
             valid_function=self.CheckFunction(_poloidal_f,Enforce)
             if Verbose: print('SOL poloidal transformation: "{}"'.format(_poloidal_f))
         elif Patch in self.CORE:
-            _poloidal_f = self.yaml['grid_params']['grid_generation']['poloidal_f']
+            _poloidal_f = self.settings['grid_params']['grid_generation']['poloidal_f']
             valid_function=self.CheckFunction(_poloidal_f,Enforce)
             if Verbose: print('Core poloidal transformation: "{}"'.format(_poloidal_f))
         elif Patch in self.PF:
-            _poloidal_f = self.yaml['grid_params']['grid_generation']['poloidal_f']
+            _poloidal_f = self.settings['grid_params']['grid_generation']['poloidal_f']
             valid_function=self.CheckFunction(_poloidal_f,Enforce)
             if Verbose: print('Core poloidal transformation: "{}"'.format(_poloidal_f))
         if valid_function:
@@ -351,17 +351,17 @@ class SNL():
         if Patch.platePatch:
             if self.config == 'LSN':
                 if Patch.plateLocation == 'W':
-                    _poloidal_f = self.yaml['target_plates']['plate_E1']['poloidal_f']
+                    _poloidal_f = self.settings['target_plates']['plate_E1']['poloidal_f']
                     valid_function=self.CheckFunction(_poloidal_f,Enforce)
                 elif Patch.plateLocation == 'E':
-                    _poloidal_f = self.yaml['target_plates']['plate_W1']['poloidal_f']
+                    _poloidal_f = self.settings['target_plates']['plate_W1']['poloidal_f']
                     valid_function=self.CheckFunction(_poloidal_f,Enforce)
             if self.config == 'USN':
                 if Patch.plateLocation == 'E':
-                    _poloidal_f = self.yaml['target_plates']['plate_E1']['poloidal_f']
+                    _poloidal_f = self.settings['target_plates']['plate_E1']['poloidal_f']
                     valid_function=self.CheckFunction(_poloidal_f,Enforce)
                 elif Patch.plateLocation == 'W':
-                    _poloidal_f = self.yaml['target_plates']['plate_W1']['poloidal_f']
+                    _poloidal_f = self.settings['target_plates']['plate_W1']['poloidal_f']
                     valid_function=self.CheckFunction(_poloidal_f,Enforce)
             if valid_function:
                 _poloidal_f = self.get_func( _poloidal_f)
@@ -389,17 +389,17 @@ class SNL():
 
     def GetNpoints(self,Patch,Enforce=True,Verbose=False):
         try:
-            np_sol = self.yaml['grid_params']['grid_generation']['np_sol']
+            np_sol = self.settings['grid_params']['grid_generation']['np_sol']
         except:
-            np_sol = self.yaml['grid_params']['grid_generation']['np_global']
+            np_sol = self.settings['grid_params']['grid_generation']['np_global']
         try:
-            np_core = self.yaml['grid_params']['grid_generation']['np_core']
+            np_core = self.settings['grid_params']['grid_generation']['np_core']
         except:
-            np_core = self.yaml['grid_params']['grid_generation']['np_global']
+            np_core = self.settings['grid_params']['grid_generation']['np_global']
         try:
-            np_pf = self.yaml['grid_params']['grid_generation']['np_pf']
+            np_pf = self.settings['grid_params']['grid_generation']['np_pf']
         except:
-            np_pf = self.yaml['grid_params']['grid_generation']['np_global']
+            np_pf = self.settings['grid_params']['grid_generation']['np_global']
 
         if np_sol != np_core:
             if Enforce:
@@ -410,18 +410,18 @@ class SNL():
             np_sol = np_core = np.amin([np_sol, np_core])
 
         try:
-            nr_sol = self.yaml['grid_params']['grid_generation']['nr_sol']
+            nr_sol = self.settings['grid_params']['grid_generation']['nr_sol']
         except:
-            nr_sol = self.yaml['grid_params']['grid_generation']['nr_global']
+            nr_sol = self.settings['grid_params']['grid_generation']['nr_global']
 
         try:
-            nr_core = self.yaml['grid_params']['grid_generation']['nr_core']
+            nr_core = self.settings['grid_params']['grid_generation']['nr_core']
         except:
-            nr_core = self.yaml['grid_params']['grid_generation']['nr_global']
+            nr_core = self.settings['grid_params']['grid_generation']['nr_global']
         try:
-            nr_pf = self.yaml['grid_params']['grid_generation']['nr_pf']
+            nr_pf = self.settings['grid_params']['grid_generation']['nr_pf']
         except:
-            nr_pf = self.yaml['grid_params']['grid_generation']['nr_global']
+            nr_pf = self.settings['grid_params']['grid_generation']['nr_global']
 
         if nr_pf != nr_core:
             if Enforce:
@@ -452,14 +452,14 @@ class SNL():
         if Patch.platePatch:
             if self.config == 'LSN':
                 if Patch.plateLocation == 'W':
-                    np_cells = self.yaml['target_plates']['plate_W1']['np_local']
+                    np_cells = self.settings['target_plates']['plate_W1']['np_local']
                 elif Patch.plateLocation == 'E':
-                    np_cells = self.yaml['target_plates']['plate_E1']['np_local']
+                    np_cells = self.settings['target_plates']['plate_E1']['np_local']
             if self.config == 'USN':
                 if Patch.plateLocation == 'E':
-                    np_cells = self.yaml['target_plates']['plate_W1']['np_local']
+                    np_cells = self.settings['target_plates']['plate_W1']['np_local']
                 elif Patch.plateLocation == 'W':
-                    np_cells = self.yaml['target_plates']['plate_E1']['np_local']
+                    np_cells = self.settings['target_plates']['plate_E1']['np_local']
 
         return (nr_cells,np_cells)
 
@@ -499,6 +499,7 @@ class SNL():
             _yaml_.dump(self.patches,File)
 
     def LoadPatches(self,FileName):
+        if not Path(FileName).
         with open(FileName,'r') as File:
             self.patches = _yaml_.load(File,Loader=_yaml_.Loader)
         print(self.patches)
@@ -526,11 +527,11 @@ class SNL():
         # Plot borders and fill patches.
         if Verbose: print('Construct Grid')
         try:
-            visual = self.yaml['DEBUG']['visual']['subgrid']
+            visual = self.settings['DEBUG']['visual']['subgrid']
         except:
             visual = False
         try:
-            verbose = self.yaml['DEBUG']['verbose']['grid_generation']
+            verbose = self.settings['DEBUG']['verbose']['grid_generation']
         except:
             verbose = False
 
@@ -606,19 +607,19 @@ class SNL():
         #       orientations and inner-outer locations.
 
         try:
-            visual = self.yaml['DEBUG']['visual']['patch_map']
+            visual = self.settings['DEBUG']['visual']['patch_map']
         except KeyError:
             visual = False
         try:
-            verbose = self.yaml['DEBUG']['verbose']['patch_generation']
+            verbose = self.settings['DEBUG']['verbose']['patch_generation']
         except KeyError:
             verbose = False
         try:
-            inner_tilt = self.yaml['grid_params']['patch_generation']['inner_tilt']
+            inner_tilt = self.settings['grid_params']['patch_generation']['inner_tilt']
         except KeyError:
             inner_tilt = 0.0
         try:
-            outer_tilt = self.yaml['grid_params']['patch_generation']['outer_tilt']
+            outer_tilt = self.settings['grid_params']['patch_generation']['outer_tilt']
         except KeyError:
             outer_tilt = 0.0
 
@@ -627,12 +628,12 @@ class SNL():
         EastPlate = Line([Point(i) for i in self.plate_data['plate_E1']['coordinates']])
 
         xpt = self.eq.NSEW_lookup['xpt1']['coor']
-        magx = np.array([self.yaml['grid_params']['rmagx'] + self.yaml['grid_params']['patch_generation']['rmagx_shift'], \
-            self.yaml['grid_params']['zmagx'] + self.yaml['grid_params']['patch_generation']['zmagx_shift']])
+        magx = np.array([self.settings['grid_params']['rmagx'] + self.settings['grid_params']['patch_generation']['rmagx_shift'], \
+            self.settings['grid_params']['zmagx'] + self.settings['grid_params']['patch_generation']['zmagx_shift']])
 
-        psi_max = self.yaml['grid_params']['psi_max']
-        psi_min_core = self.yaml['grid_params']['psi_min_core']
-        psi_min_pf = self.yaml['grid_params']['psi_min_pf']
+        psi_max = self.settings['grid_params']['psi_max']
+        psi_min_core = self.settings['grid_params']['psi_min_core']
+        psi_min_pf = self.settings['grid_params']['psi_min_pf']
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
@@ -656,14 +657,14 @@ class SNL():
         xptNE_midLine = self.eq.draw_line(xpt['NE'], {'line' : outer_midLine}, option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
 
         # Drawing Lower-SNL region
-        if self.yaml['grid_params']['patch_generation']['use_NW']:
-            tilt = self.yaml['grid_params']['patch_generation']['NW_adjust']
+        if self.settings['grid_params']['patch_generation']['use_NW']:
+            tilt = self.settings['grid_params']['patch_generation']['NW_adjust']
             xptW_psiMax = self.eq.draw_line(rotate(xpt['W'], tilt, xpt['center']), {'psi_horizontal' : (psi_max, tilt)}, option = 'z_const', direction = 'ccw', show_plot = visual, text = verbose)
         else:
             xptW_psiMax = self.eq.draw_line(xpt['W'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)
 
-        if self.yaml['grid_params']['patch_generation']['use_NE']:
-            tilt = self.yaml['grid_params']['patch_generation']['NE_adjust']
+        if self.settings['grid_params']['patch_generation']['use_NE']:
+            tilt = self.settings['grid_params']['patch_generation']['NE_adjust']
             xptE_psiMax = self.eq.draw_line(rotate(xpt['E'], tilt, xpt['center']), {'psi_horizontal' : (psi_max, tilt)}, option = 'z_const', direction = 'cw', show_plot = visual, text = verbose)
         else:
             xptE_psiMax = self.eq.draw_line(xpt['E'], {'psi' : psi_max}, option = 'rho', direction = 'ccw', show_plot = visual, text = verbose)

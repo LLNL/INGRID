@@ -1073,8 +1073,8 @@ class DNL_Patch(Patch):
                 key = 'plate_E2'
             elif self.patchName[1] == '5':
                 key = 'plate_W2'
-            np_cells = grid.yaml['target_plates'][key]['np_local']
-            _poloidal_func = grid.yaml['target_plates'][key]['poloidal_f']
+            np_cells = grid.settings['target_plates'][key]['np_local']
+            _poloidal_func = grid.settings['target_plates'][key]['poloidal_f']
             _poloidal_f = get_func(grid, _poloidal_func)
         else:
             _poloidal_f = lambda x: x
@@ -1085,35 +1085,35 @@ class DNL_Patch(Patch):
 
         if self in grid.PRIMARY_SOL:
             try:
-                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_primary_sol']
+                _radial_f = grid.settings['grid_params']['grid_generation']['radial_f_primary_sol']
                 valid_function = True
                 print('SOL radial transformation: "{}"'.format(_radial_f))
             except KeyError:
                 valid_function = False
         elif self in grid.SECONDARY_SOL:
             try:
-                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_secondary_sol']
+                _radial_f = grid.settings['grid_params']['grid_generation']['radial_f_secondary_sol']
                 valid_function = True
                 print('CORE radial transformation: "{}"'.format(_radial_f))
             except KeyError:
                 valid_function = False
         elif self in grid.CORE:
             try:
-                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_core']
+                _radial_f = grid.settings['grid_params']['grid_generation']['radial_f_core']
                 valid_function = True
                 print('CORE radial transformation: "{}"'.format(_radial_f))
             except KeyError:
                 valid_function = False
         elif self in grid.PRIMARY_PF:
             try:
-                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_primary_pf']
+                _radial_f = grid.settings['grid_params']['grid_generation']['radial_f_primary_pf']
                 valid_function = True
                 print('PF radial transformation: "{}"'.format(_radial_f))
             except KeyError:
                 valid_function = False
         elif self in grid.SECONDARY_PF:
             try:
-                _radial_f = grid.yaml['grid_params']['grid_generation']['radial_f_secondary_pf']
+                _radial_f = grid.settings['grid_params']['grid_generation']['radial_f_secondary_pf']
                 valid_function = True
                 print('PF radial transformation: "{}"'.format(_radial_f))
             except KeyError:

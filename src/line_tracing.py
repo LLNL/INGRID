@@ -346,11 +346,11 @@ class LineTracing:
 
 
             try:
-                visual = self.grid.parent.yaml['DEBUG']['visual']['SF_analysis']
+                visual = self.grid.parent.settings['DEBUG']['visual']['SF_analysis']
             except KeyError:
                 visual = False
             try:
-                verbose = self.grid.parent.yaml['DEBUG']['verbose']['SF_analysis']
+                verbose = self.grid.parent.settings['DEBUG']['verbose']['SF_analysis']
             except KeyError:
                 verbose = False
             
@@ -362,11 +362,11 @@ class LineTracing:
             limiter = self.grid.parent.limiter_data
 
             xpt1 = self.NSEW_lookup['xpt1']['coor']
-            magx = np.array([self.grid.parent.yaml['grid_params']['rmagx'], self.grid.parent.yaml['grid_params']['zmagx']])
+            magx = np.array([self.grid.parent.settings['grid_params']['rmagx'], self.grid.parent.settings['grid_params']['zmagx']])
 
-            psi_max = self.grid.parent.yaml['grid_params']['psi_max']
-            psi_min_core = self.grid.parent.yaml['grid_params']['psi_min_core']
-            psi_min_pf = self.grid.parent.yaml['grid_params']['psi_min_pf']
+            psi_max = self.grid.parent.settings['grid_params']['psi_max']
+            psi_min_core = self.grid.parent.settings['grid_params']['psi_min_core']
+            psi_min_pf = self.grid.parent.settings['grid_params']['psi_min_pf']
 
             # Create mid-line
             LHS_Point = geo.Point(magx[0] - 1e6, magx[1])

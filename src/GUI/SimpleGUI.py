@@ -169,7 +169,7 @@ class FilePicker(tk.Tk):
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
         IG = self.Ingrid
-        topology = 'SNL' if IG.yaml['grid_params']['num_xpt'] == 1 else 'DNL'
+        topology = 'SNL' if IG.settings['grid_params']['num_xpt'] == 1 else 'DNL'
         IG.OMFIT_read_psi()
         IG.calc_efit_derivs()
         IG.AutoRefineMagAxis()

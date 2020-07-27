@@ -26,7 +26,7 @@ class SF45():
 
         self.parent = Ingrid_obj
         self.config = config
-        self.yaml = Ingrid_obj.yaml
+        self.settings = Ingrid_obj.settings
         self.plate_data = Ingrid_obj.plate_data
 
         self.parent.order_target_plates()
@@ -242,7 +242,7 @@ class SF45():
         self.zm = np.concatenate((zm1, zm2))
 
         try:
-            debug = self.yaml['DEBUG']['visual']['gridue']
+            debug = self.settings['DEBUG']['visual']['gridue']
         except:
             debug = False
 
@@ -274,35 +274,35 @@ class SF45():
             return limiter
 
         try:
-            visual = self.yaml['DEBUG']['visual']['patch_map']
+            visual = self.settings['DEBUG']['visual']['patch_map']
         except KeyError:
             visual = False
         try:
-            verbose = self.yaml['DEBUG']['verbose']['patch_generation']
+            verbose = self.settings['DEBUG']['verbose']['patch_generation']
         except KeyError:
             verbose = False
         try:
-            inner_tilt = self.yaml['grid_params']['patch_generation']['inner_tilt']
+            inner_tilt = self.settings['grid_params']['patch_generation']['inner_tilt']
         except KeyError:
             inner_tilt = 0.0
         try:
-            outer_tilt = self.yaml['grid_params']['patch_generation']['outer_tilt']
+            outer_tilt = self.settings['grid_params']['patch_generation']['outer_tilt']
         except KeyError:
             outer_tilt = 0.0
 
         xpt1 = self.eq.NSEW_lookup['xpt1']['coor']
         xpt2 = self.eq.NSEW_lookup['xpt2']['coor']
 
-        magx = np.array([self.yaml['grid_params']['rmagx'] + self.yaml['grid_params']['patch_generation']['rmagx_shift'], \
-            self.yaml['grid_params']['zmagx'] + self.yaml['grid_params']['patch_generation']['zmagx_shift']])
+        magx = np.array([self.settings['grid_params']['rmagx'] + self.settings['grid_params']['patch_generation']['rmagx_shift'], \
+            self.settings['grid_params']['zmagx'] + self.settings['grid_params']['patch_generation']['zmagx_shift']])
 
-        psi_max_west = self.yaml['grid_params']['psi_max_west']
-        psi_max_east = self.yaml['grid_params']['psi_max_east']
-        psi_min_core = self.yaml['grid_params']['psi_min_core']
-        psi_min_pf = self.yaml['grid_params']['psi_min_pf']
-        psi_min_pf_2 = self.yaml['grid_params']['psi_pf2']
+        psi_max_west = self.settings['grid_params']['psi_max_west']
+        psi_max_east = self.settings['grid_params']['psi_max_east']
+        psi_min_core = self.settings['grid_params']['psi_min_core']
+        psi_min_pf = self.settings['grid_params']['psi_min_pf']
+        psi_min_pf_2 = self.settings['grid_params']['psi_pf2']
 
-        if self.yaml['limiter']['use_limiter']:
+        if self.settings['limiter']['use_limiter']:
             WestPlate1 = self.parent.limiter_data.copy()
             WestPlate2 = self.parent.limiter_data.copy()
 

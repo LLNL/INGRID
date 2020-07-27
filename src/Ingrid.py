@@ -222,12 +222,12 @@ class Ingrid:
     def __init__(self, params = {},**kwargs):
         self.InputFile=None
 
-        self.yaml_lookup = ['grid_params', 'integrator_params', \
+        self.settings_lookup = ['grid_params', 'integrator_params', \
                             'target_plates', 'DEBUG']
 
         self.SetDefaultParams()
         self.process_yaml(params)
-        self.yaml['eqdsk']=None
+        self.settings['eqdsk']=None
         #Process input
         self.ProcessKeywords(**kwargs)
 
@@ -350,49 +350,49 @@ class Ingrid:
                 self.process_yaml(ReadyamlFile(v))
                 continue
             if k=='W1TargetFile' or k=='w1':
-                self.yaml['target_plates']['plate_W1']['file']=v
+                self.settings['target_plates']['plate_W1']['file']=v
                 continue
             if k=='E1TargetFile' or k=='e1':
-                self.yaml['target_plates']['plate_E1']['file']=v
+                self.settings['target_plates']['plate_E1']['file']=v
                 continue
             if k=='E2TargetFile' or k=='e2':
-                self.yaml['target_plates']['plate_E2']['file']=v
+                self.settings['target_plates']['plate_E2']['file']=v
                 continue
             if k=='W2TargetFile' or k=='w2':
-                self.yaml['target_plates']['plate_W2']['file']=v
+                self.settings['target_plates']['plate_W2']['file']=v
                 continue
             if k=='LimiterFile' or k=='limiter':
-                self.yaml['limiter']['file']=v
+                self.settings['limiter']['file']=v
             if k=='EqFile' or k=='eq':
-                self.yaml['eqdsk']=v
+                self.settings['eqdsk']=v
                 continue
             print('Keyword "'+k +'" unknown and ignored...')
 
     def PrintSummaryInput(self):
         print('')
-        print('Equilibrium File:',self.yaml['eqdsk'])
+        print('Equilibrium File:',self.settings['eqdsk'])
 
-        if self.yaml['limiter']['use_limiter']:
+        if self.settings['limiter']['use_limiter']:
             print('Limiter File:')
-            if self.yaml['limiter']['file'] == '':
+            if self.settings['limiter']['file'] == '':
                 print( ' # Limiter:','Using default eqdsk (RLIM, ZLIM) coordinates')
             else:
-                print( ' # Limiter',self.yaml['limiter']['file'])
+                print( ' # Limiter',self.settings['limiter']['file'])
         else:
             print('Target Files:')
             #try:
-            print( ' # W1:',self.yaml['target_plates']['plate_W1']['file'])
-            print( ' # E1:',self.yaml['target_plates']['plate_E1']['file'])
-            print( ' # E2:',self.yaml['target_plates']['plate_E2']['file'])
-            print( ' # W2:',self.yaml['target_plates']['plate_W2']['file'])
+            print( ' # W1:',self.settings['target_plates']['plate_W1']['file'])
+            print( ' # E1:',self.settings['target_plates']['plate_E1']['file'])
+            print( ' # E2:',self.settings['target_plates']['plate_E2']['file'])
+            print( ' # W2:',self.settings['target_plates']['plate_W2']['file'])
         print('')
 
     def PrintSummaryParams(self):
         print('')
         print('Summary:')
-        print( ' # Number of x-points:',self.yaml['grid_params']['num_xpt'])
-        print( ' # Use full domain:',self.yaml['grid_params']['full_domain'])
-        print( ' # Use limiter:',self.yaml['limiter']['use_limiter'])
+        print( ' # Number of x-points:',self.settings['grid_params']['num_xpt'])
+        print( ' # Use full domain:',self.settings['grid_params']['full_domain'])
+        print( ' # Use limiter:',self.settings['limiter']['use_limiter'])
         print('')
         self.PrintSummaryInput()
        # except:
@@ -457,7 +457,7 @@ class Ingrid:
                             params[item][sub_item][plate_attribute] = get_default_values(item, sub_item, plate_attribute)
 
         # Update references to YAML entries.
-        self.yaml = params
+        self.settings = params
         self.grid_params = params['grid_params']
         self.integrator_params = params['integrator_params']
         self.target_plates = params['target_plates']
@@ -471,7 +471,7 @@ class Ingrid:
         @author: watkins35
         """
 
-        g = OMFITgeqdsk(self.yaml['eqdsk'])
+        g = OMFITgeqdsk(self.settings['eqdsk'])
 
         nxefit = g['NW']
         nyefit = g['NH']
@@ -506,23 +506,23 @@ class Ingrid:
                                   name='Efit Data', parent=self)
         self.efit_psi.set_v(psi)
 
-        if self.yaml['grid_params']['rmagx'] == None or self.yaml['grid_params']['zmagx'] == None:
-            self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx'] = (self.efit_psi.rmagx, self.efit_psi.zmagx)
+        if self.settings['grid_params']['rmagx'] == None or self.settings['grid_params']['zmagx'] == None:
+            self.settings['grid_params']['rmagx'], self.settings['grid_params']['zmagx'] = (self.efit_psi.rmagx, self.efit_psi.zmagx)
 
         self.OMFIT_psi = g
 
     def set_limiter(self):
         
         RLIM, ZLIM = [], []
-        rshift = self.yaml['limiter']['rshift']
-        zshift = self.yaml['limiter']['zshift']
+        rshift = self.settings['limiter']['rshift']
+        zshift = self.settings['limiter']['zshift']
 
         try:
-            if Path(self.yaml['limiter']['file']).is_file() and Path(self.yaml['limiter']['file']).suffix in ['.txt']:
-                print('# Processing file for limiter data : {}'.format(self.yaml['limiter']['file']))
+            if Path(self.settings['limiter']['file']).is_file() and Path(self.settings['limiter']['file']).suffix in ['.txt']:
+                print('# Processing file for limiter data : {}'.format(self.settings['limiter']['file']))
 
                 try:
-                    with open(self.yaml['limiter']['file']) as f:
+                    with open(self.settings['limiter']['file']) as f:
 
                         for line in f:
 
@@ -550,7 +550,7 @@ class Ingrid:
         except:
             pass
 
-        if (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []) or self.yaml['limiter']['use_efit_bounds']:
+        if (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []) or self.settings['limiter']['use_efit_bounds']:
             coordinates = [(self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
                            (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
                            (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
@@ -562,7 +562,7 @@ class Ingrid:
                 ZLIM.append(z - zshift)
 
         else:
-            g=OMFITgeqdsk(self.yaml['eqdsk'])
+            g=OMFITgeqdsk(self.settings['eqdsk'])
             RLIM, ZLIM = g['RLIM'], g['ZLIM']
             self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = [r - rshift for r in RLIM], [z - zshift for z in ZLIM]
 
@@ -579,12 +579,12 @@ class Ingrid:
 
         # Determine if in DEBUG verbose mode.
         try:
-            debug = self.yaml['DEBUG']['verbose']['target_plates']
+            debug = self.settings['DEBUG']['verbose']['target_plates']
         except:
             debug = False
 
         # Create references and plate_data container.
-        target_plates = self.yaml['target_plates']
+        target_plates = self.settings['target_plates']
         plate_data = {}
 
         for plate in target_plates:
@@ -724,8 +724,8 @@ class Ingrid:
 
                 # Check the angle between the plate endpoints with
                 # tail fixed on the magnetic axis
-                v_reference = np.array( [ self.yaml['grid_params']['rmagx'], 
-                    self.yaml['grid_params']['zmagx'] ])
+                v_reference = np.array( [ self.settings['grid_params']['rmagx'], 
+                    self.settings['grid_params']['zmagx'] ])
 
                 v_start = np.array( [ start.x, start.y ] )
                 v_end = np.array( [ end.x, end.y ] )
@@ -785,8 +785,8 @@ class Ingrid:
 
             # Check the angle between the plate endpoints with
             # tail fixed on the magnetic axis
-            v_reference = np.array([self.yaml['grid_params']['rmagx'], 
-                self.yaml['grid_params']['zmagx']])
+            v_reference = np.array([self.settings['grid_params']['rmagx'], 
+                self.settings['grid_params']['zmagx']])
 
             v_start = np.array( [ start.x, start.y ] )
             v_end = np.array( [ end.x, end.y ] )
@@ -821,9 +821,9 @@ class Ingrid:
 
     def plot_strike_geometry(self):
         try:
-            if self.yaml['grid_params']['num_xpt'] == 2 or self.yaml['limiter']['use_limiter']:
+            if self.settings['grid_params']['num_xpt'] == 2 or self.settings['limiter']['use_limiter']:
                 self.plot_limiter_data()
-                if self.yaml['limiter']['use_limiter'] == False: 
+                if self.settings['limiter']['use_limiter'] == False: 
                     self.plot_target_plates()
             else:
                 self.plot_target_plates()
@@ -844,7 +844,7 @@ class Ingrid:
         using the root finder
         @author: watkins35
         """
-        self.efit_psi.plot_data(self.yaml['grid_params']['nlevs'])
+        self.efit_psi.plot_data(self.settings['grid_params']['nlevs'])
 
     def FindMagAxis(self,x:float,y:float)->None:
         # r_bounds = (self.efit_psi.rmin, self.efit_psi.rmax)
@@ -852,30 +852,30 @@ class Ingrid:
         # sol = minimize(fun=self.efit_psi.PsiFunction, x0=np.array([x,y]),
         #     method='L-BFGS-B', jac=self.efit_psi.Gradient, bounds=[r_bounds, z_bounds])
         sol = root(self.efit_psi.Gradient,[x,y])
-        self.yaml['grid_params']['rmagx']=sol.x[0]
-        self.yaml['grid_params']['zmagx']=sol.x[1]
+        self.settings['grid_params']['rmagx']=sol.x[0]
+        self.settings['grid_params']['zmagx']=sol.x[1]
         self.magx = (sol.x[0], sol.x[1])
 
     def FindXPoint(self,x:float,y:float)->None:
         sol = root(self.efit_psi.Gradient,[x,y])
-        self.yaml['grid_params']['rxpt']=sol.x[0]
-        self.yaml['grid_params']['zxpt']=sol.x[1]
+        self.settings['grid_params']['rxpt']=sol.x[0]
+        self.settings['grid_params']['zxpt']=sol.x[1]
         self.xpt1 = (sol.x[0], sol.x[1])
 
     def FindXPoint2(self,x:float,y:float)->None:
         sol = root(self.efit_psi.Gradient,[x,y])
-        self.yaml['grid_params']['rxpt2']=sol.x[0]
-        self.yaml['grid_params']['zxpt2']=sol.x[1]
+        self.settings['grid_params']['rxpt2']=sol.x[0]
+        self.settings['grid_params']['zxpt2']=sol.x[1]
         self.xpt2 = (sol.x[0], sol.x[1])
 
     def AutoRefineMagAxis(self):
-        self.FindMagAxis(self.yaml['grid_params']['rmagx'],self.yaml['grid_params']['zmagx'])
+        self.FindMagAxis(self.settings['grid_params']['rmagx'],self.settings['grid_params']['zmagx'])
 
     def AutoRefineXPoint(self):
-        self.FindXPoint(self.yaml['grid_params']['rxpt'],self.yaml['grid_params']['zxpt'])
+        self.FindXPoint(self.settings['grid_params']['rxpt'],self.settings['grid_params']['zxpt'])
 
     def AutoRefineXPoint2(self):
-        self.FindXPoint2(self.yaml['grid_params']['rxpt2'],self.yaml['grid_params']['zxpt2'])
+        self.FindXPoint2(self.settings['grid_params']['rxpt2'],self.settings['grid_params']['zxpt2'])
 
     def find_roots(self, tk_controller = None):
         """ Displays a plot, and has the user click on an approximate
@@ -923,7 +923,7 @@ class Ingrid:
         """
         Plot the psi_norm data stored in the Ingrid object.
         """
-        self.psi_norm.plot_data(self.yaml['grid_params']['nlevs'],interactive)
+        self.psi_norm.plot_data(self.settings['grid_params']['nlevs'],interactive)
 
     def find_psi_lines(self, tk_controller = None):
         self.psi_finder = RootFinder(self.psi_norm, mode = 'psi_finder', controller = tk_controller)
@@ -938,7 +938,7 @@ class Ingrid:
         @author: watkins35, garcia299
         """
         
-        self.eq = LineTracing(self.psi_norm, self.yaml, interactive=interactive)
+        self.eq = LineTracing(self.psi_norm, self.settings, interactive=interactive)
         if interactive:
             self.eq.disconnect()
 
@@ -950,25 +950,25 @@ class Ingrid:
 
         self.PrepLineTracing(interactive=False)
 
-        if self.yaml['grid_params']['num_xpt'] == 1:
+        if self.settings['grid_params']['num_xpt'] == 1:
             self.eq.SNL_find_NSEW(self.xpt1, self.magx, visual)
 
-        elif self.yaml['grid_params']['num_xpt'] == 2:
+        elif self.settings['grid_params']['num_xpt'] == 2:
             self.eq.DNL_find_NSEW(self.xpt1, self.xpt2, self.magx, visual)
 
-        self.yaml['grid_params']['config'] = self.eq.config
+        self.settings['grid_params']['config'] = self.eq.config
 
     def AnalyzeTopology(self,verbose=False):
 
         try:
-            visual = self.yaml['DEBUG']['visual']['find_NSEW']
+            visual = self.settings['DEBUG']['visual']['find_NSEW']
         except:
             visual = False
 
         self.ClassifyTopology(visual=visual)
 
         # Updated after call to ClassifyTopology
-        config = self.yaml['grid_params']['config']
+        config = self.settings['grid_params']['config']
         
         print('')
         print('# Identified {} configuration.'.format(config))
@@ -977,13 +977,13 @@ class Ingrid:
         if config in ['LSN', 'USN']:
             ingrid_topology = SNL(self, config)
 
-        elif self.yaml['grid_params']['config'] in ['DNL']:
+        elif self.settings['grid_params']['config'] in ['DNL']:
             ingrid_topology = DNL(self, config)
 
-        elif self.yaml['grid_params']['config'] == 'SF15':
+        elif self.settings['grid_params']['config'] == 'SF15':
             ingrid_topology = SF15(self, config)
 
-        elif self.yaml['grid_params']['config'] == 'SF45':
+        elif self.settings['grid_params']['config'] == 'SF45':
             ingrid_topology = SF45(self, config)
 
         self.current_topology = ingrid_topology
@@ -1101,19 +1101,19 @@ class Ingrid:
     def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=False):
 
         try:
-            np_cells = self.yaml['grid_params']['grid_generation']['np_global']
+            np_cells = self.settings['grid_params']['grid_generation']['np_global']
         except KeyError:
             np_cells = 2
             print('yaml file did not contain parameter np_global. Set to default value of 2...')
 
         try:
-            nr_cells = self.yaml['grid_params']['grid_generation']['nr_global']
+            nr_cells = self.settings['grid_params']['grid_generation']['nr_global']
         except KeyError:
             nr_cells = 2
             print('yaml file did not contain parameter nr_global. Set to default value of 2...')
 
         print('Value Check for local plates:')
-        _i = self.current_topology.yaml['target_plates']
+        _i = self.current_topology.settings['target_plates']
         for plate in _i:
             print('Name: {}\n np_local: {}\n'.format(_i[plate]['name'], _i[plate]['np_local']))
         if NewFig:
@@ -1127,19 +1127,19 @@ class Ingrid:
         return True
 
     def SetMagReference(self:object,topology:str='SNL')->None:
-        self.magx= (self.yaml['grid_params']['rmagx'], self.yaml['grid_params']['zmagx'])
-        self.Xpt = (self.yaml['grid_params']['rxpt'],self.yaml['grid_params']['zxpt'])
+        self.magx= (self.settings['grid_params']['rmagx'], self.settings['grid_params']['zmagx'])
+        self.Xpt = (self.settings['grid_params']['rxpt'],self.settings['grid_params']['zxpt'])
         self.xpt1 = self.Xpt
 
         if topology == 'DNL':
-            self.xpt2 = (self.yaml['grid_params']['rxpt2'], self.yaml['grid_params']['zxpt2'])
+            self.xpt2 = (self.settings['grid_params']['rxpt2'], self.settings['grid_params']['zxpt2'])
 
     def PlotPsiNormMagReference(self):
         (x,y)=self.magx
         self.psi_norm.ax.plot(x,y,'+',color='white',ms=15,linewidth=5)
         (x,y)=self.xpt1
         self.psi_norm.ax.plot(x,y,'+',color='white',ms=15,linewidth=5)
-        if self.yaml['grid_params']['num_xpt'] == 2:
+        if self.settings['grid_params']['num_xpt'] == 2:
             try:
                 (x,y)=self.xpt2
                 self.psi_norm.ax.plot(x,y,'+',color='white',ms=15,linewidth=5)
@@ -1147,7 +1147,7 @@ class Ingrid:
                 pass
 
     def PlotPsiNormBounds(self:object)->None:
-        nxpt = self.yaml['grid_params']['num_xpt']
+        nxpt = self.settings['grid_params']['num_xpt']
         if nxpt == 1:
             Dic={'psi_max':'lime',
                   'psi_min_core':'cyan',
@@ -1159,7 +1159,7 @@ class Ingrid:
                   'psi_min_pf':'white',
                   'psi_pf2':'yellow'}
         for k,c in Dic.items():
-                self.psi_norm.PlotLevel(self.yaml['grid_params'][k],color=Dic[k],label=k)
+                self.psi_norm.PlotLevel(self.settings['grid_params'][k],color=Dic[k],label=k)
 
         self.psi_norm.PlotLevel(1.0,color='red',label='Primary Separatrix')
         if nxpt == 2: 
@@ -1180,7 +1180,7 @@ class Ingrid:
     def Setup(self,interactive=True, **kwargs):
         # TODO have an option to not connect event on figure in command-line mode (so no tk needed)
 
-        topology = 'SNL' if self.yaml['grid_params']['num_xpt'] == 1 else 'DNL'
+        topology = 'SNL' if self.settings['grid_params']['num_xpt'] == 1 else 'DNL'
 
         self.OMFIT_read_psi()
         self.calc_efit_derivs()
@@ -1248,147 +1248,151 @@ class Ingrid:
 
         # Make it bijective.
         PatchNameMap = {}
-        for tag, name in PatchTagMap.items():
+        for tag, name in PatchTagMap.items():C
             PatchNameMap[name] = tag
         return {**PatchTagMap, **PatchNameMap}
 
-def Importgridue(fname:str = 'gridue')->dict:
-    """Import UEDGE grid file as dictionary."""
-    try:
-        f= open(fname, mode = 'r')
-        Values = [int(x) for x in next(f).split()]
-        HeaderItems = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
-        gridue_params=dict(zip(HeaderItems, Values))
-        next(f)
-        BodyItems = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
-        Str={ i : [] for i in BodyItems }
-        k=iter(Str.keys())
-        Key=next(k)
-        for line in f:
-            if line=='iogridue\n':
-                continue
-            if line=='\n':
-                try:
-                    Key=next(k)
-                except:
+    def Importgridue(self, fname:str = 'gridue')->dict:
+        """Import UEDGE grid file as dictionary."""
+        try:
+            f= open(fname, mode = 'r')
+            Values = [int(x) for x in next(f).split()]
+            HeaderItems = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
+            gridue_params=dict(zip(HeaderItems, Values))
+            next(f)
+            BodyItems = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
+            Str={ i : [] for i in BodyItems }
+            k=iter(Str.keys())
+            Key=next(k)
+            for line in f:
+                if line=='iogridue\n':
                     continue
-                print(Key)
-            else:
-                Str[Key].append(line)
-        f.close()
-        nx=gridue_params['nxm']+2
-        ny=gridue_params['nym']+2
-        for k,v in Str.items():
-            L=(''.join(v).replace('\n','').replace('D','e')).split()
-            l=iter(L)
-            vv= next(l)
+                if line=='\n':
+                    try:
+                        Key=next(k)
+                    except:
+                        continue
+                    print(Key)
+                else:
+                    Str[Key].append(line)
+            f.close()
+            nx=gridue_params['nxm']+2
+            ny=gridue_params['nym']+2
+            for k,v in Str.items():
+                L=(''.join(v).replace('\n','').replace('D','e')).split()
+                l=iter(L)
+                vv= next(l)
 
-            data_=np.zeros((nx,ny,5))
-            for n in range(5):
-                    for j in range(ny):
-                        for i in range(nx):
+                data_=np.zeros((nx,ny,5))
+                for n in range(5):
+                        for j in range(ny):
+                            for i in range(nx):
 
-                            data_[i][j][n]=float(vv)
+                                data_[i][j][n]=float(vv)
 
-                            try:
-                                vv=next(l)
-                            except:
-                                continue
-            gridue_params[k]=data_
-        return gridue_params
-    except Exception as e:
-        print(repr(e))
-def CheckOverlapCells(Grid,Verbose=False):
-    from shapely.geometry import Polygon
-    r=Grid['rm']
-    z=Grid['zm']
-    idx=[1,2,4,3]
-    p=[]                  
-    pinfo=[]    
-    Nx=len(r)
-    Ny=len(r[0])
-    # polygon = [[Polygon([(x,y) for (x,y) in zip(r[i,j,idx],z[i,j,idx]]) for y in range(0,Ny)] for i range(0,Nx)]
-                      
-    for i in range(Nx):
-      for j in range(Ny):
-          c=[(r[i,j,idxx],z[i,j,idxx]) for idxx in idx]
-          if Verbose: print(c)
-          p.append(Polygon(c))
-          pinfo.append((i,j))
-    ListIntersect=[]  
-    for p1,pinfo1 in zip(p,pinfo):
-        for p2,pinfo2 in zip(p,pinfo):
-          if p1.intersects(p2) and np.sum(abs(np.array(pinfo1)-np.array(pinfo2)))>2:
-              ListIntersect.append((pinfo1,pinfo2))
-              print('p1:{} and p2:{} intersect!'.format(pinfo1,pinfo2))
-    return ListIntersect
+                                try:
+                                    vv=next(l)
+                                except:
+                                    continue
+                gridue_params[k]=data_
+            return gridue_params
+        except Exception as e:
+            print(repr(e))
+
+    @classmethod
+    def CheckOverlapCells(Grid,Verbose=False):
+        from shapely.geometry import Polygon
+        r=Grid['rm']
+        z=Grid['zm']
+        idx=[1,2,4,3]
+        p=[]                  
+        pinfo=[]    
+        Nx=len(r)
+        Ny=len(r[0])
+        # polygon = [[Polygon([(x,y) for (x,y) in zip(r[i,j,idx],z[i,j,idx]]) for y in range(0,Ny)] for i range(0,Nx)]
+                          
+        for i in range(Nx):
+          for j in range(Ny):
+              c=[(r[i,j,idxx],z[i,j,idxx]) for idxx in idx]
+              if Verbose: print(c)
+              p.append(Polygon(c))
+              pinfo.append((i,j))
+        ListIntersect=[]  
+        for p1,pinfo1 in zip(p,pinfo):
+            for p2,pinfo2 in zip(p,pinfo):
+              if p1.intersects(p2) and np.sum(abs(np.array(pinfo1)-np.array(pinfo2)))>2:
+                  ListIntersect.append((pinfo1,pinfo2))
+                  print('p1:{} and p2:{} intersect!'.format(pinfo1,pinfo2))
+        return ListIntersect
   
                 
-            
-def Plotgridue(GridueParams,Fill=False,ax=None,Verbose=False,facecolor=None,edgecolor='black'):
-    """Plot UEDGE grid."""
-    if Verbose:
-        print('PlotGridue')
-    r=GridueParams['rm']
-    z=GridueParams['zm']
-    Nx=len(r)
-    Ny=len(r[0])
-    patches=[]
-    if ax is None:
-        ax=plt.gca()
-    idx=[np.array([1,2,4,3,1])]
-    for i in range(Nx):
-        for j in range(Ny):
-                p=matplotlib.patches.Polygon(np.concatenate((r[i][j][idx],z[i][j][idx])).reshape(2,5).T,closed=True,fill=False,edgecolor=edgecolor)
-                if not Fill:
-                    ax.add_patch(p) #draw the contours
-                else:
-                        patches.append(p)
+    @classmethod    
+    def Plotgridue(GridueParams,Fill=False,ax=None,Verbose=False,facecolor=None,edgecolor='black'):
+        """Plot UEDGE grid."""
+        if Verbose:
+            print('PlotGridue')
+        r=GridueParams['rm']
+        z=GridueParams['zm']
+        Nx=len(r)
+        Ny=len(r[0])
+        patches=[]
+        if ax is None:
+            ax=plt.gca()
+        idx=[np.array([1,2,4,3,1])]
+        for i in range(Nx):
+            for j in range(Ny):
+                    p=matplotlib.patches.Polygon(np.concatenate((r[i][j][idx],z[i][j][idx])).reshape(2,5).T,closed=True,fill=False,edgecolor=edgecolor)
+                    if not Fill:
+                        ax.add_patch(p) #draw the contours
+                    else:
+                            patches.append(p)
 
-    if Fill:
-        Collec=matplotlib.collections.PatchCollection(patches,match_original=True,facecolors=None,edgecolors=edgecolor)
-        #Collec.set_facecolor(None)
-        ax.add_collection(Collec)
-    plt.ylim(z.min(),z.max())
-    plt.xlim(r.min(),r.max())
-    plt.show()
-
-def ReadyamlFile(FileName:str)->dict:
-    '''
-    Read a yaml file and return a dictionnary
-
-    Parameters
-    ----------
-    FileName : str
+        if Fill:
+            Collec=matplotlib.collections.PatchCollection(patches,match_original=True,facecolors=None,edgecolors=edgecolor)
+            #Collec.set_facecolor(None)
+            ax.add_collection(Collec)
+        plt.ylim(z.min(),z.max())
+        plt.xlim(r.min(),r.max())
+        plt.show()
 
 
-    Raises
-    ------
-    IOError
+    @classmethod
+    def ReadyamlFile(FileName:str)->dict:
+        '''
+        Read a yaml file and return a dictionnary
+
+        Parameters
+        ----------
+        FileName : str
 
 
-    Returns
-    -------
-    dict
-        Params dictionnary
-
-    '''
-    File=pathlib.Path(FileName).expanduser()
-    if File.exists() and File.is_file():
-        try:
-            ymlDict=yml.full_load(File.read_text())
-            return ymlDict
-        except:
-            raise IOError('Cannot load the yml file: '+FileName)
-
-    else:
-        print('Current Working Directory:'+os.getcwd())
-        raise IOError('Cannot find the file: ' +FileName)
+        Raises
+        ------
+        IOError
 
 
-def QuickStart():
-    QuickGrid = Ingrid()
-    QuickGrid.SimpleGUI()
+        Returns
+        -------
+        dict
+            Params dictionnary
+
+        '''
+        File=pathlib.Path(FileName).expanduser()
+        if File.exists() and File.is_file():
+            try:
+                ymlDict=yml.full_load(File.read_text())
+                return ymlDict
+            except:
+                raise IOError('Cannot load the yml file: '+FileName)
+
+        else:
+            print('Current Working Directory:'+os.getcwd())
+            raise IOError('Cannot find the file: ' +FileName)
+
+    @classmethod
+    def QuickStart():
+        QuickGrid = Ingrid()
+        QuickGrid.SimpleGUI()
 
 
 

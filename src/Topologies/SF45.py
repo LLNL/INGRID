@@ -95,27 +95,6 @@ class SF45():
         """
         return self.config
 
-#     def animate_grid(self):
-
-#         try:
-#             plt.close('INGRID: Debug')
-#         except:
-#             pass
-#         plt.figure('INGRID: Debug', figsize=(6, 10))
-#         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-#         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-#         plt.gca().set_aspect('equal', adjustable='box')
-#         plt.xlabel('R')
-#         plt.ylabel('Z')
-#         plt.title('visualize gridue')
-
-#         k = [1,2,4,3,1]
-
-#         for i in range(len(self.rm)):
-#             for j in range(len(self.rm[0])):
-#                 plt.plot(self.rm[i][j][k], self.zm[i][j][k])
-#                 plt.pause(0.01)
-
     def concat_grid(self):
         """
         Concatenate all local grids on individual patches into a single
@@ -703,7 +682,7 @@ class SF45():
         self.patches = {}
         for patch in patches:
             patch.parent = self
-            patch.NameTagMap = self.PatchTagMap
+            patch.PatchTagMap = self.PatchTagMap
             self.patches[patch.patchName] = patch
 
 
@@ -743,3 +722,152 @@ class SF45():
             if patch.platePatch:
                 print(' # Checking patch: ', name)
                 patch.CheckPatch(self)
+
+
+    def SetPatchBoundaryPoints(self,Patch):
+        if self.ConnexionMap.get(Patch.get_tag()) is not None:
+            if self.Verbose: print('Find connexion map for patch {}'.format(Patch.patchName))
+            for Boundary,AdjacentPatch in self.ConnexionMap.get(Patch.get_tag()).items():
+                Patch.BoundaryPoints[Boundary]=self.GetBoundaryPoints(AdjacentPatch)
+                if self.Verbose: print('Find Boundaries points for {}'.format(Patch.patchName))
+
+    def GetBoundaryPoints(self,AdjacentPatch):
+        if AdjacentPatch is not None:
+            PatchName=AdjacentPatch[0]
+            Boundary=AdjacentPatch[1]
+            for name, patch in self.patches.items():
+                if name == PatchName:
+                   if Boundary=='S':
+                       return patch.S_vertices
+                   elif Boundary=='N':
+                       return patch.N_vertices
+                   elif Boundary=='E':
+                       return patch.W_vertices
+                   elif Boundary=='W':
+                       return patch.W_vertices 
+        return None
+
+    def GetNpoints(self,Patch,Enforce=True,Verbose=False):
+        try:
+            np_sol = self.settings['grid_params']['grid_generation']['np_sol']
+        except:
+            np_sol = self.settings['grid_params']['grid_generation']['np_global']
+        try:
+            np_core = self.settings['grid_params']['grid_generation']['np_core']
+        except:
+            np_core = self.settings['grid_params']['grid_generation']['np_global']
+        try:
+            np_pf = self.settings['grid_params']['grid_generation']['np_pf']
+        except:
+            np_pf = self.settings['grid_params']['grid_generation']['np_global']
+
+        if np_sol != np_core:
+            if Enforce:
+                raise ValueError('SOL and CORE must have equal POLOIDAL np values')
+            else:
+                print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
+                + ' to the minimum of np_sol={} and np_core={}.\n'.format(np_sol,np_core))
+            np_sol = np_core = np.amin([np_sol, np_core])
+
+        try:
+            nr_sol = self.settings['grid_params']['grid_generation']['nr_sol']
+        except:
+            nr_sol = self.settings['grid_params']['grid_generation']['nr_global']
+
+        try:
+            nr_core = self.settings['grid_params']['grid_generation']['nr_core']
+        except:
+            nr_core = self.settings['grid_params']['grid_generation']['nr_global']
+        try:
+            nr_pf = self.settings['grid_params']['grid_generation']['nr_pf']
+        except:
+            nr_pf = self.settings['grid_params']['grid_generation']['nr_global']
+
+        if nr_pf != nr_core:
+            if Enforce:
+                raise ValueError('PF and CORE must have equal RADIAL nr values')
+            else:
+                print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
+                + ' to the minimum of nr_pf={} and nr_core={}.\n'.format(nr_pf,nr_core))
+                nr_pf = nr_core = np.amin([nr_pf, nr_core])
+
+        if Patch.platePatch:
+            if Patch.plateLocation == 'W':
+                np_cells = self.settings['target_plates']['plate_W1']['np_local']
+            elif Patch.plateLocation == 'E':
+                np_cells = self.settings['target_plates']['plate_E1']['np_local']
+
+        return (nr_cells,np_cells)
+
+    def AdjustPatch(self,patch):
+        xpt1 = Point(self.eq.NSEW_lookup['xpt1']['coor']['center'])
+        xpt2 = Point(self.eq.NSEW_lookup['xpt2']['coor']['center'])
+
+        tag = patch.get_tag()
+        if tag == 'A2':
+            patch.adjust_corner(xpt1, 'SE')
+        elif tag == 'A1':
+            patch.adjust_corner(xpt1, 'NE')
+        elif tag == 'B2':
+            patch.adjust_corner(xpt1, 'SW')
+        elif tag == 'B1':
+            patch.adjust_corner(xpt1, 'NW')
+        elif tag == 'E2':
+            patch.adjust_corner(xpt1, 'SE')
+        elif tag == 'E1':
+            patch.adjust_corner(xpt1, 'NE')
+        elif tag == 'F3':
+            patch.adjust_corner(xpt2, 'SE')
+        elif tag == 'F2':
+            patch.adjust_corner(xpt1, 'SW')
+            patch.adjust_corner(xpt2, 'NE')
+        elif tag == 'F1':
+            patch.adjust_corner(xpt1, 'NW')
+        elif tag == 'G3':
+            patch.adjust_corner(xpt2, 'SW')
+        elif tag == 'G2':
+            patch.adjust_corner(xpt2, 'NW')
+        elif tag == 'H3':
+            patch.adjust_corner(xpt2, 'SE')
+        elif tag == 'H2':
+            patch.adjust_corner(xpt2, 'NE')
+
+
+    def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all', Enforce=True):
+
+        # Straighten up East and West segments of our patches,
+        # Plot borders and fill patches.
+        if Verbose: print('Construct Grid')
+        try:
+            visual = self.settings['DEBUG']['visual']['subgrid']
+        except:
+            visual = False
+        try:
+            verbose = self.settings['DEBUG']['verbose']['grid_generation']
+        except:
+            verbose = False
+
+        verbose=Verbose or verbose
+        
+            
+        print('>>> Patches:', [k for k in self.patches.keys()])
+        if RestartScratch:
+            self.CurrentListPatch={}
+    
+        for name, patch in self.patches.items():
+            
+            if self.CorrectDistortion.get(name) is not None:
+               patch.CorrectDistortion=self.CorrectDistortion.get(name)
+            elif self.CorrectDistortion.get('all') is not None:
+                patch.CorrectDistortion=self.CorrectDistortion.get('all')
+            else:
+                patch.CorrectDistortion={'Active':False}
+            if (ListPatches=='all' and patch not in self.CurrentListPatch) or (ListPatches!='all' and name in ListPatches):
+                self.SetPatchBoundaryPoints(patch)
+                (nr_cells,np_cells)=self.settings['grid_params']['grid_generation']['nr_global'], self.settings['grid_params']['grid_generation']['np_global']#self.GetNpoints(patch, Enforce=Enforce)
+                (_radial_f,_poloidal_f)= lambda x: x, lambda x: x # self.GetFunctions(patch,ExtraSettings=ExtraSettings,Enforce=Enforce)
+                print('>>> Making subgrid in patch:{} with np={},nr={},fp={},fr={}'.format(name, np_cells, nr_cells, inspect.getsource(_poloidal_f), inspect.getsource(_radial_f)))
+                patch.make_subgrid(self, np_cells, nr_cells, _poloidal_f=_poloidal_f,_radial_f=_radial_f,verbose = verbose, visual = visual,ShowVertices=ShowVertices,OptionTrace=OptionTrace)
+                self.AdjustPatch(patch)
+                patch.plot_subgrid()
+                self.CurrentListPatch[name] = patch

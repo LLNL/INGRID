@@ -326,18 +326,18 @@ grid_params:
         np_core: 3
         np_global: 3
         np_pf: 3
-        np_primary_pf: 2
-        np_primary_sol: 2
-        np_secondary_pf: 2
-        np_secondary_sol: 2
+        np_primary_pf: 3
+        np_primary_sol: 3
+        np_secondary_pf: 3
+        np_secondary_sol: 3
         np_sol: 3
         nr_core: 3
         nr_global: 3
         nr_pf: 3
-        nr_primary_pf: 2
-        nr_primary_sol: 2
-        nr_secondary_pf: 2
-        nr_secondary_sol: 2
+        nr_primary_pf: 3
+        nr_primary_sol: 3
+        nr_secondary_pf: 3
+        nr_secondary_sol: 3
         nr_sol: 3
         radial_f_core: x, x
         radial_f_pf: x, x
@@ -400,7 +400,7 @@ integrator_params:
 limiter:
     file: ''
     use_limiter : True
-    use_efit_bounds : True
+    use_efit_bounds : False
 target_plates:
     plate_E1:
         file: ../data/SNL/DIII-D/d3d_otp.txt

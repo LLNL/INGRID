@@ -26,7 +26,7 @@ class SF15():
 
         self.parent = Ingrid_obj
         self.config = config
-        self.yaml = Ingrid_obj.yaml
+        self.settings = Ingrid_obj.settings
         self.plate_data = Ingrid_obj.plate_data
 
         self.parent.order_target_plates()
@@ -60,7 +60,7 @@ class SF15():
 
         ax.set_xlabel('R')
         ax.set_ylabel('Z')
-        self.FigPatch.suptitle('SNL Patch Diagram')
+        self.FigPatch.suptitle('SF15 Patch Diagram')
 
         for i, patch in enumerate(self.patches.values()):
             patch.plot_border('green')
@@ -86,7 +86,7 @@ class SF15():
         plt.gca().set_aspect('equal', adjustable='box')
         plt.xlabel('R')
         plt.ylabel('Z')
-        plt.title('INGRID SNL Subgrid')
+        plt.title('INGRID SF15 Subgrid')
         plt.show()
 
     def get_config(self):
@@ -242,7 +242,7 @@ class SF15():
         self.zm = np.concatenate((zm1, zm2))
 
         try:
-            debug = self.yaml['DEBUG']['visual']['gridue']
+            debug = self.settings['DEBUG']['visual']['gridue']
         except:
             debug = False
 
@@ -374,36 +374,36 @@ class SF15():
 #         # Plot borders and fill patches.
 
 #         try:
-#             visual = self.yaml['DEBUG']['visual']['subgrid']
+#             visual = self.settings['DEBUG']['visual']['subgrid']
 #         except:
 #             visual = False
 #         try:
-#             verbose = self.yaml['DEBUG']['verbose']['grid_generation']
+#             verbose = self.settings['DEBUG']['verbose']['grid_generation']
 #         except:
 #             verbose = False
 
 #         verbose=verbose or Verbose
 
 #         try:
-#             np_primary_sol = self.yaml['grid_params']['grid_generation']['np_primary_sol']
+#             np_primary_sol = self.settings['grid_params']['grid_generation']['np_primary_sol']
 #         except:
-#             np_primary_sol = self.yaml['grid_params']['grid_generation']['np_global']
+#             np_primary_sol = self.settings['grid_params']['grid_generation']['np_global']
 #         try:
-#             np_secondary_sol = self.yaml['grid_params']['grid_generation']['np_secondary_sol']
+#             np_secondary_sol = self.settings['grid_params']['grid_generation']['np_secondary_sol']
 #         except:
-#             np_secondary_sol = self.yaml['grid_params']['grid_generation']['np_global']
+#             np_secondary_sol = self.settings['grid_params']['grid_generation']['np_global']
 #         try:
-#             np_core = self.yaml['grid_params']['grid_generation']['np_core']
+#             np_core = self.settings['grid_params']['grid_generation']['np_core']
 #         except:
-#             np_core = self.yaml['grid_params']['grid_generation']['np_global']
+#             np_core = self.settings['grid_params']['grid_generation']['np_global']
 #         try:
-#             np_primary_pf = self.yaml['grid_params']['grid_generation']['np_primary_pf']
+#             np_primary_pf = self.settings['grid_params']['grid_generation']['np_primary_pf']
 #         except:
-#             np_primary_pf = self.yaml['grid_params']['grid_generation']['np_global']
+#             np_primary_pf = self.settings['grid_params']['grid_generation']['np_global']
 #         try:
-#             np_secondary_pf = self.yaml['grid_params']['grid_generation']['np_secondary_pf']
+#             np_secondary_pf = self.settings['grid_params']['grid_generation']['np_secondary_pf']
 #         except:
-#             np_secondary_pf = self.yaml['grid_params']['grid_generation']['np_global']
+#             np_secondary_pf = self.settings['grid_params']['grid_generation']['np_global']
 #         """
 #         if np_sol != np_core:
 #             print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
@@ -411,27 +411,27 @@ class SF15():
 #             np_sol = np_core = np.amin([np_sol, np_core])
 #         """
 #         try:
-#             nr_primary_sol = self.yaml['grid_params']['grid_generation']['nr_primary_sol']
+#             nr_primary_sol = self.settings['grid_params']['grid_generation']['nr_primary_sol']
 #         except:
-#             nr_primary_sol = self.yaml['grid_params']['grid_generation']['nr_global']
+#             nr_primary_sol = self.settings['grid_params']['grid_generation']['nr_global']
 
 #         try:
-#             nr_secondary_sol = self.yaml['grid_params']['grid_generation']['nr_secondary_sol']
+#             nr_secondary_sol = self.settings['grid_params']['grid_generation']['nr_secondary_sol']
 #         except:
-#             nr_secondary_sol = self.yaml['grid_params']['grid_generation']['nr_global']
+#             nr_secondary_sol = self.settings['grid_params']['grid_generation']['nr_global']
 
 #         try:
-#             nr_core = self.yaml['grid_params']['grid_generation']['nr_core']
+#             nr_core = self.settings['grid_params']['grid_generation']['nr_core']
 #         except:
-#             nr_core = self.yaml['grid_params']['grid_generation']['nr_global']
+#             nr_core = self.settings['grid_params']['grid_generation']['nr_global']
 #         try:
-#             nr_primary_pf = self.yaml['grid_params']['grid_generation']['nr_primary_pf']
+#             nr_primary_pf = self.settings['grid_params']['grid_generation']['nr_primary_pf']
 #         except:
-#             nr_primary_pf = self.yaml['grid_params']['grid_generation']['nr_global']
+#             nr_primary_pf = self.settings['grid_params']['grid_generation']['nr_global']
 #         try:
-#             nr_secondary_pf = self.yaml['grid_params']['grid_generation']['nr_secondary_pf']
+#             nr_secondary_pf = self.settings['grid_params']['grid_generation']['nr_secondary_pf']
 #         except:
-#             nr_secondary_pf = self.yaml['grid_params']['grid_generation']['nr_global']
+#             nr_secondary_pf = self.settings['grid_params']['grid_generation']['nr_global']
 #         """
 #         if nr_pf != nr_core:
 #             print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
@@ -517,21 +517,27 @@ class SF15():
             if end_index <= start_index:
                 limiter.p = limiter.p[start_index:] + limiter.p[:start_index]
             return limiter
+        def trim_geometry(geoline, start, end):
+            try:
+                trim = (geoline.split(start)[1]).split(end, add_split_point = True)[0]
+            except:
+                trim = limiter_split(start, end, geoline)
+            return trim
 
         try:
-            visual = self.yaml['DEBUG']['visual']['patch_map']
+            visual = self.settings['DEBUG']['visual']['patch_map']
         except KeyError:
             visual = False
         try:
-            verbose = self.yaml['DEBUG']['verbose']['patch_generation']
+            verbose = self.settings['DEBUG']['verbose']['patch_generation']
         except KeyError:
             verbose = False
         try:
-            inner_tilt = self.yaml['grid_params']['patch_generation']['inner_tilt']
+            inner_tilt = self.settings['grid_params']['patch_generation']['inner_tilt']
         except KeyError:
             inner_tilt = 0.0
         try:
-            outer_tilt = self.yaml['grid_params']['patch_generation']['outer_tilt']
+            outer_tilt = self.settings['grid_params']['patch_generation']['outer_tilt']
         except KeyError:
             outer_tilt = 0.0
 
@@ -539,16 +545,16 @@ class SF15():
         xpt1 = self.eq.NSEW_lookup['xpt1']['coor']
         xpt2 = self.eq.NSEW_lookup['xpt2']['coor']
 
-        magx = np.array([self.yaml['grid_params']['rmagx'] + self.yaml['grid_params']['patch_generation']['rmagx_shift'], \
-            self.yaml['grid_params']['zmagx'] + self.yaml['grid_params']['patch_generation']['zmagx_shift']])
+        magx = np.array([self.settings['grid_params']['rmagx'] + self.settings['grid_params']['patch_generation']['rmagx_shift'], \
+            self.settings['grid_params']['zmagx'] + self.settings['grid_params']['patch_generation']['zmagx_shift']])
 
-        psi_max_west = self.yaml['grid_params']['psi_max_west']
-        psi_max_east = self.yaml['grid_params']['psi_max_east']
-        psi_min_core = self.yaml['grid_params']['psi_min_core']
-        psi_min_pf = self.yaml['grid_params']['psi_min_pf']
-        psi_min_pf_2 = self.yaml['grid_params']['psi_pf2']
+        psi_max_west = self.settings['grid_params']['psi_max_west']
+        psi_max_east = self.settings['grid_params']['psi_max_east']
+        psi_min_core = self.settings['grid_params']['psi_min_core']
+        psi_min_pf = self.settings['grid_params']['psi_min_pf']
+        psi_min_pf_2 = self.settings['grid_params']['psi_pf2']
 
-        if self.yaml['limiter']['use_limiter']:
+        if self.settings['limiter']['use_limiter']:
             WestPlate1 = self.parent.limiter_data.copy()
             WestPlate2 = self.parent.limiter_data.copy()
 
@@ -826,21 +832,23 @@ class SF15():
             direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         D3_E = E3_W.reverse_copy()
 
-        A1_W = (WestPlate1.split(A1_S.p[-1])[1]).split(A1_N.p[0], add_split_point = True)[0]
-        A2_W = (WestPlate1.split(A2_S.p[-1])[1]).split(A2_N.p[0], add_split_point = True)[0]
-        A3_W = (WestPlate1.split(A3_S.p[-1])[1]).split(A3_N.p[0], add_split_point = True)[0]
 
-        G1_W = (WestPlate2.split(G1_S.p[-1])[1]).split(G1_N.p[0], add_split_point = True)[0]
-        G2_W = (WestPlate2.split(G2_S.p[-1])[1]).split(G2_N.p[0], add_split_point = True)[0]
-        G3_W = (WestPlate2.split(G3_S.p[-1])[1]).split(G3_N.p[0], add_split_point = True)[0]
+        A1_W = trim_geometry(WestPlate1, A1_S.p[-1], A1_N.p[0])
+        A2_W = trim_geometry(WestPlate1, A2_S.p[-1], A2_N.p[0])
+        A3_W = trim_geometry(WestPlate1, A3_S.p[-1], A3_N.p[0])
 
-        I1_E = (EastPlate1.split(I1_N.p[-1])[1]).split(I1_S.p[0], add_split_point = True)[0]
-        I2_E = (EastPlate1.split(I2_N.p[-1])[1]).split(I2_S.p[0], add_split_point = True)[0]
-        I3_E = (EastPlate1.split(I3_N.p[-1])[1]).split(I3_S.p[0], add_split_point = True)[0]
 
-        F1_E = (EastPlate2.split(F1_N.p[-1])[1]).split(F1_S.p[0], add_split_point = True)[0]
-        F2_E = (EastPlate2.split(F2_N.p[-1])[1]).split(F2_S.p[0], add_split_point = True)[0]
-        F3_E = (EastPlate2.split(F3_N.p[-1])[1]).split(F3_S.p[0], add_split_point = True)[0]
+        G1_W = trim_geometry(WestPlate2, G1_S.p[-1], G1_N.p[0])
+        G2_W = trim_geometry(WestPlate2, G2_S.p[-1], G2_N.p[0])
+        G3_W = trim_geometry(WestPlate2, G3_S.p[-1], G3_N.p[0])
+
+        I1_E = trim_geometry(EastPlate1, I1_N.p[-1], I1_S.p[0])
+        I2_E = trim_geometry(EastPlate1, I2_N.p[-1], I2_S.p[0])
+        I3_E = trim_geometry(EastPlate1, I3_N.p[-1], I3_S.p[0])
+
+        F1_E = trim_geometry(EastPlate2, F1_N.p[-1], F1_S.p[0])
+        F2_E = trim_geometry(EastPlate2, F2_N.p[-1], F2_S.p[0])
+        F3_E = trim_geometry(EastPlate2, F3_N.p[-1], F3_S.p[0])
 
         # ============== Patch A1 ==============
         A1 = Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'A1', platePatch = True, plateLocation = 'W')

@@ -151,7 +151,7 @@ class FilePicker(tk.Tk):
         self.QuitButton.grid(row=0,column=3,padx=10,pady=10,sticky='nsew')
 
     def ProcessParameterFile(self, fname):
-        self.Ingrid.process_yaml(Ingrid.ReadyamlFile(fname))
+        self.Ingrid.process_yaml(Ingrid.Ingrid.ReadyamlFile(fname))
         self.ParamFileMtime = getmtime(fname)
         self.ParamFileName = fname
 
@@ -159,11 +159,12 @@ class FilePicker(tk.Tk):
         fname = filedialog.askopenfilename(title='Select YAML File')
         fpath = Path(fname)
         if fpath.is_file() and fpath.suffix in ['.yml', '.yaml']:
+            self.ParamFileEntry_String.set(f'Loaded: "../{fpath.name}"')
             self.controller.NewIG()
             self.ProcessParameterFile(fname)
             self.ReadyIngridData()
         else:
-            self.ParamFileEntry_String.set('Invalid file extension "{fpath.suffix}"')
+            self.ParamFileEntry_String.set(f'Invalid file extension "{fpath.suffix}"')
 
     def ReadyIngridData(self):
         if self.ParamFileMtime != getmtime(self.ParamFileName):
@@ -201,7 +202,7 @@ class FilePicker(tk.Tk):
         self.ViewData()
         IG.AnalyzeTopology()
 
-        if IG.current_topology.config in ['SF15', 'SF45']:
+        if IG.settings['grid_params']['num_xpt'] == 2:
             IG.PlotTopologyAnalysis()
 
     def CreatePatches(self):

@@ -216,8 +216,8 @@ grid_params:
         zmagx_shift: 0.0
         zxpt: 0.0
     psi_max: 0.0
-    psi_max_inner: 1.005030611031
-    psi_max_outer: 1.00552682118
+    psi_max_west: 1.005030611031
+    psi_max_east: 1.00552682118
     psi_max_r: 0.0
     psi_max_r_inner: 1.422077922078
     psi_max_r_outer: 1.554545454545
@@ -246,6 +246,12 @@ integrator_params:
     max_step: 0.12
     step_ratio: 0.02
     tol: 0.005
+limiter:
+    file: ''
+    use_limiter: True
+    use_efit_bounds: False
+    rshift: 0.0
+    zshift: 0.0
 target_plates:
     plate_E1:
         file: ../Data/DNL/SPARC/divRZv1d_lotp.txt

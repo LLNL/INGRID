@@ -29,6 +29,7 @@ from Root_Finder import RootFinder
 from Topologies.SNL import SNL
 from Topologies.SF15 import SF15
 from Topologies.SF45 import SF45
+from Topologies.UDN import UDN
 
 from geometry import Point, Line, Patch, segment_intersect, orientation_between
 from scipy.optimize import root, minimize
@@ -347,7 +348,6 @@ class Ingrid:
             if k=='InputFile' or k=='yaml':
                 print('# Processing Input File:',v)
                 self.InputFile=v
-                self.process_yaml(ReadyamlFile(v))
                 continue
             if k=='W1TargetFile' or k=='w1':
                 self.settings['target_plates']['plate_W1']['file']=v
@@ -366,7 +366,10 @@ class Ingrid:
             if k=='EqFile' or k=='eq':
                 self.settings['eqdsk']=v
                 continue
+            if k=='limiter' or k=='wall':
+                se
             print('Keyword "'+k +'" unknown and ignored...')
+        self.process_yaml(self.ReadyamlFile(v))
 
     def PrintSummaryInput(self):
         print('')
@@ -550,7 +553,16 @@ class Ingrid:
         except:
             pass
 
-        if (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []) or self.settings['limiter']['use_efit_bounds']:
+        # Check parameter file flag first...
+        use_efit_bounds = self.settings['limiter']['use_efit_bounds']
+
+        # Determine if efit bounds must be used regardless of flag
+        if (type(self.OMFIT_psi['RLIM']) == np.ndarray) or (type(self.OMFIT_psi['ZLIM']) == np.ndarray):
+            use_efit_bounds = True if (self.OMFIT_psi['RLIM'].size == 0 or self.OMFIT_psi['ZLIM'].size == 0) else False
+        elif (type(self.OMFIT_psi['RLIM']) == np.ndarray) or (type(self.OMFIT_psi['ZLIM']) == np.ndarray):
+            use_efit_bounds = True if (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []) else False
+
+        if use_efit_bounds:
             coordinates = [(self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
                            (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
                            (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
@@ -560,6 +572,8 @@ class Ingrid:
                 r, z = c
                 RLIM.append(r - rshift)
                 ZLIM.append(z - zshift)
+
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
 
         else:
             g=OMFITgeqdsk(self.settings['eqdsk'])
@@ -948,8 +962,6 @@ class Ingrid:
         print("# Begin classification....")
         print('')
 
-        self.PrepLineTracing(interactive=False)
-
         if self.settings['grid_params']['num_xpt'] == 1:
             self.eq.SNL_find_NSEW(self.xpt1, self.magx, visual)
 
@@ -965,26 +977,29 @@ class Ingrid:
         except:
             visual = False
 
+        self.PrepLineTracing(interactive=False)
         self.ClassifyTopology(visual=visual)
-
-        # Updated after call to ClassifyTopology
-        config = self.settings['grid_params']['config']
         
+        # Updated after call to ClassifyTopology --> self.settings['grid_params']['config']
+
         print('')
-        print('# Identified {} configuration.'.format(config))
+        print('# Identified {} configuration.'.format(self.settings['grid_params']['config']))
         print('')
 
-        if config in ['LSN', 'USN']:
-            ingrid_topology = SNL(self, config)
+        self.SetTopology(self.settings['grid_params']['config'])
 
-        elif self.settings['grid_params']['config'] in ['DNL']:
-            ingrid_topology = DNL(self, config)
+    def SetTopology(self, topology:str):
+        if topology in ['LSN', 'USN']:
+            ingrid_topology = SNL(self, topology)
 
-        elif self.settings['grid_params']['config'] == 'SF15':
-            ingrid_topology = SF15(self, config)
+        elif topology == 'UDN':
+            ingrid_topology = UDN(self, topology)
 
-        elif self.settings['grid_params']['config'] == 'SF45':
-            ingrid_topology = SF45(self, config)
+        elif topology == 'SF15':
+            ingrid_topology = SF15(self, topology)
+
+        elif topology == 'SF45':
+            ingrid_topology = SF45(self, topology)
 
         self.current_topology = ingrid_topology
 
@@ -1119,7 +1134,8 @@ class Ingrid:
         if NewFig:
             self.FigGrid=plt.figure('INGRID: Grid', figsize=(6, 10))
             ax=self.FigGrid.gca()
-            ax.set_title(label='SNL Grid Diagram')
+            ax.set_title(label=f'{self.current_topology.config} Grid Diagram')
+            ax.set_aspect('equal', adjustable='box')
 
         self.GetConnexionMap()
 
@@ -1136,7 +1152,7 @@ class Ingrid:
 
     def PlotPsiNormMagReference(self):
         (x,y)=self.magx
-        self.psi_norm.ax.plot(x,y,'+',color='white',ms=15,linewidth=5)
+        self.psi_norm.ax.plot(x,y,'+',color='yellow',ms=15,linewidth=5)
         (x,y)=self.xpt1
         self.psi_norm.ax.plot(x,y,'+',color='white',ms=15,linewidth=5)
         if self.settings['grid_params']['num_xpt'] == 2:
@@ -1195,7 +1211,7 @@ class Ingrid:
         self.plot_psinorm(interactive=interactive)
         self.plot_strike_geometry()
         self.PrepLineTracing(interactive=interactive)
-        self.ClassifyTopology()
+        self.AnalyzeTopology()
 
     def ShowSetup(self):
         self.PlotPsiNormMagReference()
@@ -1204,6 +1220,7 @@ class Ingrid:
 
     def ConstructPatches(self):
         self.GetPatchTagMap(self.current_topology.get_config())
+        self.PrepLineTracing(interactive=False)
         self.current_topology.construct_patches()
         self.current_topology.patch_diagram()
         self.current_topology.CheckPatches()
@@ -1218,7 +1235,7 @@ class Ingrid:
                     ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '2', 'S')}
             self.current_topology.ConnexionMap = ConnexionMap
 
-        elif isinstance(self.current_topology, DNL):
+        elif isinstance(self.current_topology, SF45):
             # DNL connexion map based off patch tag
             ConnexionMap = {}
             for patch in self.current_topology.patches.values():
@@ -1248,7 +1265,7 @@ class Ingrid:
 
         # Make it bijective.
         PatchNameMap = {}
-        for tag, name in PatchTagMap.items():C
+        for tag, name in PatchTagMap.items():
             PatchNameMap[name] = tag
         return {**PatchTagMap, **PatchNameMap}
 
@@ -1326,7 +1343,7 @@ class Ingrid:
         return ListIntersect
   
                 
-    @classmethod    
+    @staticmethod    
     def Plotgridue(GridueParams,Fill=False,ax=None,Verbose=False,facecolor=None,edgecolor='black'):
         """Plot UEDGE grid."""
         if Verbose:
@@ -1355,8 +1372,7 @@ class Ingrid:
         plt.xlim(r.min(),r.max())
         plt.show()
 
-
-    @classmethod
+    @staticmethod
     def ReadyamlFile(FileName:str)->dict:
         '''
         Read a yaml file and return a dictionnary
@@ -1389,10 +1405,10 @@ class Ingrid:
             print('Current Working Directory:'+os.getcwd())
             raise IOError('Cannot find the file: ' +FileName)
 
-    @classmethod
-    def QuickStart():
-        QuickGrid = Ingrid()
-        QuickGrid.SimpleGUI()
+
+def QuickStart():
+    QuickGrid = Ingrid()
+    QuickGrid.SimpleGUI()
 
 
 

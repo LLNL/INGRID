@@ -38,7 +38,7 @@ class SNL():
 
         self.parent = Ingrid_obj
         self.config = config
-        self.settings = Ingrid_obj.parameters
+        self.settings = Ingrid_obj.settings
         self.plate_data = Ingrid_obj.plate_data
 
         self.parent.order_target_plates()
@@ -103,7 +103,7 @@ class SNL():
             patch.plot_border('green')
             patch.fill(colors[i])
             patch.color=colors[i]
-        ax.legend()
+        # ax.legend()
         plt.show()
 
     def get_config(self):
@@ -499,7 +499,6 @@ class SNL():
             _yaml_.dump(self.patches,File)
 
     def LoadPatches(self,FileName):
-        if not Path(FileName).
         with open(FileName,'r') as File:
             self.patches = _yaml_.load(File,Loader=_yaml_.Loader)
         print(self.patches)

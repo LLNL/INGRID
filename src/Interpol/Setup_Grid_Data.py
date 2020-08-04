@@ -85,6 +85,7 @@ class Efit_Data:
         F[0] = self.get_psi(x, y, tag='vr')
         F[1] = self.get_psi(x, y, tag='vz')
         return F
+        
     def Hessian(self, xy):
         x, y = xy
         H = np.zeros((2,2))

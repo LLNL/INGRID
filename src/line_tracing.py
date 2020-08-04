@@ -454,13 +454,18 @@ class LineTracing:
                                 xpt2 = self.NSEW_lookup['xpt2']['coor']
 
                             # Determine whether SF15 or SF165 based off of intersection with core boundary
-                            self.RegionLineCut = self.draw_line(xpt2['N'], {'line_group': [xptNW_midLine, xptNE_midLine]}, \
+                            self.RegionLineCut = self.draw_line(xpt2['N'], {'line_group': [xptNE_midLine, xptNW_midLine, 
+                                midline_topline_west, midline_topline_east, limiter]}, \
                                 option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
 
                             if self.line_group_intersect == xptNE_midLine.points():
                                 self.config = 'SF15'
                             elif self.line_group_intersect == xptNW_midLine.points():
                                 self.config = 'SF165'
+                            elif self.line_group_intersect == midline_topline_west.points():
+                                self.config = 'UDN'
+                            elif self.line_group_intersect == midline_topline_east.points():
+                                self.config = 'UDN'
                             break
 
                         elif region == 'PF':

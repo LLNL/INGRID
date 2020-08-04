@@ -18,10 +18,12 @@ CMOD_case = "../Parameter Files/SNL/cmod_param.yml"
 DIIID_case = "../Parameter Files/SNL/DIIID_SNL.yml"
 SAS_case = "../Parameter Files/SNL/SAS1_modif.yml"
 SPARC_case = "../Parameter Files/DNL/SPARC_DNL.yml"
+
+SF45_maxim = '../Parameter Files/NEQDSK_maxim/neqdsk_6.yml'
 # < Your path to Ingrid formatted parameter file here >
 
 # Select a case.
-case = DIIID_case
+case = SAS_case
 
 
 if __name__ == '__main__':
@@ -37,10 +39,11 @@ if __name__ == '__main__':
 
     # Plot constructed patches.
     GridDemo.ShowSetup()
-
     # Begin patch refinement and actively plot grid.
-    GridDemo.CreateSubgrid()
 
+    CellCorrection={'ThetaMin':60,'ThetaMax':120,'Resolution':1000,'Active':True}
+    GridDemo.current_topology.CorrectDistortion={'all' : CellCorrection}
+    GridDemo.CreateSubgrid(NewFig=True)
     # Export gridue file.
     fname = 'gridue'
     GridDemo.export(fname=fname)

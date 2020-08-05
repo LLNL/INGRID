@@ -343,11 +343,19 @@ class Ingrid:
             'target_plates' : self.default_target_plates_params, 'limiter' : self. default_limiter_params, 
             'DEBUG' : self.default_DEBUG_params}
 
+        self.plate_data = {
+            'plate_E1' : None,
+            'plate_E2' : None,
+            'plate_W1' : None,
+            'plate_W2' : None 
+        }
+
     def ProcessKeywords(self,**kwargs):
         for k, v in kwargs.items():
             if k=='InputFile' or k=='yaml':
                 print('# Processing Input File:',v)
                 self.InputFile=v
+                self.process_yaml(self.ReadyamlFile(v))
                 continue
             if k=='W1TargetFile' or k=='w1':
                 self.settings['target_plates']['plate_W1']['file']=v
@@ -361,15 +369,12 @@ class Ingrid:
             if k=='W2TargetFile' or k=='w2':
                 self.settings['target_plates']['plate_W2']['file']=v
                 continue
-            if k=='LimiterFile' or k=='limiter':
+            if k in ['LimiterFile', 'limiter', 'wall']:
                 self.settings['limiter']['file']=v
             if k=='EqFile' or k=='eq':
                 self.settings['eqdsk']=v
                 continue
-            if k=='limiter' or k=='wall':
-                se
             print('Keyword "'+k +'" unknown and ignored...')
-        self.process_yaml(self.ReadyamlFile(v))
 
     def PrintSummaryInput(self):
         print('')
@@ -398,8 +403,6 @@ class Ingrid:
         print( ' # Use limiter:',self.settings['limiter']['use_limiter'])
         print('')
         self.PrintSummaryInput()
-       # except:
-          #  print('error')
 
     def process_yaml(self, params,verbose=False):
         """
@@ -514,60 +517,128 @@ class Ingrid:
 
         self.OMFIT_psi = g
 
-    def set_limiter(self):
+    def ParseFileCoordinates(self, fpath, rshift=0, zshift=0):
+
+        R, Z = [], []
+
+        if Path(fpath).is_file() and Path(fpath).suffix in ['.txt']:
+            try:
+                with open(fpath) as f:
+
+                    for line in f:
+
+                        if line.startswith('#'):
+                            # move along to the next iteration
+                            # this simulates a comment
+                            continue
+                        # we deal with separator ',' or ' '
+                        point = line.replace('D', 'e').replace('(', '').replace(')', '').strip()
+                        if point.count(',')>0:
+                            x = float(point.split(',')[0])
+                            y = float(point.split(',')[1])
+                        else:
+
+                            x = float(point.split(' ')[0])
+                            y = float(point.split(' ')[1])
+
+                        R.append(x - rshift)
+                        Z.append(y - zshift)
+            except:
+                raise ValueError(f"# Error occured when reading data from file {fpath}:\t 'open(fpath)' error")
+
+        else:
+            raise ValueError(f"# Error occur when reading data from file {fpath}:\t file does not exist or is not of extension '*.txt'")
+
+        return R, Z
+
+
+    def SetGeometry(self, settings):
+        """
+        SetGeometry
+
+            Allows the user to pass input data for setting target plates or limiter
+            coordinates
+        """
+
+        for k, v in settings.items():
+
+            TargetPlate = False
+            Limiter = False
+
+            if k.lower() in ['w1', 'westplate1', 'plate_w1']:
+                TargetPlate = True
+            elif k.lower() in ['e1', 'eastplate1', 'plate_e1']:
+                TargetPlate = True
+            elif k.lower() in ['w2', 'westplate2', 'plate_w2']:
+                TargetPlate = True
+            elif k.lower() in ['e2', 'eastplate2', 'plate_e2']:
+                TargetPlate = True
+            elif k.lower() in ['limiter', 'wall']:
+                Limiter = True
+
+            if type(v) == str:
+                x, y = self.ParseFileCoordinates(v)
+            elif type(v) in [list, tuple]:
+                x, y = v
+            elif type(v) == dict:
+                xk, yk = v
+                x, y = v[xk], v[yk]
+            else:
+                raise ValueError(f"# Invalid data type {type(v)} was used for setting geometry.")
+
+            if settings.get('rshift'):
+                rshift = settings['rshift']
+            else:
+                rshift = 0
+
+            if settings.get('zshift'):
+                zshift = settings['zshift']
+            else:
+                zshift = 0
+
+            if TargetPlate: 
+                self.SetTargetPlate({k : [x, y]}, rshift=rshift, zshift=zshift)
+            elif Limiter:
+                self.SetLimiter([x, y], rshift=rshift, zshift=zshift)
+            else:
+                raise ValueError(f"# Invalid key '{k}' was used for setting geometry.")
+
+    def SetLimiter(self, coordinates=None, fpath=None, rshift=None, zshift=None):
         
-        RLIM, ZLIM = [], []
-        rshift = self.settings['limiter']['rshift']
-        zshift = self.settings['limiter']['zshift']
+        if rshift is None:
+            rshift = self.settings['limiter']['rshift']
+        if zshift is None:
+            zshift = self.settings['limiter']['zshift']
 
-        try:
-            if Path(self.settings['limiter']['file']).is_file() and Path(self.settings['limiter']['file']).suffix in ['.txt']:
-                print('# Processing file for limiter data : {}'.format(self.settings['limiter']['file']))
-
-                try:
-                    with open(self.settings['limiter']['file']) as f:
-
-                        for line in f:
-
-                            point = line.strip()
-                            if point.startswith('#'):
-                                # move along to the next iteration
-                                # this simulates a comment
-                                continue
-                            # we deal with separator ',' or ' '
-
-                            if point.count(',')>0:
-                                x = float(point.split(',')[0])
-                                y = float(point.split(',')[1])
-                            else:
-
-                                x = float(point.split(' ')[0])
-                                y = float(point.split(' ')[1])
-
-                            RLIM.append(x - rshift)
-                            ZLIM.append(y - zshift)
-                except:
-                    raise ValueError("# Error occured when reading limiter data from txt file.")
-
-                self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
-        except:
-            pass
-
-        # Check parameter file flag first...
         use_efit_bounds = self.settings['limiter']['use_efit_bounds']
 
-        # Determine if efit bounds must be used regardless of flag
-        if (type(self.OMFIT_psi['RLIM']) == np.ndarray) or (type(self.OMFIT_psi['ZLIM']) == np.ndarray):
-            use_efit_bounds = True if (self.OMFIT_psi['RLIM'].size == 0 or self.OMFIT_psi['ZLIM'].size == 0) else False
-        elif (type(self.OMFIT_psi['RLIM']) == np.ndarray) or (type(self.OMFIT_psi['ZLIM']) == np.ndarray):
-            use_efit_bounds = True if (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []) else False
+        if fpath:
+            try:
+                print('# Processing file for limiter data : {}'.format(self.settings['limiter']['file']))
+                self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = self.ParseFileCoordinates(self.settings['limiter']['file'])
+            except:
+                raise ValueError(f"# Error in method 'SetLimiter' with fpath={fpath}")
+
+        elif coordinates is not None:
+            RLIM, ZLIM = coordinates
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = [r - rshift for r in RLIM], [z - zshift for z in ZLIM]
+
+        elif coordinates is None:
+            g=OMFITgeqdsk(self.settings['eqdsk'])
+            RLIM, ZLIM = g['RLIM'], g['ZLIM']
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = [r - rshift for r in RLIM], [z - zshift for z in ZLIM]
+
+            if (type(self.OMFIT_psi['RLIM']) == np.ndarray) or (type(self.OMFIT_psi['ZLIM']) == np.ndarray):
+                use_efit_bounds = True if (self.OMFIT_psi['RLIM'].size == 0 or self.OMFIT_psi['ZLIM'].size == 0) else False
+            elif (type(self.OMFIT_psi['RLIM']) == np.ndarray) or (type(self.OMFIT_psi['ZLIM']) == np.ndarray):
+                use_efit_bounds = True if (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []) else False
 
         if use_efit_bounds:
             coordinates = [(self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
-                           (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
-                           (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
-                           (self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
-                           (self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift)]
+                               (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
+                               (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
+                               (self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
+                               (self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift)]
             for c in coordinates:
                 r, z = c
                 RLIM.append(r - rshift)
@@ -575,125 +646,44 @@ class Ingrid:
 
             self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
 
-        else:
-            g=OMFITgeqdsk(self.settings['eqdsk'])
-            RLIM, ZLIM = g['RLIM'], g['ZLIM']
-            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = [r - rshift for r in RLIM], [z - zshift for z in ZLIM]
+        self.OrderLimiter()
 
-        self.order_limiter()
+    def SetTargetPlate(self, settings, rshift=0, zshift=0):
+
+        for _k, _v in settings.items():
+            k = _k
+            v = _v
+            break
+
+        if k.lower() in ['w1', 'westplate1', 'plate_w1']:
+            k='plate_W1'
+        elif k.lower() in ['e1', 'eastplate1', 'plate_e1']:
+            k='plate_E1'
+        elif k.lower() in ['w2', 'westplate2', 'plate_w2']:
+            k='plate_W2'
+        elif k.lower() in ['e2', 'eastplate2', 'plate_e2']:
+            k='plate_E2'
+        else:
+            raise ValueError(f"# Invalid key '{k}' provided for 'SetTargetPlate'")
+
+        print(f"# Setting coordinates for '{k}'")
+
+        R, Z = v
+
+        # Make sure coordinates are unique
+        data = np.array([c for c in zip(R, Z)])
+        a,index=np.unique(data,return_index=True,axis=0)
+        index.sort()
+        self.plate_data[k]=Line([(x,y) for x,y in data[index]])
 
     def read_target_plates(self):
-        """
-        Reads the coordinates for a line defining the inner
-        and outer target plates.
-        The lines to define target plates end up with the shape ((x,y),(x,y)).
-        These files read can contain more complicated lines than this.
-        @author: watkins35, garcia299
-        """
+        for plate in self.settings['target_plates']:
+            try:
+                self.SetGeometry({plate : self.settings['target_plates'][plate]['file']})
+            except:
+                pass
 
-        # Determine if in DEBUG verbose mode.
-        try:
-            debug = self.settings['DEBUG']['verbose']['target_plates']
-        except:
-            debug = False
-
-        # Create references and plate_data container.
-        target_plates = self.settings['target_plates']
-        plate_data = {}
-
-        for plate in target_plates:
-
-            # Check for valid file path.
-            #JG: not good because it does not check if file exists
-            # That only makes sense when used with the GUI where file existence is automatic with the FilePicker method get_file()
-            # We assume that not relevant plate files are either set to None
-            # Could be managed through knowing the topology since we know which plate are needed
-            print('# Processing file for plate {} : {}'.format(plate,target_plates[plate]['file']))
-
-
-
-
-            # Some target plate geometries have an associated 'z-shift' that
-            # translates the geometry. Application of 'z-shift' occurs during reading.
-
-            zshift = target_plates[plate]['zshift']
-
-            # plate_data contains a list of geometric coordinates, and the min/max psi values
-            # that lie on the plate geometry. This can be used (and is) for checking for valid
-            # psi entries during patch map generation.
-            plate_data[plate] = {'coordinates' : [], 'psi_min_rz' : (), 'psi_max_rz' : ()}
-
-            # Associated label with a target_plate (remove this feature?)
-            if not 'name' in target_plates[plate].keys():
-                target_plates[plate].update({'name' : plate})
-            elif target_plates[plate]['name'] == '':
-                target_plates[plate]['name'] = plate
-
-            if target_plates[plate]['file'] not in [None, '']:
-                try:
-                    with open(target_plates[plate]['file']) as f:
-                        #First we check if zshift is given
-                        for line in f:
-                            if line.count('zshift')>0:
-                                zshift=float(line.split('=')[-1])
-                                if debug: print('zshift=',zshift)
-                        f.seek(0)
-                        for line in f:
-
-                            point = line.strip()
-                            if point.startswith('#'):
-                                # move along to the next iteration
-                                # this simulates a comment
-                                continue
-
-                            if line.count('zshift')>0:
-                                continue
-                            # we deal with separator ',' or ' '
-
-                            if point.count(',')>0:
-                                x = float(point.split(',')[0])
-                                y = float(point.split(',')[1])
-                            else:
-
-                                x = float(point.split(' ')[0])
-                                y = float(point.split(' ')[1])
-
-                            plate_data[plate]['coordinates'].append((x, y - zshift))
-
-                    # Check that data points are unique.
-                    # If not, the fitting with splines during the grid generation will fail
-                    data=np.array(plate_data[plate]['coordinates'])
-                    a,index=np.unique(data,return_index=True,axis=0)
-                    index.sort()
-                    plate_data[plate]['coordinates']=[(x,y) for x,y in data[index]]
-
-                    temp_max = temp_min = plate_data[plate]['coordinates'][0]
-
-
-
-                    # Determine the min/max psi values that lie on the current target plate.
-                    for (r, z) in plate_data[plate]['coordinates']:
-                        curr_v = self.efit_psi.get_psi(r, z)
-                        min_v_test = self.efit_psi.get_psi(temp_min[0], temp_min[1])
-                        max_v_test = self.efit_psi.get_psi(temp_max[0], temp_max[1])
-                        temp_min = (r, z) if curr_v <= min_v_test else temp_min
-                        temp_max = (r, z) if curr_v >= max_v_test else temp_max
-
-                    plate_data[plate]['psi_min_rz'] = temp_min
-                    plate_data[plate]['psi_max_rz'] = temp_max
-
-                except Exception as e:
-                    print(repr(e))
-                    raise ValueError("Something went wrong when processing the target plate file:{}. \
-                                     No entry is expected in the yaml file when no file is required".format(target_plates[plate]['file']))
-
-            else:
-                print('No file provided for plate:{} '.format(plate))
-
-        # Save plate_data dictionary within the Ingrid object.
-        self.plate_data = plate_data
-
-    def order_target_plates(self):
+    def OrderTargetPlates(self):
         """
         Ensures the target plate points are oriented clockwise around the
         magnetic axis.
@@ -703,13 +693,10 @@ class Ingrid:
 
         for k in self.plate_data.keys():
 
-            try:
-                if self.plate_data[k]['coordinates'] == []:
-                    continue
-            except:
+            if self.plate_data.get(k) is None:
                 continue
 
-            plate = Line([Point(p) for p in self.plate_data[k]['coordinates']])
+            plate = self.plate_data[k]
 
             start = plate.p[0]
             end = plate.p[-1]
@@ -750,9 +737,9 @@ class Ingrid:
                     ordered_plate = plate.reverse_copy()
 
             # Gather raw data
-            self.plate_data[k]['coordinates'] = ordered_plate.points()
+            self.plate_data[k] = ordered_plate
 
-    def order_limiter(self):
+    def OrderLimiter(self):
         """
         Ensures limiter geometry is oriented clockwise around magnetic axis
         """
@@ -1205,7 +1192,7 @@ class Ingrid:
         if topology == 'DNL':
             self.AutoRefineXPoint2()
         self.read_target_plates()
-        self.set_limiter()
+        self.SetLimiter()
         self.SetMagReference(topology)
         self.calc_psinorm()
         self.plot_psinorm(interactive=interactive)
@@ -1222,8 +1209,10 @@ class Ingrid:
         self.GetPatchTagMap(self.current_topology.get_config())
         self.PrepLineTracing(interactive=False)
         self.current_topology.construct_patches()
-        self.current_topology.patch_diagram()
         self.current_topology.CheckPatches()
+
+    def ShowPatchMap(self):
+        self.current_topology.patch_diagram()
 
     def GetConnexionMap(self):
         if isinstance(self.current_topology, SNL):

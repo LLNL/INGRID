@@ -11,6 +11,7 @@ import sys
 sys.path.append('../src/')
 from Ingrid import Ingrid
 import pathlib
+import numpy as np
 
 # Path to parameter file cases
 LSN_case = "../Parameter Files/SNL/LSN_YAML_EXAMPLE.yml"
@@ -32,13 +33,23 @@ if __name__ == '__main__':
     GridDemo = Ingrid(InputFile=case)
 
     # Read EFIT data, target plate data, and plot data.
-    GridDemo.Setup()
+    GridDemo.OMFIT_read_psi()
+    GridDemo.calc_efit_derivs()
+    GridDemo.AutoRefineMagAxis()
+    GridDemo.AutoRefineXPoint()
+    GridDemo.SetGeometry({'W1' : GridDemo.settings['target_plates']['plate_W1']['file']})
+    GridDemo.SetGeometry({'E1' : [np.linspace(0.9364, 1.1), np.linspace(0.884, 1.34)]})
+    GridDemo.SetLimiter()
+    GridDemo.SetMagReference()
+    GridDemo.calc_psinorm()
+    GridDemo.AnalyzeTopology()
 
     # Begin patch construction with parameter file psi values.
     GridDemo.ConstructPatches()
 
     # Plot constructed patches.
-    GridDemo.ShowSetup()
+    import pdb
+    pdb.set_trace()
     # Begin patch refinement and actively plot grid.
 
     CellCorrection={'ThetaMin':60,'ThetaMax':120,'Resolution':1000,'Active':True}

@@ -178,7 +178,7 @@ class FilePicker(tk.Tk):
         if topology == 'DNL':
             IG.AutoRefineXPoint2()
         IG.read_target_plates()
-        IG.set_limiter()
+        IG.SetLimiter()
         IG.SetMagReference(topology)
         IG.calc_psinorm()
 
@@ -208,6 +208,7 @@ class FilePicker(tk.Tk):
     def CreatePatches(self):
         IG = self.Ingrid
         IG.ConstructPatches()
+        IG.ShowPatchMap()
 
     def ViewData(self):
         self.ReadyIngridData()

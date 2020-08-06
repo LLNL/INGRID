@@ -620,7 +620,7 @@ class Ingrid:
             else:
                 plate_data[k] = v
         
-            settings['target_plates'][k]['data'] = plate_data[k]
+            settings['target_plates'][k].update({'data' : plate_data[k]})
 
         with open(self.InputFile, 'w') as f:
             yml.dump(settings, f)
@@ -641,6 +641,19 @@ class Ingrid:
         with open(self.InputFile, 'r') as f:
             settings = yml.load(f, Loader=yml.Loader)
 
+        limiter_data = {'R' : [R[0] for R in self.limiter_data.points()],
+                        'Z' : [Z[1] for Z in self.limiter_data.points()]}
+
+        settings['limiter'].update({'data' : limiter_data})
+
+        with open(self.InputFile, 'w') as f:
+            yml.dump(settings, f)
+
+    def LoadLimiterData(self):
+        with open(self.InputFile, 'r') as f:
+            settings = yml.load(f, Loader=yml.Loader)
+
+        self.limiter_data = Line([Point(P) for P in zip(settings['limiter']['data']['R'], settings['limiter']['data']['Z'])])
 
 
     def SetLimiter(self, coordinates=None, fpath=None, rshift=None, zshift=None):

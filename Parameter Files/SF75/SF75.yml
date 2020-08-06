@@ -223,15 +223,15 @@ grid_params:
         zmagx_shift: 0.0
         zxpt: 0.0
     psi_max: 1.066
-    psi_max_inner: 0.0
-    psi_max_outer: 0.0
+    psi_max_west: 1.5
+    psi_max_east: 1.5
     psi_max_r: 1.031298701299
     psi_max_r_inner: 0.0
     psi_max_r_outer: 0.0
     psi_max_z: -1.072207792208
     psi_max_z_inner: 0.0
     psi_max_z_outer: 0.0
-    psi_min_core: 0.8
+    psi_min_core: 0.9
     psi_min_core_r: 1.363766233766
     psi_min_core_z: -1.030649350649
     psi_min_pf: 0.99
@@ -257,6 +257,7 @@ limiter:
     file: ''
     use_limiter: True
     use_efit_bounds: True
+    zshift: 0.0
 target_plates:
     plate_E1:
         file: ../data/ADX/eplate.txt

@@ -29,6 +29,7 @@ from Root_Finder import RootFinder
 from Topologies.SNL import SNL
 from Topologies.SF15 import SF15
 from Topologies.SF45 import SF45
+from Topologies.SF75 import SF75
 from Topologies.UDN import UDN
 
 from geometry import Point, Line, Patch, segment_intersect, orientation_between
@@ -324,14 +325,14 @@ class Ingrid:
         }
 
         self.default_target_plates_params = { \
-            'plate_E1' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0}, \
-            'plate_E2' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0}, \
-            'plate_W1' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0}, \
-            'plate_W2' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0} \
+            'plate_E1' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0, 'data' : {}}, \
+            'plate_E2' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0, 'data' : {}}, \
+            'plate_W1' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0, 'data' : {}},
+            'plate_W2' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0, 'data' : {}}
         }
 
         self.default_limiter_params = {
-            'file' : '', 'use_limiter' : False, 'use_efit_bounds' : False, 'rshift' : 0.0, 'zshift' : 0.0
+            'file' : '', 'use_limiter' : False, 'use_efit_bounds' : False, 'rshift' : 0.0, 'zshift' : 0.0, 'data' : {}
         }
 
         self.default_DEBUG_params = { \
@@ -343,12 +344,8 @@ class Ingrid:
             'target_plates' : self.default_target_plates_params, 'limiter' : self. default_limiter_params, 
             'DEBUG' : self.default_DEBUG_params}
 
-        self.plate_data = {
-            'plate_E1' : None,
-            'plate_E2' : None,
-            'plate_W1' : None,
-            'plate_W2' : None 
-        }
+        self.plate_data = {'plate_W1' : {}, 'plate_E1' : {}, 'plate_W2' : {}, 'plate_E2' : {}}
+
 
     def ProcessKeywords(self,**kwargs):
         for k, v in kwargs.items():
@@ -564,6 +561,7 @@ class Ingrid:
 
             TargetPlate = False
             Limiter = False
+            DefaultEQ = False
 
             if k.lower() in ['w1', 'westplate1', 'plate_w1']:
                 TargetPlate = True
@@ -577,7 +575,10 @@ class Ingrid:
                 Limiter = True
 
             if type(v) == str:
-                x, y = self.ParseFileCoordinates(v)
+                if Limiter and v.lower() == 'eq':
+                    DefaultEQ = True
+                else:
+                    x, y = self.ParseFileCoordinates(v)
             elif type(v) in [list, tuple]:
                 x, y = v
             elif type(v) == dict:
@@ -598,10 +599,49 @@ class Ingrid:
 
             if TargetPlate: 
                 self.SetTargetPlate({k : [x, y]}, rshift=rshift, zshift=zshift)
-            elif Limiter:
+            elif Limiter and not DefaultEQ:
                 self.SetLimiter([x, y], rshift=rshift, zshift=zshift)
+            elif Limiter and DefaultEQ:
+                self.SetLimiter()
             else:
                 raise ValueError(f"# Invalid key '{k}' was used for setting geometry.")
+
+    def SaveTargetData(self):
+        with open(self.InputFile, 'r') as f:
+            settings = yml.load(f, Loader=yml.Loader)
+
+        plate_data = {}
+
+        for k, v in self.plate_data.items():
+            if v:
+                plate_data[k] = {'R' : None, 'Z' : None}
+                plate_data[k]['R'] = [R[0] for R in v.points()]
+                plate_data[k]['Z'] = [Z[1] for Z in v.points()]
+            else:
+                plate_data[k] = v
+        
+            settings['target_plates'][k]['data'] = plate_data[k]
+
+        with open(self.InputFile, 'w') as f:
+            yml.dump(settings, f)
+
+
+    def LoadTargetData(self):
+        with open(self.InputFile, 'r') as f:
+            settings = yml.load(f, Loader=yml.Loader)
+
+        for k in settings['target_plates'].keys():
+            if settings['target_plates'][k]['data']:
+                self.plate_data[k] = Line([Point(p) 
+                    for p in zip(settings['target_plates'][k]['data']['R'], settings['target_plates'][k]['data']['Z'])])
+            else:
+                self.plate_data[k] = None
+
+    def SaveLimiterData(self):
+        with open(self.InputFile, 'r') as f:
+            settings = yml.load(f, Loader=yml.Loader)
+
+
 
     def SetLimiter(self, coordinates=None, fpath=None, rshift=None, zshift=None):
         
@@ -626,12 +666,7 @@ class Ingrid:
         elif coordinates is None:
             g=OMFITgeqdsk(self.settings['eqdsk'])
             RLIM, ZLIM = g['RLIM'], g['ZLIM']
-            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = [r - rshift for r in RLIM], [z - zshift for z in ZLIM]
-
-            if (type(self.OMFIT_psi['RLIM']) == np.ndarray) or (type(self.OMFIT_psi['ZLIM']) == np.ndarray):
-                use_efit_bounds = True if (self.OMFIT_psi['RLIM'].size == 0 or self.OMFIT_psi['ZLIM'].size == 0) else False
-            elif (type(self.OMFIT_psi['RLIM']) == np.ndarray) or (type(self.OMFIT_psi['ZLIM']) == np.ndarray):
-                use_efit_bounds = True if (self.OMFIT_psi['RLIM'] == [] or self.OMFIT_psi['ZLIM'] == []) else False
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM - rshift, ZLIM - zshift
 
         if use_efit_bounds:
             coordinates = [(self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
@@ -639,12 +674,14 @@ class Ingrid:
                                (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
                                (self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
                                (self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift)]
+
+            RLIM, ZLIM = [], []
             for c in coordinates:
                 r, z = c
                 RLIM.append(r - rshift)
                 ZLIM.append(z - zshift)
 
-            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM, ZLIM
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = np.array(RLIM), np.array(ZLIM)
 
         self.OrderLimiter()
 
@@ -674,7 +711,8 @@ class Ingrid:
         data = np.array([c for c in zip(R, Z)])
         a,index=np.unique(data,return_index=True,axis=0)
         index.sort()
-        self.plate_data[k]=Line([(x,y) for x,y in data[index]])
+        self.plate_data[k]=Line([Point(x,y) for x,y in data[index]])
+        self.OrderTargetPlate(k)
 
     def read_target_plates(self):
         for plate in self.settings['target_plates']:
@@ -683,7 +721,7 @@ class Ingrid:
             except:
                 pass
 
-    def OrderTargetPlates(self):
+    def OrderTargetPlate(self, plate_key):
         """
         Ensures the target plate points are oriented clockwise around the
         magnetic axis.
@@ -691,50 +729,50 @@ class Ingrid:
         @author: garcia299
         """
 
-        for k in self.plate_data.keys():
+        k = plate_key
 
-            if self.plate_data.get(k) is None:
-                continue
+        if not isinstance(self.plate_data.get(k), Line):
+            raise ValueError(f"# Plate '{k}' is not loaded as a Line object. Check that 'SetGeometry({{'{k}' : ... }})' has been run.")
 
-            plate = self.plate_data[k]
+        plate = self.plate_data[k]
 
-            start = plate.p[0]
-            end = plate.p[-1]
+        start = plate.p[0]
+        end = plate.p[-1]
 
-            # Endpoints are on same vertical line
-            if start.x == end.x:
-                # If end point is above start point
-                if start.y < end.y: 
-                    # Return target plate as is
-                    ordered_plate = plate.copy()
-                else:
-                    # Flip plate orientation
-                    ordered_plate = plate.reverse_copy()
-
-            # Endpoints are on same horizontal line
-            elif start.y == end.y:
-                # If start point is right of end point
-                if start.x > end.x:
-                    # Return strike plate as is
-                    ordered_plate = plate.copy()
-                else:
-                    # Flip plate orientation
-                    ordered_plate = plate.reverse_copy()
-
+        # Endpoints are on same vertical line
+        if start.x == end.x:
+            # If end point is above start point
+            if start.y < end.y: 
+                # Return target plate as is
+                ordered_plate = plate.copy()
             else:
+                # Flip plate orientation
+                ordered_plate = plate.reverse_copy()
 
-                # Check the angle between the plate endpoints with
-                # tail fixed on the magnetic axis
-                v_reference = np.array( [ self.settings['grid_params']['rmagx'], 
-                    self.settings['grid_params']['zmagx'] ])
+        # Endpoints are on same horizontal line
+        elif start.y == end.y:
+            # If start point is right of end point
+            if start.x > end.x:
+                # Return strike plate as is
+                ordered_plate = plate.copy()
+            else:
+                # Flip plate orientation
+                ordered_plate = plate.reverse_copy()
 
-                v_start = np.array( [ start.x, start.y ] )
-                v_end = np.array( [ end.x, end.y ] )
+        else:
 
-                if orientation_between(v_start, v_end, v_reference) <= 0:
-                    ordered_plate = plate.copy()
-                else:
-                    ordered_plate = plate.reverse_copy()
+            # Check the angle between the plate endpoints with
+            # tail fixed on the magnetic axis
+            v_reference = np.array( [ self.settings['grid_params']['rmagx'], 
+                self.settings['grid_params']['zmagx'] ])
+
+            v_start = np.array( [ start.x, start.y ] )
+            v_end = np.array( [ end.x, end.y ] )
+
+            if orientation_between(v_start, v_end, v_reference) <= 0:
+                ordered_plate = plate.copy()
+            else:
+                ordered_plate = plate.reverse_copy()
 
             # Gather raw data
             self.plate_data[k] = ordered_plate
@@ -803,19 +841,12 @@ class Ingrid:
 
         @author: watkins35, garcia299
         """
-
-        try:
-            ind = -1
-            colorbank = {0 : 'blue', 1 : 'orange', 2 : 'firebrick', 3 : 'green'}
-            for plate in self.plate_data:
-                ind += 1
-                try:
-                    if self.plate_data[plate]:
-                        Line([Point(P) for P in self.plate_data[plate]['coordinates']]).plot(label=plate, color=colorbank[ind])
-                except:
-                    continue
-        except:
-            pass
+        ind = -1
+        colorbank = {0 : 'blue', 1 : 'orange', 2 : 'firebrick', 3 : 'green'}
+        for k, v in self.plate_data.items():
+            ind += 1
+            if type(v) == Line:
+                v.plot(label=k, color=colorbank[ind])
 
     def plot_limiter_data(self):
         self.limiter_data.plot(color='dodgerblue', label='Limiter')
@@ -987,6 +1018,9 @@ class Ingrid:
 
         elif topology == 'SF45':
             ingrid_topology = SF45(self, topology)
+
+        elif topology == 'SF75':
+            ingrid_topology = SF75(self, topology)
 
         self.current_topology = ingrid_topology
 
@@ -1201,6 +1235,7 @@ class Ingrid:
         self.AnalyzeTopology()
 
     def ShowSetup(self):
+        self.plot_psinorm()
         self.PlotPsiNormMagReference()
         self.PlotPsiNormBounds()
         self.plot_strike_geometry()
@@ -1385,7 +1420,8 @@ class Ingrid:
         File=pathlib.Path(FileName).expanduser()
         if File.exists() and File.is_file():
             try:
-                ymlDict=yml.full_load(File.read_text())
+                with open(FileName, 'r') as f:
+                    ymlDict=yml.load(f, Loader=yml.Loader)
                 return ymlDict
             except:
                 raise IOError('Cannot load the yml file: '+FileName)

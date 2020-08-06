@@ -29,7 +29,6 @@ class SF75():
         self.settings = Ingrid_obj.settings
         self.plate_data = Ingrid_obj.plate_data
 
-        self.parent.order_target_plates()
         self.PatchTagMap = self.parent.GetPatchTagMap(config='SF75')
 
         self.eq = Ingrid_obj.eq
@@ -249,261 +248,6 @@ class SF75():
         if debug:
             self.animate_grid()
 
-#     def add_guardc(self, cell_map, ixlb, ixrb, eps = 1e-3):
-
-#         def set_guard(cell_map, ix, iy, eps, boundary):
-#             # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
-#             # TODO: Edit the code to reflect this at some point so the next reader is not overwhelmed.
-#             if boundary == 'left':
-#                 ixn = ix + 1
-#                 iyn = iy
-#                 cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
-#                 cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
-#                 cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
-#                 cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
-#                 cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-#             elif boundary == 'right':
-#                 ixn = ix - 1
-#                 iyn = iy
-#                 cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
-#                 cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
-#                 cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
-#                 cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
-#                 cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-#             elif boundary == 'bottom':
-#                 ixn = ix
-#                 iyn = iy + 1
-#                 cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
-#                 cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
-#                 cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
-#                 cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
-#                 cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-#             elif boundary == 'top':
-#                 ixn = ix
-#                 iyn = iy - 1
-#                 cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
-#                 cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
-#                 cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
-#                 cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
-#                 cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-#             return cell_map
-
-#         np = len(cell_map) - 2
-#         nr = len(cell_map[0]) - 2
-
-#         for iy in range(1, nr + 1):
-#             ix = ixlb
-#             cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'left')
-#             ix = ixrb + 1
-#             cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'right')
-
-#         for ix in range(np + 2):
-#             iy = 0
-#             cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'bottom')
-#             iy = nr + 1
-#             cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'top')
-
-#         return cell_map
-
-#     def set_gridue(self):
-#         """
-#         Prepare the relevant arrays for writing to GRIDUE.
-#         """
-
-#         ixlb = 0
-#         ixrb = len(self.rm) - 2
-
-#         nxm = len(self.rm) - 2
-#         nym = len(self.rm[0]) - 2
-#         iyseparatrix1 = self.patch_lookup['C2'].nrad - 1
-#         iyseparatrix2 = self.patch_lookup['B5'].nrad + self.patch_lookup['C5'].nrad - 2
-#         ix_plate1 = 0
-#         ix_cut1 = self.patch_lookup['A1'].npol - 1
-#         ix_cut2 = self.patch_lookup['A1'].npol + self.patch_lookup['A2'].npol + self.patch_lookup['A3'].npol - 3
-#         ix_plate2 = ix_cut2 + self.patch_lookup['A4'].npol - 1
-#         iyseparatrix3 = iyseparatrix2
-#         iyseparatrix4 = iyseparatrix1
-#         ix_plate3 = ix_plate2 + 2
-#         ix_cut3 = ix_plate3 + self.patch_lookup['A5'].npol - 1
-#         ix_cut4 = ix_cut3 + self.patch_lookup['A6'].npol + self.patch_lookup['A7'].npol - 2
-#         ix_plate4 = ix_cut4 + self.patch_lookup['A8'].npol - 1
-
-#         psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-#         br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-#         bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-#         bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-#         bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-#         b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-
-#         rm = self.rm
-#         zm = self.zm
-#         rb_prod = self.efit_psi.rcenter * self.efit_psi.bcenter
-
-#         for i in range(len(b)):
-#             for j in range(len(b[0])):
-#                 for k in range(5):
-#                     _r = rm[i][j][k]
-#                     _z = zm[i][j][k]
-
-#                     _psi = self.efit_psi.get_psi(_r, _z)
-#                     _br = self.efit_psi.get_psi(_r, _z, tag = 'vz') / _r
-#                     _bz = -self.efit_psi.get_psi(_r, _z, tag = 'vr') / _r
-#                     _bpol = np.sqrt(_br ** 2 + _bz ** 2)
-#                     _bphi = rb_prod / _r
-#                     _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
-
-#                     psi[i][j][k] = _psi
-#                     br[i][j][k] = _br
-#                     bz[i][j][k] = _bz
-#                     bpol[i][j][k] = _bpol
-#                     bphi[i][j][k] = _bphi
-#                     b[i][j][k] = _b
-
-#         self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'iyseparatrix1' : iyseparatrix1, 'iyseparatrix2' : iyseparatrix2, \
-#                 'ix_plate1' : ix_plate1, 'ix_cut1' : ix_cut1, 'ix_cut2' : ix_cut2, 'ix_plate2' : ix_plate2, 'iyseparatrix3' : iyseparatrix3, \
-#                 'iyseparatrix4' : iyseparatrix4, 'ix_plate3' : ix_plate3, 'ix_cut3' : ix_cut3, 'ix_cut4' : ix_cut4, 'ix_plate4' : ix_plate4, \
-#                 'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b, '_FILLER_' : -1}
-
-
-#     def construct_grid(self, np_cells = 3, nr_cells = 3,Verbose=False):
-
-#         # Straighten up East and West segments of our patches,
-#         # Plot borders and fill patches.
-
-#         try:
-#             visual = self.yaml['DEBUG']['visual']['subgrid']
-#         except:
-#             visual = False
-#         try:
-#             verbose = self.yaml['DEBUG']['verbose']['grid_generation']
-#         except:
-#             verbose = False
-
-#         verbose=verbose or Verbose
-
-#         try:
-#             np_primary_sol = self.yaml['grid_params']['grid_generation']['np_primary_sol']
-#         except:
-#             np_primary_sol = self.yaml['grid_params']['grid_generation']['np_global']
-#         try:
-#             np_secondary_sol = self.yaml['grid_params']['grid_generation']['np_secondary_sol']
-#         except:
-#             np_secondary_sol = self.yaml['grid_params']['grid_generation']['np_global']
-#         try:
-#             np_core = self.yaml['grid_params']['grid_generation']['np_core']
-#         except:
-#             np_core = self.yaml['grid_params']['grid_generation']['np_global']
-#         try:
-#             np_primary_pf = self.yaml['grid_params']['grid_generation']['np_primary_pf']
-#         except:
-#             np_primary_pf = self.yaml['grid_params']['grid_generation']['np_global']
-#         try:
-#             np_secondary_pf = self.yaml['grid_params']['grid_generation']['np_secondary_pf']
-#         except:
-#             np_secondary_pf = self.yaml['grid_params']['grid_generation']['np_global']
-#         """
-#         if np_sol != np_core:
-#             print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
-#                 + ' to the minimum of np_sol and np_core.\n')
-#             np_sol = np_core = np.amin([np_sol, np_core])
-#         """
-#         try:
-#             nr_primary_sol = self.yaml['grid_params']['grid_generation']['nr_primary_sol']
-#         except:
-#             nr_primary_sol = self.yaml['grid_params']['grid_generation']['nr_global']
-
-#         try:
-#             nr_secondary_sol = self.yaml['grid_params']['grid_generation']['nr_secondary_sol']
-#         except:
-#             nr_secondary_sol = self.yaml['grid_params']['grid_generation']['nr_global']
-
-#         try:
-#             nr_core = self.yaml['grid_params']['grid_generation']['nr_core']
-#         except:
-#             nr_core = self.yaml['grid_params']['grid_generation']['nr_global']
-#         try:
-#             nr_primary_pf = self.yaml['grid_params']['grid_generation']['nr_primary_pf']
-#         except:
-#             nr_primary_pf = self.yaml['grid_params']['grid_generation']['nr_global']
-#         try:
-#             nr_secondary_pf = self.yaml['grid_params']['grid_generation']['nr_secondary_pf']
-#         except:
-#             nr_secondary_pf = self.yaml['grid_params']['grid_generation']['nr_global']
-#         """
-#         if nr_pf != nr_core:
-#             print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
-#                 + ' to the minimum of nr_pf and nr_core.\n')
-#             nr_pf = nr_core = np.amin([nr_pf, nr_core])
-#         """
-#         for patch in self.patches:
-#             if patch in self.PRIMARY_SOL:
-#                 nr_cells = nr_primary_sol
-#                 np_cells = np_primary_sol
-#                 print('Patch "{}" is in PRIMARY_SOL'.format(patch.patchName))
-#             elif patch in self.SECONDARY_SOL:
-#                 nr_cells = nr_secondary_sol
-#                 np_cells = np_secondary_sol
-#                 print('Patch "{}" is in SECONDARY_SOL'.format(patch.patchName))
-#             elif patch in self.CORE:
-#                 nr_cells = nr_core
-#                 np_cells = np_core
-#                 print('Patch "{}" is in CORE'.format(patch.patchName))
-#             elif patch in self.PRIMARY_PF:
-#                 nr_cells = nr_primary_pf
-#                 np_cells = np_primary_pf
-#                 print('Patch "{}" is in PRIMARY_PF'.format(patch.patchName))
-#             elif patch in self.SECONDARY_PF:
-#                 nr_cells = nr_secondary_pf
-#                 np_cells = np_secondary_pf
-#                 print('Patch "{}" is in SECONDARY_PF'.format(patch.patchName))
-
-#             print('CONSTRUCTING GRID FOR PATCH: {}'.format(patch.patchName))
-#             patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
-
-#             # Tidy up primary x-point
-#             primary_xpt = Point(self.xpt1)
-#             secondary_xpt = Point(self.xpt2)
-
-#             if patch.patchName == 'B1':
-#                 patch.adjust_corner(primary_xpt, 'SE')
-#             elif patch.patchName == 'C1':
-#                 patch.adjust_corner(primary_xpt, 'NE')
-#             elif patch.patchName == 'B2':
-#                 patch.adjust_corner(primary_xpt, 'SW')
-#             elif patch.patchName == 'C2':
-#                 patch.adjust_corner(primary_xpt, 'NW')
-#             elif patch.patchName == 'C7':
-#                 patch.adjust_corner(primary_xpt, 'NE')
-#             elif patch.patchName == 'B7':
-#                 patch.adjust_corner(primary_xpt, 'SE')
-#             elif patch.patchName == 'C8':
-#                 patch.adjust_corner(primary_xpt, 'NW')
-#             elif patch.patchName == 'B8':
-#                 patch.adjust_corner(primary_xpt, 'SW')
-
-#             # Tidy up secondary x-point
-#             elif patch.patchName == 'A3':
-#                 patch.adjust_corner(secondary_xpt, 'SE')
-#             elif patch.patchName == 'B3':
-#                 patch.adjust_corner(secondary_xpt, 'NE')
-#             elif patch.patchName == 'A4':
-#                 patch.adjust_corner(secondary_xpt, 'SW')
-#             elif patch.patchName == 'B4':
-#                 patch.adjust_corner(secondary_xpt, 'NW')
-#             elif patch.patchName == 'B5':
-#                 patch.adjust_corner(secondary_xpt, 'NE')
-#             elif patch.patchName == 'A5':
-#                 patch.adjust_corner(secondary_xpt, 'SE')
-#             elif patch.patchName == 'B6':
-#                 patch.adjust_corner(secondary_xpt, 'NW')
-#             elif patch.patchName == 'A6':
-#                 patch.adjust_corner(secondary_xpt, 'SW')
-
-#         self.concat_grid()
-#         self.set_gridue()
 
     def construct_patches(self):
         """
@@ -563,11 +307,11 @@ class SF75():
             EastPlate2 = self.parent.limiter_data.copy()
 
         else:
-            WestPlate1 = Line([Point(i) for i in self.plate_W1])
-            WestPlate2 = Line([Point(i) for i in self.plate_W2])
+            WestPlate1 = self.plate_data['plate_W1']
+            WestPlate2 = self.plate_data['plate_W2']
 
-            EastPlate1 = Line([Point(i) for i in self.plate_E1])
-            EastPlate2 = Line([Point(i) for i in self.plate_E2])
+            EastPlate1 = self.plate_data['plate_E1']
+            EastPlate2 = self.plate_data['plate_E2']
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
@@ -616,44 +360,123 @@ class SF75():
 
         D2_N = self.eq.draw_line(E2_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', 
             show_plot = visual, text = verbose).reverse_copy()
-        D2_S = D1_N.reverse_copy()
+        D2_S = D2_N.reverse_copy()
 
-        B1_N = self.eq.draw_line(B1_W.p[-1], {'line', west_midLine}, option='theta', direction='cw',
+        B1_N = self.eq.draw_line(B1_W.p[-1], {'line' : west_midLine}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
         B2_S = B1_N.reverse_copy()
 
-        E1_N = self.eq.draw_line(B1_W.p[-1], {'line', east_midLine}, option='theta', direction='ccw',
+        E1_N = self.eq.draw_line(B1_W.p[-1], {'line' : east_midLine}, option='theta', direction='ccw',
             show_plot=visual, text=verbose).reverse_copy()
         E2_S = E1_N.reverse_copy()
 
-        C1_N = self.eq.draw_line(B1_N.p[-1], {'line', topLine}, option='theta', direction='cw',
+        C1_N = self.eq.draw_line(B1_N.p[-1], {'line' : topLine}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
         C2_S = C1_N.reverse_copy()
 
-        D1_N = self.eq.draw_line(E1_N.p[0], {'line', topLine}, option='theta', direction='ccw',
+        D1_N = self.eq.draw_line(E1_N.p[0], {'line' : topLine}, option='theta', direction='ccw',
             show_plot=visual, text=verbose).reverse_copy()
         D2_S = D1_N.reverse_copy()
 
-        B1_S = self.eq.draw_line(B1_W.p[0], {'line', west_midLine}, option='theta', direction='cw',
+        B1_S = self.eq.draw_line(B1_W.p[0], {'line' : west_midLine}, option='theta', direction='cw',
             show_plot=visual, text=verbose).reverse_copy()
 
-        E1_S = self.eq.draw_line(B1_W.p[0], {'line', east_midLine}, option='theta', direction='ccw',
+        E1_S = self.eq.draw_line(B1_W.p[0], {'line' : east_midLine}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
-        C1_S = self.eq.draw_line(B1_S.p[0], {'line', topLine}, option='theta', direction='cw',
+        C1_S = self.eq.draw_line(B1_S.p[0], {'line' : topLine}, option='theta', direction='cw',
             show_plot=visual, text=verbose).reverse_copy()
 
-        D1_S = self.eq.draw_line(E1_S.p[-1], {'line', topLine}, option='theta', direction='ccw',
+        D1_S = self.eq.draw_line(E1_S.p[-1], {'line' : topLine}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
-        B3_W = self.eq.draw_line(xpt1['W'], {'psi', psi_max_west}, option='rho', direction='ccw',
+        B3_W = self.eq.draw_line(xpt1['W'], {'psi' : psi_max_west}, option='rho', direction='ccw',
             show_plot=visual, text=verbose)
         A3_E = B3_W.reverse_copy()
 
 
-        F3_W = self.eq.draw_line(xpt1['E'], {'psi', psi_max_west}, option='rho', direction='ccw',
+        F3_W = self.eq.draw_line(xpt1['E'], {'psi' : psi_max_west}, option='rho', direction='ccw',
             show_plot=visual, text=verbose)
         E3_E = F3_W.reverse_copy()
+
+        B3_N = self.eq.draw_line(B3_W.p[-1], {'line' : west_midLine}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
+
+        C3_N = self.eq.draw_line(B3_N.p[-1], {'line' : topLine}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
+
+        E3_N = self.eq.draw_line(E3_E.p[0], {'line' : east_midLine}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+
+        D3_N = self.eq.draw_line(E3_N.p[0], {'line' : topLine}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+
+        A3_N = self.eq.draw_line(B3_N.p[0], {'line' : WestPlate1}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+
+        A3_S = self.eq.draw_line(xpt1['SW'], {'line' : WestPlate1}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose)
+        A2_N = A3_S.reverse_copy()
+
+        A2_E__A1_E = self.eq.draw_line(xpt1['S'], {'psi' : psi_min_pf}, option='rho', direction='cw',
+            show_plot=visual, text=verbose)
+
+        F2_N__G2_N = self.eq.draw_line(xpt1['SE'], {'line' : EastPlate1}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
+
+        F3_N__G3_N = self.eq.draw_line(E3_N.p[-1], {'line' : EastPlate1}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
+
+        G2_W = self.eq.draw_line(xpt2['N'], {'line' : F2_N__G2_N}, option='rho', direction='ccw',
+            show_plot=visual, text=verbose)
+        F2_E = G2_W.reverse_copy()
+
+        F2_N, G2_N = F2_N__G2_N.split(G2_W.p[-1], add_split_point=True)
+        F3_S, G3_S = F2_N.reverse_copy(), G2_N.reverse_copy()
+
+        G3_W = self.eq.draw_line(G2_W.p[-1], {'line' : F3_N__G3_N}, option='rho', direction='ccw',
+            show_plot=visual, text=verbose)
+        E3_E = G3_W.reverse_copy()
+
+        F3_N, G3_N = F3_N__G3_N.split(G3_W.p[-1], add_split_point=True)
+
+        F2_S = self.eq.draw_line(xpt2['NW'], {'line' : A2_E__A1_E}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose)
+        F1_N = F1_S.reverse_copy()
+
+        A2_S = self.eq.draw_line(F2_S.p[-1], {'line' : WestPlate1}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose)
+        A1_N = A2_S.reverse_copy()
+
+        A2_E, A1_E = A2_E__A1_E.split(F2_S.p[-1], add_split_point=True)
+
+        F2_W, F1_W = A2_E.reverse_copy(), A1_E.reverse_copy()
+
+        A1_S = self.eq.draw_line(A1_E.p[-1], {'line' : WestPlate1}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose)
+
+        import pdb
+        pdb.set_trace()
+
+        I1_S__F1_S = self.eq.draw_line(A1_E.p[-1], {'line' : WestPlate2}, option='theta', direction='cw',
+            show_plot=visual, text=verbose).reverse_copy()
+
+        F1_E = self.eq.draw_line(xpt2['W'], {'line' : I1_S__F1_S}, option='rho', direction='cw',
+            show_plot=visual, text=verbose)
+        I1_W = F1_E.reverse_copy()
+
+        I1_S, F1_S = I1_S__F1_S.split(F1_E.p[-1], add_split_point=True)
+
+        I1_N = self.eq.draw_line(xpt2['SW'], {'line' : WestPlate2}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose)
+        I2_S = I1_N.reverse_copy()
+
+        I2_W__I3_W = self.eq.draw_line(xpt2['S'], {'psi' : psi_min_pf_2}, option='rho', direction='cw',
+            show_plot=visual, text=verbose)
+
+        I3_N = self.eq.draw_line(I2_W__I3_W.p[-1], {'line' : WestPlate2}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose)
+
 
 
        

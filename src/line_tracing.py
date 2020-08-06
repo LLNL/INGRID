@@ -354,10 +354,8 @@ class LineTracing:
             except KeyError:
                 verbose = False
             
-            WestPlate = geo.Line([geo.Point(i) for i in self.grid.parent.plate_data['plate_W1']['coordinates']])
-            EastPlate = geo.Line([geo.Point(i) for i in self.grid.parent.plate_data['plate_E1']['coordinates']])
-
-            self.grid.parent.set_limiter()
+            WestPlate = self.grid.parent.plate_data['plate_W1']
+            EastPlate = self.grid.parent.plate_data['plate_E1']
 
             limiter = self.grid.parent.limiter_data
 

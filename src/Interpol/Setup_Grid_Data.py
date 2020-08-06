@@ -375,10 +375,10 @@ class Efit_Data:
         nlev : int, optional
             number of levels we want to be plotted
         """
-        self.fig = plt.figure('INGRID: ' + self.name, figsize=(6, 10))
-        self.ax = self.fig.add_subplot(111)
         lev = (self.v.min() + (self.v.max()
                - self.v.min()) * np.arange(nlev) / (nlev-1))
+        self.fig = plt.figure('INGRID: ' + self.name, figsize=(6, 10))
+        self.ax = self.fig.add_subplot(111)
         self.ax.contourf(self.r, self.z, self.v, lev, cmap='gist_gray')
         plt.gca().set_aspect('equal', adjustable='box')
         plt.suptitle(self.name)

@@ -623,8 +623,8 @@ class SNL():
             outer_tilt = 0.0
 
 
-        WestPlate = Line([Point(i) for i in self.plate_data['plate_W1']['coordinates']])
-        EastPlate = Line([Point(i) for i in self.plate_data['plate_E1']['coordinates']])
+        WestPlate = self.plate_data['plate_W1']
+        EastPlate = self.plate_data['plate_E1']
 
         xpt = self.eq.NSEW_lookup['xpt1']['coor']
         magx = np.array([self.settings['grid_params']['rmagx'] + self.settings['grid_params']['patch_generation']['rmagx_shift'], \

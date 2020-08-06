@@ -37,8 +37,10 @@ if __name__ == '__main__':
     GridDemo.calc_efit_derivs()
     GridDemo.AutoRefineMagAxis()
     GridDemo.AutoRefineXPoint()
-    GridDemo.SetGeometry({'W1' : GridDemo.settings['target_plates']['plate_W1']['file']})
-    GridDemo.SetGeometry({'E1' : [np.linspace(0.9364, 1.1), np.linspace(0.884, 1.34)]})
+
+    GeoSettings = {'W1' : GridDemo.settings['target_plates']['plate_W1']['file'], 'E1' : GridDemo.settings['target_plates']['plate_E1']['file']}
+
+    GridDemo.SetGeometry(GeoSettings)
     GridDemo.SetLimiter()
     GridDemo.SetMagReference()
     GridDemo.calc_psinorm()
@@ -46,10 +48,8 @@ if __name__ == '__main__':
 
     # Begin patch construction with parameter file psi values.
     GridDemo.ConstructPatches()
+    GridDemo.ShowSetup()
 
-    # Plot constructed patches.
-    import pdb
-    pdb.set_trace()
     # Begin patch refinement and actively plot grid.
 
     CellCorrection={'ThetaMin':60,'ThetaMax':120,'Resolution':1000,'Active':True}
@@ -58,3 +58,5 @@ if __name__ == '__main__':
     # Export gridue file.
     fname = 'gridue'
     GridDemo.export(fname=fname)
+    import pdb
+    pdb.set_trace()

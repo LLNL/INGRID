@@ -151,6 +151,7 @@ class FilePicker(tk.Tk):
         self.QuitButton.grid(row=0,column=3,padx=10,pady=10,sticky='nsew')
 
     def ProcessParameterFile(self, fname):
+        self.Ingrid.InputFile=fname
         self.Ingrid.process_yaml(Ingrid.Ingrid.ReadyamlFile(fname))
         self.ParamFileMtime = getmtime(fname)
         self.ParamFileName = fname
@@ -178,7 +179,7 @@ class FilePicker(tk.Tk):
         if topology == 'DNL':
             IG.AutoRefineXPoint2()
         IG.read_target_plates()
-        IG.SetLimiter()
+        IG.SetGeometry({'limiter' : 'eq'})
         IG.SetMagReference(topology)
         IG.calc_psinorm()
 

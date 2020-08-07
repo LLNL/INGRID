@@ -41,7 +41,8 @@ class SNL():
         self.settings = Ingrid_obj.settings
         self.plate_data = Ingrid_obj.plate_data
 
-        self.parent.OrderTargetPlates()
+        self.parent.OrderTargetPlate('plate_W1')
+        self.parent.OrderTargetPlate('plate_E1')
         self.PatchTagMap = self.parent.GetPatchTagMap(config='SNL')
 
         self.eq = Ingrid_obj.eq

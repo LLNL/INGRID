@@ -577,8 +577,10 @@ class Ingrid:
             if type(v) == str:
                 if Limiter and v.lower() == 'eq':
                     DefaultEQ = True
-                else:
+                elif Path(v).suffix == '.txt':
                     x, y = self.ParseFileCoordinates(v)
+                elif Path(v).suffix == '.npy':
+                    x, y = np.load(v)
             elif type(v) in [list, tuple]:
                 x, y = v
             elif type(v) == dict:
@@ -606,54 +608,151 @@ class Ingrid:
             else:
                 raise ValueError(f"# Invalid key '{k}' was used for setting geometry.")
 
-    def SaveTargetData(self):
-        with open(self.InputFile, 'r') as f:
-            settings = yml.load(f, Loader=yml.Loader)
+    def SaveTargetData(self, settings=None, timestamp=False):
 
-        plate_data = {}
+        if type(settings) == dict:
 
-        for k, v in self.plate_data.items():
-            if v:
-                plate_data[k] = {'R' : None, 'Z' : None}
-                plate_data[k]['R'] = [R[0] for R in v.points()]
-                plate_data[k]['Z'] = [Z[1] for Z in v.points()]
-            else:
-                plate_data[k] = v
+            for k, fname in settings.items():
+                if k.lower() in ['w1', 'westplate1', 'plate_w1']:
+                    k='plate_W1'
+                elif k.lower() in ['e1', 'eastplate1', 'plate_e1']:
+                    k='plate_E1'
+                elif k.lower() in ['w2', 'westplate2', 'plate_w2']:
+                    k='plate_W2'
+                elif k.lower() in ['e2', 'eastplate2', 'plate_e2']:
+                    k='plate_E2'
+                else:
+                    raise ValueError(f"# Invalid key '{k}' provided for 'SaveTargetDatafile'")
+
+                v = self.plate_data[k]
+
+                if v:
+                    R = np.array(v.xval)
+                    Z = np.array(v.yval)
+                else:
+                    R = np.array([None])
+                    Z = np.array([None])
+
+                if timestamp == False:
+                    f = fname+'_'+k
+                else:
+                    # Save to current working directory with timestamp
+                    from time import time
+                    f = fname+'_'+k+'_'+str(int(time()))
+                np.save(f, np.array([R,Z]))
+                print("# Saved target plate data to file "+f+'.npy')
+
+        elif settings == None:
+            for k, v in self.plate_data.items():
+                if k.lower() in ['w1', 'westplate1', 'plate_w1']:
+                    k='plate_W1'
+                elif k.lower() in ['e1', 'eastplate1', 'plate_e1']:
+                    k='plate_E1'
+                elif k.lower() in ['w2', 'westplate2', 'plate_w2']:
+                    k='plate_W2'
+                elif k.lower() in ['e2', 'eastplate2', 'plate_e2']:
+                    k='plate_E2'
+                else:
+                    raise ValueError(f"# Invalid key '{k}' provided for 'SaveTargetDatafile'")
+
+                if v:
+                    R = np.array(v.xval)
+                    Z = np.array(v.yval)
+                else:
+                    R = np.array([None])
+                    Z = np.array([None])
+
+                if timestamp == False:
+                    f = k+'_data'
+                else:
+                    # Save to current working directory with timestamp
+                    from time import time
+                    f = k+'_data_'+str(int(time()))
+                np.save(f, np.array([R,Z]))
+                print("# Saved target plate data to file "+f+'.npy')
+        else:
+            raise ValueError(f"# Error in SaveTargetDatafile handling parameter of type {type(settings)}. Must be dict or None.")
+
+
+
+    def LoadTargetData(self, settings):
+        if type(settings) == dict:
+
+            for k, fname in settings.items():
+                if k.lower() in ['w1', 'westplate1', 'plate_w1']:
+                    k='plate_W1'
+                elif k.lower() in ['e1', 'eastplate1', 'plate_e1']:
+                    k='plate_E1'
+                elif k.lower() in ['w2', 'westplate2', 'plate_w2']:
+                    k='plate_W2'
+                elif k.lower() in ['e2', 'eastplate2', 'plate_e2']:
+                    k='plate_E2'
+                else:
+                    raise ValueError(f"# Invalid key '{k}' provided for 'LoadTargetDatafile'")
+
+                try:
+                    # Protect against None type
+                    Path(fname).is_file()
+                except:
+                    raise ValueError(f"# Error in 'LoadTargetDatafile()': File '{fname}' does not exist")
+
+                suffix = Path(fname).suffix
+
+                if suffix == '.npy':
+                    R, Z = np.load(fname)
+                elif suffix == '.txt':
+                    R, Z = self.ParseFileCoordinates(fname)
+                else:
+                    raise ValueError(f"# Error in 'LoadTargetDatafile()': file type '{suffix}' is not supported (requires '.txt', '.npy')")
+
+                if R[0] is None or Z[0] is None:
+                    self.plate_data[k] = None
+                else:
+                    self.plate_data[k] = Line([Point(P) for P in zip(R, Z)])
+
+                print(f"# Loaded target plate '{k}'' data from file "+fname)
+
+        else:
+            raise ValueError(f"# Error in LoadTargetDatafile handling parameter of type {type(settings)}. Must be dict with format {{PLATE_KEY : FPATH}}")
+
+    def SaveLimiterData(self, fpath=None):
+
+        try:
+            R = np.array(self.limiter_data.xval)
+            Z = np.array(self.limiter_data.yval)
+        except:
+            raise ValueError("# INGRID object contains no limiter data to save!")
+
+        if type(fpath) == str:
+            f = fpath
+        else:
+            # Save to current working directory with timestamp
+            from time import time
+            f = str(Path('').cwd())+'/'+'LimiterData_'+str(int(time()))
+        np.save(f, np.array([R,Z]))
+        print("# Saved limiter data to file "+f+'.npy')
+
+    def LoadLimiterData(self, fpath=None):
         
-            settings['target_plates'][k].update({'data' : plate_data[k]})
+        if fpath:
+            f = fpath
+        else:
+            fpath = self.settings['limiter']['file']
 
-        with open(self.InputFile, 'w') as f:
-            yml.dump(settings, f)
-
-
-    def LoadTargetData(self):
-        with open(self.InputFile, 'r') as f:
-            settings = yml.load(f, Loader=yml.Loader)
-
-        for k in settings['target_plates'].keys():
-            if settings['target_plates'][k]['data']:
-                self.plate_data[k] = Line([Point(p) 
-                    for p in zip(settings['target_plates'][k]['data']['R'], settings['target_plates'][k]['data']['Z'])])
+        if f and Path(f).is_file():
+            suffix = Path(f).suffix
+            if suffix == '.npy':
+                R, Z = np.load(f)
+            elif suffix == '.txt':
+                R, Z = self.ParseFileCoordinates(f)
             else:
-                self.plate_data[k] = None
+                raise ValueError(f"# Error in 'LoadLimiterDatafile()': file type '{suffix}' is not supported (requires '.txt', '.npy')")
 
-    def SaveLimiterData(self):
-        with open(self.InputFile, 'r') as f:
-            settings = yml.load(f, Loader=yml.Loader)
-
-        limiter_data = {'R' : [R[0] for R in self.limiter_data.points()],
-                        'Z' : [Z[1] for Z in self.limiter_data.points()]}
-
-        settings['limiter'].update({'data' : limiter_data})
-
-        with open(self.InputFile, 'w') as f:
-            yml.dump(settings, f)
-
-    def LoadLimiterData(self):
-        with open(self.InputFile, 'r') as f:
-            settings = yml.load(f, Loader=yml.Loader)
-
-        self.limiter_data = Line([Point(P) for P in zip(settings['limiter']['data']['R'], settings['limiter']['data']['Z'])])
+            self.limiter_data = Line([Point(P) for P in zip(R, Z)])
+            print(f"# Loaded limiter data from file "+f)
+        else:
+            raise ValueError(f"# Error in 'LoadLimiterDatafile()': File '{f}' does not exist")
+                
 
 
     def SetLimiter(self, coordinates=None, fpath=None, rshift=None, zshift=None):
@@ -862,6 +961,11 @@ class Ingrid:
                 v.plot(label=k, color=colorbank[ind])
 
     def plot_limiter_data(self):
+        import pdb
+        pdb.set_trace()
+        self.SaveLimiterData()
+        self.limiter_data = None
+        self.LoadLimiterData()
         self.limiter_data.plot(color='dodgerblue', label='Limiter')
 
     def plot_strike_geometry(self):

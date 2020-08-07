@@ -455,9 +455,6 @@ class SF75():
         A1_S = self.eq.draw_line(A1_E.p[-1], {'line' : WestPlate1}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
-        import pdb
-        pdb.set_trace()
-
         I1_S__F1_S = self.eq.draw_line(A1_E.p[-1], {'line' : WestPlate2}, option='theta', direction='cw',
             show_plot=visual, text=verbose).reverse_copy()
 
@@ -472,12 +469,36 @@ class SF75():
         I2_S = I1_N.reverse_copy()
 
         I2_W__I3_W = self.eq.draw_line(xpt2['S'], {'psi' : psi_min_pf_2}, option='rho', direction='cw',
-            show_plot=visual, text=verbose)
+            show_plot=visual, text=verbose).reverse_copy()
 
         I3_N = self.eq.draw_line(I2_W__I3_W.p[-1], {'line' : WestPlate2}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
+        H3_N = self.eq.draw_line(I2_W__I3_W.p[-1], {'line' : EastPlate2}, option='theta', direction='cw',
+            show_plot=visual, text=verbose).reverse_copy()
 
+        H1_N = self.eq.draw_line(xpt2['SE'], {'line' : EastPlate2}, option='theta', direction='cw',
+            show_plot=visual, text=verbose).reverse_copy()
+
+        H2_S = H1_N.reverse_copy()
+
+        I2_W, I3_W = I2_W__I3_W.split(I2_W__I3_W.p[len(I2_W__I3_W.p)//2], add_split_point = True)
+        H2_E, H3_E = I2_W.reverse_copy(), I3_W.reverse_copy()
+
+        I2_N = self.eq.draw_line(I2_W.p[-1], {'line' : WestPlate2}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose)
+        I3_S = I2_N.reverse_copy()
+
+        H2_N = self.eq.draw_line(H2_E.p[0], {'line' : EastPlate2}, option='theta', direction='cw',
+            show_plot=visual, text=verbose).reverse_copy()
+        H3_S = H2_N.reverse_copy()
+
+
+        H1_E = self.eq.draw_line(xpt2['E'], {'psi' : psi_max_east}, option='rho', direction='cw')
+
+
+        import pdb
+        pdb.set_trace()
 
        
 

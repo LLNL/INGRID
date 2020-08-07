@@ -46,6 +46,9 @@ if __name__ == '__main__':
     GridDemo.calc_psinorm()
     GridDemo.AnalyzeTopology()
 
+    import pdb
+    pdb.set_trace()
+
     # Begin patch construction with parameter file psi values.
     GridDemo.ConstructPatches()
     GridDemo.ShowSetup()

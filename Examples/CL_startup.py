@@ -8,6 +8,7 @@ CL_startup
 """
 
 import sys
+
 sys.path.append('../src/')
 from Ingrid import Ingrid
 import pathlib
@@ -32,9 +33,6 @@ if __name__ == '__main__':
     # Construction of Ingrid object with parameter file parsing.
     GridDemo = Ingrid(InputFile=case)
 
-    GridDemo.LoadTopology("USN1596842327.yml")
-    GridDemo.ShowPatchMap()
-
     # Read EFIT data, target plate data, and plot data.
     GridDemo.OMFIT_read_psi()
     GridDemo.calc_efit_derivs()
@@ -49,20 +47,15 @@ if __name__ == '__main__':
     GridDemo.calc_psinorm()
     GridDemo.AnalyzeTopology()
 
-    import pdb
-    pdb.set_trace()
-
     # Begin patch construction with parameter file psi values.
     GridDemo.ConstructPatches()
     GridDemo.ShowSetup()
 
     # Begin patch refinement and actively plot grid.
 
-    CellCorrection={'ThetaMin':60,'ThetaMax':120,'Resolution':1000,'Active':True}
-    GridDemo.current_topology.CorrectDistortion={'all' : CellCorrection}
+    #CellCorrection={'ThetaMin':60,'ThetaMax':120,'Resolution':1000,'Active':True}
+    #GridDemo.current_topology.CorrectDistortion={'all' : CellCorrection}
     GridDemo.CreateSubgrid(NewFig=True)
     # Export gridue file.
     fname = 'gridue'
     GridDemo.export(fname=fname)
-    import pdb
-    pdb.set_trace()

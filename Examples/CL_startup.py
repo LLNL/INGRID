@@ -32,6 +32,9 @@ if __name__ == '__main__':
     # Construction of Ingrid object with parameter file parsing.
     GridDemo = Ingrid(InputFile=case)
 
+    GridDemo.LoadTopology("USN1596842327.yml")
+    GridDemo.ShowPatchMap()
+
     # Read EFIT data, target plate data, and plot data.
     GridDemo.OMFIT_read_psi()
     GridDemo.calc_efit_derivs()

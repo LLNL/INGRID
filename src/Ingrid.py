@@ -371,6 +371,8 @@ class Ingrid:
             if k=='EqFile' or k=='eq':
                 self.settings['eqdsk']=v
                 continue
+            if k=='SessionFile':
+                self.LoadTopology(v)
             print('Keyword "'+k +'" unknown and ignored...')
 
     def PrintSummaryInput(self):
@@ -549,7 +551,7 @@ class Ingrid:
         return R, Z
 
 
-    def SetGeometry(self, settings):
+    def SetGeometry(self, settings, rshift=None, zshift=None):
         """
         SetGeometry
 
@@ -823,13 +825,56 @@ class Ingrid:
         data = np.array([c for c in zip(R, Z)])
         a,index=np.unique(data,return_index=True,axis=0)
         index.sort()
-        self.plate_data[k]=Line([Point(x,y) for x,y in data[index]])
+        self.plate_data[k]=Line([Point(x-rshift,y-zshift) for x,y in data[index]])
         self.OrderTargetPlate(k)
+
+    def SaveTopology(self, fname:str=''):
+        try:
+            self.current_topology
+        except:
+            raise ValueError("# SaveTopology error: No active topology object available for saving patches.")
+
+        if type(fname) != str:
+            raise ValueError(f"# SaveTopology error: fname input must be type str (recieved {type(fname)}).")
+
+        if fname == '':
+            from time import time
+            fname = self.current_topology.config + '_'+str(int(time()))+ '.yml'
+        else:
+            if Path(fname).suffix == '':
+                fname += '.yml'
+            elif Path(fname).suffix != '.yml':
+                fname = fname[0:-4] + '.yml'
+
+        with open(fname, 'w') as f:
+            yml.dump(self, f)
+
+        print(f'# Saved {self} session to file "{fname}"')
+
+    def LoadTopology(self, fname:str):
+
+        try:
+            fpath = Path(fname)
+        except:
+            raise ValueError(f"# LoadTopology error: fname input must be type str (recieved {type(fname)}).")
+
+        if not fpath.is_file():
+            raise ValueError(f"# LoadTopology error: '{fname}'' is not a file.")
+        if fpath.suffix != '.yml':
+            raise ValueError(f"# LoadTopology error: file '{fname}' must be of type '.yml'")
+        with open(fname, 'r') as f:
+            loaded_data = yml.load(f, Loader=yml.Loader)
+
+        self.__dict__.update(loaded_data.__dict__)
+        print(f"# Loaded INGRID session from file {fname}")
+
+
 
     def read_target_plates(self):
         for plate in self.settings['target_plates']:
             try:
-                self.SetGeometry({plate : self.settings['target_plates'][plate]['file']})
+                self.SetGeometry({plate : self.settings['target_plates'][plate]['file'], 
+                    'zshift' :self.settings['target_plates'][plate]['zshift']})
             except:
                 pass
 
@@ -961,11 +1006,6 @@ class Ingrid:
                 v.plot(label=k, color=colorbank[ind])
 
     def plot_limiter_data(self):
-        import pdb
-        pdb.set_trace()
-        self.SaveLimiterData()
-        self.limiter_data = None
-        self.LoadLimiterData()
         self.limiter_data.plot(color='dodgerblue', label='Limiter')
 
     def plot_strike_geometry(self):
@@ -1361,10 +1401,12 @@ class Ingrid:
         self.GetPatchTagMap(self.current_topology.get_config())
         self.PrepLineTracing(interactive=False)
         self.current_topology.construct_patches()
-        self.current_topology.CheckPatches()
+        #self.current_topology.CheckPatches()
 
     def ShowPatchMap(self):
-        self.current_topology.patch_diagram()
+        self.PatchFig = plt.figure('INGRID: ' + self.current_topology.config + ' Patches', figsize=(6, 10))
+        self.PatchAx = self.PatchFig.add_subplot(111)
+        self.current_topology.patch_diagram(fig=self.PatchFig, ax=self.PatchAx)
 
     def GetConnexionMap(self):
         if isinstance(self.current_topology, SNL):

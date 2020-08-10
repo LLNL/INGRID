@@ -323,22 +323,22 @@ eqdsk: ../data/SNL/DIII-D/neqdsk
 grid_params:
     config: LSN
     grid_generation:
-        np_core: 3
-        np_global: 3
-        np_pf: 3
+        np_core: 10
+        np_global: 1
+        np_pf: 1
         np_primary_pf: 3
         np_primary_sol: 3
         np_secondary_pf: 3
         np_secondary_sol: 3
-        np_sol: 3
-        nr_core: 3
+        np_sol: 10
+        nr_core: 10
         nr_global: 3
-        nr_pf: 3
+        nr_pf: 10
         nr_primary_pf: 3
         nr_primary_sol: 3
         nr_secondary_pf: 3
         nr_secondary_sol: 3
-        nr_sol: 3
+        nr_sol: 1
         radial_f_core: x, x
         radial_f_pf: x, x
         radial_f_primary_pf: x, x
@@ -399,13 +399,13 @@ integrator_params:
     tol: 0.005
 limiter:
     file: ''
-    use_limiter : True
+    use_limiter : False
     use_efit_bounds : False
 target_plates:
     plate_E1:
         file: ../data/SNL/DIII-D/d3d_otp.txt
         name: plate_E1
-        np_local: 3
+        np_local: 5
         poloidal_f: x, x
         zshift: 1.6
     plate_E2:
@@ -417,7 +417,7 @@ target_plates:
     plate_W1:
         file: ../data/SNL/DIII-D/d3d_itp.txt
         name: plate_W1
-        np_local: 3
+        np_local: 1
         poloidal_f: x, x
         zshift: 1.6
     plate_W2:

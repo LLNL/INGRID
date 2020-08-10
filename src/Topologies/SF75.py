@@ -299,6 +299,9 @@ class SF75():
         psi_min_pf = self.settings['grid_params']['psi_min_pf']
         psi_min_pf_2 = self.settings['grid_params']['psi_pf2']
 
+        import pdb
+        pdb.set_trace()
+
         if self.settings['limiter']['use_limiter']:
             WestPlate1 = self.parent.limiter_data.copy()
             WestPlate2 = self.parent.limiter_data.copy()
@@ -442,7 +445,10 @@ class SF75():
 
         F2_S = self.eq.draw_line(xpt2['NW'], {'line' : A2_E__A1_E}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
-        F1_N = F1_S.reverse_copy()
+        F1_N = F2_S.reverse_copy()
+
+        import pdb
+        pdb.set_trace()
 
         A2_S = self.eq.draw_line(F2_S.p[-1], {'line' : WestPlate1}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
@@ -464,17 +470,17 @@ class SF75():
 
         I1_S, F1_S = I1_S__F1_S.split(F1_E.p[-1], add_split_point=True)
 
-        I1_N = self.eq.draw_line(xpt2['SW'], {'line' : WestPlate2}, option='theta', direction='ccw',
+        I1_N = self.eq.draw_line(xpt2['SW'], {'line' : WestPlate2}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
         I2_S = I1_N.reverse_copy()
 
-        I2_W__I3_W = self.eq.draw_line(xpt2['S'], {'psi' : psi_min_pf_2}, option='rho', direction='cw',
-            show_plot=visual, text=verbose).reverse_copy()
-
-        I3_N = self.eq.draw_line(I2_W__I3_W.p[-1], {'line' : WestPlate2}, option='theta', direction='ccw',
+        I2_W__I3_W = self.eq.draw_line(xpt2['S'], {'psi' : psi_min_pf_2}, option='rho', direction='ccw',
             show_plot=visual, text=verbose)
 
-        H3_N = self.eq.draw_line(I2_W__I3_W.p[-1], {'line' : EastPlate2}, option='theta', direction='cw',
+        I3_N = self.eq.draw_line(I2_W__I3_W.p[-1], {'line' : WestPlate2}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
+
+        H3_N = self.eq.draw_line(I2_W__I3_W.p[-1], {'line' : EastPlate2}, option='theta', direction='ccw',
             show_plot=visual, text=verbose).reverse_copy()
 
         H1_N = self.eq.draw_line(xpt2['SE'], {'line' : EastPlate2}, option='theta', direction='cw',
@@ -495,6 +501,8 @@ class SF75():
 
 
         H1_E = self.eq.draw_line(xpt2['E'], {'psi' : psi_max_east}, option='rho', direction='cw')
+        G1_W = H1_E.reverse_copy()
+
 
 
         import pdb

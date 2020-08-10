@@ -40,6 +40,9 @@ class SNL():
         self.config = config
         self.settings = Ingrid_obj.settings
         self.plate_data = Ingrid_obj.plate_data
+        self.limiter_data = Ingrid_obj.limiter_data
+        self.magx = Ingrid_obj.magx
+        self.xpt1 = Ingrid_obj.xpt1
 
         self.parent.OrderTargetPlate('plate_W1')
         self.parent.OrderTargetPlate('plate_E1')
@@ -78,7 +81,10 @@ class SNL():
         plt.title('INGRID SNL Subgrid')
         plt.show()
 
-    def patch_diagram(self):
+    def RefreshSettings(self):
+        self.settings = self.parent.settings
+
+    def patch_diagram(self, fig=None, ax=None):
         """
         Generates the patch diagram for a given configuration.
         @author: watkins35, garcia299
@@ -89,23 +95,22 @@ class SNL():
                   'seagreen', 'firebrick', 'saddlebrown']
 
 
-        self.FigPatch=plt.figure('INGRID: Patch Map', figsize=(6, 10))
-        self.FigPatch.clf()
-        ax=self.FigPatch.subplots(1,1)
-        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-        ax.set_aspect('equal', adjustable='box')
+        f=fig if fig else plt.figure('INGRID: Patch Map', figsize=(6, 10))
+        a=ax if ax else f.subplots(1,1)
+        a.set_xlim([self.efit_psi.rmin, self.efit_psi.rmax])
+        a.set_ylim([self.efit_psi.zmin, self.efit_psi.zmax])
+        a.set_aspect('equal', adjustable='box')
 
-        ax.set_xlabel('R')
-        ax.set_ylabel('Z')
-        self.FigPatch.suptitle('SNL Patch Diagram')
+        a.set_xlabel('R')
+        a.set_ylabel('Z')
+        f.suptitle('SNL Patch Diagram')
 
         for i, patch in enumerate(self.patches.values()):
-            patch.plot_border('green')
-            patch.fill(colors[i])
+            patch.plot_border(color='green', ax=a)
+            patch.fill(colors[i], ax=a)
             patch.color=colors[i]
         # ax.legend()
-        plt.show()
+        f.show()
 
     def get_config(self):
         """
@@ -525,6 +530,9 @@ class SNL():
 
         # Straighten up East and West segments of our patches,
         # Plot borders and fill patches.
+        
+        self.RefreshSettings()
+
         if Verbose: print('Construct Grid')
         try:
             visual = self.settings['DEBUG']['visual']['subgrid']
@@ -623,9 +631,15 @@ class SNL():
         except KeyError:
             outer_tilt = 0.0
 
+        self.RefreshSettings()
 
-        WestPlate = self.plate_data['plate_W1']
-        EastPlate = self.plate_data['plate_E1']
+        if self.settings['limiter']['use_limiter']:
+            WestPlate = self.parent.limiter_data.copy()
+            EastPlate = self.parent.limiter_data.copy()
+
+        else:
+            WestPlate = self.plate_data['plate_W1']
+            EastPlate = self.plate_data['plate_E1']
 
         xpt = self.eq.NSEW_lookup['xpt1']['coor']
         magx = np.array([self.settings['grid_params']['rmagx'] + self.settings['grid_params']['patch_generation']['rmagx_shift'], \

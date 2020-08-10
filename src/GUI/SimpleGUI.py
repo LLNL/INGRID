@@ -142,13 +142,19 @@ class FilePicker(tk.Tk):
             text='Analyze Topology', command=self.AnalyzeTopology)
         self.CreatePatchesButton = tk.Button(self.ControlFrame,
             text='Create Patches', command=self.CreatePatches)
+        self.CreateSubgridButton = tk.Button(self.ControlFrame,
+            text='Refine Patches', command=self.CreateSubgrid)
+        self.ExportGridueButton = tk.Button(self.ControlFrame,
+            text='Export gridue', command=self.ExportGridue)
         self.QuitButton = tk.Button(self.ControlFrame,
             text='Quit', command=self.Quit)
 
         self.ViewDataButton.grid(row=0,column=0,padx=10,pady=10,sticky='nsew')
         self.AnalyzeTopologyButton.grid(row=0,column=1,padx=10,pady=10,sticky='nsew')
         self.CreatePatchesButton.grid(row=0,column=2,padx=10,pady=10,sticky='nsew')
-        self.QuitButton.grid(row=0,column=3,padx=10,pady=10,sticky='nsew')
+        self.CreateSubgridButton.grid(row=0,column=3,padx=10,pady=10,sticky='nsew')
+        self.ExportGridueButton.grid(row=0,column=4,padx=10,pady=10,sticky='nsew')
+        self.QuitButton.grid(row=0,column=5,padx=10,pady=10,sticky='nsew')
 
     def ProcessParameterFile(self, fname):
         self.Ingrid.InputFile=fname
@@ -208,8 +214,21 @@ class FilePicker(tk.Tk):
 
     def CreatePatches(self):
         IG = self.Ingrid
+        if self.ParamFileMtime != getmtime(self.ParamFileName):
+            self.ProcessParameterFile(self.ParamFileName)
         IG.ConstructPatches()
         IG.ShowPatchMap()
+
+    def CreateSubgrid(self):
+        IG = self.Ingrid
+        if self.ParamFileMtime != getmtime(self.ParamFileName):
+            self.ProcessParameterFile(self.ParamFileName)
+        IG.CreateSubgrid()
+
+    def ExportGridue(self):
+        IG = self.Ingrid
+        fname = filedialog.asksaveasfile()
+        IG.export(fname)
 
     def ViewData(self):
         self.ReadyIngridData()

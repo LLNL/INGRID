@@ -191,6 +191,9 @@ class Point:
         """ Places an x on the location of the point. """
         plt.plot(self.x, self.y, 'x')
 
+    def as_np(self):
+        return np.array([self.x, self.y])
+
 
 class Line:
     """
@@ -277,7 +280,7 @@ class Line:
 
         return Line([self.p[0], self.p[-1]])
 
-    def plot(self, color='#1f77b4', label=None):
+    def plot(self, color='#1f77b4', label=None, ax=None):
         """ Plots the line of the current figure.
 
         Parameters
@@ -286,7 +289,8 @@ class Line:
             Defaults to a light blue.
         """
 
-        plt.plot(self.xval, self.yval, color=color, zorder = 5, label=label)
+        _ax = plt.gca() if ax == None else ax
+        _ax.plot(self.xval, self.yval, color=color, zorder = 5, label=label)
 
 
     def print_points(self):
@@ -359,6 +363,9 @@ class Line:
     def points(self):
         """ Returns the points in the line as a tuple. """
         return [(p.x, p.y) for p in self.p]
+
+    def as_np(self):
+        return np.array([self.xval, self.yval])
 
 
 class Cell:
@@ -439,6 +446,14 @@ class Cell:
         y = [p.y for p in self.p]
         plt.fill(y, x, facecolor = color)
 
+    def as_np(self):
+        NW = self.vertices['NW'].as_np()
+        NE = self.vertices['NE'].as_np()
+        SW = self.vertices['SW'].as_np()
+        SE = self.vertices['SE'].as_np()
+        C = self.vertices['C'].as_np()
+        return np.array([NW, NE, SW, SE, C])
+
 
 class Patch:
     """
@@ -488,7 +503,10 @@ class Patch:
             'C': 'Core'
             }
 
-    def plot_border(self, ax=None,color='red'):
+        self.ax = None
+        self.cell_grid = None
+
+    def plot_border(self, color='red', ax=None):
         """
         Draw solid borders around the patch.
 
@@ -498,10 +516,11 @@ class Patch:
             Defaults to red.
         """
 
+        _ax = ax
         for line in self.lines:
-            line.plot(color)
+            line.plot(color, ax=_ax)
 
-    def fill(self, color='lightsalmon'):
+    def fill(self, color='lightsalmon',ax=None):
         """
         Shades in the patch with a given color
 
@@ -515,11 +534,9 @@ class Patch:
         arr = np.column_stack((x,y))
         PatchLabel=self.patchName+' (' +UnfoldLabel(self.PatchLabelDoc,self.patchName)+')'
         patch = Polygon(arr, fill = True, closed = True, color = color,label=PatchLabel)
-        ax = plt.gca()
-        ax.add_patch(patch)
-        ax.plot()
-
-        plt.show()
+        _ax = plt.gca() if ax == None else ax
+        _ax.add_patch(patch)
+        _ax.plot()
 
     def plot_subgrid(self, ax=None,color = 'blue'):
         for row in self.cell_grid:
@@ -543,7 +560,34 @@ class Patch:
             self.cell_grid[-1][0].vertices[corner] = point
 
     def get_tag(self):
-        return self.PatchTagMap[self.patchName] 
+        return self.PatchTagMap[self.patchName]
+
+    def get_settings(self):
+        settings = {}
+
+        settings['patchName'] = self.patchName
+        settings['platePatch'] = self.platePatch
+        settings['plateLocation'] = self.plateLocation
+        settings['PatchTagMap'] = self.PatchTagMap
+
+    def cell_grid_as_np(self):
+        if self.cell_grid == None:
+            cg_np = np.array([])
+        else:
+            cg_np = []
+            for row in self.cell_grid:
+                r = []
+                for cell in row:
+                    r.append(cell.as_np())
+                cg_np.append(r)
+            cg_np = np.array(cg_np)
+        return cg_np
+
+    def as_np(self):
+        patch_data = np.array([N.as_np(), E.as_np(), S.as_np(), W.as_np()])
+        cell_data = self.cell_grid_as_np()
+        patch_settings = self.get_settings()
+        return np.array([patch_data, cell_data, patch_settings])
 
     def make_subgrid(self, grid, np_cells = 2, nr_cells = 2, _poloidal_f=lambda x:x, _radial_f=lambda x:x,verbose = False, visual = False,ShowVertices=False,OptionTrace='theta'):
         """
@@ -1136,7 +1180,34 @@ def UnfoldLabel(Dic:dict,Name:str)->str:
             return ''.join(Output)
         else:
             return ''
-        
+
+def ReconstructPatch(fpath):
+    '''
+    Reconstruct a patch from Patch.as_np() formatted npy file
+    '''
+    patch_data, cell_data, patch_settings = np.load(fpath, allow_pickle=True)
+    patch_settings = patch_settings.item()
+    N, E, S, W = patch_data
+    
+    N = ReconstructLine(N)
+    S = ReconstructLine(E)
+    E = ReconstructLine(S)
+    W = ReconstructLine(W)
+
+    cell_grid = []
+
+    for row in cell_data[0]:
+        cell_grid.append([])
+        for cell in row:
+            cell_grid.append(ReconstructCell(cell))
+
+    patch = Patch([N, E, S, W], patchName=patch_settings['patchName'], platePatch=patch_settings['platePatch'],
+            plateLocation=patch_settings['plateLocation'], PatchTagMap=patch_settings['PatchTagMap'])
+    patch.cell_grid = cell_grid
+    return patch
+
+
+
 #def CheckRadialVertices(radial_vertices,i):
     # for j in range(len(radial_vertices[i]) - 1):
     #     NW = radial_vertices[i-1][j]

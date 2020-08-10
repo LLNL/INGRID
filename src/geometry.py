@@ -564,11 +564,11 @@ class Patch:
 
     def get_settings(self):
         settings = {}
-
         settings['patchName'] = self.patchName
         settings['platePatch'] = self.platePatch
         settings['plateLocation'] = self.plateLocation
         settings['PatchTagMap'] = self.PatchTagMap
+        return settings
 
     def cell_grid_as_np(self):
         if self.cell_grid == None:
@@ -584,7 +584,13 @@ class Patch:
         return cg_np
 
     def as_np(self):
-        patch_data = np.array([N.as_np(), E.as_np(), S.as_np(), W.as_np()])
+
+        patch_data = []
+        for line in [self.N, self.E, self.S, self.W]:
+            R,Z = line.as_np()
+            patch_data.append(R)
+            patch_data.append(Z)
+        patch_data = np.array(patch_data)
         cell_data = self.cell_grid_as_np()
         patch_settings = self.get_settings()
         return np.array([patch_data, cell_data, patch_settings])
@@ -644,7 +650,7 @@ class Patch:
             for i in range(nr_lines):
                 d += np.sqrt((E_vertices[i].x - W_vertices[i].x)**2 + (E_vertices[i].y - W_vertices[i].y)**2)
             dynamic_step = d / nr_lines
-            print('Dynamic-Step value came out to be: {}\n'.format(dynamic_step * ratio))
+            # print('Dynamic-Step value came out to be: {}\n'.format(dynamic_step * ratio))
             return dynamic_step * ratio
 
 
@@ -735,19 +741,15 @@ class Patch:
             try:
                 plate_north_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args = (U_spl, plate_north[0], plate_north[1])))]
             except ValueError:
-                print('NorthIndex: brentq failed. attempting fsolve...')
                 try:
                     plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args = (U_spl, plate_north[0], plate_north[1])))]
-                    print('NorthIndex: ...fsolve success!')
                 except:
                     print('NorthIndex: ERROR IN PARAMETERIZATION IN PSI')
             try:
                 plate_south_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args = (U_spl, plate_south[0], plate_south[1])))]
             except ValueError:
-                print('SouthIndex: brentq failed. attempting fsolve...')
                 try:
                     plate_south_index = lookup[find_nearest(_u, fsolve(f, 0, args = (U_spl, plate_south[0], plate_south[1])))]
-                    print('SouthIndex: ...fsolve success!')
                 except:
                     print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
             if plate_south_index > plate_north_index:
@@ -1180,31 +1182,6 @@ def UnfoldLabel(Dic:dict,Name:str)->str:
             return ''.join(Output)
         else:
             return ''
-
-def ReconstructPatch(fpath):
-    '''
-    Reconstruct a patch from Patch.as_np() formatted npy file
-    '''
-    patch_data, cell_data, patch_settings = np.load(fpath, allow_pickle=True)
-    patch_settings = patch_settings.item()
-    N, E, S, W = patch_data
-    
-    N = ReconstructLine(N)
-    S = ReconstructLine(E)
-    E = ReconstructLine(S)
-    W = ReconstructLine(W)
-
-    cell_grid = []
-
-    for row in cell_data[0]:
-        cell_grid.append([])
-        for cell in row:
-            cell_grid.append(ReconstructCell(cell))
-
-    patch = Patch([N, E, S, W], patchName=patch_settings['patchName'], platePatch=patch_settings['platePatch'],
-            plateLocation=patch_settings['plateLocation'], PatchTagMap=patch_settings['PatchTagMap'])
-    patch.cell_grid = cell_grid
-    return patch
 
 
 

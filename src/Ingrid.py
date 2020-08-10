@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import yaml as yml
 import os
 from pathlib import Path
+from time import time
 from GUI import IngridApp as IA
 from GUI import SimpleGUI as sg
 
@@ -639,7 +640,6 @@ class Ingrid:
                     f = fname+'_'+k
                 else:
                     # Save to current working directory with timestamp
-                    from time import time
                     f = fname+'_'+k+'_'+str(int(time()))
                 np.save(f, np.array([R,Z]))
                 print("# Saved target plate data to file "+f+'.npy')
@@ -849,7 +849,7 @@ class Ingrid:
         with open(fname, 'w') as f:
             yml.dump(self, f)
 
-        print(f'# Saved {self} session to file "{fname}"')
+        print(f'# Saved {self} session to file "{fname}.npy"')
 
     def LoadTopology(self, fname:str):
 
@@ -1402,6 +1402,62 @@ class Ingrid:
         self.PrepLineTracing(interactive=False)
         self.current_topology.construct_patches()
         #self.current_topology.CheckPatches()
+
+    def SavePatches(self, fname=''):
+        if fname == '':
+            fname = self.current_topology.config + '_patches_' + str(int(time()))
+
+        patch_data = [patch.as_np() for patch in self.current_topology.patches.values()]
+        patch_data.insert(0, self.current_topology.config)
+        np.save(fname, np.array(patch_data))
+        print(f"# Saved patch data for file {fname}")
+
+    def LoadPatches(self, fname):
+        config, patches = self.ReconstructPatches(fname)
+        self.SetTopology(config)
+        self.current_topology.patches = patches
+        self.ShowPatchMap()
+
+    def ReconstructPatches(self, fname):
+        '''
+        Reconstruct a patch from Patch.as_np() formatted npy file
+        '''
+        data = np.load(fname, allow_pickle=True)
+        config = data[0]
+
+        patches = {}
+
+        for raw_patch in data[1:]:
+            patch_data, cell_data, patch_settings = raw_patch
+            NR = patch_data[0]
+            NZ = patch_data[1]
+            ER = patch_data[2]
+            EZ = patch_data[3]
+            SR = patch_data[4]
+            SZ = patch_data[5]
+            WR = patch_data[6]
+            WZ = patch_data[7]
+
+            N = Line([Point(p) for p in zip(NR, NZ)])
+            E = Line([Point(p) for p in zip(ER, EZ)])
+            S = Line([Point(p) for p in zip(SR, SZ)])
+            W = Line([Point(p) for p in zip(WR, WZ)])
+
+            cell_grid = []
+
+            # for row in cell_data[0]:
+            #     cell_grid.append([])
+            #     for cell in row:
+            #         cell_grid.append(ReconstructCell(cell))
+
+            patch = Patch([N, E, S, W], patchName=patch_settings['patchName'], platePatch=patch_settings['platePatch'],
+                    plateLocation=patch_settings['plateLocation'], PatchTagMap=patch_settings['PatchTagMap'])
+            #patch.cell_grid = cell_grid
+            patches[patch.patchName] = patch
+        
+        return config, patches
+
+
 
     def ShowPatchMap(self):
         self.PatchFig = plt.figure('INGRID: ' + self.current_topology.config + ' Patches', figsize=(6, 10))

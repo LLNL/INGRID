@@ -41,9 +41,10 @@ class RootFinder:
             'magx' : {'point' : None, 'separatrix' : None}}
 
         if active:
-            self.cid = grid.ax.figure.canvas.mpl_connect('button_press_event', self)
-            print("Entering Root Finder. "
-                  + "Right click to disable.")
+            # self.cid = grid.ax.figure.canvas.mpl_connect('button_press_event', self)
+            # print("Entering Root Finder. "
+            #       + "Right click to disable.")
+            pass
         else:
             print("Root Finder on standby.")
 

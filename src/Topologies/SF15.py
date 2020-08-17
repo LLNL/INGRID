@@ -10,519 +10,22 @@ Created: June 18, 2020
 import numpy as np
 import matplotlib
 import pathlib
-import inspect
-import yaml as _yaml_
 try:
     matplotlib.use("TkAgg")
 except:
     pass
 import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
-from geometry import Point, Line, Patch, segment_intersect, angle_between, rotate, find_split_index
+from TopologyUtils import TopologyUtils
+from geometry import Point, Line, Patch, trim_geometry
 
 
-class SF15():
+class SF15(TopologyUtils):
     def __init__(self, Ingrid_obj, config):
-
-        self.parent = Ingrid_obj
-        self.config = config
-        self.settings = Ingrid_obj.settings
-        self.plate_data = Ingrid_obj.plate_data
-
-        self.parent.order_target_plates()
-        self.PatchTagMap = self.parent.GetPatchTagMap(config='SF15')
-
-        self.eq = Ingrid_obj.eq
-        self.efit_psi = Ingrid_obj.efit_psi
-        self.psi_norm = Ingrid_obj.psi_norm
-        self.eq = Ingrid_obj.eq
-        self.CurrentListPatch={}
-        self.Verbose=False
-        self.plate_data = Ingrid_obj.plate_data
-        self.CorrectDistortion={}
-
-    def patch_diagram(self):
-        """ Generates the patch diagram for a given configuration. """
-
-        colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
-                  'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
-                  'seagreen', 'firebrick', 'saddlebrown', 'c',
-                  'm', 'dodgerblue', 'darkorchid', 'crimson',
-                  'darkorange', 'lightgreen', 'lightseagreen', 'indigo',
-                  'mediumvioletred', 'mistyrose', 'darkolivegreen', 'rebeccapurple']
-
-        self.FigPatch=plt.figure('INGRID: Patch Map', figsize=(6, 10))
-        self.FigPatch.clf()
-        ax=self.FigPatch.subplots(1,1)
-        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-        ax.set_aspect('equal', adjustable='box')
-
-        ax.set_xlabel('R')
-        ax.set_ylabel('Z')
-        self.FigPatch.suptitle('SF15 Patch Diagram')
-
-        for i, patch in enumerate(self.patches.values()):
-            patch.plot_border('green')
-            patch.fill(colors[i])
-            patch.color=colors[i]
-        ax.legend()
-        plt.show()
-
-    def grid_diagram(self,ax=None):
-        """
-        Create Grid matplotlib figure for an SNL object.
-        @author: watkins35, garcia299
-        """
-        fig=plt.figure('INGRID: Grid', figsize=(6,10))
-        if ax is None:
-            ax=fig.gca()
-        for patch in self.patches:
-            patch.plot_subgrid(ax)
-            print('patch completed...')
-
-        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-        plt.gca().set_aspect('equal', adjustable='box')
-        plt.xlabel('R')
-        plt.ylabel('Z')
-        plt.title('INGRID SF15 Subgrid')
-        plt.show()
-
-    def get_config(self):
-        """
-        Returns a string indicating whether the
-        """
-        return self.config
-
-#     def animate_grid(self):
-
-#         try:
-#             plt.close('INGRID: Debug')
-#         except:
-#             pass
-#         plt.figure('INGRID: Debug', figsize=(6, 10))
-#         plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-#         plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-#         plt.gca().set_aspect('equal', adjustable='box')
-#         plt.xlabel('R')
-#         plt.ylabel('Z')
-#         plt.title('visualize gridue')
-
-#         k = [1,2,4,3,1]
-
-#         for i in range(len(self.rm)):
-#             for j in range(len(self.rm[0])):
-#                 plt.plot(self.rm[i][j][k], self.zm[i][j][k])
-#                 plt.pause(0.01)
-
-    def concat_grid(self):
-        """
-        Concatenate all local grids on individual patches into a single
-        array with branch cuts
-        Parameters:
-        ----------
-            config : str
-                Type of SNL grid to concat.
-        """
-        patch_matrix = self.patch_matrix
-
-        for patch in self.patches.values():
-            patch.npol = len(patch.cell_grid[0]) + 1
-            patch.nrad = len(patch.cell_grid) + 1
-
-        # Total number of poloidal indices in all subgrids.
-        np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:5]])) + 2
-
-        # Total number of radial indices in all subgrids.
-        nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:4]])) + 2
-
-        # Total number of poloidal indices in all subgrids.
-        np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:11]])) + 2
-
-        # Total number of radial indices in all subgrids.
-        nr_total2 = int(np.sum([patch[7].nrad - 1 for patch in patch_matrix[1:4]])) + 2
-
-        rm1 = np.zeros((np_total1, nr_total1, 5), order = 'F')
-        zm1  = np.zeros((np_total1, nr_total1, 5), order = 'F')
-        rm2 = np.zeros((np_total2, nr_total2, 5), order = 'F')
-        zm2  = np.zeros((np_total2, nr_total2, 5), order = 'F')
-
-        ixcell = 0
-        jycell = 0
-
-        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
-        for ixp in range(1, 5):
-
-            nr_sum = 0
-            for jyp in range(1, 4):
-                # Point to the current patch we are operating on.
-                local_patch = patch_matrix[jyp][ixp]
-
-                if local_patch == [None]:
-                    continue
-
-                nr_sum += local_patch.nrad - 1
-
-                # Access the grid that is contained within this local_patch.
-                # ixl - number of poloidal cells in the patch.
-                for ixl in range(len(local_patch.cell_grid[0])):
-                    # jyl - number of radial cells in the patch
-                    for jyl in range(len(local_patch.cell_grid)):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
-
-                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
-
-                        ind = 0
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                            zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
-
-        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
-
-        ixcell = 0
-        jycell = 0
-
-        for ixp in range(7, 11):
-
-            nr_sum = 0
-            for jyp in range(1, 4):
-                # Point to the current patch we are operating on.
-                local_patch = patch_matrix[jyp][ixp]
-
-                if local_patch == [None]:
-                    continue
-
-                nr_sum += local_patch.nrad - 1
-
-                # Access the grid that is contained within this local_patch.
-                # ixl - number of poloidal cells in the patch.
-                for ixl in range(len(local_patch.cell_grid[0])):
-                    # jyl - number of radial cells in the patch
-                    for jyl in range(len(local_patch.cell_grid)):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:ixp+1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
-
-                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
-
-                        ind = 0
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                            zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
-
-        # Flip indices into gridue format.
-        for i in range(len(rm1)):
-            rm1[i] = rm1[i][::-1]
-        for i in range(len(zm1)):
-            zm1[i] = zm1[i][::-1]
-        for i in range(len(rm2)):
-            rm2[i] = rm2[i][::-1]
-        for i in range(len(zm2)):
-            zm2[i] = zm2[i][::-1]
-
-        # Add guard cells to the concatenated grid.
-        ixrb1 = len(rm1) - 2
-        ixlb1 = 0
-        ixrb2 = len(rm2) - 2
-        ixlb2 = 0
-
-        rm1 = self.add_guardc(rm1, ixlb1, ixrb1)
-        zm1 = self.add_guardc(zm1, ixlb1, ixrb1)
-        rm2 = self.add_guardc(rm2, ixlb2, ixrb2)
-        zm2 = self.add_guardc(zm2, ixlb2, ixrb2)
-
-        self.rm = np.concatenate((rm1, rm2))
-        self.zm = np.concatenate((zm1, zm2))
-
-        try:
-            debug = self.settings['DEBUG']['visual']['gridue']
-        except:
-            debug = False
-
-        if debug:
-            self.animate_grid()
-
-#     def add_guardc(self, cell_map, ixlb, ixrb, eps = 1e-3):
-
-#         def set_guard(cell_map, ix, iy, eps, boundary):
-#             # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
-#             # TODO: Edit the code to reflect this at some point so the next reader is not overwhelmed.
-#             if boundary == 'left':
-#                 ixn = ix + 1
-#                 iyn = iy
-#                 cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
-#                 cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
-#                 cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
-#                 cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
-#                 cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-#             elif boundary == 'right':
-#                 ixn = ix - 1
-#                 iyn = iy
-#                 cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
-#                 cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
-#                 cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
-#                 cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
-#                 cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-#             elif boundary == 'bottom':
-#                 ixn = ix
-#                 iyn = iy + 1
-#                 cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
-#                 cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
-#                 cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
-#                 cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
-#                 cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-#             elif boundary == 'top':
-#                 ixn = ix
-#                 iyn = iy - 1
-#                 cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
-#                 cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
-#                 cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
-#                 cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
-#                 cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-#             return cell_map
-
-#         np = len(cell_map) - 2
-#         nr = len(cell_map[0]) - 2
-
-#         for iy in range(1, nr + 1):
-#             ix = ixlb
-#             cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'left')
-#             ix = ixrb + 1
-#             cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'right')
-
-#         for ix in range(np + 2):
-#             iy = 0
-#             cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'bottom')
-#             iy = nr + 1
-#             cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'top')
-
-#         return cell_map
-
-#     def set_gridue(self):
-#         """
-#         Prepare the relevant arrays for writing to GRIDUE.
-#         """
-
-#         ixlb = 0
-#         ixrb = len(self.rm) - 2
-
-#         nxm = len(self.rm) - 2
-#         nym = len(self.rm[0]) - 2
-#         iyseparatrix1 = self.patch_lookup['C2'].nrad - 1
-#         iyseparatrix2 = self.patch_lookup['B5'].nrad + self.patch_lookup['C5'].nrad - 2
-#         ix_plate1 = 0
-#         ix_cut1 = self.patch_lookup['A1'].npol - 1
-#         ix_cut2 = self.patch_lookup['A1'].npol + self.patch_lookup['A2'].npol + self.patch_lookup['A3'].npol - 3
-#         ix_plate2 = ix_cut2 + self.patch_lookup['A4'].npol - 1
-#         iyseparatrix3 = iyseparatrix2
-#         iyseparatrix4 = iyseparatrix1
-#         ix_plate3 = ix_plate2 + 2
-#         ix_cut3 = ix_plate3 + self.patch_lookup['A5'].npol - 1
-#         ix_cut4 = ix_cut3 + self.patch_lookup['A6'].npol + self.patch_lookup['A7'].npol - 2
-#         ix_plate4 = ix_cut4 + self.patch_lookup['A8'].npol - 1
-
-#         psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-#         br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-#         bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-#         bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-#         bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-#         b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
-
-#         rm = self.rm
-#         zm = self.zm
-#         rb_prod = self.efit_psi.rcenter * self.efit_psi.bcenter
-
-#         for i in range(len(b)):
-#             for j in range(len(b[0])):
-#                 for k in range(5):
-#                     _r = rm[i][j][k]
-#                     _z = zm[i][j][k]
-
-#                     _psi = self.efit_psi.get_psi(_r, _z)
-#                     _br = self.efit_psi.get_psi(_r, _z, tag = 'vz') / _r
-#                     _bz = -self.efit_psi.get_psi(_r, _z, tag = 'vr') / _r
-#                     _bpol = np.sqrt(_br ** 2 + _bz ** 2)
-#                     _bphi = rb_prod / _r
-#                     _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
-
-#                     psi[i][j][k] = _psi
-#                     br[i][j][k] = _br
-#                     bz[i][j][k] = _bz
-#                     bpol[i][j][k] = _bpol
-#                     bphi[i][j][k] = _bphi
-#                     b[i][j][k] = _b
-
-#         self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'iyseparatrix1' : iyseparatrix1, 'iyseparatrix2' : iyseparatrix2, \
-#                 'ix_plate1' : ix_plate1, 'ix_cut1' : ix_cut1, 'ix_cut2' : ix_cut2, 'ix_plate2' : ix_plate2, 'iyseparatrix3' : iyseparatrix3, \
-#                 'iyseparatrix4' : iyseparatrix4, 'ix_plate3' : ix_plate3, 'ix_cut3' : ix_cut3, 'ix_cut4' : ix_cut4, 'ix_plate4' : ix_plate4, \
-#                 'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b, '_FILLER_' : -1}
-
-
-#     def construct_grid(self, np_cells = 3, nr_cells = 3,Verbose=False):
-
-#         # Straighten up East and West segments of our patches,
-#         # Plot borders and fill patches.
-
-#         try:
-#             visual = self.settings['DEBUG']['visual']['subgrid']
-#         except:
-#             visual = False
-#         try:
-#             verbose = self.settings['DEBUG']['verbose']['grid_generation']
-#         except:
-#             verbose = False
-
-#         verbose=verbose or Verbose
-
-#         try:
-#             np_primary_sol = self.settings['grid_params']['grid_generation']['np_primary_sol']
-#         except:
-#             np_primary_sol = self.settings['grid_params']['grid_generation']['np_global']
-#         try:
-#             np_secondary_sol = self.settings['grid_params']['grid_generation']['np_secondary_sol']
-#         except:
-#             np_secondary_sol = self.settings['grid_params']['grid_generation']['np_global']
-#         try:
-#             np_core = self.settings['grid_params']['grid_generation']['np_core']
-#         except:
-#             np_core = self.settings['grid_params']['grid_generation']['np_global']
-#         try:
-#             np_primary_pf = self.settings['grid_params']['grid_generation']['np_primary_pf']
-#         except:
-#             np_primary_pf = self.settings['grid_params']['grid_generation']['np_global']
-#         try:
-#             np_secondary_pf = self.settings['grid_params']['grid_generation']['np_secondary_pf']
-#         except:
-#             np_secondary_pf = self.settings['grid_params']['grid_generation']['np_global']
-#         """
-#         if np_sol != np_core:
-#             print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
-#                 + ' to the minimum of np_sol and np_core.\n')
-#             np_sol = np_core = np.amin([np_sol, np_core])
-#         """
-#         try:
-#             nr_primary_sol = self.settings['grid_params']['grid_generation']['nr_primary_sol']
-#         except:
-#             nr_primary_sol = self.settings['grid_params']['grid_generation']['nr_global']
-
-#         try:
-#             nr_secondary_sol = self.settings['grid_params']['grid_generation']['nr_secondary_sol']
-#         except:
-#             nr_secondary_sol = self.settings['grid_params']['grid_generation']['nr_global']
-
-#         try:
-#             nr_core = self.settings['grid_params']['grid_generation']['nr_core']
-#         except:
-#             nr_core = self.settings['grid_params']['grid_generation']['nr_global']
-#         try:
-#             nr_primary_pf = self.settings['grid_params']['grid_generation']['nr_primary_pf']
-#         except:
-#             nr_primary_pf = self.settings['grid_params']['grid_generation']['nr_global']
-#         try:
-#             nr_secondary_pf = self.settings['grid_params']['grid_generation']['nr_secondary_pf']
-#         except:
-#             nr_secondary_pf = self.settings['grid_params']['grid_generation']['nr_global']
-#         """
-#         if nr_pf != nr_core:
-#             print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
-#                 + ' to the minimum of nr_pf and nr_core.\n')
-#             nr_pf = nr_core = np.amin([nr_pf, nr_core])
-#         """
-#         for patch in self.patches:
-#             if patch in self.PRIMARY_SOL:
-#                 nr_cells = nr_primary_sol
-#                 np_cells = np_primary_sol
-#                 print('Patch "{}" is in PRIMARY_SOL'.format(patch.patchName))
-#             elif patch in self.SECONDARY_SOL:
-#                 nr_cells = nr_secondary_sol
-#                 np_cells = np_secondary_sol
-#                 print('Patch "{}" is in SECONDARY_SOL'.format(patch.patchName))
-#             elif patch in self.CORE:
-#                 nr_cells = nr_core
-#                 np_cells = np_core
-#                 print('Patch "{}" is in CORE'.format(patch.patchName))
-#             elif patch in self.PRIMARY_PF:
-#                 nr_cells = nr_primary_pf
-#                 np_cells = np_primary_pf
-#                 print('Patch "{}" is in PRIMARY_PF'.format(patch.patchName))
-#             elif patch in self.SECONDARY_PF:
-#                 nr_cells = nr_secondary_pf
-#                 np_cells = np_secondary_pf
-#                 print('Patch "{}" is in SECONDARY_PF'.format(patch.patchName))
-
-#             print('CONSTRUCTING GRID FOR PATCH: {}'.format(patch.patchName))
-#             patch.make_subgrid(self, np_cells, nr_cells, verbose = verbose, visual = visual)
-
-#             # Tidy up primary x-point
-#             primary_xpt = Point(self.xpt1)
-#             secondary_xpt = Point(self.xpt2)
-
-#             if patch.patchName == 'B1':
-#                 patch.adjust_corner(primary_xpt, 'SE')
-#             elif patch.patchName == 'C1':
-#                 patch.adjust_corner(primary_xpt, 'NE')
-#             elif patch.patchName == 'B2':
-#                 patch.adjust_corner(primary_xpt, 'SW')
-#             elif patch.patchName == 'C2':
-#                 patch.adjust_corner(primary_xpt, 'NW')
-#             elif patch.patchName == 'C7':
-#                 patch.adjust_corner(primary_xpt, 'NE')
-#             elif patch.patchName == 'B7':
-#                 patch.adjust_corner(primary_xpt, 'SE')
-#             elif patch.patchName == 'C8':
-#                 patch.adjust_corner(primary_xpt, 'NW')
-#             elif patch.patchName == 'B8':
-#                 patch.adjust_corner(primary_xpt, 'SW')
-
-#             # Tidy up secondary x-point
-#             elif patch.patchName == 'A3':
-#                 patch.adjust_corner(secondary_xpt, 'SE')
-#             elif patch.patchName == 'B3':
-#                 patch.adjust_corner(secondary_xpt, 'NE')
-#             elif patch.patchName == 'A4':
-#                 patch.adjust_corner(secondary_xpt, 'SW')
-#             elif patch.patchName == 'B4':
-#                 patch.adjust_corner(secondary_xpt, 'NW')
-#             elif patch.patchName == 'B5':
-#                 patch.adjust_corner(secondary_xpt, 'NE')
-#             elif patch.patchName == 'A5':
-#                 patch.adjust_corner(secondary_xpt, 'SE')
-#             elif patch.patchName == 'B6':
-#                 patch.adjust_corner(secondary_xpt, 'NW')
-#             elif patch.patchName == 'A6':
-#                 patch.adjust_corner(secondary_xpt, 'SW')
-
-#         self.concat_grid()
-#         self.set_gridue()
+        TopologyUtils.__init__(self, Ingrid_obj, config)
 
     def construct_patches(self):
         """
         """
-        def reorder_limiter(new_start, limiter):
-            start_index, = find_split_index(new_start, limiter)
-            return limiter
-        def limiter_split(start, end, limiter):
-            start_index, sls = find_split_index(start, limiter)
-            end_index, sls = find_split_index(end, limiter)
-            if end_index <= start_index:
-                limiter.p = limiter.p[start_index:] + limiter.p[:start_index]
-            return limiter
-        def trim_geometry(geoline, start, end):
-            try:
-                trim = (geoline.split(start)[1]).split(end, add_split_point = True)[0]
-            except:
-                trim = limiter_split(start, end, geoline)
-            return trim
 
         try:
             visual = self.settings['DEBUG']['visual']['patch_map']
@@ -920,42 +423,60 @@ class SF15():
         self.patches = {}
         for patch in patches:
             patch.parent = self
-            patch.NameTagMap = self.PatchTagMap
+            patch.PatchTagMap = self.PatchTagMap
             self.patches[patch.patchName] = patch
 
-    def patch_diagram(self):
-        """
-        Generates the patch diagram for a given configuration.
-        @author: watkins35, garcia299
-        """
+    def AdjustPatch(self,patch):
+        xpt1 = Point(self.eq.NSEW_lookup['xpt1']['coor']['center'])
+        xpt2 = Point(self.eq.NSEW_lookup['xpt2']['coor']['center'])
 
-        colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
-                  'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
-                  'seagreen', 'firebrick', 'saddlebrown', 'dodgerblue',
-                  'violet', 'magenta', 'olivedrab', 'darkorange', 'mediumslateblue',
-                  'palevioletred', 'yellow', 'lightpink', 'plum', 'lawngreen',
-                  'tan', 'hotpink', 'lightgray', 'darkcyan', 'navy']
+        tag = patch.get_tag()
+        if tag == 'A3':
+            patch.adjust_corner(xpt1, 'SE')
+        elif tag == 'A2':
+            patch.adjust_corner(xpt1, 'NE')
+        elif tag == 'B3':
+            patch.adjust_corner(xpt1, 'SW')
+        elif tag == 'B2':
+            patch.adjust_corner(xpt1, 'NW')
+        elif tag == 'E3':
+            patch.adjust_corner(xpt1, 'SE')
+        elif tag == 'E2':
+            patch.adjust_corner(xpt1, 'NE')
+        elif tag == 'F3':
+            patch.adjust_corner(xpt1, 'SW')
+        elif tag == 'F2':
+            patch.adjust_corner(xpt1, 'NW')
+            patch.adjust_corner(xpt2, 'SE')
+        elif tag == 'F1':
+            patch.adjust_corner(xpt2, 'NE')
+        elif tag == 'G2':
+            patch.adjust_corner(xpt2, 'SW')
+        elif tag == 'G1':
+            patch.adjust_corner(xpt2, 'NW')
+        elif tag == 'H1':
+            patch.adjust_corner(xpt2, 'NE')
+        elif tag == 'H2':
+            patch.adjust_corner(xpt2, 'SE')
+        elif tag == 'I2':
+            patch.adjust_corner(xpt2, 'SW')
+        elif tag == 'I1':
+            patch.adjust_corner(xpt2, 'NW')
 
 
-        self.FigPatch=plt.figure('INGRID: Patch Map', figsize=(6, 10))
-        self.FigPatch.clf()
-        ax=self.FigPatch.subplots(1,1)
-        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-        ax.set_aspect('equal', adjustable='box')
+    def GroupPatches(self):
+        # p = self.patches
+        # self.PatchGroup = {'SOL' : [], 
+        # 'CORE' : (p['ICB'], p['ICT'], p['OCT'], p['OCB']), 
+        # 'PF' : (p['IPF'], p['OPF'])}
+        pass
 
-        ax.set_xlabel('R')
-        ax.set_ylabel('Z')
-        self.FigPatch.suptitle('DNL Patch Diagram: ' + self.config)
+    def SetupPatchMatrix(self):
+        # p = self.patches
+        # self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
+        #                 [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
+        #                 [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
+        #                 [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
+        #                 ]
+        pass
 
-        for i, patch in enumerate(self.patches.values()):
-            patch.plot_border('green')
-            patch.fill(colors[i])
-            patch.color=colors[i]
-        plt.show()
-
-    def CheckPatches(self,verbose=False):
-        for name, patch in self.patches.items():
-            if patch.platePatch:
-                print(' # Checking patch: ', name)
-                patch.CheckPatch(self)

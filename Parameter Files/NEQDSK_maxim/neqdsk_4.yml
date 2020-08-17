@@ -177,6 +177,12 @@ DEBUG:
         subgrid: 0
         SF_analysis: 0
 eqdsk: ../data/NEQDSK_maxim/neqdsk_4
+patch_data:
+    file: ../data/NEQDSK_maxim/UDN_patches_1597689217.npy
+    use_file: True
+    preferences:
+        new_file: True
+        new_fname: ../data/NEQDSK_maxim/UDN_patches_1597689217.npy
 grid_params:
     config: DNL
     grid_generation:

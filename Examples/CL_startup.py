@@ -25,13 +25,17 @@ SF45_maxim = '../Parameter Files/NEQDSK_maxim/neqdsk_6.yml'
 # < Your path to Ingrid formatted parameter file here >
 
 # Select a case.
-case = SAS_case
+case = DIIID_case
 
 
 if __name__ == '__main__':
 
     # Construction of Ingrid object with parameter file parsing.
+    import pdb
+    pdb.set_trace()
     GridDemo = Ingrid(InputFile=case)
+    GridDemo.LoadPatches('SF135_patches_1597375808.npy')
+    
 
     # Read EFIT data, target plate data, and plot data.
     GridDemo.OMFIT_read_psi()
@@ -39,7 +43,18 @@ if __name__ == '__main__':
     GridDemo.AutoRefineMagAxis()
     GridDemo.AutoRefineXPoint()
 
-    GeoSettings = {'W1' : GridDemo.settings['target_plates']['plate_W1']['file'], 'E1' : GridDemo.settings['target_plates']['plate_E1']['file']}
+    GeoSettings = {
+    
+        'W1' : {
+            'file' : GridDemo.settings['target_plates']['plate_W1']['file'], 
+            'zshift' : GridDemo.settings['target_plates']['plate_W1']['zshift']
+            },
+
+        'E1' : {
+            'file' : GridDemo.settings['target_plates']['plate_E1']['file'],
+            'zshift' : GridDemo.settings['target_plates']['plate_E1']['zshift']
+        }
+    }
 
     GridDemo.SetGeometry(GeoSettings)
     GridDemo.SetLimiter()
@@ -49,6 +64,7 @@ if __name__ == '__main__':
 
     # Begin patch construction with parameter file psi values.
     GridDemo.ConstructPatches()
+    GridDemo.SavePatches("LSN_patches_1597099640.npy")
     GridDemo.ShowSetup()
 
     # Begin patch refinement and actively plot grid.

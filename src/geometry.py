@@ -107,6 +107,23 @@ def orientation_between(u, v, origin):
         u_norm[0] * v_norm[0] + u_norm[0] * v_norm[1]))
 
 
+def reorder_limiter(new_start, limiter):
+    start_index, = find_split_index(new_start, limiter)
+    return limiter
+def limiter_split(start, end, limiter):
+    start_index, sls = find_split_index(start, limiter)
+    end_index, sls = find_split_index(end, limiter)
+    if end_index <= start_index:
+        limiter.p = limiter.p[start_index:] + limiter.p[:start_index+1]
+    return limiter
+def trim_geometry(geoline, start, end):
+    try:
+        trim = (geoline.split(start)[1]).split(end, add_split_point = True)[0]
+    except:
+        trim = limiter_split(start, end, geoline)
+    return trim
+
+
 class Vector:
     """
     Defines a vector from a nontrivial origin.
@@ -520,7 +537,7 @@ class Patch:
         for line in self.lines:
             line.plot(color, ax=_ax)
 
-    def fill(self, color='lightsalmon',ax=None):
+    def fill(self, color='lightsalmon',ax=None, alpha=1.0):
         """
         Shades in the patch with a given color
 
@@ -533,7 +550,7 @@ class Patch:
         y = np.array([p.y for p in self.p])
         arr = np.column_stack((x,y))
         PatchLabel=self.patchName+' (' +UnfoldLabel(self.PatchLabelDoc,self.patchName)+')'
-        patch = Polygon(arr, fill = True, closed = True, color = color,label=PatchLabel)
+        patch = Polygon(arr, fill = True, closed = True, color = color,label=PatchLabel, alpha=alpha)
         _ax = plt.gca() if ax == None else ax
         _ax.add_patch(patch)
         _ax.plot()

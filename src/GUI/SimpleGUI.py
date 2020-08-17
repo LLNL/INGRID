@@ -184,7 +184,7 @@ class FilePicker(tk.Tk):
         if topology == 'DNL':
             IG.AutoRefineXPoint2()
         IG.read_target_plates()
-        IG.SetGeometry({'limiter' : 'eq'})
+        IG.SetGeometry({'limiter' : IG.settings['limiter']})
         IG.SetMagReference(topology)
         IG.calc_psinorm()
 
@@ -215,8 +215,22 @@ class FilePicker(tk.Tk):
         IG = self.Ingrid
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
-        self.AnalyzeTopology()
-        IG.ConstructPatches()
+
+        patch_data_available = False
+
+        try:
+            if IG.settings['patch_data']['use_file']:
+                if Path(IG.settings['patch_data']['file']).is_file():
+                    patch_data_available = True
+        except:
+            pass
+
+        if patch_data_available:
+            IG.LoadPatches()
+        else:
+            self.AnalyzeTopology()
+            IG.ConstructPatches()
+
         IG.ShowPatchMap()
 
     def CreateSubgrid(self):

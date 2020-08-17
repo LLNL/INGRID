@@ -2,7 +2,7 @@
 SF15.py
 
 Description:
-    SNL configuration class.
+    SF105 configuration class.
 
 Created: June 18, 2020
 
@@ -19,9 +19,10 @@ from TopologyUtils import TopologyUtils
 from geometry import Point, Line, Patch, trim_geometry
 
 
-class SF75(TopologyUtils):
+class SF105(TopologyUtils):
     def __init__(self, Ingrid_obj, config):
         TopologyUtils.__init__(self, Ingrid_obj, config)
+
 
     def construct_patches(self):
         """
@@ -55,8 +56,8 @@ class SF75(TopologyUtils):
         psi_max_west = self.settings['grid_params']['psi_max_west']
         psi_max_east = self.settings['grid_params']['psi_max_east']
         psi_min_core = self.settings['grid_params']['psi_min_core']
-        psi_min_pf = self.settings['grid_params']['psi_min_pf']
-        psi_min_pf_2 = self.settings['grid_params']['psi_pf2']
+        psi_pf_1 = self.settings['grid_params']['psi_min_pf']
+        psi_pf_2 = self.settings['grid_params']['psi_pf2']
 
 
         if self.settings['limiter']['use_limiter']:
@@ -96,220 +97,215 @@ class SF75(TopologyUtils):
 
         xpt1N__psiMinCore = self.eq.draw_line(xpt1['N'], {'psi' : psi_min_core}, \
             option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
-        E2_E, E1_E = xpt1N__psiMinCore.split(xpt1N__psiMinCore.p[len(xpt1N__psiMinCore.p)//2], 
+        F2_E, F1_E = xpt1N__psiMinCore.split(xpt1N__psiMinCore.p[len(xpt1N__psiMinCore.p)//2], 
             add_split_point = True)
-        B2_W, B1_W = E2_E.reverse_copy(), E1_E.reverse_copy()
+        C2_W, C1_W = F2_E.reverse_copy(), F1_E.reverse_copy()
 
 
         xpt1NW__west_midLine = self.eq.draw_line(xpt1['NW'], {'line' : west_midLine}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        B2_N = xpt1NW__west_midLine
-        B3_S = B2_N.reverse_copy()
+        C2_N = xpt1NW__west_midLine
+        C3_S = C2_N.reverse_copy()
 
 
         xpt1NE__east_midLine = self.eq.draw_line(xpt1['NE'], {'line' : east_midLine}, \
             option = 'theta', direction = 'ccw', show_plot = visual, text = verbose)
-        E3_S = xpt1NE__east_midLine
-        E2_N = E3_S.reverse_copy()
+        F3_S = xpt1NE__east_midLine
+        F2_N = F3_S.reverse_copy()
 
 
-        C2_N = self.eq.draw_line(B2_N.p[-1], {'line' : topLine}, \
+        D2_N = self.eq.draw_line(C2_N.p[-1], {'line' : topLine}, \
             option = 'theta', direction = 'cw', show_plot = visual, text = verbose)
-        C3_S = C2_N.reverse_copy()
-
-
-        D2_N = self.eq.draw_line(E2_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', 
-            show_plot = visual, text = verbose).reverse_copy()
         D3_S = D2_N.reverse_copy()
 
-        B1_N = self.eq.draw_line(B1_W.p[-1], {'line' : west_midLine}, option='theta', direction='cw',
-            show_plot=visual, text=verbose)
-        B2_S = B1_N.reverse_copy()
 
-        E1_N = self.eq.draw_line(B1_W.p[-1], {'line' : east_midLine}, option='theta', direction='ccw',
-            show_plot=visual, text=verbose).reverse_copy()
-        E2_S = E1_N.reverse_copy()
+        E2_N = self.eq.draw_line(F2_N.p[0], {'line' : topLine}, option = 'theta', direction = 'ccw', 
+            show_plot = visual, text = verbose).reverse_copy()
+        E3_S = E2_N.reverse_copy()
 
-        C1_N = self.eq.draw_line(B1_N.p[-1], {'line' : topLine}, option='theta', direction='cw',
+        C1_N = self.eq.draw_line(C1_W.p[-1], {'line' : west_midLine}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
         C2_S = C1_N.reverse_copy()
 
-        D1_N = self.eq.draw_line(E1_N.p[0], {'line' : topLine}, option='theta', direction='ccw',
+        F1_N = self.eq.draw_line(C1_W.p[-1], {'line' : east_midLine}, option='theta', direction='ccw',
             show_plot=visual, text=verbose).reverse_copy()
+        F2_S = F1_N.reverse_copy()
+
+        D1_N = self.eq.draw_line(C1_N.p[-1], {'line' : topLine}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
         D2_S = D1_N.reverse_copy()
 
-        B1_S = self.eq.draw_line(B1_W.p[0], {'line' : west_midLine}, option='theta', direction='cw',
+        E1_N = self.eq.draw_line(F1_N.p[0], {'line' : topLine}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+        E2_S = E1_N.reverse_copy()
+
+        C1_S = self.eq.draw_line(C1_W.p[0], {'line' : west_midLine}, option='theta', direction='cw',
             show_plot=visual, text=verbose).reverse_copy()
 
-        E1_S = self.eq.draw_line(B1_W.p[0], {'line' : east_midLine}, option='theta', direction='ccw',
+        F1_S = self.eq.draw_line(C1_W.p[0], {'line' : east_midLine}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
-        C1_S = self.eq.draw_line(B1_S.p[0], {'line' : topLine}, option='theta', direction='cw',
+        D1_S = self.eq.draw_line(C1_S.p[0], {'line' : topLine}, option='theta', direction='cw',
             show_plot=visual, text=verbose).reverse_copy()
 
-        D1_S = self.eq.draw_line(E1_S.p[-1], {'line' : topLine}, option='theta', direction='ccw',
+        E1_S = self.eq.draw_line(F1_S.p[-1], {'line' : topLine}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
-        B3_W = self.eq.draw_line(xpt1['W'], {'psi' : psi_max_west}, option='rho', direction='ccw',
+        B3_E = self.eq.draw_line(xpt1['W'], {'psi' : psi_max_west}, option='rho', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+        C3_W = B3_E.reverse_copy()
+
+
+        F3_E = self.eq.draw_line(xpt1['E'], {'psi' : psi_max_west}, option='rho', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+        G3_W = F3_E.reverse_copy()
+
+        C3_N = self.eq.draw_line(C3_W.p[-1], {'line' : west_midLine}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
+
+        D3_N = self.eq.draw_line(C3_N.p[-1], {'line' : topLine}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
+
+        F3_N = self.eq.draw_line(F3_E.p[0], {'line' : east_midLine}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+
+        E3_N = self.eq.draw_line(F3_N.p[0], {'line' : topLine}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+
+        G3_N = self.eq.draw_line(F3_N.p[-1], {'line' : EastPlate1}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
+
+        A3_N__B3_N = self.eq.draw_line(C3_N.p[0], {'line' : WestPlate1}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+
+        A2_N__B2_N = self.eq.draw_line(xpt1['SW'], {'line' : WestPlate1}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+
+        G2_N = self.eq.draw_line(xpt1['SE'], {'line' : EastPlate1}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
+        G3_S = G2_N.reverse_copy()
+
+        B2_E__B1_E = self.eq.draw_line(xpt1['S'], {'psi' : psi_pf_1}, option='rho', direction='cw',
+            show_plot=visual, text=verbose)
+
+        A1_N = self.eq.draw_line(xpt2['NW'], {'line' : WestPlate1}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose).reverse_copy()
+        A2_S = A1_N.reverse_copy()
+
+        B2_W = self.eq.draw_line(xpt2['N'], {'line' : A2_N__B2_N}, option='rho', direction='ccw',
+            show_plot=visual, text=verbose)
+        A2_E = B2_W.reverse_copy()
+
+        B3_W = self.eq.draw_line(B2_W.p[-1], {'line' : A3_N__B3_N}, option='rho', direction='ccw',
             show_plot=visual, text=verbose)
         A3_E = B3_W.reverse_copy()
 
+        A2_N, B2_N = A2_N__B2_N.split(B2_W.p[-1], add_split_point=True)
+        A3_S, B3_S = A2_N.reverse_copy(), B2_N.reverse_copy()
 
-        F3_W = self.eq.draw_line(xpt1['E'], {'psi' : psi_max_west}, option='rho', direction='ccw',
+        A3_N, B3_N = A3_N__B3_N.split(B3_W.p[-1], add_split_point=True)
+
+        B1_N = self.eq.draw_line(xpt2['NE'], {'line' : B2_E__B1_E}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
-        E3_E = F3_W.reverse_copy()
+        B2_S = B1_N.reverse_copy()
 
-        B3_N = self.eq.draw_line(B3_W.p[-1], {'line' : west_midLine}, option='theta', direction='cw',
+        G1_N = self.eq.draw_line(B1_N.p[-1], {'line' : EastPlate1}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
+        G2_S = G1_N.reverse_copy()
 
-        C3_N = self.eq.draw_line(B3_N.p[-1], {'line' : topLine}, option='theta', direction='cw',
-            show_plot=visual, text=verbose)
+        B2_E, B1_E = B2_E__B1_E.split(B1_N.p[-1], add_split_point=True)
+        G2_W, G1_W = B2_E.reverse_copy(), B1_E.reverse_copy()
 
-        E3_N = self.eq.draw_line(E3_E.p[0], {'line' : east_midLine}, option='theta', direction='ccw',
+        G1_S = self.eq.draw_line(B1_E.p[-1], {'line' : EastPlate1}, option='theta', direction='cw',
             show_plot=visual, text=verbose).reverse_copy()
 
-        D3_N = self.eq.draw_line(E3_N.p[0], {'line' : topLine}, option='theta', direction='ccw',
+        B1_S__H1_S = self.eq.draw_line(B1_E.p[-1], {'line' : EastPlate2}, option='theta', direction='ccw',
+            show_plot=visual, text=verbose)
+
+        H1_E = self.eq.draw_line(xpt2['E'], {'line' : B1_S__H1_S}, option='rho', direction='cw',
+            show_plot=visual, text=verbose)
+        B1_W = H1_E.reverse_copy()
+
+        B1_S, H1_S = B1_S__H1_S.split(H1_E.p[-1], add_split_point=True)
+
+        H3_E__H2_E = self.eq.draw_line(xpt2['S'], {'psi' : psi_pf_2}, option='rho', direction='ccw',
             show_plot=visual, text=verbose).reverse_copy()
 
-        A3_N = self.eq.draw_line(B3_N.p[0], {'line' : WestPlate1}, option='theta', direction='ccw',
-            show_plot=visual, text=verbose).reverse_copy()
+        H3_E, H2_E = H3_E__H2_E.split(H3_E__H2_E.p[len(H3_E__H2_E.p)//2], add_split_point = True)
+        I3_W, I2_W = H3_E.reverse_copy(), H2_E.reverse_copy()
 
-        A3_S = self.eq.draw_line(xpt1['SW'], {'line' : WestPlate1}, option='theta', direction='ccw',
+        A1_E = self.eq.draw_line(xpt2['W'], {'psi' : psi_max_east}, option='rho', direction='cw',
             show_plot=visual, text=verbose)
-        A2_N = A3_S.reverse_copy()
-
-        A2_E__A1_E = self.eq.draw_line(xpt1['S'], {'psi' : psi_min_pf}, option='rho', direction='cw',
-            show_plot=visual, text=verbose)
-
-        F2_N__G2_N = self.eq.draw_line(xpt1['SE'], {'line' : EastPlate1}, option='theta', direction='cw',
-            show_plot=visual, text=verbose)
-
-        F3_N__G3_N = self.eq.draw_line(E3_N.p[-1], {'line' : EastPlate1}, option='theta', direction='cw',
-            show_plot=visual, text=verbose)
-
-        G2_W = self.eq.draw_line(xpt2['N'], {'line' : F2_N__G2_N}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
-        F2_E = G2_W.reverse_copy()
-
-        F2_N, G2_N = F2_N__G2_N.split(G2_W.p[-1], add_split_point=True)
-        F3_S, G3_S = F2_N.reverse_copy(), G2_N.reverse_copy()
-
-        G3_W = self.eq.draw_line(G2_W.p[-1], {'line' : F3_N__G3_N}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
-        F3_E = G3_W.reverse_copy()
-
-        F3_N, G3_N = F3_N__G3_N.split(G3_W.p[-1], add_split_point=True)
-
-        F2_S = self.eq.draw_line(xpt2['NW'], {'line' : A2_E__A1_E}, option='theta', direction='ccw',
-            show_plot=visual, text=verbose)
-        F1_N = F2_S.reverse_copy()
-
-
-        A2_S = self.eq.draw_line(F2_S.p[-1], {'line' : WestPlate1}, option='theta', direction='ccw',
-            show_plot=visual, text=verbose)
-        A1_N = A2_S.reverse_copy()
-
-        A2_E, A1_E = A2_E__A1_E.split(F2_S.p[-1], add_split_point=True)
-
-        F2_W, F1_W = A2_E.reverse_copy(), A1_E.reverse_copy()
+        I1_W = A1_E.reverse_copy()
 
         A1_S = self.eq.draw_line(A1_E.p[-1], {'line' : WestPlate1}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
-        I1_S__F1_S = self.eq.draw_line(A1_E.p[-1], {'line' : WestPlate2}, option='theta', direction='cw',
+        I1_S = self.eq.draw_line(A1_E.p[-1], {'line' : WestPlate2}, option='theta', direction='cw',
             show_plot=visual, text=verbose).reverse_copy()
-
-        F1_E = self.eq.draw_line(xpt2['W'], {'line' : I1_S__F1_S}, option='rho', direction='cw',
-            show_plot=visual, text=verbose)
-        I1_W = F1_E.reverse_copy()
-
-        I1_S, F1_S = I1_S__F1_S.split(F1_E.p[-1], add_split_point=True)
 
         I1_N = self.eq.draw_line(xpt2['SW'], {'line' : WestPlate2}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
         I2_S = I1_N.reverse_copy()
 
-        I2_W__I3_W = self.eq.draw_line(xpt2['S'], {'psi' : psi_min_pf_2}, option='rho', direction='ccw',
+        H2_S = self.eq.draw_line(xpt2['SE'], {'line' : EastPlate2}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
+        H1_N = H2_S.reverse_copy()
 
-        I3_N = self.eq.draw_line(I2_W__I3_W.p[-1], {'line' : WestPlate2}, option='theta', direction='cw',
+        H3_S = self.eq.draw_line(H3_E.p[-1], {'line' : EastPlate2}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
+        H2_N = H3_S.reverse_copy()
 
-        H3_N = self.eq.draw_line(I2_W__I3_W.p[-1], {'line' : EastPlate2}, option='theta', direction='ccw',
-            show_plot=visual, text=verbose).reverse_copy()
-
-        H1_N = self.eq.draw_line(xpt2['SE'], {'line' : EastPlate2}, option='theta', direction='ccw',
-            show_plot=visual, text=verbose).reverse_copy()
-
-        H2_S = H1_N.reverse_copy()
-
-        I2_W, I3_W = I2_W__I3_W.split(I2_W__I3_W.p[len(I2_W__I3_W.p)//2], add_split_point = True)
-        H2_E, H3_E = I2_W.reverse_copy(), I3_W.reverse_copy()
-
-        I2_N = self.eq.draw_line(I2_W.p[-1], {'line' : WestPlate2}, option='theta', direction='cw',
+        I2_N = self.eq.draw_line(H3_E.p[-1], {'line' : WestPlate2}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
         I3_S = I2_N.reverse_copy()
 
-        H2_N = self.eq.draw_line(H2_E.p[0], {'line' : EastPlate2}, option='theta', direction='ccw',
-            show_plot=visual, text=verbose).reverse_copy()
-        H3_S = H2_N.reverse_copy()
+        I3_N = self.eq.draw_line(H3_E.p[0], {'line' : WestPlate2}, option='theta', direction='cw',
+            show_plot=visual, text=verbose)
 
-
-        H1_E = self.eq.draw_line(xpt2['E'], {'psi' : psi_max_east}, option='rho', direction='cw')
-        G1_W = H1_E.reverse_copy()
-
-        G1_S = self.eq.draw_line(H1_E.p[-1], {'line' : EastPlate1}, option='theta', direction='cw',
+        H3_N = self.eq.draw_line(H3_E.p[0], {'line' : EastPlate2}, option='theta', direction='ccw',
             show_plot=visual, text=verbose).reverse_copy()
 
-        H1_S = self.eq.draw_line(H1_E.p[-1], {'line' : EastPlate2}, option='theta', direction='ccw',
-            show_plot=visual, text=verbose)
 
-        G1_N = self.eq.draw_line(xpt2['NE'], {'line' : EastPlate1}, option ='theta', direction='cw',
-            show_plot=visual, text=verbose)
-        G2_S = G1_N.reverse_copy()
-
-        B3_E = self.eq.draw_line(B3_N.p[-1], {'psi_horizontal' : 1.0}, option = 'z_const', direction = 'cw', 
-            show_plot = visual, text = verbose)
-        C3_W = B3_E.reverse_copy()
-
-        B2_E = self.eq.draw_line(B2_N.p[-1], {'psi_horizontal' : B2_S.p[0].psi(self.parent)}, option='z_const', direction='cw',
-            show_plot=visual, text=verbose)
-        C2_W = B2_E.reverse_copy()
-
-        B1_E = self.eq.draw_line(B1_N.p[-1], {'psi_horizontal' : psi_min_core}, option='z_const', direction='cw',
-            show_plot=visual, text=verbose)
-        C1_W = B1_E.reverse_copy()
-
-
-        D3_E = self.eq.draw_line(D3_N.p[-1], {'psi_horizontal' : 1.0}, option = 'z_const', direction = 'ccw', 
-            show_plot = visual, text = verbose)
-        E3_W = D3_E.reverse_copy()
-
-        D2_E = self.eq.draw_line(D2_N.p[-1], {'psi_horizontal' : D2_S.p[0].psi(self.parent)}, option='z_const', direction='ccw',
-            show_plot=visual, text=verbose)
-        E2_W = D2_E.reverse_copy()
-
-        D1_E = self.eq.draw_line(D1_N.p[-1], {'psi_horizontal' : psi_min_core}, option='z_const', direction='ccw',
-            show_plot=visual, text=verbose)
-        E1_W = D1_E.reverse_copy()
-
-        C3_E = self.eq.draw_line(C3_N.p[-1], {'psi_vertical' : 1.0}, option = 'r_const', direction = 'ccw', 
+        C3_E = self.eq.draw_line(C3_N.p[-1], {'psi_horizontal' : 1.0}, option = 'z_const', direction = 'cw', 
             show_plot = visual, text = verbose)
         D3_W = C3_E.reverse_copy()
 
-        C2_E = self.eq.draw_line(C2_N.p[-1], {'psi_vertical' : C2_S.p[0].psi(self.parent)}, option = 'r_const', direction = 'ccw', 
-            show_plot = visual, text = verbose)
+        C2_E = self.eq.draw_line(C2_N.p[-1], {'psi_horizontal' : C2_S.p[0].psi(self.parent)}, option='z_const', direction='cw',
+            show_plot=visual, text=verbose)
         D2_W = C2_E.reverse_copy()
 
-        C1_E = self.eq.draw_line(C1_N.p[-1], {'psi_vertical' : psi_min_core}, option = 'r_const', direction = 'ccw', 
-            show_plot = visual, text = verbose)
+        C1_E = self.eq.draw_line(C1_N.p[-1], {'psi_horizontal' : psi_min_core}, option='z_const', direction='cw',
+            show_plot=visual, text=verbose)
         D1_W = C1_E.reverse_copy()
-    
+
+        E3_E = self.eq.draw_line(E3_N.p[-1], {'psi_horizontal' : 1.0}, option = 'z_const', direction = 'ccw', 
+            show_plot = visual, text = verbose)
+        F3_W = E3_E.reverse_copy()
+
+        E2_E = self.eq.draw_line(E2_N.p[-1], {'psi_horizontal' : D2_S.p[0].psi(self.parent)}, option='z_const', direction='ccw',
+            show_plot=visual, text=verbose)
+        F2_W = E2_E.reverse_copy()
+
+        E1_E = self.eq.draw_line(E1_N.p[-1], {'psi_horizontal' : psi_min_core}, option='z_const', direction='ccw',
+            show_plot=visual, text=verbose)
+        F1_W = E1_E.reverse_copy()
+
+        D3_E = self.eq.draw_line(D3_N.p[-1], {'psi_vertical' : 1.0}, option = 'r_const', direction = 'ccw', 
+            show_plot = visual, text = verbose)
+        E3_W = D3_E.reverse_copy()
+
+        D2_E = self.eq.draw_line(D2_N.p[-1], {'psi_vertical' : C2_S.p[0].psi(self.parent)}, option = 'r_const', direction = 'ccw', 
+            show_plot = visual, text = verbose)
+        E2_W = D2_E.reverse_copy()
+
+        D1_E = self.eq.draw_line(D1_N.p[-1], {'psi_vertical' : psi_min_core}, option = 'r_const', direction = 'ccw', 
+            show_plot = visual, text = verbose)
+        E1_W = D1_E.reverse_copy()
 
         A1_W = trim_geometry(WestPlate1, A1_S.p[-1], A1_N.p[0])
         A2_W = trim_geometry(WestPlate1, A2_S.p[-1], A2_N.p[0])
         A3_W = trim_geometry(WestPlate1, A3_S.p[-1], A3_N.p[0])
-
 
         G1_E = trim_geometry(EastPlate1, G1_N.p[-1], G1_S.p[0])
         G2_E = trim_geometry(EastPlate1, G2_N.p[-1], G2_S.p[0])
@@ -322,6 +318,7 @@ class SF75(TopologyUtils):
         H1_W = trim_geometry(EastPlate2, H1_S.p[-1], H1_N.p[0])
         H2_W = trim_geometry(EastPlate2, H2_S.p[-1], H2_N.p[0])
         H3_W = trim_geometry(EastPlate2, H3_S.p[-1], H3_N.p[0])
+
 
         # ============== Patch A1 ==============
         A1 = Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'A1', platePatch = True, plateLocation = 'W')
@@ -401,37 +398,33 @@ class SF75(TopologyUtils):
         xpt2 = Point(self.eq.NSEW_lookup['xpt2']['coor']['center'])
 
         tag = patch.get_tag()
-        if tag == 'A3':
+        if tag == 'B3':
             patch.adjust_corner(xpt1, 'SE')
-        elif tag == 'A2':
-            patch.adjust_corner(xpt1, 'NE')
-        elif tag == 'B3':
-            patch.adjust_corner(xpt1, 'SW')
         elif tag == 'B2':
-            patch.adjust_corner(xpt1, 'NW')
-        elif tag == 'E3':
-            patch.adjust_corner(xpt1, 'SE')
-        elif tag == 'E2':
             patch.adjust_corner(xpt1, 'NE')
-        elif tag == 'F3':
+            patch.adjust_corner(xpt2, 'SW')
+        elif tag == 'C3':
             patch.adjust_corner(xpt1, 'SW')
-        elif tag == 'F2':
+        elif tag == 'C2':
             patch.adjust_corner(xpt1, 'NW')
-            patch.adjust_corner(xpt2, 'SE')
-        elif tag == 'F1':
-            patch.adjust_corner(xpt2, 'NE')
+        elif tag == 'F3':
+            patch.adjust_corner(xpt1, 'SE')
+        elif tag == 'F2':
+            patch.adjust_corner(xpt1, 'NE')
+        elif tag == 'G3':
+            patch.adjust_corner(xpt1, 'SW')
         elif tag == 'G2':
-            patch.adjust_corner(xpt2, 'SW')
-        elif tag == 'G1':
-            patch.adjust_corner(xpt2, 'NW')
-        elif tag == 'H1':
+            patch.adjust_corner(xpt1, 'NW')
+        elif tag == 'A1':
             patch.adjust_corner(xpt2, 'NE')
-        elif tag == 'H2':
-            patch.adjust_corner(xpt2, 'SE')
-        elif tag == 'I2':
-            patch.adjust_corner(xpt2, 'SW')
         elif tag == 'I1':
             patch.adjust_corner(xpt2, 'NW')
+        elif tag == 'I2':
+            patch.adjust_corner(xpt2, 'SW')
+        elif tag == 'H2':
+            patch.adjust_corner(xpt2, 'SE')
+        elif tag == 'H1':
+            patch.adjust_corner(xpt2, 'NE')
 
 
     def GroupPatches(self):

@@ -10,6 +10,12 @@ DEBUG:
     patch_map: 0
     subgrid: 0
 eqdsk: ../data/NEQDSK_maxim/neqdsk_5
+patch_data:
+  file: '../data/NEQDSK_maxim/SF45_patches_1597425973.npy'
+  use_file: True
+  preferences:
+    new_file: True
+    new_fname: '../data/NEQDSK_maxim/SF45_patches_1597425973.npy'
 grid_params:
   config: SF45
   grid_generation:
@@ -88,7 +94,7 @@ integrator_params:
   step_ratio: 0.02
   tol: 0.005
 limiter:
-  file: '/Users/torvaltz/Desktop/INGRID/Examples/neqdsk_5_LimiterData.npy'
+  file: ''
   rshift: 0.0
   use_efit_bounds: false
   use_limiter: true

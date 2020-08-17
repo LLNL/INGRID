@@ -10,223 +10,18 @@ Created: June 18, 2020
 import numpy as np
 import matplotlib
 import pathlib
-import inspect
-import yaml as _yaml_
 try:
     matplotlib.use("TkAgg")
 except:
     pass
 import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
-from geometry import Point, Line, Patch, segment_intersect, angle_between, rotate, find_split_index
+from TopologyUtils import TopologyUtils
+from geometry import Point, Line, Patch, trim_geometry
 
 
-class SF45():
+class SF45(TopologyUtils):
     def __init__(self, Ingrid_obj, config):
-
-        self.parent = Ingrid_obj
-        self.config = config
-        self.settings = Ingrid_obj.settings
-        self.plate_data = Ingrid_obj.plate_data
-
-        self.parent.order_target_plates()
-        self.PatchTagMap = self.parent.GetPatchTagMap(config='SF45')
-
-        self.eq = Ingrid_obj.eq
-        self.efit_psi = Ingrid_obj.efit_psi
-        self.psi_norm = Ingrid_obj.psi_norm
-        self.eq = Ingrid_obj.eq
-        self.CurrentListPatch={}
-        self.Verbose=False
-        self.plate_data = Ingrid_obj.plate_data
-        self.CorrectDistortion={}
-
-    def patch_diagram(self):
-        """ Generates the patch diagram for a given configuration. """
-
-        colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
-                  'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
-                  'seagreen', 'firebrick', 'saddlebrown', 'c',
-                  'm', 'dodgerblue', 'darkorchid', 'crimson',
-                  'darkorange', 'lightgreen', 'lightseagreen', 'indigo',
-                  'mediumvioletred', 'mistyrose', 'darkolivegreen', 'rebeccapurple']
-
-        self.FigPatch=plt.figure('INGRID: Patch Map', figsize=(6, 10))
-        self.FigPatch.clf()
-        ax=self.FigPatch.subplots(1,1)
-        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-        ax.set_aspect('equal', adjustable='box')
-
-        ax.set_xlabel('R')
-        ax.set_ylabel('Z')
-        self.FigPatch.suptitle('SNL Patch Diagram')
-
-        for i, patch in enumerate(self.patches.values()):
-            patch.plot_border('green')
-            patch.fill(colors[i])
-            patch.color=colors[i]
-        ax.legend()
-        plt.show()
-
-    def grid_diagram(self,ax=None):
-        """
-        Create Grid matplotlib figure for an SNL object.
-        @author: watkins35, garcia299
-        """
-        fig=plt.figure('INGRID: Grid', figsize=(6,10))
-        if ax is None:
-            ax=fig.gca()
-        for patch in self.patches:
-            patch.plot_subgrid(ax)
-            print('patch completed...')
-
-        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-        plt.gca().set_aspect('equal', adjustable='box')
-        plt.xlabel('R')
-        plt.ylabel('Z')
-        plt.title('INGRID SNL Subgrid')
-        plt.show()
-
-    def get_config(self):
-        """
-        Returns a string indicating whether the
-        """
-        return self.config
-
-    def concat_grid(self):
-        """
-        Concatenate all local grids on individual patches into a single
-        array with branch cuts
-        Parameters:
-        ----------
-            config : str
-                Type of SNL grid to concat.
-        """
-        patch_matrix = self.patch_matrix
-
-        for patch in self.patches.values():
-            patch.npol = len(patch.cell_grid[0]) + 1
-            patch.nrad = len(patch.cell_grid) + 1
-
-        # Total number of poloidal indices in all subgrids.
-        np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:5]])) + 2
-
-        # Total number of radial indices in all subgrids.
-        nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:4]])) + 2
-
-        # Total number of poloidal indices in all subgrids.
-        np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:11]])) + 2
-
-        # Total number of radial indices in all subgrids.
-        nr_total2 = int(np.sum([patch[7].nrad - 1 for patch in patch_matrix[1:4]])) + 2
-
-        rm1 = np.zeros((np_total1, nr_total1, 5), order = 'F')
-        zm1  = np.zeros((np_total1, nr_total1, 5), order = 'F')
-        rm2 = np.zeros((np_total2, nr_total2, 5), order = 'F')
-        zm2  = np.zeros((np_total2, nr_total2, 5), order = 'F')
-
-        ixcell = 0
-        jycell = 0
-
-        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
-        for ixp in range(1, 5):
-
-            nr_sum = 0
-            for jyp in range(1, 4):
-                # Point to the current patch we are operating on.
-                local_patch = patch_matrix[jyp][ixp]
-
-                if local_patch == [None]:
-                    continue
-
-                nr_sum += local_patch.nrad - 1
-
-                # Access the grid that is contained within this local_patch.
-                # ixl - number of poloidal cells in the patch.
-                for ixl in range(len(local_patch.cell_grid[0])):
-                    # jyl - number of radial cells in the patch
-                    for jyl in range(len(local_patch.cell_grid)):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
-
-                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
-
-                        ind = 0
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                            zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
-
-        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
-
-        ixcell = 0
-        jycell = 0
-
-        for ixp in range(7, 11):
-
-            nr_sum = 0
-            for jyp in range(1, 4):
-                # Point to the current patch we are operating on.
-                local_patch = patch_matrix[jyp][ixp]
-
-                if local_patch == [None]:
-                    continue
-
-                nr_sum += local_patch.nrad - 1
-
-                # Access the grid that is contained within this local_patch.
-                # ixl - number of poloidal cells in the patch.
-                for ixl in range(len(local_patch.cell_grid[0])):
-                    # jyl - number of radial cells in the patch
-                    for jyl in range(len(local_patch.cell_grid)):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:ixp+1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
-
-                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
-
-                        ind = 0
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                            zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
-
-        # Flip indices into gridue format.
-        for i in range(len(rm1)):
-            rm1[i] = rm1[i][::-1]
-        for i in range(len(zm1)):
-            zm1[i] = zm1[i][::-1]
-        for i in range(len(rm2)):
-            rm2[i] = rm2[i][::-1]
-        for i in range(len(zm2)):
-            zm2[i] = zm2[i][::-1]
-
-        # Add guard cells to the concatenated grid.
-        ixrb1 = len(rm1) - 2
-        ixlb1 = 0
-        ixrb2 = len(rm2) - 2
-        ixlb2 = 0
-
-        rm1 = self.add_guardc(rm1, ixlb1, ixrb1)
-        zm1 = self.add_guardc(zm1, ixlb1, ixrb1)
-        rm2 = self.add_guardc(rm2, ixlb2, ixrb2)
-        zm2 = self.add_guardc(zm2, ixlb2, ixrb2)
-
-        self.rm = np.concatenate((rm1, rm2))
-        self.zm = np.concatenate((zm1, zm2))
-
-        try:
-            debug = self.settings['DEBUG']['visual']['gridue']
-        except:
-            debug = False
-
-        if debug:
-            self.animate_grid()
+        TopologyUtils.__init__(self, Ingrid_obj, config)
 
     def construct_patches(self):
         """
@@ -242,15 +37,6 @@ class SF45():
             S: Scrape Off Layer,
             C: Core.
         """
-        def reorder_limiter(new_start, limiter):
-            start_index, = find_split_index(new_start, limiter)
-            return limiter
-        def limiter_split(start, end, limiter):
-            start_index, sls = find_split_index(start, limiter)
-            end_index, sls = find_split_index(end, limiter)
-            if end_index <= start_index:
-                limiter.p = limiter.p[start_index:] + limiter.p[:start_index]
-            return limiter
 
         try:
             visual = self.settings['DEBUG']['visual']['patch_map']
@@ -686,119 +472,6 @@ class SF45():
             self.patches[patch.patchName] = patch
 
 
-    def patch_diagram(self):
-        """
-        Generates the patch diagram for a given configuration.
-        @author: watkins35, garcia299
-        """
-
-        colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
-                  'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
-                  'seagreen', 'firebrick', 'saddlebrown', 'dodgerblue',
-                  'violet', 'magenta', 'olivedrab', 'darkorange', 'mediumslateblue',
-                  'palevioletred', 'yellow', 'lightpink', 'plum', 'lawngreen',
-                  'tan', 'hotpink', 'lightgray', 'darkcyan', 'navy']
-
-
-        self.FigPatch=plt.figure('INGRID: Patch Map', figsize=(6, 10))
-        self.FigPatch.clf()
-        ax=self.FigPatch.subplots(1,1)
-        plt.xlim(self.efit_psi.rmin, self.efit_psi.rmax)
-        plt.ylim(self.efit_psi.zmin, self.efit_psi.zmax)
-        ax.set_aspect('equal', adjustable='box')
-
-        ax.set_xlabel('R')
-        ax.set_ylabel('Z')
-        self.FigPatch.suptitle('DNL Patch Diagram: ' + self.config)
-
-        for i, patch in enumerate(self.patches.values()):
-            patch.plot_border('green')
-            patch.fill(colors[i])
-            patch.color=colors[i]
-        plt.show()
-
-    def CheckPatches(self,verbose=False):
-        for name, patch in self.patches.items():
-            if patch.platePatch:
-                print(' # Checking patch: ', name)
-                patch.CheckPatch(self)
-
-
-    def SetPatchBoundaryPoints(self,Patch):
-        if self.ConnexionMap.get(Patch.get_tag()) is not None:
-            if self.Verbose: print('Find connexion map for patch {}'.format(Patch.patchName))
-            for Boundary,AdjacentPatch in self.ConnexionMap.get(Patch.get_tag()).items():
-                Patch.BoundaryPoints[Boundary]=self.GetBoundaryPoints(AdjacentPatch)
-                if self.Verbose: print('Find Boundaries points for {}'.format(Patch.patchName))
-
-    def GetBoundaryPoints(self,AdjacentPatch):
-        if AdjacentPatch is not None:
-            PatchName=AdjacentPatch[0]
-            Boundary=AdjacentPatch[1]
-            for name, patch in self.patches.items():
-                if name == PatchName:
-                   if Boundary=='S':
-                       return patch.S_vertices
-                   elif Boundary=='N':
-                       return patch.N_vertices
-                   elif Boundary=='E':
-                       return patch.W_vertices
-                   elif Boundary=='W':
-                       return patch.W_vertices 
-        return None
-
-    def GetNpoints(self,Patch,Enforce=True,Verbose=False):
-        try:
-            np_sol = self.settings['grid_params']['grid_generation']['np_sol']
-        except:
-            np_sol = self.settings['grid_params']['grid_generation']['np_global']
-        try:
-            np_core = self.settings['grid_params']['grid_generation']['np_core']
-        except:
-            np_core = self.settings['grid_params']['grid_generation']['np_global']
-        try:
-            np_pf = self.settings['grid_params']['grid_generation']['np_pf']
-        except:
-            np_pf = self.settings['grid_params']['grid_generation']['np_global']
-
-        if np_sol != np_core:
-            if Enforce:
-                raise ValueError('SOL and CORE must have equal POLOIDAL np values')
-            else:
-                print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
-                + ' to the minimum of np_sol={} and np_core={}.\n'.format(np_sol,np_core))
-            np_sol = np_core = np.amin([np_sol, np_core])
-
-        try:
-            nr_sol = self.settings['grid_params']['grid_generation']['nr_sol']
-        except:
-            nr_sol = self.settings['grid_params']['grid_generation']['nr_global']
-
-        try:
-            nr_core = self.settings['grid_params']['grid_generation']['nr_core']
-        except:
-            nr_core = self.settings['grid_params']['grid_generation']['nr_global']
-        try:
-            nr_pf = self.settings['grid_params']['grid_generation']['nr_pf']
-        except:
-            nr_pf = self.settings['grid_params']['grid_generation']['nr_global']
-
-        if nr_pf != nr_core:
-            if Enforce:
-                raise ValueError('PF and CORE must have equal RADIAL nr values')
-            else:
-                print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
-                + ' to the minimum of nr_pf={} and nr_core={}.\n'.format(nr_pf,nr_core))
-                nr_pf = nr_core = np.amin([nr_pf, nr_core])
-
-        if Patch.platePatch:
-            if Patch.plateLocation == 'W':
-                np_cells = self.settings['target_plates']['plate_W1']['np_local']
-            elif Patch.plateLocation == 'E':
-                np_cells = self.settings['target_plates']['plate_E1']['np_local']
-
-        return (nr_cells,np_cells)
-
     def AdjustPatch(self,patch):
         xpt1 = Point(self.eq.NSEW_lookup['xpt1']['coor']['center'])
         xpt2 = Point(self.eq.NSEW_lookup['xpt2']['coor']['center'])
@@ -833,41 +506,18 @@ class SF45():
             patch.adjust_corner(xpt2, 'NE')
 
 
-    def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all', Enforce=True):
+    def GroupPatches(self):
+        # p = self.patches
+        # self.PatchGroup = {'SOL' : [], 
+        # 'CORE' : (p['ICB'], p['ICT'], p['OCT'], p['OCB']), 
+        # 'PF' : (p['IPF'], p['OPF'])}
+        pass
 
-        # Straighten up East and West segments of our patches,
-        # Plot borders and fill patches.
-        if Verbose: print('Construct Grid')
-        try:
-            visual = self.settings['DEBUG']['visual']['subgrid']
-        except:
-            visual = False
-        try:
-            verbose = self.settings['DEBUG']['verbose']['grid_generation']
-        except:
-            verbose = False
-
-        verbose=Verbose or verbose
-        
-            
-        print('>>> Patches:', [k for k in self.patches.keys()])
-        if RestartScratch:
-            self.CurrentListPatch={}
-    
-        for name, patch in self.patches.items():
-            
-            if self.CorrectDistortion.get(name) is not None:
-               patch.CorrectDistortion=self.CorrectDistortion.get(name)
-            elif self.CorrectDistortion.get('all') is not None:
-                patch.CorrectDistortion=self.CorrectDistortion.get('all')
-            else:
-                patch.CorrectDistortion={'Active':False}
-            if (ListPatches=='all' and patch not in self.CurrentListPatch) or (ListPatches!='all' and name in ListPatches):
-                self.SetPatchBoundaryPoints(patch)
-                (nr_cells,np_cells)=self.settings['grid_params']['grid_generation']['nr_global'], self.settings['grid_params']['grid_generation']['np_global']#self.GetNpoints(patch, Enforce=Enforce)
-                (_radial_f,_poloidal_f)= lambda x: x, lambda x: x # self.GetFunctions(patch,ExtraSettings=ExtraSettings,Enforce=Enforce)
-                print('>>> Making subgrid in patch:{} with np={},nr={},fp={},fr={}'.format(name, np_cells, nr_cells, inspect.getsource(_poloidal_f), inspect.getsource(_radial_f)))
-                patch.make_subgrid(self, np_cells, nr_cells, _poloidal_f=_poloidal_f,_radial_f=_radial_f,verbose = verbose, visual = visual,ShowVertices=ShowVertices,OptionTrace=OptionTrace)
-                self.AdjustPatch(patch)
-                patch.plot_subgrid()
-                self.CurrentListPatch[name] = patch
+    def SetupPatchMatrix(self):
+        # p = self.patches
+        # self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
+        #                 [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
+        #                 [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
+        #                 [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
+        #                 ]
+        pass

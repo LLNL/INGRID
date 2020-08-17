@@ -176,6 +176,12 @@ DEBUG:
         patch_map: 0
         subgrid: 0
 eqdsk: ../data/SF75/neqdsk
+patch_data:
+    file: 'SF75_patches_data.npy'
+    use_file: True
+    preferences:
+        new_file: True
+        new_fname: 'SF75_patches_data.npy'
 grid_params:
     config: LSN
     grid_generation:
@@ -223,21 +229,21 @@ grid_params:
         zmagx_shift: 0.0
         zxpt: 0.0
     psi_max: 1.066
-    psi_max_west: 1.5
-    psi_max_east: 1.5
+    psi_max_west: 1.05
+    psi_max_east: 0.85
     psi_max_r: 1.031298701299
     psi_max_r_inner: 0.0
     psi_max_r_outer: 0.0
     psi_max_z: -1.072207792208
     psi_max_z_inner: 0.0
     psi_max_z_outer: 0.0
-    psi_min_core: 0.9
+    psi_min_core: 0.98
     psi_min_core_r: 1.363766233766
     psi_min_core_z: -1.030649350649
-    psi_min_pf: 0.99
+    psi_min_pf: 0.75
     psi_min_pf_r: 1.247402597403
     psi_min_pf_z: -1.255064935065
-    psi_pf2: 0.0
+    psi_pf2: 0.9
     psi_pf2_r: 0.0
     psi_pf2_z: 0.0
     rmagx: 1.61
@@ -248,16 +254,16 @@ grid_params:
     zxpt2: -1.4
 integrator_params:
     dt: 0.01
-    eps: 5.0e-06
+    eps: 5.0e-6
     first_step: 5.0e-05
     max_step: 0.064
     step_ratio: 0.02
-    tol: 0.05
+    tol: 0.005
 limiter:
     file: ''
     use_limiter: True
-    use_efit_bounds: True
-    zshift: 0.0
+    use_efit_bounds: False
+    zshift: 0.335
 target_plates:
     plate_E1:
         file: ../data/ADX/eplate.txt

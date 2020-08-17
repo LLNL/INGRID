@@ -66,10 +66,10 @@ class LineTracing:
                             'xpt1' : {'coor' : {}}, 
                             'xpt2' : {'coor' : {}, 'theta' : {} }
                             }
-        if interactive:
-            self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event', self)
-        else:
-            self.cid=None
+        # if interactive:
+        #     self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event', self)
+        # else:
+        #     self.cid=None
 
         if self.option == 'xpt_circ':
             self.root = RootFinder(self.grid,active=interactive)
@@ -210,8 +210,8 @@ class LineTracing:
         based on parameters.
         """
         if event.button == 3:
-            print('...disabling fuzzy click mode...')
-            event.canvas.mpl_disconnect(self.cid)
+            # print('...disabling fuzzy click mode...')
+            # event.canvas.mpl_disconnect(self.cid)
             return
         if event.inaxes != self.grid.ax.axes:
             # safe guards against clicking outside the figure
@@ -239,8 +239,9 @@ class LineTracing:
 
     def disconnect(self):
         """ Turns off the click functionality """
-        self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
-        self.root.disconnect()
+        # self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
+        # self.root.disconnect()
+        pass
 
     def analyze_saddle(self, xpt, xpt_ID):
         """
@@ -340,7 +341,7 @@ class LineTracing:
                 start_index, sls = geo.find_split_index(start, limiter)
                 end_index, sls = geo.find_split_index(end, limiter)
                 if end_index <= start_index:
-                    limiter.p = limiter.p[start_index:] + limiter.p[:start_index]
+                    limiter.p = limiter.p[start_index:] + limiter.p[:start_index+1]
                 return limiter
 
 

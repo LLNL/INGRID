@@ -177,6 +177,12 @@ DEBUG:
         subgrid: 0
         SF_analysis: 0
 eqdsk: ../data/NEQDSK_maxim/neqdsk_10
+patch_data:
+    file: '../data/NEQDSK_maxim/SF165_patches_1597687508.npy'
+    use_file: True
+    preferences:
+        new_fname: '../data/NEQDSK_maxim/SF165_patches_1597687508.npy'
+        new_file: False
 grid_params:
     config: DNL
     grid_generation:
@@ -224,21 +230,21 @@ grid_params:
         zmagx_shift: 0.0
         zxpt: 0.0
     psi_max: 1.066
-    psi_max_west: 1.03
-    psi_max_east: 1.03
+    psi_max_west: 1.28
+    psi_max_east: 1.28
     psi_max_r: 1.031298701299
     psi_max_r_inner: 0.0
     psi_max_r_outer: 0.0
     psi_max_z: -1.072207792208
     psi_max_z_inner: 0.0
     psi_max_z_outer: 0.0
-    psi_min_core: 0.99
+    psi_min_core: 0.9
     psi_min_core_r: 1.363766233766
     psi_min_core_z: -1.030649350649
-    psi_min_pf: 0.99
+    psi_min_pf: 0.9
     psi_min_pf_r: 1.247402597403
     psi_min_pf_z: -1.255064935065
-    psi_pf2: 1.01
+    psi_pf2: 1.24
     psi_pf2_r: 0.0
     psi_pf2_z: 0.0
     rmagx: 1.71

@@ -10,6 +10,12 @@ DEBUG:
     patch_map: 0
     subgrid: 0
 eqdsk: ../data/NEQDSK_maxim/neqdsk_7
+patch_data:
+    file: '../data/NEQDSK_maxim/SF75_patches_1597275269.npy'
+    use_file: True
+    preferences:
+        new_file: True
+        new_fname: '../data/NEQDSK_maxim/SF75_patches_1597275269.npy'
 grid_params:
   config: DNL
   grid_generation:

@@ -31,6 +31,9 @@ from Topologies.SNL import SNL
 from Topologies.SF15 import SF15
 from Topologies.SF45 import SF45
 from Topologies.SF75 import SF75
+from Topologies.SF105 import SF105
+from Topologies.SF135 import SF135
+from Topologies.SF165 import SF165
 from Topologies.UDN import UDN
 
 from geometry import Point, Line, Patch, segment_intersect, orientation_between
@@ -336,6 +339,11 @@ class Ingrid:
             'file' : '', 'use_limiter' : False, 'use_efit_bounds' : False, 'rshift' : 0.0, 'zshift' : 0.0, 'data' : {}
         }
 
+        self.default_patch_data_params = {
+            'file' : '', 'use_file' : False,
+            'preferences' : {'new_file' : False, 'new_fname' : None}
+        }
+
         self.default_DEBUG_params = { \
             'visual' : {'find_NSEW' : False, 'patch_map' : False, 'subgrid' : False, 'gridue' : False, 'SF_analysis' : False}, \
             'verbose' : {'target_plates' : False, 'patch_generation' : False, 'grid_generation' : False, 'SF_analysis' : False}
@@ -343,6 +351,7 @@ class Ingrid:
 
         self.default_values_lookup = {'grid_params' : self.default_grid_params, 'integrator_params' : self.default_integrator_params, \
             'target_plates' : self.default_target_plates_params, 'limiter' : self. default_limiter_params, 
+            'patch_data' : self.default_patch_data_params,
             'DEBUG' : self.default_DEBUG_params}
 
         self.plate_data = {'plate_W1' : {}, 'plate_E1' : {}, 'plate_W2' : {}, 'plate_E2' : {}}
@@ -372,13 +381,17 @@ class Ingrid:
             if k=='EqFile' or k=='eq':
                 self.settings['eqdsk']=v
                 continue
-            if k=='SessionFile':
-                self.LoadTopology(v)
             print('Keyword "'+k +'" unknown and ignored...')
 
     def PrintSummaryInput(self):
         print('')
         print('Equilibrium File:',self.settings['eqdsk'])
+
+        if (self.settings['patch_data']['use_file']) \
+        and (Path(self.settings['patch_data']['file']).is_file()) \
+        and (Path(self.settings['patch_data']['file']).suffix == '.npy'):
+            print('Patch data-file:')
+            print( ' # Patch data-file:',self.settings['patch_data']['file'])
 
         if self.settings['limiter']['use_limiter']:
             print('Limiter File:')
@@ -401,6 +414,7 @@ class Ingrid:
         print( ' # Number of x-points:',self.settings['grid_params']['num_xpt'])
         print( ' # Use full domain:',self.settings['grid_params']['full_domain'])
         print( ' # Use limiter:',self.settings['limiter']['use_limiter'])
+        print( ' # Use patch data-file:',self.settings['patch_data']['use_file'])
         print('')
         self.PrintSummaryInput()
 
@@ -577,6 +591,11 @@ class Ingrid:
             elif k.lower() in ['limiter', 'wall']:
                 Limiter = True
 
+            if rshift == None:
+                rshift = 0.0
+            if zshift == None:
+                zshift = 0.0
+
             if type(v) == str:
                 if Limiter and v.lower() == 'eq':
                     DefaultEQ = True
@@ -587,27 +606,54 @@ class Ingrid:
             elif type(v) in [list, tuple]:
                 x, y = v
             elif type(v) == dict:
-                xk, yk = v
-                x, y = v[xk], v[yk]
+                if TargetPlate:
+                    if v.keys() == self.default_target_plate_params[k].keys():
+                        if Path(v['file']).suffix == '.txt':
+                            x, y = self.ParseFileCoordinates(v)
+                        elif Path(v['file']).suffix == '.npy':
+                            x, y = np.load(v)
+                        else:
+                            raise ValueError(f"# No file provided for target plate '{k}'")
+                        rshift = v['rshift']
+                        zshift = v['zshift']
+                elif Limiter:
+                    if v.keys() == self.default_limiter_params.keys():
+                        if Path(v['file']).suffix == '.txt':
+                            x, y = self.ParseFileCoordinates(v)
+                        elif Path(v['file']).suffix == '.npy':
+                            x, y = np.load(v)
+                        else:
+                            DefaultEQ = True
+                        rshift = v['rshift']
+                        zshift = v['zshift']
+                else:
+                    for _k, _v in v.items():
+                        if _k.lower() in ['x', 'r']:
+                            x = _v
+                        elif _k.lower() in ['y', 'z']:
+                            y = _v
+                        elif _k.lower() == 'file':
+                            if Path(_v).suffix == '.txt':
+                                x, y = self.ParseFileCoordinates(_v)
+                            elif Path(_v).suffix == '.npy':
+                                x, y = np.load(_v)
+                            else:
+                                raise ValueError(f"# Invalid file extension '{Path(_v).suffix}' was used within dic in SetGeometry.")
+                        elif _k.lower() == 'rshift':
+                            rshift = _v
+                        elif _k.lower() == 'zshift':
+                            zshift = _v
+                        else:
+                            raise ValueError(f"# Invalid key '{_k}' was used within dic in SetGeometry.")
             else:
                 raise ValueError(f"# Invalid data type {type(v)} was used for setting geometry.")
-
-            if settings.get('rshift'):
-                rshift = settings['rshift']
-            else:
-                rshift = 0
-
-            if settings.get('zshift'):
-                zshift = settings['zshift']
-            else:
-                zshift = 0
 
             if TargetPlate: 
                 self.SetTargetPlate({k : [x, y]}, rshift=rshift, zshift=zshift)
             elif Limiter and not DefaultEQ:
                 self.SetLimiter([x, y], rshift=rshift, zshift=zshift)
             elif Limiter and DefaultEQ:
-                self.SetLimiter()
+                self.SetLimiter(rshift=rshift, zshift=zshift)
             else:
                 raise ValueError(f"# Invalid key '{k}' was used for setting geometry.")
 
@@ -783,19 +829,19 @@ class Ingrid:
             self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM - rshift, ZLIM - zshift
 
         if use_efit_bounds:
-            coordinates = [(self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
-                               (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift),
-                               (self.efit_psi.rmax - 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
-                               (self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmax - 1e-2 - zshift),
-                               (self.efit_psi.rmin + 1e-2 - rshift, self.efit_psi.zmin + 1e-2 - zshift)]
+            coordinates = [(self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2),
+                               (self.efit_psi.rmax - 1e-2, self.efit_psi.zmin + 1e-2),
+                               (self.efit_psi.rmax - 1e-2, self.efit_psi.zmax - 1e-2),
+                               (self.efit_psi.rmin + 1e-2, self.efit_psi.zmax - 1e-2),
+                               (self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2)]
 
             RLIM, ZLIM = [], []
             for c in coordinates:
                 r, z = c
-                RLIM.append(r - rshift)
-                ZLIM.append(z - zshift)
+                RLIM.append(r)
+                ZLIM.append(z)
 
-            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = np.array(RLIM), np.array(ZLIM)
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = np.array(RLIM) - rshift, np.array(ZLIM) - zshift
 
         self.OrderLimiter()
 
@@ -828,53 +874,11 @@ class Ingrid:
         self.plate_data[k]=Line([Point(x-rshift,y-zshift) for x,y in data[index]])
         self.OrderTargetPlate(k)
 
-    def SaveTopology(self, fname:str=''):
-        try:
-            self.current_topology
-        except:
-            raise ValueError("# SaveTopology error: No active topology object available for saving patches.")
-
-        if type(fname) != str:
-            raise ValueError(f"# SaveTopology error: fname input must be type str (recieved {type(fname)}).")
-
-        if fname == '':
-            from time import time
-            fname = self.current_topology.config + '_'+str(int(time()))+ '.yml'
-        else:
-            if Path(fname).suffix == '':
-                fname += '.yml'
-            elif Path(fname).suffix != '.yml':
-                fname = fname[0:-4] + '.yml'
-
-        with open(fname, 'w') as f:
-            yml.dump(self, f)
-
-        print(f'# Saved {self} session to file "{fname}.npy"')
-
-    def LoadTopology(self, fname:str):
-
-        try:
-            fpath = Path(fname)
-        except:
-            raise ValueError(f"# LoadTopology error: fname input must be type str (recieved {type(fname)}).")
-
-        if not fpath.is_file():
-            raise ValueError(f"# LoadTopology error: '{fname}'' is not a file.")
-        if fpath.suffix != '.yml':
-            raise ValueError(f"# LoadTopology error: file '{fname}' must be of type '.yml'")
-        with open(fname, 'r') as f:
-            loaded_data = yml.load(f, Loader=yml.Loader)
-
-        self.__dict__.update(loaded_data.__dict__)
-        print(f"# Loaded INGRID session from file {fname}")
-
-
-
     def read_target_plates(self):
         for plate in self.settings['target_plates']:
             try:
-                self.SetGeometry({plate : self.settings['target_plates'][plate]['file'], 
-                    'zshift' :self.settings['target_plates'][plate]['zshift']})
+                self.SetGeometry({plate : self.settings['target_plates'][plate]['file']}, 
+                    zshift = self.settings['target_plates'][plate]['zshift'])
             except:
                 pass
 
@@ -1179,6 +1183,15 @@ class Ingrid:
         elif topology == 'SF75':
             ingrid_topology = SF75(self, topology)
 
+        elif topology == 'SF105':
+            ingrid_topology = SF105(self, topology)
+
+        elif topology == 'SF135':
+            ingrid_topology = SF135(self, topology)
+
+        elif topology == 'SF165':
+            ingrid_topology = SF165(self, topology)
+
         self.current_topology = ingrid_topology
 
     def get_config(self):
@@ -1386,10 +1399,7 @@ class Ingrid:
         self.SetLimiter()
         self.SetMagReference(topology)
         self.calc_psinorm()
-        self.plot_psinorm(interactive=interactive)
-        self.plot_strike_geometry()
-        self.PrepLineTracing(interactive=interactive)
-        self.AnalyzeTopology()
+        self.PrepLineTracing()
 
     def ShowSetup(self):
         self.plot_psinorm()
@@ -1397,26 +1407,41 @@ class Ingrid:
         self.PlotPsiNormBounds()
         self.plot_strike_geometry()
 
+    def CheckPatches(self,verbose=False):
+        self.current_topology.CheckPatches(verbose=verbose)
+
     def ConstructPatches(self):
         self.GetPatchTagMap(self.current_topology.get_config())
         self.PrepLineTracing(interactive=False)
         self.current_topology.construct_patches()
-        #self.current_topology.CheckPatches()
+        self.current_topology.GroupPatches()
+        self.CheckPatches()
+
+        if self.settings['patch_data']['preferences']['new_file']:
+            self.SavePatches(self.settings['patch_data']['preferences']['new_fname'])
 
     def SavePatches(self, fname=''):
-        if fname == '':
+        if fname in ['', None]:
             fname = self.current_topology.config + '_patches_' + str(int(time()))
 
         patch_data = [patch.as_np() for patch in self.current_topology.patches.values()]
         patch_data.insert(0, self.current_topology.config)
+        patch_data.insert(1, self.current_topology.eq.NSEW_lookup)
         np.save(fname, np.array(patch_data))
         print(f"# Saved patch data for file {fname}")
 
-    def LoadPatches(self, fname):
-        config, patches = self.ReconstructPatches(fname)
+    def LoadPatches(self, fname=None):
+        if fname == None:
+            fname = self.settings['patch_data']['file']
+        config, xpt_data, patches = self.ReconstructPatches(fname)
+        self.process_yaml(Ingrid.ReadyamlFile(self.InputFile))
+        self.Setup()
+        self.eq.NSEW_lookup = xpt_data
         self.SetTopology(config)
         self.current_topology.patches = patches
-        self.ShowPatchMap()
+        self.current_topology.GroupPatches()
+        self.current_topology.SetupPatchMatrix()
+        self.CheckPatches()
 
     def ReconstructPatches(self, fname):
         '''
@@ -1424,10 +1449,11 @@ class Ingrid:
         '''
         data = np.load(fname, allow_pickle=True)
         config = data[0]
+        xpt_data = data[1]
 
         patches = {}
 
-        for raw_patch in data[1:]:
+        for raw_patch in data[2:]:
             patch_data, cell_data, patch_settings = raw_patch
             NR = patch_data[0]
             NZ = patch_data[1]
@@ -1455,7 +1481,7 @@ class Ingrid:
             #patch.cell_grid = cell_grid
             patches[patch.patchName] = patch
         
-        return config, patches
+        return config, xpt_data, patches
 
 
 
@@ -1474,7 +1500,7 @@ class Ingrid:
                     ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '2', 'S')}
             self.current_topology.ConnexionMap = ConnexionMap
 
-        elif isinstance(self.current_topology, SF45):
+        elif type(self.current_topology) in [SF45, SF75, SF105, SF135, SF165, UDN]:
             # DNL connexion map based off patch tag
             ConnexionMap = {}
             for patch in self.current_topology.patches.values():
@@ -1507,6 +1533,7 @@ class Ingrid:
         for tag, name in PatchTagMap.items():
             PatchNameMap[name] = tag
         return {**PatchTagMap, **PatchNameMap}
+
 
     def Importgridue(self, fname:str = 'gridue')->dict:
         """Import UEDGE grid file as dictionary."""

@@ -248,7 +248,7 @@ integrator_params:
     tol: 0.005
 limiter:
     file: ''
-    use_limiter: True
+    use_limiter: False
     use_efit_bounds: False
     rshift: 0.0
     zshift: 0.0

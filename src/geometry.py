@@ -14,6 +14,7 @@ import linecache
 from matplotlib.patches import Polygon
 from scipy.optimize import fsolve, curve_fit, root_scalar, brentq
 from scipy.interpolate import splprep, splev
+from collections import OrderedDict
 def DrawLine(data):
     (i,W_vertices,E,dynamic_step,eq,itot)=data   
     #if Verbose: 
@@ -176,10 +177,10 @@ class Point:
 
     def __init__(self, *pts):
         if np.shape(pts) == (2,):
-            self.x, self.y = pts
+            self.x, self.y = float(pts[0]), float(pts[1])
             self.coor = (self.x, self.y)
         elif np.shape(pts) == (1, 2):
-            self.x, self.y = pts[0]
+            self.x, self.y = float(pts[0][0]), float(pts[0][1])
             self.coor = (self.x, self.y)
         else:
             print('incompatible form')
@@ -297,7 +298,7 @@ class Line:
 
         return Line([self.p[0], self.p[-1]])
 
-    def plot(self, color='#1f77b4', label=None, ax=None):
+    def plot(self, color='#1f77b4', label=None, ax=None, linewidth=1.0):
         """ Plots the line of the current figure.
 
         Parameters
@@ -307,7 +308,7 @@ class Line:
         """
 
         _ax = plt.gca() if ax == None else ax
-        _ax.plot(self.xval, self.yval, color=color, zorder = 5, label=label)
+        _ax.plot(self.xval, self.yval, color=color, zorder = 5, label=label, linewidth=linewidth)
 
 
     def print_points(self):
@@ -383,6 +384,13 @@ class Line:
 
     def as_np(self):
         return np.array([self.xval, self.yval])
+
+    def RemoveDuplicatePoints(self):
+        '''
+        Remove any duplicate points from list
+        '''
+        ordered_points = OrderedDict([(p.coor, p) for p in self.p])
+        self.p = [p for p in ordered_points.values()]
 
 
 class Cell:
@@ -494,6 +502,7 @@ class Patch:
 
         # This is the border for the fill function
         # It need to only include N and S lines
+        self.RemoveDuplicatePoints()
         self.p = list(self.N.p) + list(self.E.p) + list(self.S.p) + list(self.W.p)
         self.PatchTagMap = PatchTagMap
         self.platePatch = platePatch
@@ -535,7 +544,7 @@ class Patch:
 
         _ax = ax
         for line in self.lines:
-            line.plot(color, ax=_ax)
+            line.plot(color, ax=_ax, linewidth=0.5)
 
     def fill(self, color='lightsalmon',ax=None, alpha=1.0):
         """
@@ -561,6 +570,10 @@ class Patch:
                 cell.plot_border(color)
         plt.pause(0.1)
 
+    def RemoveDuplicatePoints(self):
+        for line in [self.N, self.E, self.S, self.W]:
+            line.RemoveDuplicatePoints()
+        self.p = list(self.N.p) + list(self.E.p) + list(self.S.p) + list(self.W.p)
 
     def adjust_corner(self, point, corner):
         if corner == 'NW':
@@ -700,7 +713,7 @@ class Patch:
            # W_vals = self.W.reverse_copy().fluff(num = n)
             W_vals = self.W.reverse_copy().fluff(n,verbose=verbose)
             Psi=psi_parameterize(grid, W_vals[0], W_vals[1])
-            self.W_spl, uW = splprep([W_vals[0], W_vals[1]], u = Psi, s = 0)
+            self.W_spl, uW = splprep([W_vals[0], W_vals[1]], u = Psi, s = 10)
         except Exception as e:
             exc_type, exc_obj, tb = sys.exc_info()
             f = tb.tb_frame
@@ -797,7 +810,7 @@ class Patch:
         if self.BoundaryPoints.get('N') is None:
             for i in range(np_lines):
                 _n = splev(_poloidal_f(i / (np_lines-1)), self.N_spl)
-                self.N_vertices.append(Point((_n[0], _n[1])))
+                self.N_vertices.append(Point((float(_n[0]), float(_n[1]))))
         else:
             if self.Verbose:print('Find boundary points at face "N" for {}:{}'.format(self.patchName,self.BoundaryPoints.get('N')))
             self.N_vertices=self.BoundaryPoints.get('N')  
@@ -805,7 +818,7 @@ class Patch:
         if self.BoundaryPoints.get('S') is None:
             for i in range(np_lines):
                 _s = splev(_poloidal_f(i / (np_lines-1)), self.S_spl)
-                self.S_vertices.append(Point((_s[0], _s[1])))
+                self.S_vertices.append(Point((float(_s[0]), float(_s[1]))))
         else:
             self.S_vertices=self.BoundariesPoints.get('S')    
 
@@ -817,10 +830,10 @@ class Patch:
         for i in range(nr_lines):
             _e = splev(u[i], self.E_spl)
 
-            E_vertices.append(Point((_e[0], _e[1])))
+            E_vertices.append(Point((float(_e[0]), float(_e[1]))))
 
             _w = splev(u[i], self.W_spl)
-            W_vertices.append(Point((_w[0], _w[1])))
+            W_vertices.append(Point((float(_w[0]), float(_w[1]))))
         DetailedVertices=False
         if  not isinstance(ShowVertices,bool):
             if ShowVertices=='detailed':
@@ -863,7 +876,7 @@ class Patch:
             for j in range(np_lines):
                 u=_poloidal_f(j / (np_lines-1))
                 _r = splev(u, self.radial_spl[i])
-                Pt=Point((_r[0], _r[1]))
+                Pt=Point((float(_r[0]), float(_r[1])))
                 if self.CorrectDistortion['Active'] and j>0 and j<np_lines-1:
                     Res=self.CorrectDistortion['Resolution']
                     ThetaMin=self.CorrectDistortion['ThetaMin']

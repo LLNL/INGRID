@@ -441,12 +441,89 @@ class SF75(TopologyUtils):
         # 'PF' : (p['IPF'], p['OPF'])}
         pass
 
-    def SetupPatchMatrix(self):
-        # p = self.patches
-        # self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-        #                 [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
-        #                 [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
-        #                 [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
-        #                 ]
-        pass
+    def set_gridue(self):
+        """
+        set_gridue:
+            Prepares 'self.gridue_params' dictionary with required data.
+            The self.gridue_params attribute is used to write a gridue
+            formatted file
+        Parameters:
+            N/A
+        Return:
+            N/A
+        """
+
+        ixlb = 0
+        ixrb = len(self.rm) - 2
+
+        nxm = len(self.rm) - 2
+        nym = len(self.rm[0]) - 2
+        iyseparatrix1 = self.patches['A1'].nrad + self.patches['A2'].nrad - 2
+        iyseparatrix2 = iyseparatrix1
+        iyseparatrix3 = self.patches['F1'].nrad - 1
+        iyseparatrix4 = iyseparatrix3
+
+        ix_plate1 = 0
+        ix_cut1 = self.patches['A1'].npol - 1
+
+        ix_cut2=0
+        for alpha in ['A', 'B', 'C', 'D', 'E']:
+            ix_cut2 += self.patches[alpha+'1'].npol - 1
+
+        ix_plate2=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+            ix_plate2 += self.patches[alpha+'3'].npol - 1
+
+        ix_plate3 = ix_plate2 + 2
+
+        ix_cut3=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F']:
+            ix_cut3 += self.patches[alpha+'1'].npol - 1
+
+        ix_cut4=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
+            ix_cut4 += self.patches[alpha+'1'].npol - 1
+        ix_cut4+=2
+
+        ix_plate4=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
+            ix_plate4 += self.patches[alpha+'1'].npol - 1
+        ix_plate4+=2
+
+        psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+
+        rm = self.rm
+        zm = self.zm
+        rb_prod = self.efit_psi.rcenter * self.efit_psi.bcenter
+
+        for i in range(len(b)):
+            for j in range(len(b[0])):
+                for k in range(5):
+                    _r = rm[i][j][k]
+                    _z = zm[i][j][k]
+
+                    _psi = self.efit_psi.get_psi(_r, _z)
+                    _br = self.efit_psi.get_psi(_r, _z, tag = 'vz') / _r
+                    _bz = -self.efit_psi.get_psi(_r, _z, tag = 'vr') / _r
+                    _bpol = np.sqrt(_br ** 2 + _bz ** 2)
+                    _bphi = rb_prod / _r
+                    _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
+
+                    psi[i][j][k] = _psi
+                    br[i][j][k] = _br
+                    bz[i][j][k] = _bz
+                    bpol[i][j][k] = _bpol
+                    bphi[i][j][k] = _bphi
+                    b[i][j][k] = _b
+
+        self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'iyseparatrix1' : iyseparatrix1, 'iyseparatrix2' : iyseparatrix2, \
+                'ix_plate1' : ix_plate1, 'ix_cut1' : ix_cut1, 'ix_cut2' : ix_cut2, 'ix_plate2' : ix_plate2, 'iyseparatrix3' : iyseparatrix3, \
+                'iyseparatrix4' : iyseparatrix4, 'ix_plate3' : ix_plate3, 'ix_cut3' : ix_cut3, 'ix_cut4' : ix_cut4, 'ix_plate4' : ix_plate4, \
+                'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b, '_FILLER_' : -1}
+
 

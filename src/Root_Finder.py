@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import root
 
-import GUI.SimpleGUI as IngridApp
+import GUI.SimpleGUI as sg
 
 class RootFinder:
     """
@@ -147,13 +147,13 @@ class RootFinder:
         plt.draw()
         self.final_root = (r, z)
 
-        self.controller.frames[IngridApp.ParamPicker].curr_click = self.final_root
+        self.controller.frames[sg.ParamPicker].curr_click = self.final_root
         # self.controller.curr_root = self.final_root
-        self.controller.frames[IngridApp.ParamPicker].update_root_finder()
+        self.controller.frames[sg.ParamPicker].update_root_finder()
 
     def find_psi(self, x, y, topofeature=None):
-        self.controller.frames[IngridApp.ParamPicker].curr_click = (x, y)
-        self.controller.frames[IngridApp.ParamPicker].update_root_finder()
+        self.controller.frames[sg.ParamPicker].curr_click = (x, y)
+        self.controller.frames[sg.ParamPicker].update_root_finder()
 
         Dic={'psi_max':'blue',
             'psi_min_core':'magenta',

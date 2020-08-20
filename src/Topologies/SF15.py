@@ -390,11 +390,11 @@ class SF15(TopologyUtils):
         E3 = Patch([E3_N, E3_E, E3_S, E3_W], patchName = 'E3')
 
         # ============== Patch F1 ==============
-        F1 = Patch([F1_N, F1_E, F1_S, F1_W], patchName = 'F1')
+        F1 = Patch([F1_N, F1_E, F1_S, F1_W], patchName = 'F1', platePatch = True, plateLocation = 'E')
         # ============== Patch F2 ==============
-        F2 = Patch([F2_N, F2_E, F2_S, F2_W], patchName = 'F2')
+        F2 = Patch([F2_N, F2_E, F2_S, F2_W], patchName = 'F2', platePatch = True, plateLocation = 'E')
         # ============== Patch F3 ==============
-        F3 = Patch([F3_N, F3_E, F3_S, F3_W], patchName = 'F3')
+        F3 = Patch([F3_N, F3_E, F3_S, F3_W], patchName = 'F3', platePatch = True, plateLocation = 'E')
 
         # ============== Patch G1 ==============
         G1 = Patch([G1_N, G1_E, G1_S, G1_W], patchName = 'G1', platePatch = True, plateLocation = 'W')
@@ -431,37 +431,38 @@ class SF15(TopologyUtils):
         xpt2 = Point(self.eq.NSEW_lookup['xpt2']['coor']['center'])
 
         tag = patch.get_tag()
-        if tag == 'A3':
+        if tag == 'A2':
             patch.adjust_corner(xpt1, 'SE')
-        elif tag == 'A2':
+        elif tag == 'A1':
             patch.adjust_corner(xpt1, 'NE')
-        elif tag == 'B3':
-            patch.adjust_corner(xpt1, 'SW')
         elif tag == 'B2':
-            patch.adjust_corner(xpt1, 'NW')
-        elif tag == 'E3':
-            patch.adjust_corner(xpt1, 'SE')
-        elif tag == 'E2':
-            patch.adjust_corner(xpt1, 'NE')
-        elif tag == 'F3':
             patch.adjust_corner(xpt1, 'SW')
-        elif tag == 'F2':
+        elif tag == 'B1':
             patch.adjust_corner(xpt1, 'NW')
-            patch.adjust_corner(xpt2, 'SE')
-        elif tag == 'F1':
-            patch.adjust_corner(xpt2, 'NE')
-        elif tag == 'G2':
-            patch.adjust_corner(xpt2, 'SW')
-        elif tag == 'G1':
+        elif tag == 'H2':
+            patch.adjust_corner(xpt1, 'SE')
             patch.adjust_corner(xpt2, 'NW')
         elif tag == 'H1':
-            patch.adjust_corner(xpt2, 'NE')
-        elif tag == 'H2':
-            patch.adjust_corner(xpt2, 'SE')
+            patch.adjust_corner(xpt1, 'NE')
         elif tag == 'I2':
-            patch.adjust_corner(xpt2, 'SW')
+            patch.adjust_corner(xpt1, 'SW')
         elif tag == 'I1':
+            patch.adjust_corner(xpt1, 'NW')
+        elif tag == 'H3':
+            patch.adjust_corner(xpt2, 'SW')
+        elif tag == 'G3':
+            patch.adjust_corner(xpt2, 'SE')
+        elif tag == 'G2':
+            patch.adjust_corner(xpt2, 'NE')
+        elif tag == 'F2':
             patch.adjust_corner(xpt2, 'NW')
+        elif tag == 'F3':
+            patch.adjust_corner(xpt2, 'SW')
+        elif tag == 'E3':
+            patch.adjust_corner(xpt2, 'SE')
+        elif tag == 'E2':
+            patch.adjust_corner(xpt2, 'NE')
+
 
 
     def GroupPatches(self):
@@ -471,12 +472,88 @@ class SF15(TopologyUtils):
         # 'PF' : (p['IPF'], p['OPF'])}
         pass
 
-    def SetupPatchMatrix(self):
-        # p = self.patches
-        # self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-        #                 [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
-        #                 [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
-        #                 [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
-        #                 ]
-        pass
+    def set_gridue(self):
+        """
+        set_gridue:
+            Prepares 'self.gridue_params' dictionary with required data.
+            The self.gridue_params attribute is used to write a gridue
+            formatted file
+        Parameters:
+            N/A
+        Return:
+            N/A
+        """
 
+        ixlb = 0
+        ixrb = len(self.rm) - 2
+
+        nxm = len(self.rm) - 2
+        nym = len(self.rm[0]) - 2
+        iyseparatrix1 = self.patches['A1'].nrad - 1
+        iyseparatrix2 = self.patches['E1'].nrad + self.patches['E2'].nrad - 2
+        iyseparatrix3 = iyseparatrix2
+        iyseparatrix4 = iyseparatrix1
+
+        ix_plate1 = 0
+        ix_cut1 = self.patches['A1'].npol - 1
+
+        ix_cut2=0
+        for alpha in ['A', 'B', 'C', 'D', 'E']:
+            ix_cut2 += self.patches[alpha+'1'].npol - 1
+
+        ix_plate2=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F']:
+            ix_plate2 += self.patches[alpha+'3'].npol - 1
+
+        ix_plate3 = ix_plate2 + 2
+
+        ix_cut3=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+            ix_cut3 += self.patches[alpha+'2'].npol - 1
+        ix_cut3 +=2
+
+        ix_cut4=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
+            ix_cut4 += self.patches[alpha+'1'].npol - 1
+        ix_cut4 +=2
+
+        ix_plate4=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
+            ix_plate4 += self.patches[alpha+'1'].npol - 1
+        ix_plate4 +=2
+
+        psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+
+        rm = self.rm
+        zm = self.zm
+        rb_prod = self.efit_psi.rcenter * self.efit_psi.bcenter
+
+        for i in range(len(b)):
+            for j in range(len(b[0])):
+                for k in range(5):
+                    _r = rm[i][j][k]
+                    _z = zm[i][j][k]
+
+                    _psi = self.efit_psi.get_psi(_r, _z)
+                    _br = self.efit_psi.get_psi(_r, _z, tag = 'vz') / _r
+                    _bz = -self.efit_psi.get_psi(_r, _z, tag = 'vr') / _r
+                    _bpol = np.sqrt(_br ** 2 + _bz ** 2)
+                    _bphi = rb_prod / _r
+                    _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
+
+                    psi[i][j][k] = _psi
+                    br[i][j][k] = _br
+                    bz[i][j][k] = _bz
+                    bpol[i][j][k] = _bpol
+                    bphi[i][j][k] = _bphi
+                    b[i][j][k] = _b
+
+        self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'iyseparatrix1' : iyseparatrix1, 'iyseparatrix2' : iyseparatrix2, \
+                'ix_plate1' : ix_plate1, 'ix_cut1' : ix_cut1, 'ix_cut2' : ix_cut2, 'ix_plate2' : ix_plate2, 'iyseparatrix3' : iyseparatrix3, \
+                'iyseparatrix4' : iyseparatrix4, 'ix_plate3' : ix_plate3, 'ix_cut3' : ix_cut3, 'ix_cut4' : ix_cut4, 'ix_plate4' : ix_plate4, \
+                'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b, '_FILLER_' : -1}

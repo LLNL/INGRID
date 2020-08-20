@@ -478,14 +478,6 @@ class SNL(TopologyUtils):
         'CORE' : (p['ICB'], p['ICT'], p['OCT'], p['OCB']), 
         'PF' : (p['IPF'], p['OPF'])}
 
-    def SetupPatchMatrix(self):
-        p = self.patches
-        self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-                        [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
-                        [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
-                        [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
-                        ]
-
     def set_gridue(self):
         """
         Prepare the relevant arrays for writing to GRIDUE.

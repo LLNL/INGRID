@@ -12,22 +12,10 @@ eqdsk: ../data/SNL/SAS1/g175816.03000
 grid_params:
   config: USN
   grid_generation:
-    np_core: 14
-    np_global: 14
-    np_pf: 5
-    np_primary_pf: 2
-    np_primary_sol: 2
-    np_secondary_pf: 2
-    np_secondary_sol: 2
-    np_sol: 14
-    nr_core: 14
-    nr_global: 4
-    nr_pf: 10
-    nr_primary_pf: 2
-    nr_primary_sol: 2
-    nr_secondary_pf: 2
-    nr_secondary_sol: 2
-    nr_sol: 10
+    np_default: 14
+    np_A: 12
+    np_F: 12
+    nr_default: 10
     poloidal_f: x, x
     radial_f_core: x, x
     radial_f_pf: x, x
@@ -88,41 +76,8 @@ integrator_params:
   tol: 0.005
 target_plates:
   plate_E1:
-    data:
-      R:
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - &id001 !!python/object/apply:numpy.dtype
-          args:
-          - f8
-          - 0
-          - 1
-          state: !!python/tuple
-          - 3
-          - <
-          - null
-          - null
-          - null
-          - -1
-          - -1
-          - 0
-        - !!binary |
-          SS7/If327T8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          mpmZmZmZ8T8=
-      Z:
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          fT81XrpJ7D8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          cT0K16Nw9T8=
     file: ../data/SNL/SAS1/itp4.txt
     name: plate_E1
-    np_local: 12
     poloidal_f: x, x
     zshift: 0
   plate_E2:
@@ -133,140 +88,8 @@ target_plates:
     poloidal_f: x, x
     zshift: 1.6
   plate_W1:
-    data:
-      R:
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          tmeWBKip+T8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          hzJUxVT6+D8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          ZAPpYtPK+D8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          LQlQU8tW+D8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          idLe4AsT+D8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          JQSr6uX39z8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          +g/pt68D+D8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          xEKtad7x9z8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          34lZL4by9z8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          I74Ts14M+D8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          AtTUsrW+9z8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          HsTOFDqv9j8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          VYZxN4iW9j8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          NKDejJpv9j8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          aOOItfhU9j8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          sOYAwRw99j8=
-      Z:
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          qfsApDZx8T8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          B0KygAmc8T8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          rn0BvXCn8T8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          mtTQBmDD8T8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          CaNZ2T7k8T8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          vHK9baYC8j8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          PCzUmuad8j8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          s7W+SGhL8z8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          Pldbsb9s8z8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          mYbhI2LK8z8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          hqxu9Zz08z8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          S+oENBG28j8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          yZQPQdWo8j8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          qFX0h2ae8j8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          jqz8Mhij8j8=
-      - !!python/object/apply:numpy.core.multiarray.scalar
-        - *id001
-        - !!binary |
-          N8MN+Pyw8j8=
     file: ../data/SNL/SAS1/SAS_odt.txt
     name: plate_W1
-    np_local: 12
     poloidal_f: x, x
     zshift: 0
   plate_W2:

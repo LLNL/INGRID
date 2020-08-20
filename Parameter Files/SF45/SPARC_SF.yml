@@ -176,21 +176,17 @@ DEBUG:
         patch_map: false
         subgrid: false
 eqdsk: '../data/SPARC/SPARC_XPTD/V2_FREEGS_geqdsk_LSNX'
+patch_data:
+    file: '../data/SPARC/SF45_patches_1597952184.npy'
+    use_file: False
+    preferences:
+        new_file: True
+        new_fname: '../data/SPARC/SF45_patches_1597952184.npy'
 grid_params:
     config: DNL
     grid_generation:
-        np_core: 6
-        np_global: 6
-        np_primary_pf: 6
-        np_primary_sol: 6
-        np_secondary_pf: 6
-        np_secondary_sol: 6
-        nr_core: 8
-        nr_global: 8
-        nr_primary_pf: 8
-        nr_primary_sol: 8
-        nr_secondary_pf: 8
-        nr_secondary_sol: 8
+        np_default: 2
+        nr_default: 2
         radial_f_core: x, x
         radial_f_primary_pf: x, x
         radial_f_primary_sol: x, x
@@ -247,7 +243,7 @@ integrator_params:
     step_ratio: 0.02
     tol: 0.005
 limiter:
-    limiter: ''
+    file: ''
     use_limiter: True
     use_efit_bounds: False
 target_plates:

@@ -184,24 +184,14 @@ patch_data:
         new_fname: '../data/NEQDSK_maxim/SF165_patches_1597687508.npy'
         new_file: False
 grid_params:
-    config: DNL
+    config: SF165
     grid_generation:
-        np_core: 2
-        np_global: 3
-        np_pf: 2
-        np_primary_pf: 2
-        np_primary_sol: 2
-        np_secondary_pf: 2
-        np_secondary_sol: 2
-        np_sol: 2
-        nr_core: 2
-        nr_global: 3
-        nr_pf: 2
-        nr_primary_pf: 2
-        nr_primary_sol: 2
-        nr_secondary_pf: 2
-        nr_secondary_sol: 2
-        nr_sol: 2
+        np_default: 3
+        nr_default: 3
+        np_F: 6
+        np_G: 10
+        np_B: 6
+        nr_2: 10
         poloidal_f: x, x
         radial_f_core: x, x
         radial_f_pf: x, x

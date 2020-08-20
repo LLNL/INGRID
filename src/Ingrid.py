@@ -19,7 +19,6 @@ import yaml as yml
 import os
 from pathlib import Path
 from time import time
-from GUI import IngridApp as IA
 from GUI import SimpleGUI as sg
 
 from OMFITgeqdsk import OMFITgeqdsk
@@ -298,17 +297,10 @@ class Ingrid:
             'rmagx' : None, 'zmagx' : None, \
             'rxpt' : 0.0, 'zxpt' : 0.0, 'rxpt2' : 0.0, 'zxpt2' : 0.0, \
             'grid_generation' : { \
-                'np_global' : 3, 'nr_global' : 2, \
-                'np_primary_sol' : 2, 'np_core' : 2, 'np_primary_pf' : 2, \
-                'np_secondary_sol' : 2, 'np_secondary_pf' : 2, \
-                'nr_primary_sol' : 2, 'nr_core' : 2, 'nr_primary_pf' : 2, \
-                'nr_secondary_sol' : 2, 'nr_secondary_pf' : 2, \
+                'np_default' : 2, 'nr_default' : 2,
                 'radial_f_primary_sol' : 'x, x', 'radial_f_secondary_sol' : 'x, x', \
                 'radial_f_primary_pf' : 'x, x', 'radial_f_secondary_pf' : 'x, x', \
-                'radial_f_core' : 'x, x', 'poloidal_f' : 'x, x',\
-
-                # Temporary attributes
-                'np_sol' : 2, 'nr_sol' : 2, 'np_pf' : 2, 'nr_pf' : 2
+                'radial_f_core' : 'x, x', 'poloidal_f' : 'x, x'\
             }, \
             'patch_generation' : { \
                 'rmagx_shift' : 0.0, 'zmagx_shift' : 0.0, \
@@ -329,14 +321,14 @@ class Ingrid:
         }
 
         self.default_target_plates_params = { \
-            'plate_E1' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0, 'data' : {}}, \
-            'plate_E2' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0, 'data' : {}}, \
-            'plate_W1' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0, 'data' : {}},
-            'plate_W2' : {'file' : '', 'name' : '', 'np_local' : 3, 'poloidal_f' : 'x, x', 'zshift' : 0.0, 'data' : {}}
+            'plate_E1' : {'file' : '', 'name' : '', 'poloidal_f' : 'x, x', 'zshift' : 0.0}, \
+            'plate_E2' : {'file' : '', 'name' : '', 'poloidal_f' : 'x, x', 'zshift' : 0.0}, \
+            'plate_W1' : {'file' : '', 'name' : '', 'poloidal_f' : 'x, x', 'zshift' : 0.0},
+            'plate_W2' : {'file' : '', 'name' : '', 'poloidal_f' : 'x, x', 'zshift' : 0.0}
         }
 
         self.default_limiter_params = {
-            'file' : '', 'use_limiter' : False, 'use_efit_bounds' : False, 'rshift' : 0.0, 'zshift' : 0.0, 'data' : {}
+            'file' : '', 'use_limiter' : False, 'use_efit_bounds' : False, 'rshift' : 0.0, 'zshift' : 0.0
         }
 
         self.default_patch_data_params = {
@@ -828,6 +820,9 @@ class Ingrid:
             RLIM, ZLIM = g['RLIM'], g['ZLIM']
             self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM - rshift, ZLIM - zshift
 
+        if len(RLIM) == 0 or len(ZLIM) == 0:
+            use_efit_bounds=True
+
         if use_efit_bounds:
             coordinates = [(self.efit_psi.rmin + 1e-2, self.efit_psi.zmin + 1e-2),
                                (self.efit_psi.rmax - 1e-2, self.efit_psi.zmin + 1e-2),
@@ -1197,15 +1192,22 @@ class Ingrid:
     def get_config(self):
         return self.eq.config
 
-    def export(self, fname = 'gridue'):
+    def ExportGridue(self, fname = 'gridue'):
         """ Saves the grid as an ascii file """
-        if isinstance(self.current_topology, SNL):
-            if self.WritegridueSNL(self.current_topology.gridue_params, fname):
-                print(f"# Saved gridue file as '{fname}'.")
-        elif isinstance(self.current_topology, DNL):
-            self.WritegridueDNL(self.current_topology.gridue_params, fname)
+        self.PrepGridue()
+        if type(self.current_topology) in [SNL]:
+            if self.WriteGridueSNL(self.current_topology.gridue_params, fname):
+                print(f"# Successfully saved gridue file as '{fname}'")
+        elif type(self.current_topology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:
+            if self.WriteGridueDNL(self.current_topology.gridue_params, fname):
+                print(f"# Successfully saved gridue file as '{fname}'")
 
-    def WritegridueSNL(self, gridue_params, fname = 'gridue'):
+    def PrepGridue(self):
+        self.current_topology.SetupPatchMatrix()
+        self.current_topology.concat_grid()
+        self.current_topology.set_gridue()
+
+    def WriteGridueSNL(self, gridue_params, fname = 'gridue'):
 
         def format_header(gridue):
             header_items = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
@@ -1291,7 +1293,6 @@ class Ingrid:
 
             return body
 
-
         f = open(fname, mode = 'w')
         f.write(format_header(gridue_params) + '\n')
 
@@ -1303,34 +1304,34 @@ class Ingrid:
         f.write(runidg + '\n')
 
         f.close()
+        return True
 
     def CreateSubgrid(self,ShowVertices=False,color=None,RestartScratch=False,NewFig=True,OptionTrace='theta',ExtraSettings={},ListPatches='all',Enforce=False):
 
-        try:
-            np_cells = self.settings['grid_params']['grid_generation']['np_global']
-        except KeyError:
-            np_cells = 2
-            print('yaml file did not contain parameter np_global. Set to default value of 2...')
-
-        try:
-            nr_cells = self.settings['grid_params']['grid_generation']['nr_global']
-        except KeyError:
-            nr_cells = 2
-            print('yaml file did not contain parameter nr_global. Set to default value of 2...')
-
+        self.current_topology.RefreshSettings()
         print('Value Check for local plates:')
         _i = self.current_topology.settings['target_plates']
         for plate in _i:
             print('Name: {}\n np_local: {}\n'.format(_i[plate]['name'], _i[plate]['np_local']))
         if NewFig:
-            self.FigGrid=plt.figure('INGRID: Grid', figsize=(6, 10))
+            try:
+                plt.close(self.FigGrid)
+            except:
+                pass
+            self.FigGrid=plt.figure(f'INGRID: {self.current_topology.config} Grid', figsize=(6, 10))
             ax=self.FigGrid.gca()
-            ax.set_title(label=f'{self.current_topology.config} Grid Diagram')
+            ax.set_xlim([self.efit_psi.rmin, self.efit_psi.rmax])
+            ax.set_ylim([self.efit_psi.zmin, self.efit_psi.zmax])
+            ax.set_aspect('equal', adjustable='box')
+
+            ax.set_xlabel('R')
+            ax.set_ylabel('Z')
+            ax.set_title(f'{self.current_topology.config} Grid Diagram')
             ax.set_aspect('equal', adjustable='box')
 
         self.GetConnexionMap()
 
-        self.current_topology.construct_grid(np_cells, nr_cells,ShowVertices=ShowVertices,RestartScratch=RestartScratch,OptionTrace=OptionTrace,ExtraSettings=ExtraSettings,ListPatches=ListPatches,Enforce=Enforce)
+        self.current_topology.construct_grid(ShowVertices=ShowVertices,RestartScratch=RestartScratch,OptionTrace=OptionTrace,ExtraSettings=ExtraSettings,ListPatches=ListPatches,Enforce=Enforce)
         return True
 
     def SetMagReference(self:object,topology:str='SNL')->None:
@@ -1411,6 +1412,7 @@ class Ingrid:
         self.current_topology.CheckPatches(verbose=verbose)
 
     def ConstructPatches(self):
+        self.current_topologt.RefreshSettings()
         self.GetPatchTagMap(self.current_topology.get_config())
         self.PrepLineTracing(interactive=False)
         self.current_topology.construct_patches()
@@ -1428,7 +1430,7 @@ class Ingrid:
         patch_data.insert(0, self.current_topology.config)
         patch_data.insert(1, self.current_topology.eq.NSEW_lookup)
         np.save(fname, np.array(patch_data))
-        print(f"# Saved patch data for file {fname}")
+        print(f"# Saved patch data for file {fname}.npy")
 
     def LoadPatches(self, fname=None):
         if fname == None:
@@ -1469,13 +1471,6 @@ class Ingrid:
             S = Line([Point(p) for p in zip(SR, SZ)])
             W = Line([Point(p) for p in zip(WR, WZ)])
 
-            cell_grid = []
-
-            # for row in cell_data[0]:
-            #     cell_grid.append([])
-            #     for cell in row:
-            #         cell_grid.append(ReconstructCell(cell))
-
             patch = Patch([N, E, S, W], patchName=patch_settings['patchName'], platePatch=patch_settings['platePatch'],
                     plateLocation=patch_settings['plateLocation'], PatchTagMap=patch_settings['PatchTagMap'])
             #patch.cell_grid = cell_grid
@@ -1489,6 +1484,7 @@ class Ingrid:
         self.PatchFig = plt.figure('INGRID: ' + self.current_topology.config + ' Patches', figsize=(6, 10))
         self.PatchAx = self.PatchFig.add_subplot(111)
         self.current_topology.patch_diagram(fig=self.PatchFig, ax=self.PatchAx)
+        self.plot_strike_geometry()
 
     def GetConnexionMap(self):
         if isinstance(self.current_topology, SNL):
@@ -1500,7 +1496,7 @@ class Ingrid:
                     ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '2', 'S')}
             self.current_topology.ConnexionMap = ConnexionMap
 
-        elif type(self.current_topology) in [SF45, SF75, SF105, SF135, SF165, UDN]:
+        elif type(self.current_topology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:
             # DNL connexion map based off patch tag
             ConnexionMap = {}
             for patch in self.current_topology.patches.values():

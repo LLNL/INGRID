@@ -243,7 +243,7 @@ class FilePicker(tk.Tk):
         IG = self.Ingrid
         fname = filedialog.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='', initialfile = 'gridue')
         if fname != '':
-            IG.export(fname)
+            IG.ExportGridue(fname)
 
     def ViewData(self):
         self.ReadyIngridData()

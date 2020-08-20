@@ -254,8 +254,11 @@ integrator_params:
     step_ratio: 0.02
     tol: 0.005
 limiter:
-    file: ../data/SF45/limiter.txt
+    file: '' #'../data/SF45/limiter.txt'
     use_limiter: True
+    use_efit_bounds: False
+    rshift: 0.0
+    zshift: 0.0
 target_plates:
     plate_E1:
         file: ''

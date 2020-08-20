@@ -23,139 +23,6 @@ class SF135(TopologyUtils):
     def __init__(self, Ingrid_obj, config):
         TopologyUtils.__init__(self, Ingrid_obj, config)
 
-    def concat_grid(self):
-        """
-        Concatenate all local grids on individual patches into a single
-        array with branch cuts
-        Parameters:
-        ----------
-            config : str
-                Type of SNL grid to concat.
-        """
-        patch_matrix = self.patch_matrix
-
-        for patch in self.patches.values():
-            patch.npol = len(patch.cell_grid[0]) + 1
-            patch.nrad = len(patch.cell_grid) + 1
-
-        # Total number of poloidal indices in all subgrids.
-        np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:5]])) + 2
-
-        # Total number of radial indices in all subgrids.
-        nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:4]])) + 2
-
-        # Total number of poloidal indices in all subgrids.
-        np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:11]])) + 2
-
-        # Total number of radial indices in all subgrids.
-        nr_total2 = int(np.sum([patch[7].nrad - 1 for patch in patch_matrix[1:4]])) + 2
-
-        rm1 = np.zeros((np_total1, nr_total1, 5), order = 'F')
-        zm1  = np.zeros((np_total1, nr_total1, 5), order = 'F')
-        rm2 = np.zeros((np_total2, nr_total2, 5), order = 'F')
-        zm2  = np.zeros((np_total2, nr_total2, 5), order = 'F')
-
-        ixcell = 0
-        jycell = 0
-
-        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
-        for ixp in range(1, 5):
-
-            nr_sum = 0
-            for jyp in range(1, 4):
-                # Point to the current patch we are operating on.
-                local_patch = patch_matrix[jyp][ixp]
-
-                if local_patch == [None]:
-                    continue
-
-                nr_sum += local_patch.nrad - 1
-
-                # Access the grid that is contained within this local_patch.
-                # ixl - number of poloidal cells in the patch.
-                for ixl in range(len(local_patch.cell_grid[0])):
-                    # jyl - number of radial cells in the patch
-                    for jyl in range(len(local_patch.cell_grid)):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
-
-                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
-
-                        ind = 0
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                            zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
-
-        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
-
-        ixcell = 0
-        jycell = 0
-
-        for ixp in range(7, 11):
-
-            nr_sum = 0
-            for jyp in range(1, 4):
-                # Point to the current patch we are operating on.
-                local_patch = patch_matrix[jyp][ixp]
-
-                if local_patch == [None]:
-                    continue
-
-                nr_sum += local_patch.nrad - 1
-
-                # Access the grid that is contained within this local_patch.
-                # ixl - number of poloidal cells in the patch.
-                for ixl in range(len(local_patch.cell_grid[0])):
-                    # jyl - number of radial cells in the patch
-                    for jyl in range(len(local_patch.cell_grid)):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:ixp+1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
-
-                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
-
-                        ind = 0
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                            zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
-
-        # Flip indices into gridue format.
-        for i in range(len(rm1)):
-            rm1[i] = rm1[i][::-1]
-        for i in range(len(zm1)):
-            zm1[i] = zm1[i][::-1]
-        for i in range(len(rm2)):
-            rm2[i] = rm2[i][::-1]
-        for i in range(len(zm2)):
-            zm2[i] = zm2[i][::-1]
-
-        # Add guard cells to the concatenated grid.
-        ixrb1 = len(rm1) - 2
-        ixlb1 = 0
-        ixrb2 = len(rm2) - 2
-        ixlb2 = 0
-
-        rm1 = self.add_guardc(rm1, ixlb1, ixrb1)
-        zm1 = self.add_guardc(zm1, ixlb1, ixrb1)
-        rm2 = self.add_guardc(rm2, ixlb2, ixrb2)
-        zm2 = self.add_guardc(zm2, ixlb2, ixrb2)
-
-        self.rm = np.concatenate((rm1, rm2))
-        self.zm = np.concatenate((zm1, zm2))
-
-        try:
-            debug = self.settings['DEBUG']['visual']['gridue']
-        except:
-            debug = False
-
-        if debug:
-            self.animate_grid()
-
     def construct_patches(self):
         """
         Draws lines and creates patches for both USN and LSN configurations.
@@ -551,11 +418,88 @@ class SF135(TopologyUtils):
         # 'PF' : (p['IPF'], p['OPF'])}
         pass
 
-    def SetupPatchMatrix(self):
-        # p = self.patches
-        # self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-        #                 [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
-        #                 [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
-        #                 [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
-        #                 ]
-        pass
+    def set_gridue(self):
+        """
+        set_gridue:
+            Prepares 'self.gridue_params' dictionary with required data.
+            The self.gridue_params attribute is used to write a gridue
+            formatted file
+        Parameters:
+            N/A
+        Return:
+            N/A
+        """
+
+        ixlb = 0
+        ixrb = len(self.rm) - 2
+
+        nxm = len(self.rm) - 2
+        nym = len(self.rm[0]) - 2
+        iyseparatrix1 = self.patches['A1'].nrad + self.patches['A2'].nrad - 2
+        iyseparatrix2 = self.patches['B1'].nrad - 1
+        iyseparatrix3 = iyseparatrix2
+        iyseparatrix4 = iyseparatrix1
+
+        ix_plate1 = 0
+        ix_cut1 = self.patches['A2'].npol - 1
+
+        ix_cut2=0
+        for alpha in ['A', 'B']:
+            ix_cut2 += self.patches[alpha+'1'].npol - 1
+
+        ix_plate2=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+            ix_plate2 += self.patches[alpha+'3'].npol - 1
+
+        ix_plate3 = ix_plate2 + 2
+
+        ix_cut3=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F']:
+            ix_cut3 += self.patches[alpha+'2'].npol - 1
+
+        ix_cut4=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
+            ix_cut4 += self.patches[alpha+'1'].npol - 1
+        ix_cut4+=2
+
+        ix_plate4=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
+            ix_plate4 += self.patches[alpha+'1'].npol - 1
+        ix_plate4+=2
+
+        psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+
+        rm = self.rm
+        zm = self.zm
+        rb_prod = self.efit_psi.rcenter * self.efit_psi.bcenter
+
+        for i in range(len(b)):
+            for j in range(len(b[0])):
+                for k in range(5):
+                    _r = rm[i][j][k]
+                    _z = zm[i][j][k]
+
+                    _psi = self.efit_psi.get_psi(_r, _z)
+                    _br = self.efit_psi.get_psi(_r, _z, tag = 'vz') / _r
+                    _bz = -self.efit_psi.get_psi(_r, _z, tag = 'vr') / _r
+                    _bpol = np.sqrt(_br ** 2 + _bz ** 2)
+                    _bphi = rb_prod / _r
+                    _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
+
+                    psi[i][j][k] = _psi
+                    br[i][j][k] = _br
+                    bz[i][j][k] = _bz
+                    bpol[i][j][k] = _bpol
+                    bphi[i][j][k] = _bphi
+                    b[i][j][k] = _b
+
+        self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'iyseparatrix1' : iyseparatrix1, 'iyseparatrix2' : iyseparatrix2, \
+                'ix_plate1' : ix_plate1, 'ix_cut1' : ix_cut1, 'ix_cut2' : ix_cut2, 'ix_plate2' : ix_plate2, 'iyseparatrix3' : iyseparatrix3, \
+                'iyseparatrix4' : iyseparatrix4, 'ix_plate3' : ix_plate3, 'ix_cut3' : ix_cut3, 'ix_cut4' : ix_cut4, 'ix_plate4' : ix_plate4, \
+                'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b, '_FILLER_' : -1}
+

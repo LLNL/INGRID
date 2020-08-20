@@ -24,19 +24,6 @@ class SF45(TopologyUtils):
         TopologyUtils.__init__(self, Ingrid_obj, config)
 
     def construct_patches(self):
-        """
-        Draws lines and creates patches for both USN and LSN configurations.
-
-        Patch Labeling Key:
-            I: Inner,
-            O: Outer,
-            DL: Divertor Leg,
-            PF: Private Flux,
-            T: Top,
-            B: Bottom,
-            S: Scrape Off Layer,
-            C: Core.
-        """
 
         try:
             visual = self.settings['DEBUG']['visual']['patch_map']
@@ -343,67 +330,28 @@ class SF45(TopologyUtils):
             direction = 'ccw', show_plot = visual, text = verbose).reverse_copy()
         D3_E = E3_W.reverse_copy()
 
+        A1_W = trim_geometry(WestPlate1, A1_S.p[-1], A1_N.p[0])
+        A2_W = trim_geometry(WestPlate1, A2_S.p[-1], A2_N.p[0])
+        A3_W = trim_geometry(WestPlate1, A3_S.p[-1], A3_N.p[0])
 
-        try:
-            A1_W = (WestPlate1.split(A1_S.p[-1])[1]).split(A1_N.p[0], add_split_point = True)[0]
-        except:
-            A1_W = limiter_split(A1_S.p[-1], A1_N.p[0], WestPlate1).split(A1_S.p[-1])[1].split(A1_N.p[0], add_split_point = True)[0]
-        try:
-            A2_W = (WestPlate1.split(A2_S.p[-1])[1]).split(A2_N.p[0], add_split_point = True)[0]
-        except:
-            A2_W = limiter_split(A2_S.p[-1], A2_N.p[0], WestPlate1).split(A2_S.p[-1])[1].split(A2_N.p[0], add_split_point = True)[0]
-        try:
-            A3_W = (WestPlate1.split(A3_S.p[-1])[1]).split(A3_N.p[0], add_split_point = True)[0]
-        except:
-            A3_W = limiter_split(A3_S.p[-1], A3_N.p[0], WestPlate1).split(A3_S.p[-1])[1].split(A3_N.p[0], add_split_point = True)[0]
+        H1_W = trim_geometry(WestPlate2, H1_S.p[-1], H1_N.p[0])
+        H2_W = trim_geometry(WestPlate2, H2_S.p[-1], H2_N.p[0])
+        H3_W = trim_geometry(WestPlate2, H3_S.p[-1], H3_N.p[0])
 
-        try:
-            H1_W = (WestPlate2.split(H1_S.p[-1])[1]).split(H1_N.p[0], add_split_point = True)[0]
-        except:
-            H1_W = limiter_split(H1_S.p[-1], H1_N.p[0], WestPlate2).split(H1_S.p[-1])[1].split(H1_N.p[0], add_split_point = True)[0]
-        try:
-            H2_W = (WestPlate2.split(H2_S.p[-1])[1]).split(H2_N.p[0], add_split_point = True)[0]
-        except:
-            H2_W = limiter_split(H2_S.p[-1], H2_N.p[0], WestPlate2).split(H2_S.p[-1])[1].split(H2_N.p[0], add_split_point = True)[0]
-        try:
-            H3_W = (WestPlate2.split(H3_S.p[-1])[1]).split(H3_N.p[0], add_split_point = True)[0]
-        except:
-            H3_W = limiter_split(H3_S.p[-1], H3_N.p[0], WestPlate2).split(H3_S.p[-1])[1].split(H3_N.p[0], add_split_point = True)[0]
+        I1_E = trim_geometry(EastPlate1, I1_N.p[-1], I1_S.p[0])
+        I2_E = trim_geometry(EastPlate1, I2_N.p[-1], I2_S.p[0])
+        I3_E = trim_geometry(EastPlate1, I3_N.p[-1], I3_S.p[0])
 
-        try:
-            I1_E = (EastPlate1.split(I1_N.p[-1])[1]).split(I1_S.p[0], add_split_point = True)[0]
-        except:
-            I1_E = limiter_split(I1_N.p[-1], I1_S.p[0], EastPlate1).split(I1_N.p[-1])[1].split(I1_S.p[0], add_split_point = True)[0]
-        try:
-            I2_E = (EastPlate1.split(I2_N.p[-1])[1]).split(I2_S.p[0], add_split_point = True)[0]
-        except:
-            I2_E = limiter_split(I2_N.p[-1], I2_S.p[0], EastPlate1).split(I2_N.p[-1])[1].split(I2_S.p[0], add_split_point = True)[0]
-        try:
-            I3_E = (EastPlate1.split(I3_N.p[-1])[1]).split(I3_S.p[0], add_split_point = True)[0]
-        except:
-            I3_E = limiter_split(I3_N.p[-1], I3_S.p[0], EastPlate1).split(I3_N.p[-1])[1].split(I3_S.p[0], add_split_point = True)[0]
-        try:
-            G1_E = (EastPlate2.split(G1_N.p[-1])[1]).split(G1_S.p[0], add_split_point = True)[0]
-        except:
-            G1_E = limiter_split(G1_N.p[-1], G1_S.p[0], EastPlate2).split(G1_N.p[-1])[1].split(G1_S.p[0], add_split_point = True)[0]
-        try:
-            G2_E = (EastPlate2.split(G2_N.p[-1])[1]).split(G2_S.p[0], add_split_point = True)[0]
-        except:
-            G2_E = limiter_split(G2_N.p[-1], G2_S.p[0], EastPlate2).split(G2_N.p[-1])[1].split(G2_S.p[0], add_split_point = True)[0]
-        try:
-            G3_E = (EastPlate2.split(G3_N.p[-1])[1]).split(G3_S.p[0], add_split_point = True)[0]
-        except:
-            G3_E = limiter_split(G3_N.p[-1], G3_S.p[0], EastPlate2).split(G3_N.p[-1])[1].split(G3_S.p[0], add_split_point = True)[0]
+        G1_E = trim_geometry(EastPlate2, G1_N.p[-1], G1_S.p[0])
+        G2_E = trim_geometry(EastPlate2, G2_N.p[-1], G2_S.p[0])
+        G3_E = trim_geometry(EastPlate2, G3_N.p[-1], G3_S.p[0])
 
         # ============== Patch A1 ==============
-        location = 'W'
-        A1 = Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'A1', platePatch = True, plateLocation = location)
+        A1 = Patch([A1_N, A1_E, A1_S, A1_W], patchName = 'A1', platePatch = True, plateLocation = 'W')
         # ============== Patch A2 ==============
-        location = 'W'
-        A2 = Patch([A2_N, A2_E, A2_S, A2_W], patchName = 'A2', platePatch = True, plateLocation = location)
+        A2 = Patch([A2_N, A2_E, A2_S, A2_W], patchName = 'A2', platePatch = True, plateLocation = 'W')
         # ============== Patch A3 ==============
-        location = 'W'
-        A3 = Patch([A3_N, A3_E, A3_S, A3_W], patchName = 'A3', platePatch = True, plateLocation = location)
+        A3 = Patch([A3_N, A3_E, A3_S, A3_W], patchName = 'A3', platePatch = True, plateLocation = 'W')
 
 
         # ============== Patch B1 ==============
@@ -442,25 +390,25 @@ class SF45(TopologyUtils):
         F3 = Patch([F3_N, F3_E, F3_S, F3_W], patchName = 'F3')
 
         # ============== Patch G1 ==============
-        G1 = Patch([G1_N, G1_E, G1_S, G1_W], patchName = 'G1')
+        G1 = Patch([G1_N, G1_E, G1_S, G1_W], patchName = 'G1', platePatch = True, plateLocation = 'E')
         # ============== Patch G2 ==============
-        G2 = Patch([G2_N, G2_E, G2_S, G2_W], patchName = 'G2')
+        G2 = Patch([G2_N, G2_E, G2_S, G2_W], patchName = 'G2', platePatch = True, plateLocation = 'E')
         # ============== Patch G3 ==============
-        G3 = Patch([G3_N, G3_E, G3_S, G3_W], patchName = 'G3')
+        G3 = Patch([G3_N, G3_E, G3_S, G3_W], patchName = 'G3', platePatch = True, plateLocation = 'E')
 
         # ============== Patch H1 ==============
-        H1 = Patch([H1_N, H1_E, H1_S, H1_W], patchName = 'H1')
+        H1 = Patch([H1_N, H1_E, H1_S, H1_W], patchName = 'H1', platePatch = True, plateLocation = 'W')
         # ============== Patch H2 ==============
-        H2 = Patch([H2_N, H2_E, H2_S, H2_W], patchName = 'H2')
+        H2 = Patch([H2_N, H2_E, H2_S, H2_W], patchName = 'H2', platePatch = True, plateLocation = 'W')
         # ============== Patch H3 ==============
-        H3 = Patch([H3_N, H3_E, H3_S, H3_W], patchName = 'H3')
+        H3 = Patch([H3_N, H3_E, H3_S, H3_W], patchName = 'H3', platePatch = True, plateLocation = 'W')
 
         # ============== Patch I1 ==============
-        I1 = Patch([I1_N, I1_E, I1_S, I1_W], patchName = 'I1')
+        I1 = Patch([I1_N, I1_E, I1_S, I1_W], patchName = 'I1', platePatch = True, plateLocation = 'E')
         # ============== Patch I2 ==============
-        I2 = Patch([I2_N, I2_E, I2_S, I2_W], patchName = 'I2')
+        I2 = Patch([I2_N, I2_E, I2_S, I2_W], patchName = 'I2', platePatch = True, plateLocation = 'E')
         # ============== Patch I3 ==============
-        I3 = Patch([I3_N, I3_E, I3_S, I3_W], patchName = 'I3')
+        I3 = Patch([I3_N, I3_E, I3_S, I3_W], patchName = 'I3', platePatch = True, plateLocation = 'E')
 
         patches = [A3, A2, A1, B3, B2, B1, C3, C2, C1, D3, D2, D1, E3, E2, E1,
                    F3, F2, F1, G3, G2, G1, H3, H2, H1, I3, I2, I1]
@@ -513,11 +461,90 @@ class SF45(TopologyUtils):
         # 'PF' : (p['IPF'], p['OPF'])}
         pass
 
-    def SetupPatchMatrix(self):
-        # p = self.patches
-        # self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-        #                 [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
-        #                 [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
-        #                 [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
-        #                 ]
-        pass
+    def set_gridue(self):
+        """
+        set_gridue:
+            Prepares 'self.gridue_params' dictionary with required data.
+            The self.gridue_params attribute is used to write a gridue
+            formatted file
+        Parameters:
+            N/A
+        Return:
+            N/A
+        """
+
+        ixlb = 0
+        ixrb = len(self.rm) - 2
+
+        nxm = len(self.rm) - 2
+        nym = len(self.rm[0]) - 2
+
+        iyseparatrix1 = self.patches['A1'].nrad - 1
+        iyseparatrix2 = iyseparatrix1
+        iyseparatrix3 = self.patches['A1'].nrad + self.patches['A2'].nrad - 2
+        iyseparatrix4 = iyseparatrix3
+
+        ix_plate1 = 0
+        ix_cut1 = self.patches['A1'].npol - 1
+
+        ix_cut2=0
+        for alpha in ['A', 'B', 'C', 'D', 'E']:
+            ix_cut2 += self.patches[alpha+'1'].npol - 1
+
+        ix_plate2=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+            ix_plate2 += self.patches[alpha+'3'].npol - 1
+
+        ix_plate3 = ix_plate2 + 2
+
+        ix_cut3=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F']:
+            ix_cut3 += self.patches[alpha+'2'].npol - 1
+
+        ix_cut4=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
+            ix_cut4 += self.patches[alpha+'1'].npol - 1
+        ix_cut4 +=2
+
+
+        ix_plate4=0
+        for alpha in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
+            ix_plate4 += self.patches[alpha+'1'].npol - 1
+        ix_plate4 +=2
+
+        psi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        br = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bz = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bpol = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        bphi = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+        b = np.zeros((nxm + 2, nym + 2, 5), order = 'F')
+
+        rm = self.rm
+        zm = self.zm
+        rb_prod = self.efit_psi.rcenter * self.efit_psi.bcenter
+
+        for i in range(len(b)):
+            for j in range(len(b[0])):
+                for k in range(5):
+                    _r = rm[i][j][k]
+                    _z = zm[i][j][k]
+
+                    _psi = self.efit_psi.get_psi(_r, _z)
+                    _br = self.efit_psi.get_psi(_r, _z, tag = 'vz') / _r
+                    _bz = -self.efit_psi.get_psi(_r, _z, tag = 'vr') / _r
+                    _bpol = np.sqrt(_br ** 2 + _bz ** 2)
+                    _bphi = rb_prod / _r
+                    _b = np.sqrt(_bpol ** 2 + _bphi ** 2)
+
+                    psi[i][j][k] = _psi
+                    br[i][j][k] = _br
+                    bz[i][j][k] = _bz
+                    bpol[i][j][k] = _bpol
+                    bphi[i][j][k] = _bphi
+                    b[i][j][k] = _b
+
+        self.gridue_params = {'nxm' : nxm, 'nym' : nym, 'iyseparatrix1' : iyseparatrix1, 'iyseparatrix2' : iyseparatrix2, \
+                'ix_plate1' : ix_plate1, 'ix_cut1' : ix_cut1, 'ix_cut2' : ix_cut2, 'ix_plate2' : ix_plate2, 'iyseparatrix3' : iyseparatrix3, \
+                'iyseparatrix4' : iyseparatrix4, 'ix_plate3' : ix_plate3, 'ix_cut3' : ix_cut3, 'ix_cut4' : ix_cut4, 'ix_plate4' : ix_plate4, \
+                'rm' : self.rm, 'zm' : self.zm, 'psi' : psi, 'br' : br, 'bz' : bz, 'bpol' : bpol, 'bphi' : bphi, 'b' : b, '_FILLER_' : -1}
+

@@ -40,10 +40,11 @@ class TopologyUtils():
         #           'violet', 'magenta', 'olivedrab', 'darkorange', 'mediumslateblue',
         #           'palevioletred', 'yellow', 'lightpink', 'plum', 'lawngreen',
         #           'tan', 'hotpink', 'lightgray', 'darkcyan', 'navy']
-        colors = {'1' : 'blue', '2' : 'blue', '3' : 'blue'}
-        alpha = {'3' : 1.0, '2' : 0.45, '1' : 0.15}
+        colors = {'A' : 'red', 'B' : 'blue', 'C' : 'navajowhite', 'D' : 'firebrick',
+                  'E' : 'magenta', 'F' : 'olivedrab', 'G' : 'darkorange', 'H' : 'yellow', 'I' : 'navy'}
+        alpha = {'3' : 1.0, '2' : 0.75, '1' : 0.5}
 
-        f=fig if fig else plt.figure('INGRID: Patch Map', figsize=(6, 10))
+        f=fig if fig else plt.figure('INGRID Patch Map', figsize=(6, 10))
         a=ax if ax else f.subplots(1,1)
         a.set_xlim([self.efit_psi.rmin, self.efit_psi.rmax])
         a.set_ylim([self.efit_psi.zmin, self.efit_psi.zmax])
@@ -51,12 +52,12 @@ class TopologyUtils():
 
         a.set_xlabel('R')
         a.set_ylabel('Z')
-        f.suptitle(f'{self.config} Patch Diagram')
+        a.set_title(f'{self.config} Patch Diagram')
 
         for i, patch in enumerate(self.patches.values()):
-            patch.plot_border(color='midnightblue', ax=a)
-            patch.fill(colors[patch.get_tag()[-1]], ax=a, alpha=alpha[patch.get_tag()[-1]])
-            patch.color=colors[patch.get_tag()[-1]]
+            patch.plot_border(color='black', ax=a)
+            patch.fill(colors[patch.get_tag()[0]], ax=a, alpha=alpha[patch.get_tag()[-1]])
+            patch.color=colors[patch.get_tag()[0]]
         # ax.legend()
         f.show()
 
@@ -66,7 +67,7 @@ class TopologyUtils():
         Create Grid matplotlib figure for an SNL object.
         @author: watkins35, garcia299
         """
-        fig=plt.figure('INGRID: Grid', figsize=(6,10))
+        fig=plt.figure('INGRID Grid', figsize=(6,10))
         if ax is None:
             ax=fig.gca()
         for patch in self.patches:
@@ -108,138 +109,6 @@ class TopologyUtils():
         """
         return self.config
 
-    def concat_grid(self):
-        """
-        Concatenate all local grids on individual patches into a single
-        array with branch cuts
-        Parameters:
-        ----------
-            config : str
-                Type of SNL grid to concat.
-        """
-        patch_matrix = self.patch_matrix
-
-        for patch in self.patches.values():
-            patch.npol = len(patch.cell_grid[0]) + 1
-            patch.nrad = len(patch.cell_grid) + 1
-
-        # Total number of poloidal indices in all subgrids.
-        np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:5]])) + 2
-
-        # Total number of radial indices in all subgrids.
-        nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:4]])) + 2
-
-        # Total number of poloidal indices in all subgrids.
-        np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:11]])) + 2
-
-        # Total number of radial indices in all subgrids.
-        nr_total2 = int(np.sum([patch[7].nrad - 1 for patch in patch_matrix[1:4]])) + 2
-
-        rm1 = np.zeros((np_total1, nr_total1, 5), order = 'F')
-        zm1  = np.zeros((np_total1, nr_total1, 5), order = 'F')
-        rm2 = np.zeros((np_total2, nr_total2, 5), order = 'F')
-        zm2  = np.zeros((np_total2, nr_total2, 5), order = 'F')
-
-        ixcell = 0
-        jycell = 0
-
-        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
-        for ixp in range(1, 5):
-
-            nr_sum = 0
-            for jyp in range(1, 4):
-                # Point to the current patch we are operating on.
-                local_patch = patch_matrix[jyp][ixp]
-
-                if local_patch == [None]:
-                    continue
-
-                nr_sum += local_patch.nrad - 1
-
-                # Access the grid that is contained within this local_patch.
-                # ixl - number of poloidal cells in the patch.
-                for ixl in range(len(local_patch.cell_grid[0])):
-                    # jyl - number of radial cells in the patch
-                    for jyl in range(len(local_patch.cell_grid)):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
-
-                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
-
-                        ind = 0
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                            zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
-
-        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
-
-        ixcell = 0
-        jycell = 0
-
-        for ixp in range(7, 11):
-
-            nr_sum = 0
-            for jyp in range(1, 4):
-                # Point to the current patch we are operating on.
-                local_patch = patch_matrix[jyp][ixp]
-
-                if local_patch == [None]:
-                    continue
-
-                nr_sum += local_patch.nrad - 1
-
-                # Access the grid that is contained within this local_patch.
-                # ixl - number of poloidal cells in the patch.
-                for ixl in range(len(local_patch.cell_grid[0])):
-                    # jyl - number of radial cells in the patch
-                    for jyl in range(len(local_patch.cell_grid)):
-
-                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][7:ixp+1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
-
-                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
-
-                        ind = 0
-                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                            rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                            zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                            ind += 1
-                            if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
-
-        # Flip indices into gridue format.
-        for i in range(len(rm1)):
-            rm1[i] = rm1[i][::-1]
-        for i in range(len(zm1)):
-            zm1[i] = zm1[i][::-1]
-        for i in range(len(rm2)):
-            rm2[i] = rm2[i][::-1]
-        for i in range(len(zm2)):
-            zm2[i] = zm2[i][::-1]
-
-        # Add guard cells to the concatenated grid.
-        ixrb1 = len(rm1) - 2
-        ixlb1 = 0
-        ixrb2 = len(rm2) - 2
-        ixlb2 = 0
-
-        rm1 = self.add_guardc(rm1, ixlb1, ixrb1)
-        zm1 = self.add_guardc(zm1, ixlb1, ixrb1)
-        rm2 = self.add_guardc(rm2, ixlb2, ixrb2)
-        zm2 = self.add_guardc(zm2, ixlb2, ixrb2)
-
-        self.rm = np.concatenate((rm1, rm2))
-        self.zm = np.concatenate((zm1, zm2))
-
-        try:
-            debug = self.settings['DEBUG']['visual']['gridue']
-        except:
-            debug = False
-
-        if debug:
-            self.animate_grid()
 
     def get_func(self, _func):
 
@@ -273,6 +142,7 @@ class TopologyUtils():
         return ExpValid
 
     def GetFunctions(self,Patch,Enforce=True,Verbose=False,ExtraSettings={}):
+
         if Patch in self.PatchGroup['SOL']:
             try:
                 _radial_f = self.settings['grid_params']['grid_generation']['radial_f_sol']
@@ -352,54 +222,19 @@ class TopologyUtils():
 
 
     def GetNpoints(self,Patch,Enforce=True,Verbose=False):
-        try:
-            np_sol = self.settings['grid_params']['grid_generation']['np_sol']
-        except:
-            np_sol = self.settings['grid_params']['grid_generation']['np_global']
-        try:
-            np_core = self.settings['grid_params']['grid_generation']['np_core']
-        except:
-            np_core = self.settings['grid_params']['grid_generation']['np_global']
-        try:
-            np_pf = self.settings['grid_params']['grid_generation']['np_pf']
-        except:
-            np_pf = self.settings['grid_params']['grid_generation']['np_global']
 
-        if np_sol != np_core:
-            if Enforce:
-                raise ValueError('SOL and CORE must have equal POLOIDAL np values')
-            else:
-                print('WARNING: SOL and CORE must have equal POLOIDAL np values!\nSetting np values' \
-                + ' to the minimum of np_sol={} and np_core={}.\n'.format(np_sol,np_core))
-            np_sol = np_core = np.amin([np_sol, np_core])
+        poloidal_tag, radial_tag = Patch.get_tag()
+        np_tag = 'np_'+poloidal_tag
+        nr_tag = 'nr_'+radial_tag
+        try:
+            np_cells = self.settings['grid_params']['grid_generation'][np_tag]
+        except:
+            np_cells = self.settings['grid_params']['grid_generation']['np_default']
 
         try:
-            nr_sol = self.settings['grid_params']['grid_generation']['nr_sol']
+            nr_cells = self.settings['grid_params']['grid_generation'][nr_tag]
         except:
-            nr_sol = self.settings['grid_params']['grid_generation']['nr_global']
-
-        try:
-            nr_core = self.settings['grid_params']['grid_generation']['nr_core']
-        except:
-            nr_core = self.settings['grid_params']['grid_generation']['nr_global']
-        try:
-            nr_pf = self.settings['grid_params']['grid_generation']['nr_pf']
-        except:
-            nr_pf = self.settings['grid_params']['grid_generation']['nr_global']
-
-        if nr_pf != nr_core:
-            if Enforce:
-                raise ValueError('PF and CORE must have equal RADIAL nr values')
-            else:
-                print('WARNING: PF and CORE must have equal RADIAL nr values!\nSetting nr values' \
-                + ' to the minimum of nr_pf={} and nr_core={}.\n'.format(nr_pf,nr_core))
-                nr_pf = nr_core = np.amin([nr_pf, nr_core])
-
-        if Patch.platePatch:
-            if Patch.plateLocation == 'W':
-                np_cells = self.settings['target_plates']['plate_W1']['np_local']
-            elif Patch.plateLocation == 'E':
-                np_cells = self.settings['target_plates']['plate_E1']['np_local']
+            nr_cells = self.settings['grid_params']['grid_generation']['nr_default']
 
         return (nr_cells,np_cells)
 
@@ -420,7 +255,7 @@ class TopologyUtils():
 
         verbose=Verbose or verbose
         
-            
+        self.RefreshSettings()
         print('>>> Patches:', [k for k in self.patches.keys()])
         if RestartScratch:
             self.CurrentListPatch={}
@@ -435,9 +270,10 @@ class TopologyUtils():
                 patch.CorrectDistortion={'Active':False}
             if (ListPatches=='all' and patch not in self.CurrentListPatch) or (ListPatches!='all' and name in ListPatches):
                 self.SetPatchBoundaryPoints(patch)
-                (nr_cells,np_cells)=self.settings['grid_params']['grid_generation']['nr_global'], self.settings['grid_params']['grid_generation']['np_global']#self.GetNpoints(patch, Enforce=Enforce)
+                (nr_cells,np_cells)=self.GetNpoints(patch, Enforce=Enforce)
                 (_radial_f,_poloidal_f)= lambda x: x, lambda x: x # self.GetFunctions(patch,ExtraSettings=ExtraSettings,Enforce=Enforce)
                 print('>>> Making subgrid in patch:{} with np={},nr={},fp={},fr={}'.format(name, np_cells, nr_cells, inspect.getsource(_poloidal_f), inspect.getsource(_radial_f)))
+                patch.RemoveDuplicatePoints()
                 patch.make_subgrid(self, np_cells, nr_cells, _poloidal_f=_poloidal_f,_radial_f=_radial_f,verbose = verbose, visual = visual,ShowVertices=ShowVertices,OptionTrace=OptionTrace)
                 self.AdjustPatch(patch)
                 patch.plot_subgrid()
@@ -508,7 +344,7 @@ class TopologyUtils():
                    elif Boundary=='N':
                        return patch.N_vertices
                    elif Boundary=='E':
-                       return patch.W_vertices
+                       return patch.E_vertices
                    elif Boundary=='W':
                        return patch.W_vertices 
         return None
@@ -526,11 +362,293 @@ class TopologyUtils():
         # 'PF' : (p['IPF'], p['OPF'])}
         pass
 
+    def add_guardc(self, cell_map, ixlb, ixrb, nxpt = 1, eps = 1e-3):
+
+        def set_guard(cell_map, ix, iy, eps, boundary):
+            # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
+            # TODO: Edit the code to reflect this at some point so the next reader is not overwhelmed.
+            if boundary == 'left':
+                ixn = ix + 1
+                iyn = iy
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            elif boundary == 'right':
+                ixn = ix - 1
+                iyn = iy
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            elif boundary == 'bottom':
+                ixn = ix
+                iyn = iy + 1
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+            elif boundary == 'top':
+                ixn = ix
+                iyn = iy - 1
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+
+            return cell_map
+
+        np = len(cell_map) - 2
+        nr = len(cell_map[0]) - 2
+
+        for iy in range(1, nr + 1):
+            ix = ixlb
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'left')
+            ix = ixrb + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'right')
+
+        for ix in range(np + 2):
+            iy = 0
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'bottom')
+            iy = nr + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary = 'top')
+
+        return cell_map
+
+
     def SetupPatchMatrix(self):
-        # p = self.patches
-        # self.patch_matrix = [[[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
-        #                 [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
-        #                 [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
-        #                 [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
-        #                 ]
-        pass
+        p = self.patches
+
+        if self.config in ['LSN', 'USN']:
+            self.patch_matrix = [
+            [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]], \
+            [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]], \
+            [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]], \
+            [[None],   [None],   [None],   [None],   [None],   [None],   [None], [None]]  \
+            ]
+
+        elif self.config in ['SF45', 'SF75', 'SF105', 'SF135']:
+            self.patch_matrix = [
+            [[None], [None],  [None],  [None],  [None],  [None],  [None],  [None], [None], [None],  [None],  [None], [None]], \
+            [[None], p['A3'], p['B3'], p['C3'], p['D3'], p['E3'], p['F3'], p['G3'],[None], [None], p['H3'], p['I3'], [None]], \
+            [[None], p['A2'], p['B2'], p['C2'], p['D2'], p['E2'], p['F2'], p['G2'],[None], [None], p['H2'], p['I2'], [None]], \
+            [[None], p['A1'], p['B1'], p['C1'], p['D1'], p['E1'], p['F1'], p['G1'],[None], [None], p['H1'], p['I1'], [None]], \
+            [[None], [None],  [None],  [None],  [None],  [None],  [None],  [None], [None], [None],  [None],  [None], [None]]  \
+            ]
+        elif self.config in ['SF15', 'SF165']:
+            self.patch_matrix = [
+            [[None], [None],  [None],  [None],  [None],  [None],  [None],  [None], [None], [None],  [None], [None],  [None]], \
+            [[None], p['A3'], p['B3'], p['C3'], p['D3'], p['E3'], p['F3'], [None], [None], p['G3'], p['H3'], p['I3'],[None]], \
+            [[None], p['A2'], p['B2'], p['C2'], p['D2'], p['E2'], p['F2'], [None], [None], p['G2'], p['H2'], p['I2'],[None]], \
+            [[None], p['A1'], p['B1'], p['C1'], p['D1'], p['E1'], p['F1'], [None], [None], p['G1'], p['H1'], p['I1'],[None]], \
+            [[None], [None],  [None],  [None],  [None],  [None],  [None],  [None], [None], [None],  [None],  [None], [None]]  \
+            ]
+
+        elif self.config in ['UDN']:
+            self.patch_matrix = [
+            [[None],  [None],  [None],  [None],  [None], [None], [None], [None], [None], [None], [None], [None]], \
+            [[None], p['A3'], p['B3'], p['C3'], p['D3'], [None], [None], p['E3'], p['F3'], p['G3'], p['H3'], [None]],  \
+            [[None], p['A2'], p['B2'], p['C2'], p['D2'], [None], [None], p['E2'], p['F2'], p['G2'], p['H2'], [None]],  \
+            [[None], p['A1'], p['B1'], p['C1'], p['D1'], [None], [None], p['E1'], p['F1'], p['G1'], p['H1'], [None]], \
+            [[None],  [None],  [None],  [None],  [None], [None], [None], [None], [None], [None], [None], [None]]  \
+            ]
+
+    def concat_grid(self):
+
+        patch_matrix = self.patch_matrix
+        
+        for patch in self.patches.values():
+            patch.npol = len(patch.cell_grid[0]) + 1
+            patch.nrad = len(patch.cell_grid) + 1
+
+        if self.parent.settings['grid_params']['num_xpt'] == 1:
+            # Total number of poloidal indices in subgrid.
+            np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
+            nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
+
+            rm = np.zeros((np_total, nr_total, 5), order = 'F')
+            zm = np.zeros((np_total, nr_total, 5), order = 'F')
+
+            ixcell = 0
+            jycell = 0
+
+            # Iterate over all the patches in our SNL configuration (we exclude guard cells denoted by '[None]')
+            for ixp in range(1, 7):
+
+                nr_sum = 0
+                for jyp in range(1, 3):
+                    # Point to the current patch we are operating on.
+                    local_patch = patch_matrix[jyp][ixp]
+                    nr_sum += local_patch.nrad - 1
+
+                    # Access the grid that is contained within this local_patch.
+                    # ixl - number of poloidal cells in the patch.
+                    for ixl in range(len(local_patch.cell_grid[0])):
+                        # jyl - number of radial cells in the patch
+                        for jyl in range(len(local_patch.cell_grid)):
+
+                            ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
+                                    - len(local_patch.cell_grid[0]) + ixl + 1
+
+                            jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+
+                            ind = 0
+                            for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                                rm[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                                zm[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                                ind += 1
+
+            # Flip indices into gridue format.
+            for i in range(len(rm)):
+                rm[i] = rm[i][::-1]
+            for i in range(len(zm)):
+                zm[i] = zm[i][::-1]
+
+            # Add guard cells to the concatenated grid.
+            ixrb = len(rm) - 2
+            ixlb = 0
+            self.rm = self.add_guardc(rm, ixlb, ixrb)
+            self.zm = self.add_guardc(zm, ixlb, ixrb)
+
+            try:
+                debug = self.settings['DEBUG']['visual']['gridue']
+            except:
+                debug = False
+
+            if debug:
+                self.animate_grid()
+
+        elif self.parent.settings['grid_params']['num_xpt'] == 2:
+
+            if self.config in ['SF45', 'SF75', 'SF105', 'SF135']:
+                pindex1=8 
+                pindex2=10
+                pindex3=12
+            elif self.config in ['SF15', 'SF165']:
+                pindex1=7 
+                pindex2=9
+                pindex3=12
+            elif self.config in ['UDN']:
+                pindex1=5
+                pindex2=7
+                pindex3=11
+
+            # Total number of poloidal indices in all subgrids.
+            np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:pindex1]])) + 2
+
+            # Total number of radial indices in all subgrids.
+            nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:4]])) + 2
+
+            # Total number of poloidal indices in all subgrids.
+            np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex2:pindex3]])) + 2
+
+            # Total number of radial indices in all subgrids.
+            nr_total2 = int(np.sum([patch[pindex2].nrad - 1 for patch in patch_matrix[1:4]])) + 2
+
+            rm1 = np.zeros((np_total1, nr_total1, 5), order = 'F')
+            zm1  = np.zeros((np_total1, nr_total1, 5), order = 'F')
+            rm2 = np.zeros((np_total2, nr_total2, 5), order = 'F')
+            zm2  = np.zeros((np_total2, nr_total2, 5), order = 'F')
+
+            ixcell = 0
+            jycell = 0
+
+            # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
+            for ixp in range(1, pindex1):
+                
+                nr_sum = 0
+                for jyp in range(1, 4):
+                    # Point to the current patch we are operating on.
+                    local_patch = patch_matrix[jyp][ixp]
+
+                    if local_patch == [None]:
+                        continue
+
+                    nr_sum += local_patch.nrad - 1
+
+                    # Access the grid that is contained within this local_patch. 
+                    # ixl - number of poloidal cells in the patch.
+                    for ixl in range(len(local_patch.cell_grid[0])):
+                        # jyl - number of radial cells in the patch
+                        for jyl in range(len(local_patch.cell_grid)):
+
+                            ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp+1]])) \
+                                    - len(local_patch.cell_grid[0]) + ixl + 1
+
+                            jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+
+                            ind = 0
+                            for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                                rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                                zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                                ind += 1
+
+            ixcell = 0
+            jycell = 0
+
+            for ixp in range(pindex2, pindex3):
+                
+                nr_sum = 0
+                for jyp in range(1, 4):
+                    # Point to the current patch we are operating on.
+                    local_patch = patch_matrix[jyp][ixp]
+
+                    if local_patch == [None]:
+                        continue
+
+                    nr_sum += local_patch.nrad - 1
+
+                    # Access the grid that is contained within this local_patch. 
+                    # ixl - number of poloidal cells in the patch.
+                    for ixl in range(len(local_patch.cell_grid[0])):
+                        # jyl - number of radial cells in the patch
+                        for jyl in range(len(local_patch.cell_grid)):
+
+                            ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex2:ixp+1]])) \
+                                    - len(local_patch.cell_grid[0]) + ixl + 1
+
+                            jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+
+                            ind = 0
+                            for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                                rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                                zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                                ind += 1
+
+            # Flip indices into gridue format.
+            for i in range(len(rm1)):
+                rm1[i] = rm1[i][::-1]
+            for i in range(len(zm1)):
+                zm1[i] = zm1[i][::-1]
+            for i in range(len(rm2)):
+                rm2[i] = rm2[i][::-1]
+            for i in range(len(zm2)):
+                zm2[i] = zm2[i][::-1]
+
+            # Add guard cells to the concatenated grid.
+            ixrb1 = len(rm1) - 2
+            ixlb1 = 0
+            ixrb2 = len(rm2) - 2
+            ixlb2 = 0
+
+            rm1 = self.add_guardc(rm1, ixlb1, ixrb1)
+            zm1 = self.add_guardc(zm1, ixlb1, ixrb1)
+            rm2 = self.add_guardc(rm2, ixlb2, ixrb2)
+            zm2 = self.add_guardc(zm2, ixlb2, ixrb2)
+
+            self.rm = np.concatenate((rm1, rm2))
+            self.zm = np.concatenate((zm1, zm2))
+
+            try:
+                debug = self.yaml['DEBUG']['visual']['gridue']
+            except:
+                debug = False
+            
+            if debug:
+                self.animate_grid()

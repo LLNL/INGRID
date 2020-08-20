@@ -8,7 +8,6 @@ CL_startup
 """
 
 import sys
-
 sys.path.append('../src/')
 from Ingrid import Ingrid
 import pathlib

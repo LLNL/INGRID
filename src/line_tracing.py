@@ -364,8 +364,8 @@ class LineTracing:
             magx = np.array([self.grid.parent.settings['grid_params']['rmagx'], self.grid.parent.settings['grid_params']['zmagx']])
 
             psi_max = self.grid.parent.settings['grid_params']['psi_max']
-            psi_min_core = self.grid.parent.settings['grid_params']['psi_min_core']
-            psi_min_pf = self.grid.parent.settings['grid_params']['psi_min_pf']
+            psi_core = self.grid.parent.settings['grid_params']['psi_core']
+            psi_pf_1 = self.grid.parent.settings['grid_params']['psi_pf_1']
 
             # Create mid-line
             LHS_Point = geo.Point(magx[0] - 1e6, magx[1])

@@ -30,23 +30,23 @@
 #       psi_max_z - (double) (SNL configuration only, optional)
 #           Z coordinate of 'click' corresponding to psi_max selection
 # 
-#       psi_min_core - (double)
+#       psi_core - (double)
 #           Minimal psi-value found in core region
 # 
-#       psi_min_core_r - (double) (optional)
-#           R coordinate of 'click' corresponding to psi_min_core selection
+#       psi_core_r - (double) (optional)
+#           R coordinate of 'click' corresponding to psi_core selection
 # 
-#       psi_min_core_z - (double)
-#           Z coordinate of 'click' corresponding to psi_min_core selection
+#       psi_core_z - (double)
+#           Z coordinate of 'click' corresponding to psi_core selection
 # 
-#       psi_min_pf - (double)
+#       psi_pf_1 - (double)
 #           Minimal psi-value found in private-flux region of primary x-point
 # 
-#       psi_min_pf_r - (double)
-#           R coordinate of 'click' corresponding to psi_min_pf selection
+#       psi_pf_1_r - (double)
+#           R coordinate of 'click' corresponding to psi_pf_1 selection
 # 
-#       psi_min_pf_z - (double)
-#           Z coordinate of 'click' corresponding to psi_min_pf selection
+#       psi_pf_1_z - (double)
+#           Z coordinate of 'click' corresponding to psi_pf_1 selection
 #
 #       rmagx - (double)
 #           R coordinate of magnetic axis
@@ -92,12 +92,12 @@
 #                   Number of grid lines in radial direction
 #                   in core region
 #
-#               np_global - (int)
+#               np_default - (int)
 #                   Default setting for number of grid lines 
 #                   in poloidal direction when a required np_*
 #                   value is unavailable.
 #
-#               nr_global - (int)
+#               nr_default - (int)
 #                   Default setting for number of grid lines 
 #                   in radial direction when a required nr_*
 #                   value is unavailable.
@@ -149,13 +149,13 @@
 #                   Transform magnetic axis z coordinate by 
 #                   zmagx_shift
 #
-#               inner_tilt - (double)
-#                   Apply a rotation of inner_tilt radians to 
+#               west_tilt - (double)
+#                   Apply a rotation of west_tilt radians to 
 #                   the half of midplane west of primary
 #                   x-point
 #
-#               outer_tilt - (double)
-#                   Apply a rotation of outer_tilt radians to 
+#               east_tilt - (double)
+#                   Apply a rotation of east_tilt radians to 
 #                   the half of midplane east of primary
 #                   x-point
 #
@@ -321,27 +321,19 @@ DEBUG:
         subgrid: 0
 eqdsk: ../data/SNL/C-MOD/neqdsk
 grid_params:
-    config: ''
     grid_generation:
         np_default: 5
         nr_default: 5
-        poloidal_f: x, x
-        radial_f_core: x, x
-        radial_f_pf: x, x
-        radial_f_primary_pf: x, x
-        radial_f_primary_sol: x, x
-        radial_f_secondary_pf: x, x
-        radial_f_secondary_sol: x, x
-        radial_f_sol: x, x ** 0.5
+        poloidal_f_default: x, x
+        radial_f_default: x, x
     nlevs: 30
     num_xpt: 1
     patch_generation:
         NE_adjust: 0.2
         NW_adjust: -0.4
-        inner_tilt: 0.0
-        outer_tilt: -0.5
+        west_tilt: 0.0
+        east_tilt: -0.5
         rmagx_shift: 0.0
-        rxpt: 0.0
         secondary_NE_adjust: 0.0
         secondary_NW_adjust: 0.0
         use_NE: true
@@ -351,25 +343,12 @@ grid_params:
         use_secondary_NE: false
         use_secondary_NW: false
         zmagx_shift: 0.0
-        zxpt: 0.0
     psi_max: 1.08
-    psi_max_inner: 0.0
-    psi_max_outer: 0.0
-    psi_max_r: 0.630909090909
-    psi_max_r_inner: 0.0
-    psi_max_r_outer: 0.0
-    psi_max_z: -0.418181818182
-    psi_max_z_inner: 0.0
-    psi_max_z_outer: 0.0
-    psi_min_core: 0.971886263593
-    psi_min_core_r: 0.583636363636
-    psi_min_core_z: -0.345454545455
-    psi_min_pf: 0.96983650612
-    psi_min_pf_r: 0.550909090909
-    psi_min_pf_z: -0.445454545455
-    psi_pf2: 0.0
-    psi_pf2_r: 0.0
-    psi_pf2_z: 0.0
+    psi_max_west: 0.0
+    psi_max_east: 0.0
+    psi_core: 0.971886263593
+    psi_pf_1: 0.96983650612
+    psi_pf_2: 0.0
     rmagx: 0.681827575433
     rxpt: 0.563043114769
     rxpt2: 0.0
@@ -387,8 +366,6 @@ target_plates:
     plate_E1:
         file: ../data/SNL/C-MOD/cmod_otp.txt
         name: plate_E1
-        np_local: 7
-        poloidal_f: x, x
         zshift: 0.0
     plate_E2:
         file: ''
@@ -399,12 +376,8 @@ target_plates:
     plate_W1:
         file: ../data/SNL/C-MOD/cmod_itp.txt
         name: plate_W1
-        np_local: 7
-        poloidal_f: x, x
         zshift: 0.0
     plate_W2:
         file: ''
         name: plate_W2
-        np_local: 3
-        poloidal_f: x, x
         zshift: 0.0

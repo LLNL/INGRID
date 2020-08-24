@@ -15,6 +15,7 @@ from matplotlib.patches import Polygon
 from scipy.optimize import fsolve, curve_fit, root_scalar, brentq
 from scipy.interpolate import splprep, splev
 from collections import OrderedDict
+
 def DrawLine(data):
     (i,W_vertices,E,dynamic_step,eq,itot)=data   
     #if Verbose: 
@@ -589,6 +590,27 @@ class Patch:
             self.cell_grid[-1][0].vertices[corner] = point
             self.cell_grid[-1][0].vertices[corner] = point
 
+    def AdjustBorder(self, face, patch):
+
+        if face == 'E':
+            for i in range(len(self.cell_grid)):
+                self.cell_grid[i][-1].vertices['NE'] = patch.cell_grid[i][0].vertices['NW']
+                self.cell_grid[i][-1].vertices['SE'] = patch.cell_grid[i][0].vertices['SW']
+        elif face == 'W':
+            for i in range(len(self.cell_grid)):
+                self.cell_grid[i][0].vertices['NW'] = patch.cell_grid[i][-1].vertices['NE']
+                self.cell_grid[i][0].vertices['SW'] = patch.cell_grid[i][-1].vertices['SE']
+        elif face == 'N':
+            for j in range(len(self.cell_grid[0])):
+                self.cell_grid[0][j].vertices['NW'] = patch.cell_grid[-1][j].vertices['SW']
+                self.cell_grid[0][j].vertices['NE'] = patch.cell_grid[-1][j].vertices['SE']
+        elif face == 'S':
+            for j in range(len(self.cell_grid[0])):
+                self.cell_grid[-1][j].vertices['SW'] = patch.cell_grid[0][j].vertices['NW']
+                self.cell_grid[-1][j].vertices['SE'] = patch.cell_grid[0][j].vertices['NE']
+        else:
+            raise ValueError(f"# Invalid face '{face}' provided for adjusting.")
+
     def get_tag(self):
         return self.PatchTagMap[self.patchName]
 
@@ -678,7 +700,7 @@ class Patch:
             """
             d = 0
             for i in range(nr_lines):
-                d += np.sqrt((E_vertices[i].x - W_vertices[i].x)**2 + (E_vertices[i].y - W_vertices[i].y)**2)
+                d += np.sqrt((self.E_vertices[i].x - self.W_vertices[i].x)**2 + (self.E_vertices[i].y - self.W_vertices[i].y)**2)
             dynamic_step = d / nr_lines
             # print('Dynamic-Step value came out to be: {}\n'.format(dynamic_step * ratio))
             return dynamic_step * ratio
@@ -801,8 +823,8 @@ class Patch:
         # and South boundaries of our patch.
         self.N_vertices = []
         self.S_vertices = []
-        E_vertices = []
-        W_vertices = []
+        self.E_vertices = []
+        self.W_vertices = []
         
         if verbose: print('# Generate our sub-grid anchor points along the North and South boundaries of our patch.')
         # and South boundaries of our patch')
@@ -820,20 +842,34 @@ class Patch:
                 _s = splev(_poloidal_f(i / (np_lines-1)), self.S_spl)
                 self.S_vertices.append(Point((float(_s[0]), float(_s[1]))))
         else:
-            self.S_vertices=self.BoundariesPoints.get('S')    
+            self.S_vertices=self.BoundaryPoints.get('S')    
 
         u=[_radial_f(i / (nr_lines-1)) for i in range(nr_lines)]
 
         Npts=1000
         xy = splev(np.linspace(0,1,Npts), self.E_spl)
 
-        for i in range(nr_lines):
-            _e = splev(u[i], self.E_spl)
+        if self.BoundaryPoints.get('W') is None:
+            for i in range(nr_lines):
+                _w = splev(u[i], self.W_spl)
+                self.W_vertices.append(Point((float(_w[0]), float(_w[1]))))
+        else:
+            self.W_vertices=self.BoundaryPoints.get('W')
 
-            E_vertices.append(Point((float(_e[0]), float(_e[1]))))
+        if self.BoundaryPoints.get('E') is None:
+            for i in range(nr_lines):
+                _e = splev(u[i], self.E_spl)
+                self.E_vertices.append(Point((float(_e[0]), float(_e[1]))))
+        else:
+            self.E_vertices=self.BoundaryPoints.get('E')
 
-            _w = splev(u[i], self.W_spl)
-            W_vertices.append(Point((float(_w[0]), float(_w[1]))))
+        # for i in range(nr_lines):
+        #     _e = splev(u[i], self.E_spl)
+
+        #     E_vertices.append(Point((float(_e[0]), float(_e[1]))))
+
+        #     _w = splev(u[i], self.W_spl)
+        #     W_vertices.append(Point((float(_w[0]), float(_w[1]))))
         DetailedVertices=False
         if  not isinstance(ShowVertices,bool):
             if ShowVertices=='detailed':
@@ -852,7 +888,7 @@ class Patch:
                 color=self.color
                 ms=6
                 markers=['o','X','s','D']
-            for vertices,mark in zip([W_vertices, E_vertices, self.N_vertices, self.S_vertices],markers):
+            for vertices,mark in zip([self.W_vertices, self.E_vertices, self.N_vertices, self.S_vertices],markers):
                 for p in vertices:
                     plt.plot(p.x, p.y, '.', color = color, markersize = ms,marker=mark,markeredgecolor='black')
         # Radial lines of Psi surfaces. Ordered with increasing magnitude, starting with
@@ -864,11 +900,13 @@ class Patch:
         if verbose: print('# Interpolate radial lines between North and South patch boundaries..')
         # Interpolate radial lines between North and South patch boundaries.
         self.radial_spl=[]
-            
-        for i in range(len(W_vertices) - 2):
+        temp_vertices = []
+        temp_vertices.append(self.N.p[-1])
+        for i in range(len(self.W_vertices) - 2):
             #TODO: parallelize tracing of radial lines (draw_line function must be "externalized" in the scope of the script)
-            radial_lines.append(grid.eq.draw_line(W_vertices[i + 1], {'line' : self.E}, option = OptionTrace, \
+            radial_lines.append(grid.eq.draw_line(self.W_vertices[i + 1], {'line' : self.E}, option = OptionTrace, \
                 direction = 'cw', show_plot = 0, dynamic_step = dynamic_step))
+            temp_vertices.append(radial_lines[-1].p[-1])
             radial_vals = radial_lines[i + 1].fluff(1000)
             Radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s = 0)
             self.radial_spl.append(Radial_spl)
@@ -886,7 +924,7 @@ class Patch:
                     Pt1=radial_vertices[i][j]
                     Pt2=radial_vertices[i][j-1]
                     Tag='---- Correcting points: {},{}'.format(i, j)
-                    Pt=CorrectDistortion(u,Pt,Pt1,Pt2,self.radial_spl[i],ThetaMin,ThetaMax,umin,umax,Res,visual,Tag,self.Verbose)
+                    Pt=CorrectDistortion(u,Pt,Pt1,Pt2,self.radial_spl[i],ThetaMin,ThetaMax,umin,umax,Res,visual,Tag,verbose)
                      
                 vertex_list.append(Pt)    
                 if visual:
@@ -895,6 +933,8 @@ class Patch:
                         
             radial_vertices.append(vertex_list)
         radial_lines.append(self.S)
+        temp_vertices.append(self.S.p[0])
+        self.E_vertices = temp_vertices
         
         #Correct point on south boundary
         if self.CorrectDistortion['Active']:
@@ -909,7 +949,7 @@ class Patch:
                 Pt1=radial_vertices[-1][j]
                 Pt2=radial_vertices[-1][j-1]
                 Tag='---- Correcting south boundary points:{}'.format(j)
-                self.S_vertices[j]=CorrectDistortion(u,Pt,Pt1,Pt2,self.S_spl,ThetaMin,ThetaMax,umin,umax,Res,visual,Tag,self.Verbose)
+                self.S_vertices[j]=CorrectDistortion(u,Pt,Pt1,Pt2,self.S_spl,ThetaMin,ThetaMax,umin,umax,Res,visual,Tag,verbose)
         radial_vertices.append(self.S_vertices)
         if verbose: print('# Create Cells: South boundary -> North Boundary')
         # Create Cells: South boundary -> North Boundary
@@ -971,35 +1011,37 @@ class Patch:
         IsMonotonic(PsiW,W_vals[0],W_vals[1],'PsiW')
         IsMonotonic(PsiE,E_vals[0],E_vals[1],'PsiE')
         
-def CorrectDistortion(u,Pt,Pt1,Pt2,spl,ThetaMin,ThetaMax,umin,umax,Resolution,visual,Tag,MinTol=1.02,MaxTol=0.98,Verbose=False):
-            dumax=(umax-u)/Resolution
-            dumin=(u-umin)/Resolution
-            Theta=Line([Pt1,Pt]).GetAngle(Line([Pt1,Pt2]))
-            if Theta<ThetaMin or Theta>ThetaMax:
-                if Verbose: print('{}: u={};Theta={};ThetaMin={};ThetaMax={}'.format(Tag,u,Theta,ThetaMin,ThetaMax))
-                if visual:
-                        plt.plot(Pt.x, Pt.y, '.', color = 'red', markersize = 8,marker='o')
-                        plt.show()
-                        plt.draw()
-                icount=0
-                color='purple'
-                while Theta<ThetaMin or Theta>ThetaMax:
-                    icount+=1    
-                    if Theta<ThetaMin:
-                       u=u+dumax
-                    elif Theta>ThetaMax:    
-                       u=u-dumin
-                    if u>umax*MaxTol or u<umin*MinTol:
-                       if Verbose: print('[{}]>>>> umax={} umin={};u:{};Theta={}'.format(icount,umax,umin,u,Theta))
-                       color='gray'
-                       break
-                    _r = splev(u, spl)
-                    Pt=Point((_r[0], _r[1]))
-                    Theta=Line([Pt1,Pt]).GetAngle(Line([Pt1,Pt2])) 
-                if Verbose: print('[{}]>>>> u:{};Theta={}'.format(icount,u,Theta))
-                if visual:
-                    plt.plot(Pt.x, Pt.y, '.', color = color , markersize = 8,marker='s')
-            return(Pt)         
+def CorrectDistortion(u,Pt,Pt1,Pt2,spl,ThetaMin,ThetaMax,umin,umax,Resolution,visual,Tag,MinTol=1.02,MaxTol=0.98, Verbose=False):
+    MaxIter=Resolution*10
+    dumax=(umax-u)/Resolution
+    dumin=(u-umin)/Resolution
+    Theta=Line([Pt1,Pt]).GetAngle(Line([Pt1,Pt2]))
+    if Verbose: print(f'Current theta value: {Theta}')
+    if Theta<ThetaMin or Theta>ThetaMax:
+        if Verbose: print('{}: u={};Theta={};ThetaMin={};ThetaMax={}'.format(Tag,u,Theta,ThetaMin,ThetaMax))
+        if visual:
+                plt.plot(Pt.x, Pt.y, '.', color = 'red', markersize = 8,marker='o')
+                plt.show()
+                plt.draw()
+        icount=0
+        color='purple'
+        while Theta<ThetaMin or Theta>ThetaMax:
+            icount+=1    
+            if Theta<ThetaMin:
+               u=u+dumax
+            elif Theta>ThetaMax:    
+               u=u-dumin
+            if (u>umax*MaxTol or u<umin*MinTol) or icount>=MaxIter:
+               if Verbose: print('[{}]>>>> umax={} umin={};u:{};Theta={}'.format(icount,umax,umin,u,Theta))
+               color='gray'
+               break
+            _r = splev(u, spl)
+            Pt=Point((_r[0], _r[1]))
+            Theta=Line([Pt1,Pt]).GetAngle(Line([Pt1,Pt2])) 
+        if True: print('[{}]>>>> u:{};Theta={}'.format(icount,u,Theta))
+        if visual:
+            plt.plot(Pt.x, Pt.y, '.', color = color , markersize = 8,marker='s')
+    return Pt       
 
 
 def calc_mid_point(v1, v2):

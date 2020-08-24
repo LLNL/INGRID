@@ -21,9 +21,9 @@
 #                         used for patch bounds.
 #          zmagx_shift - (double) Translate the z-coordinate of the magnetic axis
 #                         for the patch bounds.
-#          inner_tilt - (double) RADIAN value to tilt the inner horizontal-line patch
+#          west_tilt - (double) RADIAN value to tilt the inner horizontal-line patch
 #                        boundary that intersects the magnetic-axis
-#          outer_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
+#          east_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
 #                        boundary that intersects the magnetic-axis
 #          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction 
 #                    rather than tracing 'W' in rho.
@@ -35,9 +35,9 @@
 # -------------------------------------------------------------------------------------------------
 #     grid_generation - (dict) User settings related to grid generation.
 #
-#          np_global - (int) Default number of POLOIDAL cells to generate for all
+#          np_default - (int) Default number of POLOIDAL cells to generate for all
 #                       patches not adjacent to a target plate.
-#          nr_global - (int) Default number of RADIAL cells to generate for all
+#          nr_default - (int) Default number of RADIAL cells to generate for all
 #                       patches not adjacent to a target plate.
 #     
 #          np_core - (int) Number of POLOIDAL cells in the core plasma region
@@ -184,27 +184,25 @@ patch_data:
         new_file: True
         new_fname: '../data/NEQDSK_maxim/SF105_patches_1597355904.npy'
 grid_params:
-    config: SF105
+    CorrectDistortion:
+        'all':
+            'ThetaMin': 80.0
+            'ThetaMax': 95.0
+            'Resolution': 1000
+            'Active': True
     grid_generation:
-        np_default: 1
-        nr_default: 1
-        poloidal_f: x, x
-        radial_f_core: x, x
-        radial_f_pf: x, x
-        radial_f_primary_pf: x, x
-        radial_f_primary_sol: x, x
-        radial_f_secondary_pf: x, x
-        radial_f_secondary_sol: x, x
-        radial_f_sol: x, x
+        np_default: 3
+        nr_default: 3
+        poloidal_f_default: x, x
+        radial_f_default: x, x
     nlevs: 30
     num_xpt: 2
     patch_generation:
         NE_adjust: 0.0
         NW_adjust: 0.0
-        inner_tilt: 0.0
-        outer_tilt: 0.0
+        west_tilt: 0.0
+        east_tilt: 0.0
         rmagx_shift: 0.0
-        rxpt: 0.0
         secondary_NE_adjust: 0.0
         secondary_NW_adjust: 0.0
         use_NE: false
@@ -214,25 +212,12 @@ grid_params:
         use_secondary_NE: false
         use_secondary_NW: false
         zmagx_shift: 0.0
-        zxpt: 0.0
     psi_max: 1.066
     psi_max_west: 1.2
     psi_max_east: 0.1
-    psi_max_r: 1.031298701299
-    psi_max_r_inner: 0.0
-    psi_max_r_outer: 0.0
-    psi_max_z: -1.072207792208
-    psi_max_z_inner: 0.0
-    psi_max_z_outer: 0.0
-    psi_min_core: 0.8
-    psi_min_core_r: 1.363766233766
-    psi_min_core_z: -1.030649350649
-    psi_min_pf: 0.075
-    psi_min_pf_r: 1.247402597403
-    psi_min_pf_z: -1.255064935065
-    psi_pf2: 0.4
-    psi_pf2_r: 0.0
-    psi_pf2_z: 0.0
+    psi_core: 0.8
+    psi_pf_1: 0.075
+    psi_pf_2: 0.4
     rmagx: 1.71
     rxpt: 1.5
     rxpt2: 1.0
@@ -256,24 +241,16 @@ target_plates:
     plate_E1:
         file: ''
         name: plate_E1
-        np_local: 3
-        poloidal_f: x, x
         zshift: 0.0
     plate_E2:
         file: ''
         name: null
-        np_local: 3
-        poloidal_f: x, x
         zshift: 0.0
     plate_W1:
         file: ''
         name: plate_W1
-        np_local: 3
-        poloidal_f: x, x
         zshift: 0.0
     plate_W2:
         file: ''
         name: null
-        np_local: 3
-        poloidal_f: x, x
         zshift: 0.0

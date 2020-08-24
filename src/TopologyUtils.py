@@ -8,6 +8,7 @@ try:
 except:
     pass
 import matplotlib.pyplot as plt
+from collections import OrderedDict
 
 class TopologyUtils():
     def __init__(self, Ingrid_obj, config):
@@ -23,10 +24,13 @@ class TopologyUtils():
         self.CurrentListPatch={}
         self.Verbose=False
         self.plate_data = Ingrid_obj.plate_data
-        self.CorrectDistortion={}
+        self.GetCorrectDistortion()
 
     def RefreshSettings(self):
         self.settings = self.parent.settings
+
+    def OrderPatches(self):
+        pass
 
     def patch_diagram(self, fig=None, ax=None):
         """
@@ -34,12 +38,6 @@ class TopologyUtils():
         @author: watkins35, garcia299
         """
 
-        # colors = ['salmon', 'skyblue', 'mediumpurple', 'mediumaquamarine',
-        #           'sienna', 'orchid', 'lightblue', 'gold', 'steelblue',
-        #           'seagreen', 'firebrick', 'saddlebrown', 'dodgerblue',
-        #           'violet', 'magenta', 'olivedrab', 'darkorange', 'mediumslateblue',
-        #           'palevioletred', 'yellow', 'lightpink', 'plum', 'lawngreen',
-        #           'tan', 'hotpink', 'lightgray', 'darkcyan', 'navy']
         colors = {'A' : 'red', 'B' : 'blue', 'C' : 'navajowhite', 'D' : 'firebrick',
                   'E' : 'magenta', 'F' : 'olivedrab', 'G' : 'darkorange', 'H' : 'yellow', 'I' : 'navy'}
         alpha = {'3' : 1.0, '2' : 0.75, '1' : 0.5}
@@ -143,69 +141,44 @@ class TopologyUtils():
 
     def GetFunctions(self,Patch,Enforce=True,Verbose=False,ExtraSettings={}):
 
-        if Patch in self.PatchGroup['SOL']:
-            try:
-                _radial_f = self.settings['grid_params']['grid_generation']['radial_f_sol']
-            except:
-                _radial_f = self.settings['grid_params']['grid_generation']['radial_f_primary_sol']
-            valid_function=self.CheckFunction(_radial_f,Enforce)
-            if Verbose: print('SOL radial transformation: "{}"'.format(_radial_f))
-        elif Patch in self.PatchGroup['CORE']:
-            _radial_f = self.settings['grid_params']['grid_generation']['radial_f_core']
-            valid_function=self.CheckFunction(_radial_f,Enforce)
-            if Verbose: print('Core radial transformation: "{}"'.format(_radial_f))
-        elif Patch in self.PatchGroup['PF']:
-            try:
-                _radial_f = self.settings['grid_params']['grid_generation']['radial_f_pf']
-            except:
-                _radial_f = self.settings['grid_params']['grid_generation']['radial_f_primary_pf']
-            valid_function=self.CheckFunction(_radial_f,Enforce)
-            if Verbose: print('Core radial transformation: "{}"'.format(_radial_f))
-        if valid_function:
-            _radial_f = self.get_func( _radial_f)
-        else:
-            _radial_f=lambda x:x
+        poloidal_tag, radial_tag = Patch.get_tag()
+        p_f = 'poloidal_f_'+poloidal_tag
+        r_f = 'radial_f_'+radial_tag
 
-        if Patch in self.PatchGroup['SOL']:
-            _poloidal_f = self.settings['grid_params']['grid_generation']['poloidal_f']
+        try:
+            _poloidal_f = self.settings['grid_params']['grid_generation'][p_f]
             valid_function=self.CheckFunction(_poloidal_f,Enforce)
-            if Verbose: print('SOL poloidal transformation: "{}"'.format(_poloidal_f))
-        elif Patch in self.PatchGroup['CORE']:
-            _poloidal_f = self.settings['grid_params']['grid_generation']['poloidal_f']
-            valid_function=self.CheckFunction(_poloidal_f,Enforce)
-            if Verbose: print('Core poloidal transformation: "{}"'.format(_poloidal_f))
-        elif Patch in self.PatchGroup['PF']:
-            _poloidal_f = self.settings['grid_params']['grid_generation']['poloidal_f']
-            valid_function=self.CheckFunction(_poloidal_f,Enforce)
-            if Verbose: print('Core poloidal transformation: "{}"'.format(_poloidal_f))
-        if valid_function:
-            _poloidal_f = self.get_func( _poloidal_f)
-        else:
-            _poloidal_f=lambda x:x
-
-
-        if Patch.platePatch:
-            if self.config == 'LSN':
-                if Patch.plateLocation == 'W':
-                    _poloidal_f = self.settings['target_plates']['plate_E1']['poloidal_f']
-                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
-                elif Patch.plateLocation == 'E':
-                    _poloidal_f = self.settings['target_plates']['plate_W1']['poloidal_f']
-                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
-            if self.config == 'USN':
-                if Patch.plateLocation == 'E':
-                    _poloidal_f = self.settings['target_plates']['plate_E1']['poloidal_f']
-                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
-                elif Patch.plateLocation == 'W':
-                    _poloidal_f = self.settings['target_plates']['plate_W1']['poloidal_f']
-                    valid_function=self.CheckFunction(_poloidal_f,Enforce)
             if valid_function:
                 _poloidal_f = self.get_func( _poloidal_f)
             else:
-                _poloidal_f = lambda x: x
-        print('Extra Settings:',ExtraSettings)
+                raise ValueError('# Invalid function entry. Applying default poloidal function.')
+        except:
+            _poloidal_f = self.settings['grid_params']['grid_generation']['poloidal_f_default']
+            valid_function=self.CheckFunction(_poloidal_f,Enforce)
+            if valid_function:
+                _poloidal_f = self.get_func( _poloidal_f)
+            else:
+                _poloidal_f = lambda x:x
+
+        try:
+            _radial_f = self.settings['grid_params']['grid_generation'][r_f]
+            valid_function=self.CheckFunction(_radial_f,Enforce)
+            if valid_function:
+                _radial_f = self.get_func( _radial_f)
+            else:
+                raise ValueError('# Invalid function entry. Applying default radial function.')
+        except:
+            _radial_f = self.settings['grid_params']['grid_generation']['radial_f_default']
+            valid_function=self.CheckFunction(_radial_f,Enforce)
+            if valid_function:
+                _radial_f = self.get_func( _radial_f)
+            else:
+                _radial_f = lambda x:x
+
         
         if ExtraSettings.get(Patch.patchName) is not None:
+            # Same functionality as above but keeping for time being due to possibly being easier to use in CL mode...
+            print('Extra Settings:',ExtraSettings)
             Extra=ExtraSettings.get(Patch.patchName)
             print('Extra:',Extra)
             if Extra.get('poloidal_f') is not None:
@@ -216,7 +189,6 @@ class TopologyUtils():
                 if self.CheckFunction(Extra.get('radial_f'),Enforce):
                     print('Overriding radial function for patch {} with f={}'.format(Patch.patchName,Extra.get('radial_f')))
                     _radial_f=self.get_func(Extra.get('radial_f'))
-        
 
         return (_radial_f,_poloidal_f)
 
@@ -238,6 +210,14 @@ class TopologyUtils():
 
         return (nr_cells,np_cells)
 
+    def GetCorrectDistortion(self):
+        if self.settings['grid_params'].get('CorrectDistortion') is not None:
+            CD = self.settings['grid_params']['CorrectDistortion']
+        else:
+            CD = {}
+
+        self.CorrectDistortion=CD
+
 
     def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all', Enforce=True):
 
@@ -256,6 +236,9 @@ class TopologyUtils():
         verbose=Verbose or verbose
         
         self.RefreshSettings()
+        self.GetCorrectDistortion()
+        self.GetConnexionMap()
+
         print('>>> Patches:', [k for k in self.patches.keys()])
         if RestartScratch:
             self.CurrentListPatch={}
@@ -264,6 +247,8 @@ class TopologyUtils():
             
             if self.CorrectDistortion.get(name) is not None:
                patch.CorrectDistortion=self.CorrectDistortion.get(name)
+            elif self.CorrectDistortion.get(patch.get_tag()) is not None:
+                patch.CorrectDistortion=self.CorrectDistortion.get(patch.get_tag())
             elif self.CorrectDistortion.get('all') is not None:
                 patch.CorrectDistortion=self.CorrectDistortion.get('all')
             else:
@@ -271,13 +256,33 @@ class TopologyUtils():
             if (ListPatches=='all' and patch not in self.CurrentListPatch) or (ListPatches!='all' and name in ListPatches):
                 self.SetPatchBoundaryPoints(patch)
                 (nr_cells,np_cells)=self.GetNpoints(patch, Enforce=Enforce)
-                (_radial_f,_poloidal_f)= lambda x: x, lambda x: x # self.GetFunctions(patch,ExtraSettings=ExtraSettings,Enforce=Enforce)
+                (_radial_f,_poloidal_f)= self.GetFunctions(patch,ExtraSettings=ExtraSettings,Enforce=Enforce)
                 print('>>> Making subgrid in patch:{} with np={},nr={},fp={},fr={}'.format(name, np_cells, nr_cells, inspect.getsource(_poloidal_f), inspect.getsource(_radial_f)))
                 patch.RemoveDuplicatePoints()
                 patch.make_subgrid(self, np_cells, nr_cells, _poloidal_f=_poloidal_f,_radial_f=_radial_f,verbose = verbose, visual = visual,ShowVertices=ShowVertices,OptionTrace=OptionTrace)
-                self.AdjustPatch(patch)
-                patch.plot_subgrid()
+
+                self.AdjustGrid(patch)
                 self.CurrentListPatch[name] = patch
+
+        for patch in self.patches.values():
+            patch.plot_subgrid()
+
+    def AdjustGrid(self, patch):
+
+        # Adjust cell to any adjacent x-point
+        self.AdjustPatch(patch)
+
+        # Circular patch configuration requires adjustment of border to close loop.
+        # Convention chosen: 'E' indicates closed loop
+
+        try:
+            if patch.TerminatesLoop:
+                # Get patch name of adjacent patch for linking boundary points
+                pname = self.PatchTagMap[self.ConnexionMap.get(patch.get_tag())['E'][0]]
+                patch.AdjustBorder('E', self.patches[pname])
+        except:
+            pass
+
 
     # def construct_grid(self, np_cells = 1, nr_cells = 1,Verbose=False,ShowVertices=False,RestartScratch=False,OptionTrace='theta',ExtraSettings={},ListPatches='all', Enforce=True):
 
@@ -327,18 +332,22 @@ class TopologyUtils():
         #     self.set_gridue()
 
     def SetPatchBoundaryPoints(self,Patch):
+        Patch.TerminatesLoop = False
         if self.ConnexionMap.get(Patch.get_tag()) is not None:
             if self.Verbose: print('Find connexion map for patch {}'.format(Patch.patchName))
-            for Boundary,AdjacentPatch in self.ConnexionMap.get(Patch.get_tag()).items():
+            for v in self.ConnexionMap.get(Patch.get_tag()).items():
+                Boundary,AdjacentPatch=v
                 Patch.BoundaryPoints[Boundary]=self.GetBoundaryPoints(AdjacentPatch)
                 if self.Verbose: print('Find Boundaries points for {}'.format(Patch.patchName))
+            if self.ConnexionMap.get(Patch.get_tag()).get('E') is not None:
+                Patch.TerminatesLoop = True
 
     def GetBoundaryPoints(self,AdjacentPatch):
         if AdjacentPatch is not None:
-            PatchName=AdjacentPatch[0]
+            PatchTag=AdjacentPatch[0]
             Boundary=AdjacentPatch[1]
-            for name, patch in self.patches.items():
-                if name == PatchName:
+            for patch in self.patches.values():
+                if patch.get_tag() == PatchTag:
                    if Boundary=='S':
                        return patch.S_vertices
                    elif Boundary=='N':
@@ -354,13 +363,6 @@ class TopologyUtils():
             if patch.platePatch:
                 print(' # Checking patch: ', name)
                 patch.CheckPatch(self)
-
-    def GroupPatches(self):
-        # p = self.patches
-        # self.PatchGroup = {'SOL' : [], 
-        # 'CORE' : (p['ICB'], p['ICT'], p['OCT'], p['OCB']), 
-        # 'PF' : (p['IPF'], p['OPF'])}
-        pass
 
     def add_guardc(self, cell_map, ixlb, ixrb, nxpt = 1, eps = 1e-3):
 
@@ -468,7 +470,7 @@ class TopologyUtils():
             patch.nrad = len(patch.cell_grid) + 1
 
         if self.parent.settings['grid_params']['num_xpt'] == 1:
-            # Total number of poloidal indices in subgrid.
+
             np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
             nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
 
@@ -503,6 +505,7 @@ class TopologyUtils():
                                 rm[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
                                 zm[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
                                 ind += 1
+                                if Verbose: print('Populated RM/ZM entry ({}, {}) by accessing cell ({}, {}) from patch "{}"'.format(ixcell, jycell, jyl, ixl, local_patch.patchName))
 
             # Flip indices into gridue format.
             for i in range(len(rm)):

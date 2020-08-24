@@ -21,9 +21,9 @@
 #                         used for patch bounds.
 #          zmagx_shift - (double) Translate the z-coordinate of the magnetic axis
 #                         for the patch bounds.
-#          inner_tilt - (double) RADIAN value to tilt the inner horizontal-line patch
+#          west_tilt - (double) RADIAN value to tilt the inner horizontal-line patch
 #                        boundary that intersects the magnetic-axis
-#          outer_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
+#          east_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
 #                        boundary that intersects the magnetic-axis
 #          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction
 #                    rather than tracing 'W' in rho.
@@ -35,9 +35,9 @@
 # -------------------------------------------------------------------------------------------------
 #     grid_generation - (dict) User settings related to grid generation.
 #
-#          np_global - (int) Default number of POLOIDAL cells to generate for all
+#          np_default - (int) Default number of POLOIDAL cells to generate for all
 #                       patches not adjacent to a target plate.
-#          nr_global - (int) Default number of RADIAL cells to generate for all
+#          nr_default - (int) Default number of RADIAL cells to generate for all
 #                       patches not adjacent to a target plate.
 #
 #          np_core - (int) Number of POLOIDAL cells in the core plasma region
@@ -177,40 +177,19 @@ DEBUG:
         subgrid: 0
 eqdsk: ../data/DNL/DIII-D/neqdsk
 grid_params:
-    config: DNL
     grid_generation:
-        np_core: 6
-        np_global: 6
-        np_pf: 6
-        np_primary_pf: 2
-        np_primary_sol: 2
-        np_secondary_pf: 2
-        np_secondary_sol: 2
-        np_sol: 6
-        nr_core: 6
-        nr_global: 6
-        nr_pf: 6
-        nr_primary_pf: 2
-        nr_primary_sol: 2
-        nr_secondary_pf: 2
-        nr_secondary_sol: 2
-        nr_sol: 6
-        radial_f_core: x, x
-        radial_f_pf: x, x
-        radial_f_primary_pf: x, x
-        radial_f_primary_sol: x, x
-        radial_f_secondary_pf: x, x
-        radial_f_secondary_sol: x, x
-        radial_f_sol: x, x
+        np_default: 2
+        nr_default: 2
+        poloidal_f_default: x, x
+        radial_f_default: x, x
     nlevs: 30
     num_xpt: 2
     patch_generation:
         NE_adjust: 0.0
         NW_adjust: 0.0
-        inner_tilt: 0.0
-        outer_tilt: 0.0
+        west_tilt: 0.0
+        east_tilt: 0.0
         rmagx_shift: 0.0
-        rxpt: 0.0
         secondary_NE_adjust: 0.0
         secondary_NW_adjust: 0.0
         use_NE: false
@@ -220,25 +199,11 @@ grid_params:
         use_secondary_NE: false
         use_secondary_NW: false
         zmagx_shift: 0.0
-        zxpt: 0.0
     psi_max: 1.066
-    psi_max_inner: 1.157435084695
-    psi_max_outer: 1.151758078227
-    psi_max_r: 1.031298701299
-    psi_max_r_inner: 1.052077922078
-    psi_max_r_outer: 1.546623376623
-    psi_max_z: -1.072207792208
-    psi_max_z_inner: -0.885194805195
-    psi_max_z_outer: 1.147012987013
-    psi_min_core: 0.975770930045
-    psi_min_core_r: 1.392857142857
-    psi_min_core_z: -1.034805194805
-    psi_min_pf: 0.957326087084
-    psi_min_pf_r: 1.222467532468
-    psi_min_pf_z: -1.300779220779
-    psi_pf2: 1.11910779769
-    psi_pf2_r: 1.189220779221
-    psi_pf2_z: 1.263376623377
+    psi_max_west: 1.157435084695
+    psi_max_east: 1.151758078227
+    psi_core: 0.975770930045
+    psi_pf_1: 0.957326087084
     rmagx: 1.75785604
     rxpt: 1.300094032688
     rxpt2: 1.217505027591
@@ -256,24 +221,16 @@ target_plates:
     plate_E1:
         file: ../data/DNL/DIII-D/d3d_otp.txt
         name: plate_E1
-        np_local: 6
-        poloidal_f: x, x
         zshift: 1.6
     plate_E2:
         file: ../data/DNL/DIII-D/d3d_upper_itp.txt
         name: plate_E2
-        np_local: 6
-        poloidal_f: x, x
         zshift: 0.0
     plate_W1:
         file: ../data/DNL/DIII-D/d3d_itp.txt
         name: plate_W1
-        np_local: 6
-        poloidal_f: x, x
         zshift: 1.6
     plate_W2:
         file: ../data/DNL/DIII-D/d3d_upper_otp.txt
         name: plate_W2
-        np_local: 6
-        poloidal_f: x, x
         zshift: 0.0

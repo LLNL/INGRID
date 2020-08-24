@@ -156,11 +156,11 @@ class RootFinder:
         self.controller.frames[sg.ParamPicker].update_root_finder()
 
         Dic={'psi_max':'blue',
-            'psi_min_core':'magenta',
-            'psi_max_outer':'blue',
-            'psi_max_inner':'blue',
-            'psi_min_pf':'green',
-            'psi_pf2':'yellow'}
+            'psi_core':'magenta',
+            'psi_max_east':'blue',
+            'psi_max_west':'blue',
+            'psi_pf_1':'green',
+            'psi_pf_2':'yellow'}
 
         if topofeature in [k for k in Dic.keys()]:
             self.grid.PlotLevel(self.grid.get_psi(x, y), color=Dic[topofeature], label=topofeature)

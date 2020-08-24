@@ -31,41 +31,14 @@ if __name__ == '__main__':
 
     # Construction of Ingrid object with parameter file parsing.
     GridDemo = Ingrid(InputFile=case)
-    
-
-    # Read EFIT data, target plate data, and plot data.
-    GridDemo.OMFIT_read_psi()
-    GridDemo.calc_efit_derivs()
-    GridDemo.AutoRefineMagAxis()
-    GridDemo.AutoRefineXPoint()
-
-    GeoSettings = {
-    
-        'W1' : {
-            'file' : GridDemo.settings['target_plates']['plate_W1']['file'], 
-            'zshift' : GridDemo.settings['target_plates']['plate_W1']['zshift']
-            },
-
-        'E1' : {
-            'file' : GridDemo.settings['target_plates']['plate_E1']['file'],
-            'zshift' : GridDemo.settings['target_plates']['plate_E1']['zshift']
-        }
-    }
-
-    GridDemo.SetGeometry(GeoSettings)
-    GridDemo.SetLimiter()
-    GridDemo.SetMagReference()
-    GridDemo.calc_psinorm()
-    GridDemo.AnalyzeTopology()
-
-    # Begin patch construction with parameter file psi values.
-    GridDemo.ConstructPatches()
+    GridDemo.LoadPatches()
     GridDemo.ShowSetup()
+    GridDemo.ShowPatchMap()
 
     # Begin patch refinement and actively plot grid.
 
-    #CellCorrection={'ThetaMin':60,'ThetaMax':120,'Resolution':1000,'Active':True}
-    #GridDemo.current_topology.CorrectDistortion={'all' : CellCorrection}
+    CellCorrection={'ThetaMin':60,'ThetaMax':120,'Resolution':1000,'Active':True}
+    GridDemo.current_topology.CorrectDistortion={'' : CellCorrection}
     GridDemo.CreateSubgrid(NewFig=True)
     # Export gridue file.
     fname = 'gridue'

@@ -17,11 +17,47 @@ except:
 import matplotlib.pyplot as plt
 from TopologyUtils import TopologyUtils
 from geometry import Point, Line, Patch, trim_geometry
+from collections import OrderedDict
 
 
 class UDN(TopologyUtils):
     def __init__(self, Ingrid_obj, config):
         TopologyUtils.__init__(self, Ingrid_obj, config)
+
+    def GetConnexionMap(self):
+        self.ConnexionMap = {
+            'A1' : {'N' : ('A2', 'S')},
+            'A2' : {'N' : ('A3', 'S')},
+            'A3' : None,
+
+            'B1' : {'N' : ('B2', 'S')},
+            'B2' : {'N' : ('B3', 'S'), 'W' : ('A2', 'E')},
+            'B3' : {'W' : ('A3', 'E')},
+
+            'C1' : {'N' : ('C2', 'S'), 'W' : ('B1', 'E')},
+            'C2' : {'N' : ('C3', 'S'), 'W' : ('B2', 'E')},
+            'C3' : {'W' : ('B3', 'E')},
+
+            'D1' : {'N' : ('D2', 'S'), 'W' : ('E1', 'E')},
+            'D2' : {'N' : ('D3', 'S'), 'W' : ('E2', 'E')},
+            'D3' : {'W' : ('C3', 'E')},
+
+            'E1' : {'N' : ('E2', 'S')},
+            'E2' : {'N' : ('E3', 'S')},
+            'E3' : None,
+
+            'F1' : {'N' : ('F2', 'S'), 'W' : ('C1', 'E')},
+            'F2' : {'N' : ('F3', 'S'), 'W' : ('C2', 'E')},
+            'F3' : {'W' : ('E3', 'E')},
+
+            'G1' : {'N' : ('G2', 'S'), 'W' : ('F1', 'E'), 'E' : ('B1', 'W')},
+            'G2' : {'N' : ('G3', 'S'), 'W' : ('F2', 'E')},
+            'G3' : {'W' : ('F3', 'E')},
+
+            'H1' : {'N' : ('H2', 'S'), 'W' : ('A1', 'E')},
+            'H2' : {'N' : ('H3', 'S'), 'W' : ('G2', 'E')},
+            'H3' : {'W' : ('G3', 'E')}
+        }
 
     def construct_patches(self):
         """
@@ -36,13 +72,13 @@ class UDN(TopologyUtils):
         except KeyError:
             verbose = False
         try:
-            inner_tilt = self.settings['grid_params']['patch_generation']['inner_tilt']
+            west_tilt = self.settings['grid_params']['patch_generation']['west_tilt']
         except KeyError:
-            inner_tilt = 0.0
+            west_tilt = 0.0
         try:
-            outer_tilt = self.settings['grid_params']['patch_generation']['outer_tilt']
+            east_tilt = self.settings['grid_params']['patch_generation']['east_tilt']
         except KeyError:
-            outer_tilt = 0.0
+            east_tilt = 0.0
 
 
         xpt1 = self.eq.NSEW_lookup['xpt1']['coor']
@@ -54,9 +90,9 @@ class UDN(TopologyUtils):
 
         psi_max_west = self.settings['grid_params']['psi_max_west']
         psi_max_east = self.settings['grid_params']['psi_max_east']
-        psi_min_core = self.settings['grid_params']['psi_min_core']
-        psi_min_pf = self.settings['grid_params']['psi_min_pf']
-        psi_min_pf_2 = self.settings['grid_params']['psi_pf2']
+        psi_core = self.settings['grid_params']['psi_core']
+        psi_pf_1 = self.settings['grid_params']['psi_pf_1']
+        psi_pf_2 = self.settings['grid_params']['psi_pf_2']
 
         if self.settings['limiter']['use_limiter']:
             WestPlate1 = self.parent.limiter_data.copy()
@@ -73,13 +109,13 @@ class UDN(TopologyUtils):
             EastPlate2 = Line([Point(i) for i in self.plate_E2])
 
         # Generate Horizontal Mid-Plane lines
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(inner_tilt), magx[1] - 1e6 * np.sin(inner_tilt))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(inner_tilt), magx[1] + 1e6 * np.sin(inner_tilt))
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(west_tilt), magx[1] - 1e6 * np.sin(west_tilt))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(west_tilt), magx[1] + 1e6 * np.sin(west_tilt))
         west_midLine = Line([LHS_Point, RHS_Point])
         # inner_midLine.plot()
 
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(outer_tilt), magx[1] - 1e6 * np.sin(outer_tilt))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(outer_tilt), magx[1] + 1e6 * np.sin(outer_tilt))
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(east_tilt), magx[1] - 1e6 * np.sin(east_tilt))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(east_tilt), magx[1] + 1e6 * np.sin(east_tilt))
         east_midLine = Line([LHS_Point, RHS_Point])
         # outer_midLine.plot()
 
@@ -92,7 +128,7 @@ class UDN(TopologyUtils):
 
         # Tracing primary-separatrix: core-boundary
 
-        xpt1N__psiMinCore = self.eq.draw_line(xpt1['N'], {'psi' : psi_min_core}, \
+        xpt1N__psiMinCore = self.eq.draw_line(xpt1['N'], {'psi' : psi_core}, \
             option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
         B1_W = xpt1N__psiMinCore
         G1_E = B1_W.reverse_copy()
@@ -123,7 +159,7 @@ class UDN(TopologyUtils):
         G1_S = psiMinCore__east_midLine_core
 
 
-        xpt1__psiMinPF1 = self.eq.draw_line(xpt1['S'], {'psi' : psi_min_pf}, \
+        xpt1__psiMinPF1 = self.eq.draw_line(xpt1['S'], {'psi' : psi_pf_1}, \
             option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
         A1_E = xpt1__psiMinPF1
         H1_W = A1_E.reverse_copy()
@@ -159,7 +195,7 @@ class UDN(TopologyUtils):
 
 
         xpt2N__outer_core__inner_core = self.eq.draw_line(xpt2N__outer_core.p[-1], \
-            {'psi' : psi_min_core}, \
+            {'psi' : psi_core}, \
             option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
         C1_E = xpt2N__outer_core__inner_core
         F1_W = C1_E.reverse_copy()
@@ -218,7 +254,7 @@ class UDN(TopologyUtils):
         A3_S, B3_S = A2_N.reverse_copy(), B2_N.reverse_copy()
 
 
-        xpt2__psiMinPF2 = self.eq.draw_line(xpt2['S'], {'psi' : psi_min_pf_2}, \
+        xpt2__psiMinPF2 = self.eq.draw_line(xpt2['S'], {'psi' : psi_pf_2}, \
             option = 'rho', direction = 'cw', show_plot = visual, text = verbose)
         E2_E, E1_E = xpt2__psiMinPF2.split(xpt2__psiMinPF2.p[len(xpt2__psiMinPF2.p)//2], add_split_point = True)
         D1_W = E1_E.reverse_copy()
@@ -295,7 +331,7 @@ class UDN(TopologyUtils):
         G3_N, H3_N = east_midLine__EastPlate1.split(H3_W.p[-1], add_split_point=True)
 
 
-        B1_E = self.eq.draw_line(B1_N.p[-1], {'psi_horizontal' : psi_min_core}, option = 'z_const', 
+        B1_E = self.eq.draw_line(B1_N.p[-1], {'psi_horizontal' : psi_core}, option = 'z_const', 
             direction = 'cw', show_plot = visual, text = verbose)
         C1_W = B1_E.reverse_copy()
 
@@ -308,7 +344,7 @@ class UDN(TopologyUtils):
         C3_W = B3_E.reverse_copy()
 
 
-        F1_E = self.eq.draw_line(F1_N.p[-1], {'psi_horizontal' : psi_min_core}, option = 'z_const', 
+        F1_E = self.eq.draw_line(F1_N.p[-1], {'psi_horizontal' : psi_core}, option = 'z_const', 
             direction = 'ccw', show_plot = visual, text = verbose)
         G1_W = F1_E.reverse_copy()
 
@@ -403,6 +439,17 @@ class UDN(TopologyUtils):
             patch.parent = self
             patch.PatchTagMap = self.PatchTagMap
             self.patches[patch.patchName] = patch
+        self.OrderPatches()
+
+    def OrderPatches(self):
+
+        patches = [
+            'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3',
+            'A2', 'B2', 'C2', 'F2', 'G2', 'H2', 'E2', 'D2',
+            'A1', 'H1', 'E1', 'D1', 'B1', 'C1', 'F1', 'G1',
+        ]
+
+        self.patches = OrderedDict([(pname, self.patches[pname]) for pname in patches])
 
     def AdjustPatch(self,patch):
         xpt1 = Point(self.eq.NSEW_lookup['xpt1']['coor']['center'])

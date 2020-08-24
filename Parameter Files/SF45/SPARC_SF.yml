@@ -21,9 +21,9 @@
 #                         used for patch bounds.
 #          zmagx_shift - (double) Translate the z-coordinate of the magnetic axis
 #                         for the patch bounds.
-#          inner_tilt - (double) RADIAN value to tilt the inner horizontal-line patch
+#          west_tilt - (double) RADIAN value to tilt the inner horizontal-line patch
 #                        boundary that intersects the magnetic-axis
-#          outer_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
+#          east_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
 #                        boundary that intersects the magnetic-axis
 #          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction 
 #                    rather than tracing 'W' in rho.
@@ -35,9 +35,9 @@
 # -------------------------------------------------------------------------------------------------
 #     grid_generation - (dict) User settings related to grid generation.
 #
-#          np_global - (int) Default number of POLOIDAL cells to generate for all
+#          np_default - (int) Default number of POLOIDAL cells to generate for all
 #                       patches not adjacent to a target plate.
-#          nr_global - (int) Default number of RADIAL cells to generate for all
+#          nr_default - (int) Default number of RADIAL cells to generate for all
 #                       patches not adjacent to a target plate.
 #     
 #          np_core - (int) Number of POLOIDAL cells in the core plasma region
@@ -183,24 +183,19 @@ patch_data:
         new_file: True
         new_fname: '../data/SPARC/SF45_patches_1597952184.npy'
 grid_params:
-    config: DNL
     grid_generation:
         np_default: 2
         nr_default: 2
-        radial_f_core: x, x
-        radial_f_primary_pf: x, x
-        radial_f_primary_sol: x, x
-        radial_f_secondary_pf: x, x
-        radial_f_secondary_sol: x, x
+        poloidal_f_default: x, x
+        radial_f_default: x, x
     nlevs: 50
     num_xpt: 2
     patch_generation:
         NE_adjust: 0.0
         NW_adjust: 0.0
-        inner_tilt: 0.0
-        outer_tilt: 0.0
+        west_tilt: 0.0
+        east_tilt: 0.0
         rmagx_shift: 0.0
-        rxpt: 0.0
         secondary_NE_adjust: -0.55
         secondary_NW_adjust: 0.55
         use_NE: false
@@ -210,25 +205,12 @@ grid_params:
         use_secondary_NE: true
         use_secondary_NW: true
         zmagx_shift: 0.0
-        zxpt: 0.0
     psi_max: 0.0
     psi_max_west: 1.0025
     psi_max_east: 1.001
-    psi_max_r: 0.0
-    psi_max_r_inner: 1.422077922078
-    psi_max_r_outer: 1.554545454545
-    psi_max_z: 0.0
-    psi_max_z_inner: -1.075324675325
-    psi_max_z_outer: -1.153246753247
-    psi_min_core: 0.99
-    psi_min_core_r: 1.609090909091
-    psi_min_core_z: -0.896103896104
-    psi_min_pf: 0.9989
-    psi_min_pf_r: 1.476623376623
-    psi_min_pf_z: -1.153246753247
-    psi_pf2: 0.999
-    psi_pf2_r: 1.445454545455
-    psi_pf2_z: 1.137662337662
+    psi_core: 0.99
+    psi_pf_1: 0.9989
+    psi_pf_2: 0.999
     rmagx: 1.839069334
     rxpt: 1.489777680336
     rxpt2: 1.7
@@ -250,24 +232,16 @@ target_plates:
     plate_E1:
         file: ../Data/DNL/SPARC/divRZv1d_lotp.txt
         name: plate_E1
-        np_local: 6
-        poloidal_f: x, x
         zshift: 0.06183
     plate_E2:
         file: ../Data/DNL/SPARC/divRZv1d_uitp.txt
         name: plate_E2
-        np_local: 6
-        poloidal_f: x, x
         zshift: 0.0
     plate_W1:
         file: ../Data/DNL/SPARC/divRZv1d_litp.txt
         name: plate_W1
-        np_local: 6
-        poloidal_f: x, x
         zshift: 0.06183
     plate_W2:
         file: ../Data/DNL/SPARC/divRZv1d_uotp.txt
         name: plate_W2
-        np_local: 6
-        poloidal_f: x, x
         zshift: 0.0

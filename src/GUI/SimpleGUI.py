@@ -30,6 +30,7 @@ except:
 import yaml
 import Ingrid
 import Root_Finder
+from time import time
 
 #helv_large = 'Helvetica 13 bold'
 #helv_medium = 'Helvetica 9 bold'
@@ -50,6 +51,7 @@ class Ingrid_GUI(tk.Tk):
         else:
             self.Ingrid = IngridSession
         
+        self.NewSettingsPrompt()
         self.PopulateGUI()
 
         #automatic loading of input files
@@ -61,6 +63,19 @@ class Ingrid_GUI(tk.Tk):
         frame = self.frames[item]
         frame.tkraise()
         self.geometry(self.gui_dimensions[FilePicker])
+
+    def NewSettingsPrompt(self):
+        fname = ''
+        while fname in ['', None]:
+            if tkMB.askyesno('', 'Create a new settings file for this INGRID session?'):
+                fname = 'INGRID_Session' + str(int(time())) + '.yml'
+                fname = filedialog.asksaveasfilename(initialdir = '.', title = 'New YAML', 
+                    defaultextension ='.yml', initialfile = fname)
+                if fname not in ['', None]:
+                    self.Ingrid.SaveSettingsFile(fname)
+                    break
+            else:
+                break
 
 
     def Reset(self, message = 'Are you sure you want to reset?'):
@@ -164,7 +179,9 @@ class FilePicker(tk.Tk):
     def LoadParameterFile(self):
         fname = filedialog.askopenfilename(title='Select YAML File')
         fpath = Path(fname)
-        if fpath.is_file() and fpath.suffix in ['.yml', '.yaml']:
+        if fname == '':
+            pass
+        elif fpath.is_file() and fpath.suffix in ['.yml', '.yaml']:
             self.ParamFileEntry_String.set(f'Loaded: "../{fpath.name}"')
             self.controller.NewIG()
             self.ProcessParameterFile(fname)
@@ -201,6 +218,7 @@ class FilePicker(tk.Tk):
         IG.PlotPsiNormMagReference()
         IG.plot_strike_geometry()
         IG.PlotPsiNormBounds()
+        IG.PlotMidplane()
         IG.PrintSummaryParams()
 
     def AnalyzeTopology(self):

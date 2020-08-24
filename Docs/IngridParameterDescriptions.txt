@@ -1,6 +1,6 @@
 # =================================================================================================
 # Ingrid parameter file overview (YAML format)
-#   keys : 'grid_params', 'integrator_params', 'target_plates', 'DEBUG'
+#   keys : 'eqdsk', grid_params', 'integrator_params', 'target_plates', 'DEBUG'
 # =================================================================================================
 
 # =================================================================================================
@@ -8,12 +8,7 @@
 # 
 #     Topologically significant parameters for INGRID to
 #     utilize during runtime.
-#
-#     Keys: (relevent to beta testing SNL_v_1.0)
 # 
-#       config - (str) 
-#           Topology associated with current parameters
-#           ('LSN' : lower-single-null, 'USN' : upper-single-null)
 # 
 #       num_xpt - (int) 
 #           Number of x-points
@@ -24,29 +19,11 @@
 #       psi_max - (double) (SNL configuration only)
 #           Maximum psi-value found in scrape off layer
 # 
-#       psi_max_r - (double) (SNL configuration only, optional)
-#           R coordinate of 'click' corresponding to psi_max selection
-# 
-#       psi_max_z - (double) (SNL configuration only, optional)
-#           Z coordinate of 'click' corresponding to psi_max selection
-# 
-#       psi_min_core - (double)
+#       psi_core - (double)
 #           Minimal psi-value found in core region
 # 
-#       psi_min_core_r - (double) (optional)
-#           R coordinate of 'click' corresponding to psi_min_core selection
-# 
-#       psi_min_core_z - (double)
-#           Z coordinate of 'click' corresponding to psi_min_core selection
-# 
-#       psi_min_pf - (double)
+#       psi_pf_1 - (double)
 #           Minimal psi-value found in private-flux region of primary x-point
-# 
-#       psi_min_pf_r - (double)
-#           R coordinate of 'click' corresponding to psi_min_pf selection
-# 
-#       psi_min_pf_z - (double)
-#           Z coordinate of 'click' corresponding to psi_min_pf selection
 #
 #       rmagx - (double)
 #           R coordinate of magnetic axis
@@ -61,61 +38,26 @@
 #           Z coordinate of primary x-point
 #
 #       grid_generation - (dict)
-#           Dictionary of parameters dealing with grid generation settings.
-#           
-#           Note: For beta testing, we advise the use of the parameters
-#           'n*_sol', 'n*_pf', 'n*_core', and 'n*_global'. 
+#           Dictionary of parameters dealing with grid generation settings.   
 #
-#           keys: (relevent to beta testing SNL_v_1.0)
-#
-#               np_sol - (int)
-#                   Number of grid lines in poloidal direction
-#                   in scrape off layer region
-#
-#               nr_sol - (int)
-#                   Number of grid lines in radial direction
-#                   in scrape off layer
-#
-#               np_pf- (int) ()
-#                   Number of grid lines in poloidal direction
-#                   in primary x-point private-flux region
-#
-#               nr_pf - (int)
-#                   Number of grid lines in radial direction
-#                   in primary x-point private-flux region
-#
-#               np_core - (int)
-#                   Number of grid lines in poloidal direction
-#                   in core region
-#
-#               nr_core - (int)
-#                   Number of grid lines in radial direction
-#                   in core region
-#
-#               np_global - (int)
+#               np_default - (int)
 #                   Default setting for number of grid lines 
 #                   in poloidal direction when a required np_*
 #                   value is unavailable.
 #
-#               nr_global - (int)
+#               nr_default - (int)
 #                   Default setting for number of grid lines 
 #                   in radial direction when a required nr_*
 #                   value is unavailable.
 #
-#               radial_f_sol - (str)
-#                   Transformation applied to radial grid cells
-#                   in scrape off layer
-#
-#               radial_f_core - (str)
-#                   Transformation applied to radial grid cells
-#                   in core region
-#
-#               radial_f_pf - (str)
-#                   Transformation applied to radial grid cells
-#                   in primary x-point private-flux region
-#
-#               poloidal_f - (str)
+#               poloidal_f_default - (str)
 #                   Transformation applied to entire grid in poloidal
+#                   direction.
+#                   Note: Will be overwritten by target_plate poloidal_f
+#                   entry if provided.
+#
+#               radial_f_default - (str)
+#                   Transformation applied to entire grid in radial
 #                   direction.
 #                   Note: Will be overwritten by target_plate poloidal_f
 #                   entry if provided.
@@ -149,13 +91,13 @@
 #                   Transform magnetic axis z coordinate by 
 #                   zmagx_shift
 #
-#               inner_tilt - (double)
-#                   Apply a rotation of inner_tilt radians to 
+#               west_tilt - (double)
+#                   Apply a rotation of west_tilt radians to 
 #                   the half of midplane west of primary
 #                   x-point
 #
-#               outer_tilt - (double)
-#                   Apply a rotation of outer_tilt radians to 
+#               east_tilt - (double)
+#                   Apply a rotation of east_tilt radians to 
 #                   the half of midplane east of primary
 #                   x-point
 #
@@ -229,9 +171,6 @@
 #               name - (str)
 #                   Identifier associated with target plate
 #
-#               np_local - (int)
-#                   Number of poloidal cells to generate in patches adjacent
-#                   to target plate
 #
 #               nr_local - (int)
 #                   Number of radial cells to generate in patches adjacent
@@ -241,24 +180,6 @@
 #                   Apply a transformation to z component of target plate
 #                   coordinates
 #
-#               poloidal_f - (str)
-#                   Transformation to be applied to poloidal cells in patch 
-#                   adjacent to target plate
-#
-#                Note on specifying transformations:
-#                 - The sequence of characters before ',' must
-#                   denote the variable name VAR to operate upon.
-#
-#                 - Place a user-defined mathematical expression
-#                   after the ',' delimiter utilizing the variable
-#                   VAR defined before-hand.
-#
-#                 - The package SymPy is used to convert user-input 
-#                   to a mathematical expression. This requires the 
-#                   input to be a valid Python expression. 
-#
-#                 - For detailed information on available functions,
-#                   see Sympy docs pertaining to "Functions" module.
 #
 # =================================================================================================
 

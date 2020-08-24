@@ -37,202 +37,24 @@ from Topologies.UDN import UDN
 
 from geometry import Point, Line, Patch, segment_intersect, orientation_between
 from scipy.optimize import root, minimize
+from collections import OrderedDict
 
 class Ingrid:
     """
     The Ingrid class manages all processes pertaining to patch map and grid generation.
     File I/O, Geometry file prep, parameter instantiation, and configuration classification
     are driven by Ingrid.
-
-    Parameters
-    ----------
-    params : dict (optional)
-        Dictionary object containing the following YAML entries:
-        'eqdsk'
-        'grid_params'
-        'integrator_params'
-        'target_plates'
-        'DEBUG'
-
-        A copy of 'params' is stored within this Ingrid object.
-        Should the user not provide 'param', or entries are missing within the YAML file,
-        default values will populate the YAML copy that is within the Ingrid object.
-    Description of YAML file and 'param' dictionary:
-    # =================================================================================================
-    # grid_params:
-    # -------------------------------------------------------------------------------------------------
-    #     Topologically significant parameters for INGRID to
-    #     utilize during runtime.
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    #     config - (str) Topology associated with current parameters.
-    #               Currently supported: LSN and USN
-    # -------------------------------------------------------------------------------------------------
-    #     num_xpt - (int) Number of x-points
-    # -------------------------------------------------------------------------------------------------
-    #     psi_* - (double) Bounds of grid domain determined
-    #              by normalized psi efit data.
-    # -------------------------------------------------------------------------------------------------
-    #     patch_generation - (dict) User settings related to patch map generation.
-    #
-    #          rmagx_shift - (double) Translate the r-coordinate of the magnetic axis
-    #                         used for patch bounds.
-    #          zmagx_shift - (double) Translate the z-coordinate of the magnetic axis
-    #                         for the patch bounds.
-    #          inner_tilt - (double) RADIAN value to tilt the inner horizontal-line patch
-    #                        boundary that intersects the magnetic-axis
-    #          outer_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
-    #                        boundary that intersects the magnetic-axis
-    #          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction
-    #                    rather than tracing 'W' in rho.
-    #          NW_adjust - (double) RADIAN value to adjust the direction of the 'NW' linear trace.
-    #
-    #          use_NE - (bool/logical-int) Trace linearly from primary-xpt in the 'NE' direction
-    #                    rather than tracing 'E' in rho.
-    #          NE_adjust - (double) RADIAN value to adjust the direction of the 'NE' linear trace.
-    # -------------------------------------------------------------------------------------------------
-    #     grid_generation - (dict) User settings related to grid generation.
-    #
-    #          np_global - (int) Default number of POLOIDAL cells to generate for all
-    #                       patches not adjacent to a target plate.
-    #          nr_global - (int) Default number of RADIAL cells to generate for all
-    #                       patches not adjacent to a target plate.
-    #
-    #          np_core - (int) Number of POLOIDAL cells in the core plasma region
-    #          nr_core - (int) Number of RADIAL cells in the core plasma region
-    #          radial_f_core - (str) User defined cell "distortion" function for
-    #                           radial cells in the core plasma region.
-    #
-    #          np_sol - (int) Number of POLOIDAL cells in the scrape-off layer
-    #          nr_sol - (int) Number of RADIAL cells in the scrape-off layer
-    #          radial_f_sol - (str) User defined cell "distortion" function for
-    #                           radial cells in the scrape off layer.
-    #
-    #          np_pf - (int) Number of POLOIDAL cells in the private-flux region
-    #          nr_pf - (int) Number of RADIAL cells in the private-flux region
-    #          radial_f_pf - (str) User defined cell "distortion" function for
-    #                           radial cells in the private-flux region.
-    # -------------------------------------------------------------------------------------------------
-    #     rmagx - (double) r coordinate of magnetic axis
-    # -------------------------------------------------------------------------------------------------
-    #     rxpt - (double) r coordinate of primary x-point
-    # -------------------------------------------------------------------------------------------------
-    #     zmagx - (double) z coordinate of magnetic axis
-    # -------------------------------------------------------------------------------------------------
-    #     zxpt - (double) z coordinate of primary x-point
-    # =================================================================================================
-    # =================================================================================================
-    # integrator_params:
-    # -------------------------------------------------------------------------------------------------
-    #     Integrator and line_tracing class settings.
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    #     dt - (double) Integration time-step for line_tracing class.
-    # -------------------------------------------------------------------------------------------------
-    #     eps - (double) Radius of epsilon neighborhood around x-point
-    #            containing seed-point directions associated with NSEW.
-    # -------------------------------------------------------------------------------------------------
-    #     first_step - (double) Initial step size for LSODA integrator.
-    # -------------------------------------------------------------------------------------------------
-    #     step_ratio - (double) A ratio of RZ-domain dimensions to
-    #                   determine max_step parameter for LSODA integrator.
-    # -------------------------------------------------------------------------------------------------
-    #     tol - (double) Tolerance value defining convergence criterion
-    #            for integration with line_tracing class.
-    # =================================================================================================
-    # =================================================================================================
-    # target_plates:
-    # -------------------------------------------------------------------------------------------------
-    #     Settings for all target plates to be
-    #     considered during INGRID runtime.
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    #     plate_E1: (dict) Plate EAST of primary x-point (where NORTH
-    #                is defined as the path towards magnetic axis).
-    # -------------------------------------------------------------------------------------------------
-    #     plate_W1: (dict) Plate WEST of primary x-point (where NORTH
-    #                is defined as the path towards magnetic axis).
-    # -------------------------------------------------------------------------------------------------
-    #     file: (str) Text file containing coordinates defining a target
-    #            plate.
-    # -------------------------------------------------------------------------------------------------
-    #     name: (str) User-defined name associated with plate.
-    # -------------------------------------------------------------------------------------------------
-    #     np_local: (int) Number of POLOIDAL cells to generate within
-    #                patches adjacent to the respective target plate.
-    # -------------------------------------------------------------------------------------------------
-    #     nr_local: (int) Number of RADIAL cells to generate within
-    #                patches adjacent to the respective target plate.
-    # -------------------------------------------------------------------------------------------------
-    #     poloidal_f: (str) User defined function for 'distortion' of
-    #                  cell placement within a target plate.
-    # -------------------------------------------------------------------------------------------------
-    #     USAGE OF "poloidal_f":
-    #                 - The sequence of characters before ',' must
-    #                   denote the variable name VAR to operate upon.
-    #
-    #                 - Place a user-defined mathematical expression
-    #                   after the ',' delimiter utilizing the variable
-    #                   VAR defined before-hand.
-    #
-    #                 - The package SymPy is used to convert user-input
-    #                   to a mathematical expression. This requires the
-    #                   input to be a valid Python expression.
-    #
-    #                 - For detailed information on available functions,
-    #                   see Sympy docs pertaining to "Functions" module.
-    # =================================================================================================
-    # =================================================================================================
-    # DEBUG:
-    # -------------------------------------------------------------------------------------------------
-    #     Controls for DEBUG mode in INGRID.
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    # -------------------------------------------------------------------------------------------------
-    #     visual - (dict) Dictionary of bool/logical-int values to
-    #               activate live-plotting during INGRID operations.
-    #
-    #         find_NSEW - (bool/logical-int) Show line_tracing during
-    #                      search for North/South from primary x-point
-    #         patch_map - (bool/logical-int) Show line_tracing during
-    #                      generation of patch-map
-    #         subgrid - (bool/logical-int) Show line_tracing during
-    #                      generation of subgrids within each patch
-    #         gridue - (bool/logical-int) Plot gridue data with
-    #                      guard cells in order of increasing poloidal
-    #                      and radial indices
-    # -------------------------------------------------------------------------------------------------
-    #     verbose - (dict) Dictionary of bool/logical-int values to
-    #                activate verbose output during INGRID operations.
-    #
-    #         target_plates - (bool/logical-int) Print all target plate
-    #                          coordinates to terminal.
-    #         patch_generation - (bool/logical-int) Print all patch names
-    #                             and intersection/convergence events
-    #                             that occur during patch generation
-    #         grid_generation - (bool/logical-int) Print cell information
-    #                            of a patch, and the populating of arrays
-    #                            containing gridue data during meshgrid
-    #                            generation.
-    # =================================================================================================
     """
 
     def __init__(self, params = {},**kwargs):
         self.InputFile=None
+        self.config=None
 
         self.settings_lookup = ['grid_params', 'integrator_params', \
                             'target_plates', 'DEBUG']
 
         self.SetDefaultParams()
         self.process_yaml(params)
-        self.settings['eqdsk']=None
         #Process input
         self.ProcessKeywords(**kwargs)
 
@@ -277,35 +99,35 @@ class Ingrid:
                 plt.close('all')
                 self.IngridWindow.destroy()
         self.IngridWindow = sg.Ingrid_GUI(IngridSession=self)
-        self.IngridWindow.title('INGRID v0.1')
+        self.IngridWindow.title('INGRID')
         self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
         self.IngridWindow.mainloop()
 
+    def SaveSettingsFile(self, fname=None, settings={}):
+        self.process_yaml(settings)
+        if Path(fname).suffix == '.yml':
+            with open(fname, 'w') as f:
+                yml.dump(self.settings, f)
+
     def SetDefaultParams(self):
 
-        # TODO: Establish parameter conventions consistent for both SNL and DNL topologies
-
-        # TODO: Provide default values for GUI version of SetValues function (see IngridApp.py)
         self.default_grid_params = { \
-            'config' : '', 'num_xpt' : 1, 'nlevs' : 30, 'full_domain' : True, \
-            'psi_max' : 0.0, 'psi_max_r' : 0.0, 'psi_max_z' : 0.0, \
-            'psi_min_core' : 0.0, 'psi_min_core_r' : 0.0, 'psi_min_core_z' : 0.0, \
-            'psi_min_pf' : 0.0, 'psi_min_pf_r' : 0.0, 'psi_min_pf_z' : 0.0, \
-            'psi_pf2' : 0.0, 'psi_pf2_r' : 0.0, 'psi_pf2_z' : 0.0, \
-            'psi_max_inner' : 0.0, 'psi_max_r_inner' : 0.0, 'psi_max_z_inner' : 0.0, \
-            'psi_max_outer' : 0.0, 'psi_max_r_outer' : 0.0, 'psi_max_z_outer' : 0.0, \
+            'num_xpt' : 1, 'nlevs' : 30, 'full_domain' : True, \
+            'psi_max' : 0.0, \
+            'psi_core' : 0.0, \
+            'psi_pf_1' : 0.0,  \
+            'psi_pf_2' : 0.0, \
+            'psi_max_west' : 0.0, \
+            'psi_max_east' : 0.0, \
             'rmagx' : None, 'zmagx' : None, \
             'rxpt' : 0.0, 'zxpt' : 0.0, 'rxpt2' : 0.0, 'zxpt2' : 0.0, \
             'grid_generation' : { \
                 'np_default' : 2, 'nr_default' : 2,
-                'radial_f_primary_sol' : 'x, x', 'radial_f_secondary_sol' : 'x, x', \
-                'radial_f_primary_pf' : 'x, x', 'radial_f_secondary_pf' : 'x, x', \
-                'radial_f_core' : 'x, x', 'poloidal_f' : 'x, x'\
+                'poloidal_f_default' : 'x, x', 'radial_f_default' : 'x, x'\
             }, \
             'patch_generation' : { \
                 'rmagx_shift' : 0.0, 'zmagx_shift' : 0.0, \
-                'inner_tilt' : 0.0, 'outer_tilt' : 0.0, \
-                'rxpt' : 0.0, 'zxpt' : 0.0, \
+                'west_tilt' : 0.0, 'east_tilt' : 0.0, \
                 'use_NW' : False, 'use_NE' : False, \
                 'use_secondary_NW' : False, 'use_secondary_NE' : False, \
                 'use_SW' : False, 'use_SE' : False, \
@@ -321,10 +143,10 @@ class Ingrid:
         }
 
         self.default_target_plates_params = { \
-            'plate_E1' : {'file' : '', 'name' : '', 'poloidal_f' : 'x, x', 'zshift' : 0.0}, \
-            'plate_E2' : {'file' : '', 'name' : '', 'poloidal_f' : 'x, x', 'zshift' : 0.0}, \
-            'plate_W1' : {'file' : '', 'name' : '', 'poloidal_f' : 'x, x', 'zshift' : 0.0},
-            'plate_W2' : {'file' : '', 'name' : '', 'poloidal_f' : 'x, x', 'zshift' : 0.0}
+            'plate_E1' : {'file' : '', 'name' : '', 'rshift': 0.0, 'zshift' : 0.0}, \
+            'plate_E2' : {'file' : '', 'name' : '', 'rshift': 0.0, 'zshift' : 0.0}, \
+            'plate_W1' : {'file' : '', 'name' : '', 'rshift': 0.0, 'zshift' : 0.0}, \
+            'plate_W2' : {'file' : '', 'name' : '', 'rshift': 0.0, 'zshift' : 0.0}, \
         }
 
         self.default_limiter_params = {
@@ -333,7 +155,7 @@ class Ingrid:
 
         self.default_patch_data_params = {
             'file' : '', 'use_file' : False,
-            'preferences' : {'new_file' : False, 'new_fname' : None}
+            'preferences' : {'new_file' : False, 'new_fname' : ''}
         }
 
         self.default_DEBUG_params = { \
@@ -341,13 +163,14 @@ class Ingrid:
             'verbose' : {'target_plates' : False, 'patch_generation' : False, 'grid_generation' : False, 'SF_analysis' : False}
         }
 
-        self.default_values_lookup = {'grid_params' : self.default_grid_params, 'integrator_params' : self.default_integrator_params, \
+        self.default_values_lookup = {
+        'eqdsk' : '', \
+        'grid_params' : self.default_grid_params, 'integrator_params' : self.default_integrator_params, \
             'target_plates' : self.default_target_plates_params, 'limiter' : self. default_limiter_params, 
             'patch_data' : self.default_patch_data_params,
             'DEBUG' : self.default_DEBUG_params}
 
         self.plate_data = {'plate_W1' : {}, 'plate_E1' : {}, 'plate_W2' : {}, 'plate_E2' : {}}
-
 
     def ProcessKeywords(self,**kwargs):
         for k, v in kwargs.items():
@@ -452,6 +275,9 @@ class Ingrid:
                 continue
 
             # Second level entries within YAML file dump.
+            if item == 'eqdsk':
+                continue
+
             for sub_item in self.default_values_lookup[item].keys():
                 try:
                     params[item][sub_item]
@@ -873,6 +699,7 @@ class Ingrid:
         for plate in self.settings['target_plates']:
             try:
                 self.SetGeometry({plate : self.settings['target_plates'][plate]['file']}, 
+                    rshift=self.settings['target_plates'][plate]['zshift'],
                     zshift = self.settings['target_plates'][plate]['zshift'])
             except:
                 pass
@@ -1142,7 +969,7 @@ class Ingrid:
         elif self.settings['grid_params']['num_xpt'] == 2:
             self.eq.DNL_find_NSEW(self.xpt1, self.xpt2, self.magx, visual)
 
-        self.settings['grid_params']['config'] = self.eq.config
+        self.config = self.eq.config
 
     def AnalyzeTopology(self,verbose=False):
 
@@ -1154,13 +981,13 @@ class Ingrid:
         self.PrepLineTracing(interactive=False)
         self.ClassifyTopology(visual=visual)
         
-        # Updated after call to ClassifyTopology --> self.settings['grid_params']['config']
+        # Updated after call to ClassifyTopology --> self.config
 
         print('')
-        print('# Identified {} configuration.'.format(self.settings['grid_params']['config']))
+        print('# Identified {} configuration.'.format(self.config))
         print('')
 
-        self.SetTopology(self.settings['grid_params']['config'])
+        self.SetTopology(self.config)
 
     def SetTopology(self, topology:str):
         if topology in ['LSN', 'USN']:
@@ -1311,8 +1138,6 @@ class Ingrid:
         self.current_topology.RefreshSettings()
         print('Value Check for local plates:')
         _i = self.current_topology.settings['target_plates']
-        for plate in _i:
-            print('Name: {}\n np_local: {}\n'.format(_i[plate]['name'], _i[plate]['np_local']))
         if NewFig:
             try:
                 plt.close(self.FigGrid)
@@ -1339,7 +1164,7 @@ class Ingrid:
         self.Xpt = (self.settings['grid_params']['rxpt'],self.settings['grid_params']['zxpt'])
         self.xpt1 = self.Xpt
 
-        if topology == 'DNL':
+        if self.settings['grid_params']['num_xpt']==2:
             self.xpt2 = (self.settings['grid_params']['rxpt2'], self.settings['grid_params']['zxpt2'])
 
     def PlotPsiNormMagReference(self):
@@ -1358,14 +1183,14 @@ class Ingrid:
         nxpt = self.settings['grid_params']['num_xpt']
         if nxpt == 1:
             Dic={'psi_max':'lime',
-                  'psi_min_core':'cyan',
-                  'psi_min_pf':'white'}
+                  'psi_core':'cyan',
+                  'psi_pf_1':'white'}
         elif nxpt == 2:
-            Dic={ 'psi_min_core':'cyan',
+            Dic={ 'psi_core':'cyan',
                   'psi_max_west':'magenta',
                   'psi_max_east':'lime',
-                  'psi_min_pf':'white',
-                  'psi_pf2':'yellow'}
+                  'psi_pf_1':'white',
+                  'psi_pf_2':'yellow'}
         for k,c in Dic.items():
                 self.psi_norm.PlotLevel(self.settings['grid_params'][k],color=Dic[k],label=k)
 
@@ -1384,6 +1209,30 @@ class Ingrid:
 
     def PlotPsiLevel(efit_psi:object,level:float,Label:str='')->None:
         plt.contour(efit_psi.r, efit_psi.z, efit_psi.v, [level], colors = 'red', label = Label)
+
+    def PlotMidplane(self):
+        try:
+            west_tilt = self.settings['grid_params']['patch_generation']['west_tilt']
+        except KeyError:
+            west_tilt = 0.0
+        try:
+            east_tilt = self.settings['grid_params']['patch_generation']['east_tilt']
+        except KeyError:
+            east_tilt = 0.0
+
+        magx = Point(np.array([self.settings['grid_params']['rmagx'] + self.settings['grid_params']['patch_generation']['rmagx_shift'], \
+            self.settings['grid_params']['zmagx'] + self.settings['grid_params']['patch_generation']['zmagx_shift']]))
+
+        # Generate Horizontal Mid-Plane lines
+        LHS_Point = Point(magx.x - 1e6 * np.cos(west_tilt), magx.y - 1e6 * np.sin(west_tilt))
+        RHS_Point = Point(magx.x, magx.y)
+        west_midLine = Line([LHS_Point, RHS_Point])
+        west_midLine.plot('white')
+
+        LHS_Point = Point(magx.x, magx.y)
+        RHS_Point = Point(magx.x + 1e6 * np.cos(east_tilt), magx.y + 1e6 * np.sin(east_tilt))
+        east_midLine = Line([LHS_Point, RHS_Point])
+        east_midLine.plot('white')
 
     def Setup(self,interactive=True, **kwargs):
         # TODO have an option to not connect event on figure in command-line mode (so no tk needed)
@@ -1407,12 +1256,13 @@ class Ingrid:
         self.PlotPsiNormMagReference()
         self.PlotPsiNormBounds()
         self.plot_strike_geometry()
+        self.PlotMidplane()
 
     def CheckPatches(self,verbose=False):
         self.current_topology.CheckPatches(verbose=verbose)
 
     def ConstructPatches(self):
-        self.current_topologt.RefreshSettings()
+        self.current_topology.RefreshSettings()
         self.GetPatchTagMap(self.current_topology.get_config())
         self.PrepLineTracing(interactive=False)
         self.current_topology.construct_patches()
@@ -1441,7 +1291,7 @@ class Ingrid:
         self.eq.NSEW_lookup = xpt_data
         self.SetTopology(config)
         self.current_topology.patches = patches
-        self.current_topology.GroupPatches()
+        self.current_topology.OrderPatches()
         self.current_topology.SetupPatchMatrix()
         self.CheckPatches()
 
@@ -1475,25 +1325,42 @@ class Ingrid:
                     plateLocation=patch_settings['plateLocation'], PatchTagMap=patch_settings['PatchTagMap'])
             #patch.cell_grid = cell_grid
             patches[patch.patchName] = patch
+
+        patches = OrderedDict([(k, v) for k,v in patches.items()])
         
         return config, xpt_data, patches
 
 
-
     def ShowPatchMap(self):
+        try:
+            plt.close(self.PatchFig)
+        except:
+            pass
         self.PatchFig = plt.figure('INGRID: ' + self.current_topology.config + ' Patches', figsize=(6, 10))
         self.PatchAx = self.PatchFig.add_subplot(111)
         self.current_topology.patch_diagram(fig=self.PatchFig, ax=self.PatchAx)
         self.plot_strike_geometry()
 
     def GetConnexionMap(self):
+        alpha = {
+            'A' : 'A',
+            'B' : 'A', 
+            'C' : 'B', 
+            'D' : 'C',
+            'E' : 'D',
+            'F' : 'E', 
+            'G' : 'F',
+            'H' : 'G',
+            'I' : 'H'
+            }
         if isinstance(self.current_topology, SNL):
             # SNL connexion map based off patch tag
             ConnexionMap = {}
             for patch in self.current_topology.patches.values():
                 tag = patch.get_tag()
                 if tag[1] == '1':
-                    ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '2', 'S')}
+                    ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '2', 'S'),
+                        'W' : (alpha[tag[0]] + '1', 'E')}
             self.current_topology.ConnexionMap = ConnexionMap
 
         elif type(self.current_topology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:
@@ -1502,13 +1369,15 @@ class Ingrid:
             for patch in self.current_topology.patches.values():
                 tag = patch.get_tag()
                 if tag[1] == '1':
-                    ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '2', 'S')}
+                    ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '2', 'S'),
+                    'E' : (alpha[tag[0]] + '1', 'W')}
                 elif tag[1] == '2':
-                    ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '3', 'S')}
+                    ConnexionMap[patch.get_tag()]={'N' : (tag[0] + '3', 'S'),
+                    'E' : (alpha[tag[0]] + '1', 'W')}
             self.current_topology.ConnexionMap = ConnexionMap
     
     def GetPatchTagMap(self, config):
-        if config in ['SNL', 'LSN', 'USN']:
+        if config == 'LSN':
             PatchTagMap = {
             'A1' : 'IPF', 'A2' : 'IDL',
             'B1' : 'ICB', 'B2' : 'ISB',
@@ -1516,6 +1385,15 @@ class Ingrid:
             'D1' : 'OCT', 'D2' : 'OST',
             'E1' : 'OCB', 'E2' : 'OSB',
             'F1' : 'OPF', 'F2' : 'ODL',
+            }
+        elif config == 'USN':
+            PatchTagMap = {
+            'A1' : 'OPF', 'A2' : 'ODL',
+            'B1' : 'OCB', 'B2' : 'OSB',
+            'C1' : 'OCT', 'C2' : 'OST',
+            'D1' : 'ICT', 'D2' : 'IST',
+            'E1' : 'ICB', 'E2' : 'ISB',
+            'F1' : 'IPF', 'F2' : 'IDL',
             }
         else:
             PatchTagMap = {}

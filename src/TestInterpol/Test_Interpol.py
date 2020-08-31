@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from time import time
 from Test_Functions import get_f
-from Setup_Grid_Data import Efit_Data
+from EfitData import EfitData
 
 
 def test_interpol(option=2, nfine=100, ncrude=10, tag='v'):
@@ -38,16 +38,16 @@ def test_interpol(option=2, nfine=100, ncrude=10, tag='v'):
     zmax = 1.0
 
     # accurate "exact" results for reference on fine grid
-    grid0 = Efit_Data(nr=nfine, nz=nfine,
-                      rmin=rmin, rmax=rmax, zmin=zmin, zmax=zmax)
+    grid0 = EfitData(nr=nfine, nz=nfine,
+                     rmin=rmin, rmax=rmax, zmin=zmin, zmax=zmax)
 
     # crude mesh data for testing interpolation
-    grid1 = Efit_Data(nr=ncrude, nz=ncrude,
-                      rmin=rmin, rmax=rmax, zmin=zmin, zmax=zmax)
+    grid1 = EfitData(nr=ncrude, nz=ncrude,
+                     rmin=rmin, rmax=rmax, zmin=zmin, zmax=zmax)
 
     # interpolated results on relatively fine grid
-    grid2 = Efit_Data(nr=nfine, nz=nfine,
-                      rmin=rmin, rmax=rmax, zmin=zmin, zmax=zmax)
+    grid2 = EfitData(nr=nfine, nz=nfine,
+                     rmin=rmin, rmax=rmax, zmin=zmin, zmax=zmax)
 
     # get the function value, and analytic derivs
     grid0.v = get_f(grid0.r, grid0.z, option)
@@ -65,11 +65,11 @@ def test_interpol(option=2, nfine=100, ncrude=10, tag='v'):
 
     # determines where the contour lines are drawn
     nlev = 30
-    lev = (grid0.get_v(tag).min() + (grid0.get_v(tag).max() 
-           - grid0.get_v(tag).min()) * np.arange(nlev) / (nlev-1))
+    lev = (grid0.get_v(tag).min() + (grid0.get_v(tag).max()
+           - grid0.get_v(tag).min()) * np.arange(nlev) / (nlev - 1))
 
     # plot of what the function is supposed to look like
-    plt.figure("Interpol Demo {}-{}.".format(option, tag))
+    plt.figure("interpol Demo {}-{}.".format(option, tag))
     plt.contour(grid0.r, grid0.z, grid0.get_v(tag), lev, colors='black')
     plt.gca().set_aspect('equal', adjustable='box')  # make it a square
     plt.title(tag)
@@ -90,10 +90,10 @@ def test_interpol(option=2, nfine=100, ncrude=10, tag='v'):
 
     plt.contour(grid2.r, grid2.z, grid2.get_v(tag), lev, colors='red')
 
-    sfactor = np.max(grid0.get_v(tag))/np.max(grid2.get_v(tag))
+    sfactor = np.max(grid0.get_v(tag)) / np.max(grid2.get_v(tag))
     print("Needed scaling factor: {}".format(sfactor))
     end = time()
-    print("Interpolation took {} seconds".format(end-start))
+    print("Interpolation took {} seconds".format(end - start))
     plt.show()
 
 

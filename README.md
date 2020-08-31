@@ -21,7 +21,7 @@ conda activate MY_ENV_NAME
 ## Example cases
 Included in the **Examples** directory are test cases for Ingrid usuage.
 
-### Running via GUI
+### Running via gui
 Navigate into the **Examples** directory. With the __ingrid__ Conda environment activated, run:
 ```console
 python GUI_startup.py

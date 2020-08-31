@@ -1,10 +1,10 @@
 # =================================================================================================
 # Ingrid parameter file overview (YAML format)
-#   keys : 'grid_params', 'integrator_params', 'target_plates', 'DEBUG'
+#   keys : 'grid_settings', 'integrator_settings', 'target_plates', 'DEBUG'
 # =================================================================================================
 
 # =================================================================================================
-# grid_params - (dict)
+# grid_settings - (dict)
 # 
 #     Topologically significant parameters for INGRID to
 #     utilize during runtime.
@@ -180,7 +180,7 @@
 # =================================================================================================
 
 # =================================================================================================
-# integrator_params - (dict)
+# integrator_settings - (dict)
 # 
 #     Integrator and line_tracing class settings.
 #
@@ -325,7 +325,7 @@ patch_data:
     preferences:
         new_file: True
         new_fname: '../data/SNL/DIII-D/LSN_patches_1597099640.npy'
-grid_params:
+grid_settings:
     grid_generation:
         np_default: 3
         nr_default: 3
@@ -360,7 +360,7 @@ grid_params:
     zmagx: -0.0292478683
     zxpt: -1.133159375302
     zxpt2: 0.0
-integrator_params:
+integrator_settings:
     dt: 0.01
     eps: 5.0e-6
     first_step: 5.0e-05

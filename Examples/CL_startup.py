@@ -9,7 +9,7 @@ CL_startup
 
 import sys
 sys.path.append('../src/')
-from Ingrid import Ingrid
+from ingrid import Ingrid
 import pathlib
 import numpy as np
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     GridDemo.SetGeometry(GeoSettings)
     GridDemo.SetLimiter()
     GridDemo.SetMagReference()
-    GridDemo.calc_psinorm()
+    GridDemo.CalcPsiNorm()
     GridDemo.AnalyzeTopology()
 
     # Begin patch construction with parameter file psi values.
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # Begin patch refinement and actively plot grid.
 
     #CellCorrection={'ThetaMin':60,'ThetaMax':120,'Resolution':1000,'Active':True}
-    #GridDemo.current_topology.CorrectDistortion={'all' : CellCorrection}
+    #GridDemo.CurrentTopology.CorrectDistortion={'all' : CellCorrection}
     GridDemo.CreateSubgrid(NewFig=True)
     # Export gridue file.
     fname = 'gridue'

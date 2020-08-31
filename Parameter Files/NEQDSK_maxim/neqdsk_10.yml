@@ -1,5 +1,5 @@
 # =================================================================================================
-# grid_params:
+# grid_settings:
 # -------------------------------------------------------------------------------------------------
 #     Topologically significant parameters for INGRID to
 #     utilize during runtime.
@@ -65,7 +65,7 @@
 # =================================================================================================
 
 # =================================================================================================
-# integrator_params:
+# integrator_settings:
 # -------------------------------------------------------------------------------------------------
 #     Integrator and line_tracing class settings.
 # -------------------------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ patch_data:
     preferences:
         new_fname: '../data/NEQDSK_maxim/SF165_patches_1597687508.npy'
         new_file: False
-grid_params:
+grid_settings:
     CorrectDistortion:
         'all':
             'ThetaMin': 80.0
@@ -227,7 +227,7 @@ grid_params:
     zmagx: -0.11
     zxpt: -0.62
     zxpt2: -0.4
-integrator_params:
+integrator_settings:
     dt: 0.01
     eps: 5.0e-06
     first_step: 5.0e-05

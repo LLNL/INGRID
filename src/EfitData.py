@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
@@ -7,11 +6,11 @@ Created on Fri Jun  7 15:31:15 2019
 """
 from __future__ import division, print_function, absolute_import
 import numpy as np
-from Interpol.Bicubic2 import bicubic
+from interpol.Bicubic2 import bicubic
 import matplotlib.pyplot as plt
 
 
-class Efit_Data:
+class EfitData:
     """
     Structure to store the rectangular grid of psi data. It uses
     cylindrical coordinates, where R and Z are similar to the cartesian
@@ -36,8 +35,8 @@ class Efit_Data:
     """
 
     def __init__(self, rmin=0.0, rmax=1.0, nr=10, zmin=0.0, zmax=2.0, nz=20,
-                 rcenter = 1.6955000, bcenter = -2.1094041, rlimiter = None, zlimiter = None,
-                 rmagx = 0.0, zmagx = 0.0, name='unnamed', parent=None):
+                 rcenter=1.6955000, bcenter=-2.1094041, rlimiter=None, zlimiter=None,
+                 rmagx=0.0, zmagx=0.0, name='unnamed', parent=None):
         r, dr = np.linspace(rmin, rmax, nr, retstep=True)
         z, dz = np.linspace(zmin, zmax, nz, retstep=True)
         rgrid, zgrid = np.meshgrid(r, z, indexing='ij')
@@ -65,9 +64,9 @@ class Efit_Data:
         self.zlimiter = zlimiter
         self.name = name
         self.parent = parent
-        self.psi_levels={}
+        self.psi_levels = {}
 
-    def Gradient(self,xy:tuple)->np.ndarray:
+    def Gradient(self, xy: tuple)->np.ndarray:
         """ Combines the first partial derivatives to solve the system for
         maximum, minimum, and saddle locations.
         Parameters
@@ -85,10 +84,10 @@ class Efit_Data:
         F[0] = self.get_psi(x, y, tag='vr')
         F[1] = self.get_psi(x, y, tag='vz')
         return F
-        
+
     def Hessian(self, xy):
         x, y = xy
-        H = np.zeros((2,2))
+        H = np.zeros((2, 2))
         H[0, 0] = self.get_psi(x, y, 'vrr')
         H[1, 1] = self.get_psi(x, y, 'vzz')
         H[0, 1] = self.get_psi(x, y, 'vrz')
@@ -188,78 +187,78 @@ class Efit_Data:
             dz = self.dz
 
         # inner square - can use centered difference
-        for i in range(1, self.nr-1):
-            for j in range(1, self.nz-1):
-                vr[i, j] = (self.v[i+1, j] - self.v[i-1, j])/2/dr
+        for i in range(1, self.nr - 1):
+            for j in range(1, self.nz - 1):
+                vr[i, j] = (self.v[i + 1, j] - self.v[i - 1, j]) / 2 / dr
 
-                vz[i, j] = (self.v[i, j+1] - self.v[i, j-1])/2/dz
+                vz[i, j] = (self.v[i, j + 1] - self.v[i, j - 1]) / 2 / dz
 
-                vrz[i, j] = (self.v[i+1, j+1] + self.v[i-1, j-1]
-                             - self.v[i-1, j+1] - self.v[i+1, j-1])/4/dr/dz
+                vrz[i, j] = (self.v[i + 1, j + 1] + self.v[i - 1, j - 1]
+                             - self.v[i - 1, j + 1] - self.v[i + 1, j - 1]) / 4 / dr / dz
 
         # missed a row in x
-        for i in range(1, self.nr-1):
-            for j in [0, self.nz-1]:
-                vr[i, j] = (self.v[i+1, j] - self.v[i-1, j])/2/dr
+        for i in range(1, self.nr - 1):
+            for j in [0, self.nz - 1]:
+                vr[i, j] = (self.v[i + 1, j] - self.v[i - 1, j]) / 2 / dr
 
         # and in y
-        for i in [0, self.nr-1]:
-            for j in range(1, self.nz-1):
-                vz[i, j] = (self.v[i, j+1] - self.v[i, j-1])/2/dz
+        for i in [0, self.nr - 1]:
+            for j in range(1, self.nz - 1):
+                vz[i, j] = (self.v[i, j + 1] - self.v[i, j - 1]) / 2 / dz
 
         # forward difference accuracy h^2
         for j in range(self.nz):
-            vr[0, j] = (4*self.v[1, j] - self.v[2, j]
-                        - 3*self.v[0, j])/2/dr
-            vr[-1, j] = -(4*self.v[-2, j] - self.v[-3, j]
-                          - 3*self.v[-1, j])/2/dr
+            vr[0, j] = (4 * self.v[1, j] - self.v[2, j]
+                        - 3 * self.v[0, j]) / 2 / dr
+            vr[-1, j] = -(4 * self.v[-2, j] - self.v[-3, j]
+                          - 3 * self.v[-1, j]) / 2 / dr
 
         for i in range(self.nr):
-            vz[i, 0] = (4*self.v[i, 1] - self.v[i, 2]
-                        - 3*self.v[i, 0])/2/dz
-            vz[i, -1] = -(4*self.v[i, -2] - self.v[i, -3]
-                          - 3*self.v[i, -1])/2/dz
+            vz[i, 0] = (4 * self.v[i, 1] - self.v[i, 2]
+                        - 3 * self.v[i, 0]) / 2 / dz
+            vz[i, -1] = -(4 * self.v[i, -2] - self.v[i, -3]
+                          - 3 * self.v[i, -1]) / 2 / dz
 
         # cross derivative on the edges
-        for j in range(2, nz-2):
+        for j in range(2, nz - 2):
             i = 0  # left Edge
-            vrz[i, j] = (f[i+2, j+2] - 2 * f[i+1, j+1] + 2 * f[i+1, j-1]
-                         - f[i+2, j-2]) / 4/dr/dz
-            i = nr-1  # right edge
-            vrz[i, j] = (f[i-2, j+2] - 2 * f[i-2, j+1] + 2 * f[i-1, j-1]
-                         - f[i-2, j-2]) / 4/dr/dz
+            vrz[i, j] = (f[i + 2, j + 2] - 2 * f[i + 1, j + 1] + 2 * f[i + 1, j - 1]
+                         - f[i + 2, j - 2]) / 4 / dr / dz
+            i = nr - 1  # right edge
+            vrz[i, j] = (f[i - 2, j + 2] - 2 * f[i - 2, j + 1] + 2 * f[i - 1, j - 1]
+                         - f[i - 2, j - 2]) / 4 / dr / dz
 
-        for i in range(2, nr-2):
+        for i in range(2, nr - 2):
             j = 0  # bottom edge
-            vrz[i, j] = (f[i-1, j+2] - 2*f[i-1, j+1] + 2*f[i+1, j+1]
-                         - f[i+2, j+2]) / 4/dr/dz
-            j = nz-1  # top edge
-            vrz[i, j] = (f[i-1, j-2] - 2*f[i-1, j-1] + 2*f[i+1, j-1]
-                         - f[i+2, j-2]) / 4/dr/dz
+            vrz[i, j] = (f[i - 1, j + 2] - 2 * f[i - 1, j + 1] + 2 * f[i + 1, j + 1]
+                         - f[i + 2, j + 2]) / 4 / dr / dz
+            j = nz - 1  # top edge
+            vrz[i, j] = (f[i - 1, j - 2] - 2 * f[i - 1, j - 1] + 2 * f[i + 1, j - 1]
+                         - f[i + 2, j - 2]) / 4 / dr / dz
 
         # cross derivatives at the corners
         for i, j in [[0, 0], [0, 1], [1, 0]]:
             # bottom left
-            vrz[i, j] = (f[i, j] - f[i+1, j] + f[i+1, j+1] - f[i, j+1])/dr/dz
+            vrz[i, j] = (f[i, j] - f[i + 1, j] + f[i + 1, j + 1] - f[i, j + 1]) / dr / dz
 
-        for i, j in [[nr-2, 0], [nr-1, 0], [nr-1, 1]]:
+        for i, j in [[nr - 2, 0], [nr - 1, 0], [nr - 1, 1]]:
             # bottom right
-            vrz[i, j] = - (f[i, j] - f[i, j+1] + f[i-1, j+1] - f[i-1, j])/dr/dz
+            vrz[i, j] = - (f[i, j] - f[i, j + 1] + f[i - 1, j + 1] - f[i - 1, j]) / dr / dz
 
-        for i, j in [[0, nz-2], [0, nz-1], [1, nz-1]]:
+        for i, j in [[0, nz - 2], [0, nz - 1], [1, nz - 1]]:
             # top left
-            vrz[i, j] = - (f[i, j] - f[i, j-1] + f[i+1, j-1] - f[i+1, j])/dr/dz
+            vrz[i, j] = - (f[i, j] - f[i, j - 1] + f[i + 1, j - 1] - f[i + 1, j]) / dr / dz
 
-        for i, j in [[nr-2, nz-1], [nr-1, nr-1], [nr-1, nz-2]]:
+        for i, j in [[nr - 2, nz - 1], [nr - 1, nr - 1], [nr - 1, nz - 2]]:
             # top right
-            vrz[i, j] = (f[i, j] - f[i-1, j] + f[i-1, j-1] - f[i, j-1])/dr/dz
+            vrz[i, j] = (f[i, j] - f[i - 1, j] + f[i - 1, j - 1] - f[i, j - 1]) / dr / dz
 
         # reload the new derivative values
         self.vr = vr
         self.vz = vz
         self.vrz = vrz
         end = time()
-        print("Time calculating derivatives", end-start)
+        print("Time calculating derivatives", end - start)
 
     def locate_cell(self, r0, z0):
         """
@@ -278,13 +277,13 @@ class Efit_Data:
         """
         # indices of lower left vertex of the cell
         # (and make sure they are within [0,nr-1])
-        ir = int(max([min([np.floor((r0-self.rmin)/self.dr),
-                           self.nr-2]), 0]))
-        iz = int(max([min([np.floor((z0-self.zmin)/self.dz),
-                           self.nz-2]), 0]))
+        ir = int(max([min([np.floor((r0 - self.rmin) / self.dr),
+                           self.nr - 2]), 0]))
+        iz = int(max([min([np.floor((z0 - self.zmin) / self.dz),
+                           self.nz - 2]), 0]))
 
-        ircell = [ir, ir+1, ir, ir+1]
-        izcell = [iz, iz, iz+1, iz+1]
+        ircell = [ir, ir + 1, ir, ir + 1]
+        izcell = [iz, iz, iz + 1, iz + 1]
 
         return {'ir': ircell, 'iz': izcell}
 
@@ -317,8 +316,8 @@ class Efit_Data:
 
         # ==BICUBIC INTERPOLATION==
         # NOTE: assumes unit cell
-        r0norm = (r0-rcell[0])/self.dr
-        z0norm = (z0-zcell[0])/self.dz
+        r0norm = (r0 - rcell[0]) / self.dr
+        z0norm = (z0 - zcell[0]) / self.dz
         res = bicubic(fcell, frcell, fzcell, frzcell,
                       x0=r0norm, y0=z0norm, derivs=tag)
 
@@ -327,7 +326,7 @@ class Efit_Data:
         elif tag == 'vz':
             res /= self.dz
         elif tag == 'vrz':
-            res /= self.dr*self.dz
+            res /= self.dr * self.dz
         elif tag == 'vrr':
             res /= self.dr * self.dr
         elif tag == 'vzz':
@@ -352,22 +351,19 @@ class Efit_Data:
         # draw contour line on top of existing figure
         level = float(level)
         self.ax.contour(self.r, self.z, self.v, level, colors=color)
-    def PlotLevel(self:object, level:float=1.0, color:str='red',label:str='',linestyles:str='solid')->None:
+
+    def PlotLevel(self: object, level: float = 1.0, color: str = 'red', label: str = '', linestyles: str = 'solid')->None:
         """
         """
         try:
             self.psi_levels[label].collections[0].remove()
-            #for l in self.psi_levels[label+'label']:
-                #l.remove()
-            self.psi_levels[label]=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label,linestyles=linestyles)
-            #self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=False, fontsize=10, fmt='%1.9f')
+            self.psi_levels[label] = plt.contour(self.r, self.z, self.v, [float(level)], colors=color, label=label, linestyles=linestyles)
             self.psi_levels[label].collections[0].set_label(label)
         except:
-            self.psi_levels[label]=plt.contour(self.r, self.z, self.v, [float(level)], colors=color,label=label,linestyles=linestyles)
-            #self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=False, fontsize=10, fmt='%1.9f')
+            self.psi_levels[label] = plt.contour(self.r, self.z, self.v, [float(level)], colors=color, label=label, linestyles=linestyles)
             self.psi_levels[label].collections[0].set_label(label)
 
-    def plot_data(self, nlev=30,interactive=True):
+    def plot_data(self, nlev=30, interactive=True):
         """ generates the plot that we will be able to manipulate
         using the root finder
         Parameters
@@ -376,9 +372,11 @@ class Efit_Data:
             number of levels we want to be plotted
         """
         lev = (self.v.min() + (self.v.max()
-               - self.v.min()) * np.arange(nlev) / (nlev-1))
+               - self.v.min()) * np.arange(nlev) / (nlev - 1))
         self.fig = plt.figure('INGRID: ' + self.name, figsize=(6, 10))
         self.ax = self.fig.add_subplot(111)
+        import pdb
+        pdb.set_trace()
         self.ax.contourf(self.r, self.z, self.v, lev, cmap='gist_gray')
         plt.gca().set_aspect('equal', adjustable='box')
         plt.suptitle(self.name)
@@ -395,6 +393,3 @@ class Efit_Data:
             plt.clf()
         else:
             pass
-
-if __name__ == "__main__":
-    grid = Efit_Data()

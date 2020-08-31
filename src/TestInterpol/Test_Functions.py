@@ -35,11 +35,11 @@ def get_f(x, y, option=11, x0=0, y0=0):
         Specified function evaluated at x and y
     """
     if option == 1:
-        f = np.sin(np.pi*x)*np.cos(np.pi*y)
+        f = np.sin(np.pi * x) * np.cos(np.pi * y)
 
     elif option == 11:
         # diagonal lines
-        f = x+y
+        f = x + y
 
     elif option == 12:
         # horizontal lines
@@ -50,27 +50,27 @@ def get_f(x, y, option=11, x0=0, y0=0):
         f = y
 
     elif option == 2:
-        f = np.sin(np.pi*x)+np.cos(3*np.pi*y)
+        f = np.sin(np.pi * x) + np.cos(3 * np.pi * y)
 
     elif option == 3:
-        f = (np.cos(np.pi*(x+2*y))
-             + np.cos(3*np.pi*y))
+        f = (np.cos(np.pi * (x + 2 * y))
+             + np.cos(3 * np.pi * y))
 
     elif option == 4:
-        f = (np.exp(-(x-np.mean(x))**2
-             - (y-np.mean(y))**2))
+        f = (np.exp(-(x - np.mean(x))**2
+             - (y - np.mean(y))**2))
 
     elif option == 5:
         # gaussian funciton
-        f = np.exp(-(x-x0)**2 - (y-y0)**2)
+        f = np.exp(-(x - x0)**2 - (y - y0)**2)
 
     elif option == 51:
         # x derivative of the gaussian
-        f = np.exp(-2*(x-x0)**2 - (y-y0)**2)
+        f = np.exp(-2 * (x - x0)**2 - (y - y0)**2)
 
     elif option == 52:
         # two gaussians?
-        f = (np.exp(-2*(x-x0)**2 - (y-y0)**2) +
-             np.exp(-2*(x+x0)**2 - (y+y0)**2))
+        f = (np.exp(-2 * (x - x0)**2 - (y - y0)**2) +
+             np.exp(-2 * (x + x0)**2 - (y + y0)**2))
 
     return f

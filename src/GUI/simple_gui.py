@@ -244,7 +244,7 @@ class FilePicker(tk.Tk):
             self.AnalyzeTopology()
             IG.ConstructPatches()
 
-        IG.ShowPatches()
+        IG.PlotPatches()
 
     def CreateSubgrid(self):
         IG = self.Ingrid

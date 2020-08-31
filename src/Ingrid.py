@@ -2,19 +2,10 @@
 # -*- coding: utf-8 -*-
 """Ingrid module for interfacing all grid generator capabilities.
 
-This module contains the Ingrid class that drives all usage of the Ingrid
-project.
+This module contains the Ingrid class that drives all code functionality.
 
-This module demonstrates documentation as specified by the `Google Python
-Style Guide`_. Docstrings may extend over multiple lines. Sections are created
-with a section header and a colon followed by a block of indented text.
-
-Example:
-    Examples can be given using either the ``Example`` or ``Examples``
-    sections. Sections support any reStructuredText formatting, including
-    literal blocks::
-
-        $ python example_google.py
+The Ingrid class is to encapsulate all functionality and allow the user to
+easily take advantage of advanced features of the code.
 
 """
 from __future__ import print_function, division, absolute_import
@@ -807,6 +798,18 @@ class Ingrid(IngridUtils):
         east_midLine = Line([LHS_Point, RHS_Point])
         east_midLine.plot('white')
 
+    def PlotPatches(self) -> None:
+        """ Plot the patch map that was generated with method 'CreatePatches'
+        """
+        try:
+            plt.close(self._PatchFig)
+        except:
+            pass
+        self._PatchFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Patches', figsize=(6, 10))
+        self.PatchAx = self._PatchFig.add_subplot(111)
+        self.CurrentTopology.patch_diagram(fig=self._PatchFig, ax=self.PatchAx)
+        self.PlotStrikeGeometry()
+
     def CloseOpenPlots(self):
         """ Close all open matplotlib figures.
         """
@@ -933,58 +936,6 @@ class Ingrid(IngridUtils):
 
         self.CurrentTopology = ingrid_topology
 
-    def ExportGridue(self, fname: str = 'gridue') -> None:
-        """ Export a gridue file for the created grid.
-
-        Args:
-            fname (optional): Name of gridue file to save.
-        """
-        self.PrepGridue()
-        if type(self.CurrentTopology) in [SNL]:
-            if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
-                print(f"# Successfully saved gridue file as '{fname}'")
-        elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:
-            if self.WriteGridueDNL(self.CurrentTopology.gridue_settings, fname):
-                print(f"# Successfully saved gridue file as '{fname}'")
-
-    def CreateSubgrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
-        """ Refine a generated patch map into a grid for exporting.
-
-        Args:
-            NewFig (optional): Plot the created grid on a new figure.
-
-            ShowVertices (optional): Plot vertices in refined grid with
-                bolded markers.
-
-            ListPatches (optional): Generate a grid for a particular patch.
-                Requires the correct patch name associated with the 'Patch'
-                object.
-
-                Warning: Grid generation is order dependent. Specifying a
-                particular patch to generate a grid would only be done in
-                rare cases and require the user to know dependencies for
-                the particular patch.
-        """
-
-        if NewFig:
-            try:
-                plt.close(self._GridFig)
-            except:
-                pass
-            self._GridFig = plt.figure(f'INGRID: {self.CurrentTopology.config} Grid', figsize=(6, 10))
-            ax = self._GridFig.gca()
-            ax.set_xlim([self.PsiUNorm.rmin, self.PsiUNorm.rmax])
-            ax.set_ylim([self.PsiUNorm.zmin, self.PsiUNorm.zmax])
-            ax.set_aspect('equal', adjustable='box')
-
-            ax.set_xlabel('R')
-            ax.set_ylabel('Z')
-            ax.set_title(f'{self.CurrentTopology.config} Grid Diagram')
-            ax.set_aspect('equal', adjustable='box')
-
-        self.CurrentTopology.construct_grid(ShowVertices=ShowVertices, RestartScratch=RestartScratch,
-                                            ListPatches=ListPatches)
-
     def StartSetup(self, **kwargs) -> None:
         """ A collection of essential tasks before generating a patch map from
         scratch.
@@ -1018,7 +969,12 @@ class Ingrid(IngridUtils):
         self.CalcPsiNorm()
         self.PrepLineTracing()
 
-    def ShowSetup(self):
+    def ShowSetup(self) -> None:
+        """ Show Ingrid setup that a patch map will be generated from.
+
+        This method plots normalized psi data, psi boundaries, strike geometry,
+        and midplane lines through the magnetic axis.
+        """
         self.CloseOpenPlots()
         self.PlotPsiNorm()
         self.PlotPsiNormMagReference()
@@ -1027,7 +983,21 @@ class Ingrid(IngridUtils):
         self.PlotMidplane()
         self.PrintSummaryParams()
 
-    def ConstructPatches(self):
+    def ConstructPatches(self) -> None:
+        """ Create a patch map that can be refined into a grid.
+
+        This method assumes the user has either loaded patch data
+        from a previous Ingrid session (see 'LoadPatches'), or that
+        the user has already successfully called method 'AnalyzeTopology'.
+
+        Should the user want to automatically enable patch saving, the user
+        should set the entry
+
+        'settings[''patch_data''][''preferences''][''new_file'']'
+
+        with a value of 'True'.
+
+        """
         self.CurrentTopology.RefreshSettings()
         self.OrderLimiter()
         self.OrderTargetPlates()
@@ -1039,7 +1009,15 @@ class Ingrid(IngridUtils):
         if self.settings['patch_data']['preferences']['new_file']:
             self.SavePatches(self.settings['patch_data']['preferences']['new_fname'])
 
-    def SavePatches(self, fname=''):
+    def SavePatches(self, fname: str = '') -> None:
+        """ Save patches as '.npy' file for later reconstruction in Ingrid.
+
+        This file contains the information required to reconstruct patches
+        at a later time and bypass the line_tracing.
+
+        Args:
+            fname (optional): Name of file/location for patch data.
+        """
         if fname in ['', None]:
             fname = self.CurrentTopology.config + '_patches_' + str(int(time()))
 
@@ -1049,8 +1027,22 @@ class Ingrid(IngridUtils):
         np.save(fname, np.array(patch_data))
         print(f"# Saved patch data for file {fname}.npy")
 
-    def LoadPatches(self, fname=None):
-        if fname is None:
+    def LoadPatches(self, fname: str = '') -> None:
+        """ Load patches stored in an Ingrid generated '.npy' file.
+
+        Args:
+            fname (optional): Path to patch data. If no fname is provided to
+                method 'LoadPatches', Ingrid code will check the settings
+                'dict' for a file under entry
+
+                'settings[''patch_data''][''file'']'
+
+        """
+
+        if type(fname) is not str:
+            raise ValueError('# User did not provide a string to patch data.')
+
+        if fname.strip() == '':  # Check if settings contains patch data.
             fname = self.settings['patch_data']['file']
         config, xpt_data, patches = self.ReconstructPatches(fname)
         self.process_yaml(Ingrid.ReadyamlFile(self.InputFile))
@@ -1062,53 +1054,71 @@ class Ingrid(IngridUtils):
         self.CurrentTopology.SetupPatchMatrix()
         self.CheckPatches()
 
-        return config, xpt_data, patches
+    def CreateSubgrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
+        """ Refine a generated patch map into a grid for exporting.
 
-    def ShowPatches(self):
-        try:
-            plt.close(self._PatchFig)
-        except:
-            pass
-        self._PatchFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Patches', figsize=(6, 10))
-        self.PatchAx = self._PatchFig.add_subplot(111)
-        self.CurrentTopology.patch_diagram(fig=self._PatchFig, ax=self.PatchAx)
-        self.PlotStrikeGeometry()
+        Args:
+            NewFig (optional): Plot the created grid on a new figure.
 
-    def GetPatchTagMap(self, config):
-        if config == 'LSN':
-            PatchTagMap = {
-                'A1': 'IPF', 'A2': 'IDL',
-                'B1': 'ICB', 'B2': 'ISB',
-                'C1': 'ICT', 'C2': 'IST',
-                'D1': 'OCT', 'D2': 'OST',
-                'E1': 'OCB', 'E2': 'OSB',
-                'F1': 'OPF', 'F2': 'ODL',
-            }
-        elif config == 'USN':
-            PatchTagMap = {
-                'A1': 'OPF', 'A2': 'ODL',
-                'B1': 'OCB', 'B2': 'OSB',
-                'C1': 'OCT', 'C2': 'OST',
-                'D1': 'ICT', 'D2': 'IST',
-                'E1': 'ICB', 'E2': 'ISB',
-                'F1': 'IPF', 'F2': 'IDL',
-            }
-        else:
-            PatchTagMap = {}
-            TempLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
-            for label in TempLabels:
-                for i in range(1, 4):
-                    PatchTagMap[l + str(i)] = label + str(i)
+            ShowVertices (optional): Plot vertices in refined grid with
+                bolded markers.
 
-        # Make it bijective.
-        PatchNameMap = {}
-        for tag, name in PatchTagMap.items():
-            PatchNameMap[name] = tag
-        return {**PatchTagMap, **PatchNameMap}
+            ListPatches (optional): Generate a grid for a particular patch.
+                Requires the correct patch name associated with the 'Patch'
+                object.
+
+                Warning: Grid generation is order dependent. Specifying a
+                particular patch to generate a grid would only be done in
+                rare cases and require the user to know dependencies for
+                the particular patch.
+
+        """
+
+        if NewFig:
+            try:
+                plt.close(self._GridFig)
+            except:
+                pass
+            self._GridFig = plt.figure(f'INGRID: {self.CurrentTopology.config} Grid', figsize=(6, 10))
+            ax = self._GridFig.gca()
+            ax.set_xlim([self.PsiUNorm.rmin, self.PsiUNorm.rmax])
+            ax.set_ylim([self.PsiUNorm.zmin, self.PsiUNorm.zmax])
+            ax.set_aspect('equal', adjustable='box')
+
+            ax.set_xlabel('R')
+            ax.set_ylabel('Z')
+            ax.set_title(f'{self.CurrentTopology.config} Grid Diagram')
+            ax.set_aspect('equal', adjustable='box')
+
+        self.CurrentTopology.construct_grid(ShowVertices=ShowVertices, RestartScratch=RestartScratch,
+                                            ListPatches=ListPatches)
+
+    def ExportGridue(self, fname: str = 'gridue') -> None:
+        """ Export a gridue file for the created grid.
+
+        Args:
+            fname (optional): Name of gridue file to save.
+
+        """
+        self.PrepGridue()
+        if type(self.CurrentTopology) in [SNL]:
+            if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
+                print(f"# Successfully saved gridue file as '{fname}'")
+        elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:
+            if self.WriteGridueDNL(self.CurrentTopology.gridue_settings, fname):
+                print(f"# Successfully saved gridue file as '{fname}'")
 
     @staticmethod
-    def Importgridue(self, fname: str = 'gridue') -> dict:
-        """Import UEDGE grid file as dictionary."""
+    def ImportGridue(self, fname: str = 'gridue') -> dict:
+        """Import UEDGE grid file as dictionary.
+
+        Args:
+            fname (optional): Path/file name to gridue formatted file.
+
+        Returns:
+            A dict containing header and body information from the gridue file.
+
+        """
         try:
             f = open(fname, mode='r')
             Values = [int(x) for x in next(f).split()]
@@ -1154,38 +1164,18 @@ class Ingrid(IngridUtils):
         except Exception as e:
             print(repr(e))
 
-    @classmethod
-    def CheckOverlapCells(Grid, Verbose=False):
-        from shapely.geometry import Polygon
-        r = Grid['rm']
-        z = Grid['zm']
-        idx = [1, 2, 4, 3]
-        p = []
-        pinfo = []
-        Nx = len(r)
-        Ny = len(r[0])
-        # polygon = [[Polygon([(x,y) for (x,y) in zip(r[i,j,idx],z[i,j,idx]]) for y in range(0,Ny)] for i range(0,Nx)]
-
-        for i in range(Nx):
-            for j in range(Ny):
-                c = [(r[i, j, idxx], z[i, j, idxx]) for idxx in idx]
-                if Verbose:
-                    print(c)
-                p.append(Polygon(c))
-                pinfo.append((i, j))
-        ListIntersect = []
-        for p1, pinfo1 in zip(p, pinfo):
-            for p2, pinfo2 in zip(p, pinfo):
-                if p1.intersects(p2) and np.sum(abs(np.array(pinfo1) - np.array(pinfo2))) > 2:
-                    ListIntersect.append((pinfo1, pinfo2))
-                    print('p1:{} and p2:{} intersect!'.format(pinfo1, pinfo2))
-        return ListIntersect
-
     @staticmethod
-    def Plotgridue(GridueParams, Fill=False, ax=None, Verbose=False, facecolor=None, edgecolor='black'):
-        """Plot UEDGE grid."""
-        if Verbose:
-            print('PlotGridue')
+    def Plotgridue(GridueParams: dict, edgecolor='black', ax: object = None):
+        """Plot UEDGE grid from 'dict' obtained from method 'ImportGridue'
+
+        Args:
+            GridueParams: 'dict' of gridue header and body information.
+
+            edgecolor (optional): Color of grid.
+
+            ax (optional): Matplotlib axes to plot on.
+
+        """
         r = GridueParams['rm']
         z = GridueParams['zm']
         Nx = len(r)
@@ -1202,35 +1192,25 @@ class Ingrid(IngridUtils):
                 else:
                     patches.append(p)
 
-        if Fill:
-            Collec = matplotlib.collections.PatchCollection(patches, match_original=True, facecolors=None, edgecolors=edgecolor)
-            # Collec.set_facecolor(None)
-            ax.add_collection(Collec)
         plt.ylim(z.min(), z.max())
         plt.xlim(r.min(), r.max())
         plt.show()
 
     @staticmethod
     def ReadyamlFile(FileName: str) -> dict:
-        '''
-        Read a yaml file and return a dictionnary
+        """Read a yaml file and return a dictionary
 
-        Parameters
-        ----------
-        FileName : str
+        Args:
+            FileName: Path/file name of '.yml' parameter file to
+                represent as a dictionary.
 
+        Returns:
+            Settings file represented as a dictionary
 
-        Raises
-        ------
-        IOError
+        Raises:
+            IOError: If error occurs while loading yml file.
 
-
-        Returns
-        -------
-        dict
-            Params dictionnary
-
-        '''
+        """
         File = pathlib.Path(FileName).expanduser()
         if File.exists() and File.is_file():
             try:

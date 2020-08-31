@@ -627,6 +627,38 @@ class IngridUtils():
         if interactive:
             self.LineTracer.disconnect()
 
+    def GetPatchTagMap(self, config):
+        if config == 'LSN':
+            PatchTagMap = {
+                'A1': 'IPF', 'A2': 'IDL',
+                'B1': 'ICB', 'B2': 'ISB',
+                'C1': 'ICT', 'C2': 'IST',
+                'D1': 'OCT', 'D2': 'OST',
+                'E1': 'OCB', 'E2': 'OSB',
+                'F1': 'OPF', 'F2': 'ODL',
+            }
+        elif config == 'USN':
+            PatchTagMap = {
+                'A1': 'OPF', 'A2': 'ODL',
+                'B1': 'OCB', 'B2': 'OSB',
+                'C1': 'OCT', 'C2': 'OST',
+                'D1': 'ICT', 'D2': 'IST',
+                'E1': 'ICB', 'E2': 'ISB',
+                'F1': 'IPF', 'F2': 'IDL',
+            }
+        else:
+            PatchTagMap = {}
+            TempLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+            for label in TempLabels:
+                for i in range(1, 4):
+                    PatchTagMap[l + str(i)] = label + str(i)
+
+        # Make it bijective.
+        PatchNameMap = {}
+        for tag, name in PatchTagMap.items():
+            PatchNameMap[name] = tag
+        return {**PatchTagMap, **PatchNameMap}
+
     def ClassifyTopology(self, visual=False):
 
         print('')
@@ -785,3 +817,30 @@ class IngridUtils():
         self.CurrentTopology.SetupPatchMatrix()
         self.CurrentTopology.concat_grid()
         self.CurrentTopology.set_gridue()
+
+    @classmethod
+    def CheckOverlapCells(Grid, Verbose=False):
+        from shapely.geometry import Polygon
+        r = Grid['rm']
+        z = Grid['zm']
+        idx = [1, 2, 4, 3]
+        p = []
+        pinfo = []
+        Nx = len(r)
+        Ny = len(r[0])
+        # polygon = [[Polygon([(x,y) for (x,y) in zip(r[i,j,idx],z[i,j,idx]]) for y in range(0,Ny)] for i range(0,Nx)]
+
+        for i in range(Nx):
+            for j in range(Ny):
+                c = [(r[i, j, idxx], z[i, j, idxx]) for idxx in idx]
+                if Verbose:
+                    print(c)
+                p.append(Polygon(c))
+                pinfo.append((i, j))
+        ListIntersect = []
+        for p1, pinfo1 in zip(p, pinfo):
+            for p2, pinfo2 in zip(p, pinfo):
+                if p1.intersects(p2) and np.sum(abs(np.array(pinfo1) - np.array(pinfo2))) > 2:
+                    ListIntersect.append((pinfo1, pinfo2))
+                    print('p1:{} and p2:{} intersect!'.format(pinfo1, pinfo2))
+        return ListIntersect

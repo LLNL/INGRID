@@ -16,7 +16,7 @@ patch_data:
   preferences:
     new_file: True
     new_fname: '../data/NEQDSK_maxim/SF45_patches_1597425973.npy'
-grid_params:
+grid_settings:
   CorrectDistortion:
       'all':
           'ThetaMin': 80.0
@@ -63,7 +63,7 @@ grid_params:
   zmagx: -0.045
   zxpt: -0.62
   zxpt2: -0.557
-integrator_params:
+integrator_settings:
   dt: 0.01
   eps: 5.0e-06
   first_step: 5.0e-05

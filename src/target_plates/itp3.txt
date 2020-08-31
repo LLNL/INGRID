@@ -1,7 +1,0 @@
-# an example inner target plate defined by two points 
-# left point
-# 0.5566, -0.63636
-1.01, -0.73
-# right point
-# 0.40545, -0.48000
-1.12, -0.95

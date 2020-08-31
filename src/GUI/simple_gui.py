@@ -1,6 +1,9 @@
 from __future__ import print_function
 
 from sys import platform as sys_pf
+from sys import path
+path.append('../src/')
+
 from os.path import getmtime
 import matplotlib
 
@@ -28,29 +31,30 @@ except:
     import tkMessageBox as tkMB
 
 import yaml
-import Ingrid
+from ingrid import Ingrid
 import Root_Finder
 from time import time
 
 #helv_large = 'Helvetica 13 bold'
 #helv_medium = 'Helvetica 9 bold'
 
-class Ingrid_GUI(tk.Tk):
-    def __init__(self, master = None,IngridSession=None,*args, **kwargs):
+
+class IngridGUI(tk.Tk):
+    def __init__(self, master=None, IngridSession=None, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
         self.container = tk.Frame(self)
-        self.container.pack(side="top", fill="both", expand = True)
+        self.container.pack(side="top", fill="both", expand=True)
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
-        self.gui_dimensions = {FilePicker : "550x270"}
+        self.gui_dimensions = {FilePicker: "550x270"}
 
         # attached to the parent Ingrid instance instead of new instance
         if IngridSession is None:
             self.ResetIngrid()
         else:
             self.Ingrid = IngridSession
-        
+
         self.NewSettingsPrompt()
         self.PopulateGUI()
 
@@ -69,16 +73,15 @@ class Ingrid_GUI(tk.Tk):
         while fname in ['', None]:
             if tkMB.askyesno('', 'Create a new settings file for this INGRID session?'):
                 fname = 'INGRID_Session' + str(int(time())) + '.yml'
-                fname = filedialog.asksaveasfilename(initialdir = '.', title = 'New YAML', 
-                    defaultextension ='.yml', initialfile = fname)
+                fname = filedialog.asksaveasfilename(initialdir='.', title='New YAML',
+                    defaultextension='.yml', initialfile=fname)
                 if fname not in ['', None]:
-                    self.Ingrid.SaveSettingsFile(fname)
+                    self.Ingrid.SaveSettingsFile(fname=fname)
                     break
             else:
                 break
 
-
-    def Reset(self, message = 'Are you sure you want to reset?'):
+    def Reset(self, message='Are you sure you want to reset?'):
         if tkMB.askyesno('', message):
 
             try:
@@ -105,7 +108,7 @@ class Ingrid_GUI(tk.Tk):
             self.destroy()
 
     def NewIG(self):
-        self.Ingrid = Ingrid.Ingrid()
+        self.Ingrid = Ingrid()
 
     def ResetIG(self):
         self.Ingrid = None
@@ -115,10 +118,9 @@ class Ingrid_GUI(tk.Tk):
 
         for F in [FilePicker]:
             frame = F(self.container, self)
-            frame.Ingrid=self.Ingrid
+            frame.Ingrid = self.Ingrid
             self.frames[F] = frame
             #frame.grid(row=0, column=0, sticky="nsew")
-
 
 
 class FilePicker(tk.Tk):
@@ -131,25 +133,24 @@ class FilePicker(tk.Tk):
         self.EntryFrame = tk.Frame(parent)
         self.ControlFrame = tk.Frame(parent)
 
-        self.EntryFrame.grid(row=0,column=0,padx=10,pady=10)
-        self.ControlFrame.grid(row=1,column=0,padx=10,pady=10)
+        self.EntryFrame.grid(row=0, column=0, padx=10, pady=10)
+        self.ControlFrame.grid(row=1, column=0, padx=10, pady=10)
 
         self.ParamFileLabel_String = tk.StringVar()
         self.ParamFileEntry_String = tk.StringVar()
         self.ParamFileLabel_String.set('Parameter File Path:')
-        
+
         self.ParamFileLabel = tk.Label(self.EntryFrame,
             text=self.ParamFileLabel_String.get())
-        self.ParamFileEntry = tk.Entry(self.EntryFrame, 
+        self.ParamFileEntry = tk.Entry(self.EntryFrame,
             text=self.ParamFileEntry_String, width=40,
             disabledbackground='#f8f8ff', state='disabled')
         self.ParamFileButton = tk.Button(self.EntryFrame,
             text='Select Parameter File', command=self.LoadParameterFile)
 
-        self.ParamFileLabel.grid(row=0,column=0,sticky='nsew')
-        self.ParamFileEntry.grid(row=0,column=1,sticky='nsew')
-        self.ParamFileButton.grid(row=0,column=2,sticky='nsew')
-
+        self.ParamFileLabel.grid(row=0, column=0, sticky='nsew')
+        self.ParamFileEntry.grid(row=0, column=1, sticky='nsew')
+        self.ParamFileButton.grid(row=0, column=2, sticky='nsew')
 
         self.ViewDataButton = tk.Button(self.ControlFrame,
             text='View Loaded File', command=self.ViewData)
@@ -164,15 +165,15 @@ class FilePicker(tk.Tk):
         self.QuitButton = tk.Button(self.ControlFrame,
             text='Quit', command=self.Quit)
 
-        self.ViewDataButton.grid(row=0,column=0,padx=10,pady=10,sticky='nsew')
-        self.CreatePatchesButton.grid(row=0,column=2,padx=10,pady=10,sticky='nsew')
-        self.CreateSubgridButton.grid(row=0,column=3,padx=10,pady=10,sticky='nsew')
-        self.ExportGridueButton.grid(row=0,column=4,padx=10,pady=10,sticky='nsew')
-        self.QuitButton.grid(row=0,column=5,padx=10,pady=10,sticky='nsew')
+        self.ViewDataButton.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
+        self.CreatePatchesButton.grid(row=0, column=2, padx=10, pady=10, sticky='nsew')
+        self.CreateSubgridButton.grid(row=0, column=3, padx=10, pady=10, sticky='nsew')
+        self.ExportGridueButton.grid(row=0, column=4, padx=10, pady=10, sticky='nsew')
+        self.QuitButton.grid(row=0, column=5, padx=10, pady=10, sticky='nsew')
 
     def ProcessParameterFile(self, fname):
-        self.Ingrid.InputFile=fname
-        self.Ingrid.process_yaml(Ingrid.Ingrid.ReadyamlFile(fname))
+        self.Ingrid.InputFile = fname
+        self.Ingrid.process_yaml(Ingrid.ReadyamlFile(fname))
         self.ParamFileMtime = getmtime(fname)
         self.ParamFileName = fname
 
@@ -193,30 +194,24 @@ class FilePicker(tk.Tk):
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
         IG = self.Ingrid
-        topology = 'SNL' if IG.settings['grid_params']['num_xpt'] == 1 else 'DNL'
+        topology = 'SNL' if IG.settings['grid_settings']['num_xpt'] == 1 else 'DNL'
         IG.OMFIT_read_psi()
         IG.calc_efit_derivs()
         IG.AutoRefineMagAxis()
         IG.AutoRefineXPoint()
         if topology == 'DNL':
             IG.AutoRefineXPoint2()
-        IG.read_target_plates()
-        IG.SetGeometry({'limiter' : IG.settings['limiter']})
+        IG.SetGeometry({'limiter': IG.settings['limiter']})
+        IG.SetTargetPlates()
         IG.SetMagReference(topology)
-        IG.calc_psinorm()
-
-    def CloseOpenViews(self):
-        try:
-            plt.close('all')
-        except:
-            pass
+        IG.CalcPsiNorm()
 
     def PreviewIngridData(self):
-        self.CloseOpenViews()
         IG = self.Ingrid
-        IG.plot_psinorm()
+        IG.CloseOpenPlots()
+        IG.PlotPsiNorm()
         IG.PlotPsiNormMagReference()
-        IG.plot_strike_geometry()
+        IG.PlotStrikeGeometry()
         IG.PlotPsiNormBounds()
         IG.PlotMidplane()
         IG.PrintSummaryParams()
@@ -226,7 +221,7 @@ class FilePicker(tk.Tk):
         self.ViewData()
         IG.AnalyzeTopology()
 
-        if IG.settings['grid_params']['num_xpt'] == 2:
+        if IG.settings['grid_settings']['num_xpt'] == 2:
             IG.PlotTopologyAnalysis()
 
     def CreatePatches(self):
@@ -249,7 +244,7 @@ class FilePicker(tk.Tk):
             self.AnalyzeTopology()
             IG.ConstructPatches()
 
-        IG.ShowPatchMap()
+        IG.ShowPatches()
 
     def CreateSubgrid(self):
         IG = self.Ingrid
@@ -259,7 +254,7 @@ class FilePicker(tk.Tk):
 
     def ExportGridue(self):
         IG = self.Ingrid
-        fname = filedialog.asksaveasfilename(initialdir = '.', title = 'Save File', defaultextension ='', initialfile = 'gridue')
+        fname = filedialog.asksaveasfilename(initialdir='.', title='Save File', defaultextension='', initialfile='gridue')
         if fname != '':
             IG.ExportGridue(fname)
 

@@ -1,5 +1,5 @@
 # =================================================================================================
-# grid_params:
+# grid_settings:
 # -------------------------------------------------------------------------------------------------
 #     Topologically significant parameters for INGRID to
 #     utilize during runtime.
@@ -65,7 +65,7 @@
 # =================================================================================================
 
 # =================================================================================================
-# integrator_params:
+# integrator_settings:
 # -------------------------------------------------------------------------------------------------
 #     Integrator and line_tracing class settings.
 # -------------------------------------------------------------------------------------------------
@@ -176,7 +176,7 @@ DEBUG:
         patch_map: 0
         subgrid: 0
 eqdsk: ../data/SF45/neqdsk
-grid_params:
+grid_settings:
     grid_generation:
         np_default: 2
         nr_default: 2
@@ -211,7 +211,7 @@ grid_params:
     zmagx: 0.65
     zxpt: -0.47
     zxpt2: -1.13
-integrator_params:
+integrator_settings:
     dt: 0.01
     eps: 5.0e-06
     first_step: 5.0e-05

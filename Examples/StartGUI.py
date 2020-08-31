@@ -1,5 +1,5 @@
 import sys
 sys.path.append('../src/')
-import Ingrid as IG
+import ingrid as IG
 
 IG.QuickStart()

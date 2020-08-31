@@ -6,40 +6,42 @@ CL_startup
         parameter file as a driver.
 
 """
-
+import matplotlib
+matplotlib.use('tkagg')
+import matplotlib.pyplot as plt
 import sys
-sys.path.append('../src/')
-from Ingrid import Ingrid
 import pathlib
 import numpy as np
+sys.path.append('../src/')
 
-# Path to parameter file cases
-LSN_case = "../Parameter Files/SNL/LSN_YAML_EXAMPLE.yml"
-CMOD_case = "../Parameter Files/SNL/cmod_param.yml"
-DIIID_case = "../Parameter Files/SNL/DIIID_SNL.yml"
-SAS_case = "../Parameter Files/SNL/SAS1_modif.yml"
-SPARC_case = "../Parameter Files/DNL/SPARC_DNL.yml"
-
-SF45_maxim = '../Parameter Files/NEQDSK_maxim/neqdsk_6.yml'
-# < Your path to Ingrid formatted parameter file here >
-
-# Select a case.
-case = DIIID_case
+from ingrid import Ingrid  # noqa: E402
 
 
-if __name__ == '__main__':
+IG = Ingrid()
 
-    # Construction of Ingrid object with parameter file parsing.
-    GridDemo = Ingrid(InputFile=case)
-    GridDemo.LoadPatches()
-    GridDemo.ShowSetup()
-    GridDemo.ShowPatchMap()
+IG.LoadEFIT('../data/SNL/DIII-D/neqdsk')
 
-    # Begin patch refinement and actively plot grid.
+geo_W = '../data/SNL/DIII-D/d3d_itp.txt'
+geo_e = '../data/SNL/DIII-D/d3d_otp.txt'
 
-    CellCorrection={'ThetaMin':60,'ThetaMax':120,'Resolution':1000,'Active':True}
-    GridDemo.current_topology.CorrectDistortion={'' : CellCorrection}
-    GridDemo.CreateSubgrid(NewFig=True)
-    # Export gridue file.
-    fname = 'gridue'
-    GridDemo.export(fname=fname)
+IG.PlotPsiUNorm()
+import pdb
+pdb.set_trace()
+IG.SetGeometry({'limiter': 'default'}, zshift=-1)
+IG.SetGeometry({'W1': {'file': geo_W, 'zshift': 1.6}, 'E1': {'file': geo_e, 'zshift': 1.6}})
+IG.PlotTargetPlates()
+IG.SetGeometry({'E1': {'x': np.linspace(1.8, 2.4), 'y': np.linspace(0.5, 1.0)}})
+IG.PlotTargetPlates()
+IG.PlotLimiter()
+IG.SetGeometry({'W1': {'file': geo_W, 'zshift': 1}, 'E1': {'file': geo_e, 'zshift': 1}})
+IG.PlotLimiter()
+IG.PlotTargetPlates()
+IG.SetGeometry({'limiter': 'eq'}, zshift=1)
+IG.PlotLimiter()
+IG.SetGeometry({'limiter': 'eq'})
+IG.SetGeometry({'W1': {'file': geo_W, 'zshift': 1.6}, 'E1': {'file': geo_e, 'zshift': 1.6}})
+IG.PlotStrikeGeometry()
+
+IG = Ingrid(InputFile='../Parameter Files/SNL/DIIID_SNL.yml')
+IG.StartSetup()
+IG.ShowSetup()

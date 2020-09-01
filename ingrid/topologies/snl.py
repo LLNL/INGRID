@@ -16,7 +16,7 @@ except:
     pass
 import matplotlib.pyplot as plt
 from utils.topology_utils import Topology
-from geometry import Point, Line, Patch, trim_geometry
+from geometry import Point, Line, Patch, trim_geometry, rotate
 from collections import OrderedDict
 
 

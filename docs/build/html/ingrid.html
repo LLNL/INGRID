@@ -1,0 +1,1317 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ingrid package &mdash; ingrid  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ingrid.gui package" href="ingrid.gui.html" />
+    <link rel="prev" title="Welcome to ingrid’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ingrid
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ingrid package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ingrid.gui.html">ingrid.gui package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ingrid.topologies.html">ingrid.topologies package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ingrid.utils.html">ingrid.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ingrid.ImportEqFiles">ingrid.ImportEqFiles module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ingrid.OMFITgeqdsk">ingrid.OMFITgeqdsk module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ingrid-root-finder-module">ingrid.Root_Finder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ingrid-geometry-module">ingrid.geometry module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ingrid.ingrid">ingrid.ingrid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ingrid.interpol">ingrid.interpol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ingrid.line_tracing">ingrid.line_tracing module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ingrid</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>ingrid package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ingrid.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ingrid">
+<span id="ingrid-package"></span><h1>ingrid package<a class="headerlink" href="#module-ingrid" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ingrid.gui.html">ingrid.gui package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.gui.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.gui.html#ingrid-gui-ingrid-gui-module">ingrid.gui.ingrid_gui module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ingrid.topologies.html">ingrid.topologies package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.topologies.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.topologies.html#module-ingrid.topologies.sf105">ingrid.topologies.sf105 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.topologies.html#module-ingrid.topologies.sf135">ingrid.topologies.sf135 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.topologies.html#module-ingrid.topologies.sf15">ingrid.topologies.sf15 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.topologies.html#module-ingrid.topologies.sf165">ingrid.topologies.sf165 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.topologies.html#module-ingrid.topologies.sf45">ingrid.topologies.sf45 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.topologies.html#module-ingrid.topologies.sf75">ingrid.topologies.sf75 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.topologies.html#module-ingrid.topologies.snl">ingrid.topologies.snl module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.topologies.html#module-ingrid.topologies.udn">ingrid.topologies.udn module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ingrid.utils.html">ingrid.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.utils.html#module-ingrid.utils.ingrid_utils">ingrid.utils.ingrid_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.utils.html#module-ingrid.utils.topology_utils">ingrid.utils.topology_utils module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ingrid.ImportEqFiles">
+<span id="ingrid-importeqfiles-module"></span><h2>ingrid.ImportEqFiles module<a class="headerlink" href="#module-ingrid.ImportEqFiles" title="Permalink to this headline">¶</a></h2>
+<p>Created on Thu Feb  6 14:42:09 2020</p>
+<p>&#64;author: jguterl</p>
+<dl class="py function">
+<dt id="ingrid.ImportEqFiles.ImportEqFiles">
+<code class="sig-prename descclassname">ingrid.ImportEqFiles.</code><code class="sig-name descname">ImportEqFiles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Shot</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">Time</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">Path</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'/Users/torvaltz/Desktop/INGRID/docs'</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">Device</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'D3D'</span></em>, <em class="sig-param"><span class="n">SNAPFile</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'EFIT01'</span></em>, <em class="sig-param"><span class="n">ForceReload</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#ingrid.ImportEqFiles.ImportEqFiles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ingrid.OMFITgeqdsk">
+<span id="ingrid-omfitgeqdsk-module"></span><h2>ingrid.OMFITgeqdsk module<a class="headerlink" href="#module-ingrid.OMFITgeqdsk" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="ingrid.OMFITgeqdsk.OMFITgeqdsk">
+<em class="property">class </em><code class="sig-prename descclassname">ingrid.OMFITgeqdsk.</code><code class="sig-name descname">OMFITgeqdsk</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kw</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.OMFITgeqdsk.OMFITgeqdsk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
+<p>class used to interface G files generated by EFIT
+:param filename: filename passed to OMFITascii class
+:param **kw: keyword dictionary passed to OMFITascii class</p>
+</dd></dl>
+
+</div>
+<div class="section" id="ingrid-root-finder-module">
+<h2>ingrid.Root_Finder module<a class="headerlink" href="#ingrid-root-finder-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="ingrid-geometry-module">
+<h2>ingrid.geometry module<a class="headerlink" href="#ingrid-geometry-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ingrid.ingrid">
+<span id="ingrid-ingrid-module"></span><h2>ingrid.ingrid module<a class="headerlink" href="#module-ingrid.ingrid" title="Permalink to this headline">¶</a></h2>
+<p>Ingrid module for interfacing all grid generator capabilities.</p>
+<p>This module contains the Ingrid class that drives all code functionality.</p>
+<p>The Ingrid class is to encapsulate all functionality and allow the user to
+easily take advantage of advanced features of the code.</p>
+<dl class="py class">
+<dt id="ingrid.ingrid.Ingrid">
+<em class="property">class </em><code class="sig-prename descclassname">ingrid.ingrid.</code><code class="sig-name descname">Ingrid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">{}</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.ingrid.Ingrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">utils.ingrid_utils.IngridUtils</span></code></p>
+<p>Ingrid class for managing the grid generator code.</p>
+<p>Child of class ‘IngridUtils’. Class ‘Ingrid’ is to contain attributes
+and methods utilized by beginner code users.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>settings</strong> (<em>optional</em>) – <p>Dictionary representation of the settings file.</p>
+<p>The dictionary is obtained via a YAML dump while operating in gui
+mode. Providing no dictionary will populate the Ingrid object
+with a default value settings attribute. Any missing entries
+provided by a user will be populated with default values by Ingrid.</p>
+<p>(Refer to the Ingrid “Settings File Format” for a complete descri-
+ption of the settings dictionary)</p>
+</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments for processing of input data.
+(See method ‘ProcessKeywords’ in class ‘IngridUtils’ for a
+list of supported keywords)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="ingrid.ingrid.Ingrid.settings">
+<code class="sig-name descname">settings</code><a class="headerlink" href="#ingrid.ingrid.Ingrid.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary representation of the settings file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="ingrid.ingrid.Ingrid.PlateData">
+<code class="sig-name descname">PlateData</code><a class="headerlink" href="#ingrid.ingrid.Ingrid.PlateData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary mapping target plates to their
+corresponding class ‘Line’ objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="ingrid.ingrid.Ingrid.LimiterData">
+<code class="sig-name descname">LimiterData</code><a class="headerlink" href="#ingrid.ingrid.Ingrid.LimiterData" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘Line’ class object representing
+tokamak limiter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Line</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="ingrid.ingrid.Ingrid.magx">
+<code class="sig-name descname">magx</code><a class="headerlink" href="#ingrid.ingrid.Ingrid.magx" title="Permalink to this definition">¶</a></dt>
+<dd><p>(R, Z) coordinates of magnetic-axis (float entries).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="ingrid.ingrid.Ingrid.xpt1">
+<code class="sig-name descname">xpt1</code><a class="headerlink" href="#ingrid.ingrid.Ingrid.xpt1" title="Permalink to this definition">¶</a></dt>
+<dd><p>(R, Z) coordinates of primary x-point (float entries).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="ingrid.ingrid.Ingrid.xpt2">
+<code class="sig-name descname">xpt2</code><a class="headerlink" href="#ingrid.ingrid.Ingrid.xpt2" title="Permalink to this definition">¶</a></dt>
+<dd><p>(R, Z) coordinates of secondary x-point (float entries).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt>
+<code class="sig-name descname">PsiUNorm (</code></dt>
+<dd><p>obj:’Efit’): ‘EfitData’ class object containing unormalized
+psi data from provided neqdsk file in settings.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt>
+<code class="sig-name descname">PsiNorm (</code></dt>
+<dd><p>obj:’Efit’): ‘EfitData’ class object containing normalized
+psi data calculated from class attribute ‘PsiUNorm’.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt>
+<code class="sig-name descname">CurrentTopology (</code></dt>
+<dd><p>obj:’Topology’): Tokamak magnetic configuration
+type currently being operated on. Class ‘Topology’ acts as the
+base class for all magnetic configurations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.AnalyzeTopology">
+<code class="sig-name descname">AnalyzeTopology</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.AnalyzeTopology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform analysis on normalized psi to determine magnetic topolgy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.AutoRefineMagAxis">
+<code class="sig-name descname">AutoRefineMagAxis</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.AutoRefineMagAxis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refine magnetic axis RZ coordinates.</p>
+<p>Will apply a root_finder method to ‘rmagx’ and ‘zmagx’ float values
+stored in attribute “settings[‘grid_settings’]”.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.AutoRefineXPoint">
+<code class="sig-name descname">AutoRefineXPoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.AutoRefineXPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refine primary x-point RZ coordinates.</p>
+<p>Will apply a root_finder method to ‘rxpt’ and ‘zxpt’ float values
+stored in attribute “settings[‘grid_settings’]”.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.AutoRefineXPoint2">
+<code class="sig-name descname">AutoRefineXPoint2</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.AutoRefineXPoint2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refine secondary x-point RZ coordinates.</p>
+<p>Will apply a root_finder method to ‘rxpt2’ and ‘zxpt2’ float values
+stored in attribute “settings[‘grid_settings’]”.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.CalcPsiNorm">
+<code class="sig-name descname">CalcPsiNorm</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.CalcPsiNorm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize psi data to a refined magnetic axis and primary x-point</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.CloseOpenPlots">
+<code class="sig-name descname">CloseOpenPlots</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.ingrid.Ingrid.CloseOpenPlots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close all open matplotlib figures.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.ConstructPatches">
+<code class="sig-name descname">ConstructPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.ConstructPatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a patch map that can be refined into a grid.</p>
+<p>This method assumes the user has either loaded patch data
+from a previous Ingrid session (see ‘LoadPatches’), or that
+the user has already successfully called method ‘AnalyzeTopology’.</p>
+<p>Should the user want to automatically enable patch saving, the user
+should set the entry</p>
+<p>‘settings[‘’patch_data’’][‘’preferences’’][‘’new_file’’]’</p>
+<p>with a value of ‘True’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.CreateSubgrid">
+<code class="sig-name descname">CreateSubgrid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">NewFig</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">ShowVertices</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.CreateSubgrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refine a generated patch map into a grid for exporting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>NewFig</strong> (<em>optional</em>) – Plot the created grid on a new figure.</p></li>
+<li><p><strong>ShowVertices</strong> (<em>optional</em>) – Plot vertices in refined grid with
+bolded markers.</p></li>
+<li><p><strong>ListPatches</strong> (<em>optional</em>) – <p>Generate a grid for a particular patch.
+Requires the correct patch name associated with the ‘Patch’
+object.</p>
+<p>Warning: Grid generation is order dependent. Specifying a
+particular patch to generate a grid would only be done in
+rare cases and require the user to know dependencies for
+the particular patch.</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.ExportGridue">
+<code class="sig-name descname">ExportGridue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'gridue'</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.ExportGridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export a gridue file for the created grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>optional</em>) – Name of gridue file to save.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.ImportGridue">
+<em class="property">static </em><code class="sig-name descname">ImportGridue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">fname</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'gridue'</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#ingrid.ingrid.Ingrid.ImportGridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import UEDGE grid file as dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>optional</em>) – Path/file name to gridue formatted file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dict containing header and body information from the gridue file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.LoadEFIT">
+<code class="sig-name descname">LoadEFIT</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fpath</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.LoadEFIT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.LoadGeometryData">
+<code class="sig-name descname">LoadGeometryData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">geo_items</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.LoadGeometryData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load strike geometry RZ coordinates from external file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>geo_items</strong> – <p>Argument dict specifying which target plate to load
+data into. Format is as follows:</p>
+<p>{geo_name: data_fname, … }</p>
+<p>Where both geo_name and data_fname are of type str. Multiple
+data_fname files can be loaded at once in a manner similar to
+method ‘SetGeometry’ (see documentation for ‘SetGeometry’).</p>
+</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If ‘geo_items’ is not type ‘dict’.</p></li>
+<li><p><strong>ValueError</strong> – If invalid ‘geo_items’ key provided.</p></li>
+<li><p><strong>ValueError</strong> – If data_fname entry is not of type ‘str’.</p></li>
+<li><p><strong>ValueError</strong> – If data_fname is not a file.</p></li>
+<li><p><strong>ValueError</strong> – If data_fname file is not of format ‘.txt’ or ‘.npy’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.LoadPatches">
+<code class="sig-name descname">LoadPatches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.LoadPatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load patches stored in an Ingrid generated ‘.npy’ file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>optional</em>) – <p>Path to patch data. If no fname is provided to
+method ‘LoadPatches’, Ingrid code will check the settings
+‘dict’ for a file under entry</p>
+<p>’settings[‘’patch_data’’][‘’file’’]’</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotLimiter">
+<code class="sig-name descname">PlotLimiter</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotLimiter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot limiter geometry.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotMidplane">
+<code class="sig-name descname">PlotMidplane</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotMidplane" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot midplane line through magnetic axis with any applied
+transformations specified in settings.</p>
+<p>This method can be used to inspect the effects of ‘west_tilt’,
+‘east_tilt’, ‘rmagx_shift’, and ‘zmagx_shift’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotPatches">
+<code class="sig-name descname">PlotPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotPatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the patch map that was generated with method ‘CreatePatches’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotPsiLevel">
+<code class="sig-name descname">PlotPsiLevel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">efit_psi</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">level</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">Label</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotPsiLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a contour corresponding to a psi level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>efit_psi</strong> – The ‘EfitData’ object to get the psi data from.</p></li>
+<li><p><strong>level</strong> – The psi value to plot.</p></li>
+<li><p><strong>Label</strong> (<em>optional</em>) – Label to provide to matplotlib.pyplot.contour.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotPsiNorm">
+<code class="sig-name descname">PlotPsiNorm</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotPsiNorm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot normalized psi data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotPsiNormBounds">
+<code class="sig-name descname">PlotPsiNormBounds</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotPsiNormBounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot contour lines associated with psi boundary values provided.</p>
+<p>This method extracts psi values from the ‘settings’ dict and plots the
+psi level. In addition to the psi values in ‘settings’, the primary
+and, if applicable, secondary separatrix are plotted as well.</p>
+<p>If the user is operating on a single null configuration, the psi values
+plotted are ‘psi_max’, ‘psi_core’, ‘psi_pf_1’.</p>
+<p>If the user is operating on a case with two x-points, the psi values
+are the same as above but with ‘psi_max_west’, ‘psi_max_east’, and
+‘psi_pf_2’ also included in the plot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotPsiNormMagReference">
+<code class="sig-name descname">PlotPsiNormMagReference</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotPsiNormMagReference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a marker on the magnetic axis and all x-points of interest.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotPsiUNorm">
+<code class="sig-name descname">PlotPsiUNorm</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotPsiUNorm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot unnormalized psi data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotStrikeGeometry">
+<code class="sig-name descname">PlotStrikeGeometry</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotStrikeGeometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot all strike geometry to be used for drawing the Patch Map.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotTargetPlate">
+<code class="sig-name descname">PlotTargetPlate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">plate_key</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'red'</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotTargetPlate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a target plate corresponding to a plate key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plate_key</strong> – An Ingrid supported target plate key (see method
+SetGeometry for supported plate keys)</p></li>
+<li><p><strong>color</strong> (<em>optional</em>) – Color to provide to matplotlib</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotTargetPlates">
+<code class="sig-name descname">PlotTargetPlates</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotTargetPlates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot all PlateData and remove outdated plate line artists.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PlotTopologyAnalysis">
+<code class="sig-name descname">PlotTopologyAnalysis</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PlotTopologyAnalysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shade the private flux, core, and show where the secondary x-point
+travels.</p>
+<p>This method can be used to interpret which type of configuration the
+user is handling.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.Plotgridue">
+<em class="property">static </em><code class="sig-name descname">Plotgridue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">GridueParams</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">edgecolor</span><span class="o">=</span><span class="default_value">'black'</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.ingrid.Ingrid.Plotgridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot UEDGE grid from ‘dict’ obtained from method ‘ImportGridue’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>GridueParams</strong> – ‘dict’ of gridue header and body information.</p></li>
+<li><p><strong>edgecolor</strong> (<em>optional</em>) – Color of grid.</p></li>
+<li><p><strong>ax</strong> (<em>optional</em>) – Matplotlib axes to plot on.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PrintSummaryInput">
+<code class="sig-name descname">PrintSummaryInput</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PrintSummaryInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a summary of the currently loaded data files</p>
+<p>Will print relevant EQDSK, patch data files, target plate files,
+and limiter files.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.PrintSummaryParams">
+<code class="sig-name descname">PrintSummaryParams</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.PrintSummaryParams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a summary of key settings values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.ReadyamlFile">
+<em class="property">static </em><code class="sig-name descname">ReadyamlFile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">FileName</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#ingrid.ingrid.Ingrid.ReadyamlFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a yaml file and return a dictionary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>FileName</strong> – Path/file name of ‘.yml’ parameter file to
+represent as a dictionary.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Settings file represented as a dictionary</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>IOError</strong> – If error occurs while loading yml file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.SaveGeometryData">
+<code class="sig-name descname">SaveGeometryData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">geo_items</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">timestamp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.SaveGeometryData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save strike geometry Line object RZ coordinates as ‘.npy’ file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>geo_items</strong> – <p>Argument dict specifying which target plate to save
+and the file name/path</p>
+<p>{geo_name: data_fname, … }</p>
+<p>Where both geo_name and data_fname are of type str. Multiple
+data_fname files can be saved at once in a manner similar to
+method ‘SetGeometry’ (see documentation for ‘SetGeometry’).</p>
+</p></li>
+<li><p><strong>timestamp</strong> (<em>optional</em>) – Append a time stamp to the end of the files.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If ‘geo_items’ is not type ‘dict’.</p></li>
+<li><p><strong>ValueError</strong> – If invalid ‘geo_items’ key provided.</p></li>
+<li><p><strong>ValueError</strong> – If data_fname entry is not of type ‘str’.</p></li>
+<li><p><strong>ValueError</strong> – If data_fname entry is an empty string.</p></li>
+<li><p><strong>ValueError</strong> – If requested strike geometry Line to save has no data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.SavePatches">
+<code class="sig-name descname">SavePatches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.SavePatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save patches as ‘.npy’ file for later reconstruction in Ingrid.</p>
+<p>This file contains the information required to reconstruct patches
+at a later time and bypass the line_tracing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>optional</em>) – Name of file/location for patch data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.SaveSettingsFile">
+<code class="sig-name descname">SaveSettingsFile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">{}</span></em><span class="sig-paren">)</span> &#x2192; pathlib.Path<a class="headerlink" href="#ingrid.ingrid.Ingrid.SaveSettingsFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a new settings .yml file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>optional</em>) – Name of new settings ‘.yml’ file.
+If default value of ‘’, then Ingrid will generate
+a ‘.yml’ file named ‘INGRID_Session’ appended with
+a timestamp.</p></li>
+<li><p><strong>settings</strong> (<em>optional</em>) – Ingrid settings dictionary to dump into
+the ‘.yml’ file. Defaults to empty dict which produces a
+template settings file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>obj: ‘Path’): Path object of saved file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Path (</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.SetGeometry">
+<code class="sig-name descname">SetGeometry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">geo_items</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">rshift</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">zshift</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.SetGeometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define and load the tokamak strike geometry into the Ingrid object.</p>
+<p>Allows the user to set target plate data and/or limiter data that
+will be used to generate a patch map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>geo_items</strong> – <p>Argument dict specifying which item(s) to set and by
+what way. Multiple geometry items can be set at once, but
+the following key-value format must be obeyed for any number
+of entries.</p>
+<p>All keys for ‘geo_items’ are type ‘str’. Accepted key
+values are as follows:</p>
+<p>Geometry:  Key value:
+Plate W1 - ‘plate_W1’, ‘W1’
+Plate E1 - ‘plate_E1’, ‘E1’
+Plate W2 - ‘plate_W2’, ‘W2’
+Plate E2 - ‘plate_E2’, ‘E2’
+Limiter  - ‘limiter’, ‘wall’</p>
+<p>Note: the above keys are NOT case sensitive.</p>
+<p>Corresponding key values can vary in data type depending
+on means of setting geometry. The types and their usage
+are as follows:</p>
+<p>’str’: Path to ‘.txt’ file containing coordinate data or
+to Ingrid generated ‘.npy’ file (obtained via methods
+‘SaveLimiterData’ and ‘SaveTargetPlateData’).</p>
+<p>Note: When setting Limiter geometry, the user can provide the
+value ‘default’ to set limiter data to that which is contained
+in the loaded neqdsk file.</p>
+<p>’list’, ‘tuple’: Iterables provided as values must be
+of length == 2. The first entry corresponds to R coordinate
+information, and the second entry corresponds to Z coordinate
+information. This information can be in the form of a list or
+NumPy array with shape == (N,).</p>
+<p>’dict’: One can map to a dictionary taking on a variety of
+formats depending on need.</p>
+<p>Setting geometry with explicit RZ coordinates:
+{‘R’: R_data, ‘Z’: z_data}
+Where R_data and Z_data are in the form of a list or NumPy
+array with shape == (N,) as above.</p>
+<p>Setting geometry with data from external file:
+{‘file’: str}</p>
+<p>Notes: The above dict option support keys ‘rshift’ and ‘zshift’
+for the user to provide transformations to individual geometry
+items (see examples).</p>
+<p>Because the core ‘settings’ attribute contained by the
+Ingrid class contains dict structures itself, the user can also
+provide settings[‘limiter’] and settings[‘target_plates’][k]
+to method ‘SetGeometry’ (where k corresponds to a plate key).</p>
+</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>rshift (optional): Translate ‘geo_items’ to coordinate R’,</dt><dd><p>with R’ = R - rshift. Will override all ‘rshift’ provided entries
+in ‘geo_items’.</p>
+</dd>
+<dt>zshift (optional): Translate ‘geo_items’ to coordinate Z’,</dt><dd><p>with Z’ = Z - zshift. Will override all ‘zshift’ provided entries
+in ‘geo_items’.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Setting default limiter data contained in loaded neqdsk
+file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">MyIG</span> <span class="o">=</span> <span class="n">Ingrid</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">MyIG</span><span class="o">.</span><span class="n">SetGeometry</span><span class="p">({</span><span class="s1">&#39;limiter&#39;</span><span class="p">:</span> <span class="s1">&#39;default&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Setting target plate ‘E1’ with numpy array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">MyIG</span> <span class="o">=</span> <span class="n">Ingrid</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">MyIG</span><span class="o">.</span><span class="n">SetGeometry</span><span class="p">({</span><span class="s1">&#39;E1&#39;</span><span class="p">:</span> <span class="s1">&#39;E1_data.npy&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Setting limiter data with Ingrid ‘.npy’ file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">MyIG</span> <span class="o">=</span> <span class="n">Ingrid</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">MyIG</span><span class="o">.</span><span class="n">SetGeometry</span><span class="p">({</span><span class="s1">&#39;limiter&#39;</span><span class="p">:</span> <span class="s1">&#39;LimiterData.npy&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Setting both target plates ‘W1’ and ‘E1’ with ‘.txt’
+and ‘.npy’ files while only applying rshift and zshift
+to target plate ‘E1’
+(Note the dict structure used for specifying ‘E1’):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">MyIG</span> <span class="o">=</span> <span class="n">Ingrid</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">geometry_dict</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span><span class="s1">&#39;W1&#39;</span><span class="p">:</span> <span class="s1">&#39;W1_data.txt&#39;</span><span class="p">,</span>
+<span class="gp">... </span><span class="s1">&#39;E1&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="gp">... </span><span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="s1">&#39;E1_data.npy&#39;</span><span class="p">,</span>
+<span class="gp">... </span><span class="s1">&#39;rshift&#39;</span><span class="p">:</span> <span class="mf">1.23</span><span class="p">,</span> <span class="s1">&#39;zshift&#39;</span><span class="p">:</span> <span class="mf">3.14</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">MyIG</span><span class="o">.</span><span class="n">SetGeometry</span><span class="p">(</span><span class="n">geometry_dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Setting plate ‘W2’ with user provided NumPy array
+for RZ coordinates:
+&gt;&gt;&gt; MyIG = Ingrid()
+&gt;&gt;&gt; R_data = my_numpy_array_1
+&gt;&gt;&gt; Z_data = my_numpy_array_2
+&gt;&gt;&gt; RZ_dict = {‘R’: my_numpy_array_1, ‘Z’: my_numpy_array_2}
+&gt;&gt;&gt; MyIG.SetGeometry({‘plate_W1’: RZ_dict})</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If file path provided does not lead to actual file.</p></li>
+<li><p><strong>ValueError</strong> – If file provided is not of suffix ‘.txt’ or ‘.npy’.</p></li>
+<li><p><strong>ValueError</strong> – If invalid ‘geo_items’ key provided.</p></li>
+<li><p><strong>ValueError</strong> – If ‘geo_items’ dict value contains invalid key.</p></li>
+<li><p><strong>ValueError</strong> – If value associated with ‘geo_items’ key is not of
+    supported data type.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.SetMagReference">
+<code class="sig-name descname">SetMagReference</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'SNL'</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.SetMagReference" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.SetTopology">
+<code class="sig-name descname">SetTopology</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topology</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.SetTopology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the current topology to a particular magnetic topology.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>topology</strong> – <p>String literal corresponding to which magnetic topology
+to initialize.</p>
+<dl class="simple">
+<dt>Values can be:</dt><dd><p>’LSN’: Lower Single Null
+‘USN’: Upper Single Null
+‘UDN’: Unbalanced Double Null
+‘SF15’: Snowflake-15
+‘SF45’: Snowflake-45
+‘SF75’: Snowflake-75
+‘SF105’: Snowflake-105
+‘SF135’: Snowflake-135
+‘SF165’: Snowflake-165</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If user provided unrecognized string entry.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.ShowSetup">
+<code class="sig-name descname">ShowSetup</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.ShowSetup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show Ingrid setup that a patch map will be generated from.</p>
+<p>This method plots normalized psi data, psi boundaries, strike geometry,
+and midplane lines through the magnetic axis.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.SimpleGUI">
+<code class="sig-name descname">SimpleGUI</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.SimpleGUI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start GUI for Ingrid.</p>
+<p>Will assume usage on a machine with tk GUI capabilities.
+No prior settings file is required as the user will be
+prompted with an option to generate a new file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.ingrid.Ingrid.StartSetup">
+<code class="sig-name descname">StartSetup</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.Ingrid.StartSetup" title="Permalink to this definition">¶</a></dt>
+<dd><p>A collection of essential tasks before generating a patch map from
+scratch.</p>
+<p>The user should ensure that the ‘settings’ dict is populated with
+the correct paths to relevant neqdsk data and geometry files.</p>
+<p>The user should ensure ‘settings[‘’grid_settings’’][‘’num_xpt’] is
+set with the correct integer value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="ingrid.ingrid.QuickStart">
+<code class="sig-prename descclassname">ingrid.ingrid.</code><code class="sig-name descname">QuickStart</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.ingrid.QuickStart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start Ingrid in gui mode with default settings.</p>
+<p>Rather than providing data to the class constructor, a user can opt to
+start Ingrid immediately in it’s gui form. This is useful for users who
+are not familiar with the Ingrid class and it’s capabiliites. Advanced
+users may still find QuickStart useful, but would also use the code in
+self-authored scripts.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ingrid.interpol">
+<span id="ingrid-interpol-module"></span><h2>ingrid.interpol module<a class="headerlink" href="#module-ingrid.interpol" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Jun  7 15:31:15 2019
+&#64;author: watkins35</p>
+<dl class="py function">
+<dt id="ingrid.interpol.Bicubic">
+<code class="sig-prename descclassname">ingrid.interpol.</code><code class="sig-name descname">Bicubic</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">fx</span></em>, <em class="sig-param"><span class="n">fy</span></em>, <em class="sig-param"><span class="n">fxy</span></em>, <em class="sig-param"><span class="n">x0</span></em>, <em class="sig-param"><span class="n">y0</span></em>, <em class="sig-param"><span class="n">derivs</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.Bicubic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bicubic interpolation on unit square [0,1]x[0,1].
+Returns the value of the interpolated polynomial at the given interior
+point (x0,y0).
+f, fx, fy, fxy can be arrays, lists, tulpes etc. They must each
+have four values and are ordered
+f_{i,j}, f_{i,j+1}, f_{i+1,j}, f_{i+1,j+1}.
+This is the natural order produced by the locate cell method,
+in the EfitData.EFit_Data class, which how
+this function is usually called.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> (<em>array-like</em>) – Contains the value of the function of each cell coordinate.</p></li>
+<li><p><strong>fx</strong> (<em>array-like</em>) – Contains the x or R derivative</p></li>
+<li><p><strong>fy</strong> (<em>array-like</em>) – Contains the y or Z derivative</p></li>
+<li><p><strong>fxy</strong> (<em>array-like</em>) – Contains the cross derivative, xy or RZ</p></li>
+<li><p><strong>x0</strong> (<em>float</em>) – Normalized x or R coordinate of the point of interest</p></li>
+<li><p><strong>y0</strong> (<em>float</em>) – Normalized y  or Z coordinate of the point</p></li>
+<li><p><strong>derivs</strong> (<em>str</em><em>, </em><em>optional</em>) – Contains the tag for the type of derivative we want.
+Accepts ‘v’, ‘vr’, ‘vz’, ‘vrz’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>res</strong> – The value of the function of its derivative at a given location</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ingrid.interpol.EfitData">
+<em class="property">class </em><code class="sig-prename descclassname">ingrid.interpol.</code><code class="sig-name descname">EfitData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rmin</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">rmax</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">nr</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">zmin</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">zmax</span><span class="o">=</span><span class="default_value">2.0</span></em>, <em class="sig-param"><span class="n">nz</span><span class="o">=</span><span class="default_value">20</span></em>, <em class="sig-param"><span class="n">rcenter</span><span class="o">=</span><span class="default_value">1.6955</span></em>, <em class="sig-param"><span class="n">bcenter</span><span class="o">=</span><span class="default_value">- 2.1094041</span></em>, <em class="sig-param"><span class="n">rlimiter</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">zlimiter</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rmagx</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">zmagx</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'unnamed'</span></em>, <em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Structure to store the rectangular grid of psi data. It uses
+cylindrical coordinates, where R and Z are similar to the cartesian
+x and y. The phi components goes away due to the symmetry of a
+tokamak.
+:param rmin: left boundary of the grid
+:type rmin: float, optional
+:param rmax: right boundary
+:type rmax: float, optional
+:param nr: number of grid points in the R direction
+:type nr: int, optional
+:param zmin: bottom boundary for the grid
+:type zmin: float, optional
+:param zmax: top boundary
+:type zmax: float, optional
+:param nz: number of grid points in the Z direction
+:type nz: int, optional
+:param name: Specify the title of the figure the data will be plotted on.
+:type name: str, optional</p>
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.Calculate_PDeriv">
+<code class="sig-name descname">Calculate_PDeriv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">unit_spacing</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData.Calculate_PDeriv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate partial derivatives at grid nodes.
+Use finite differences to increase accuracy at the
+boundaries.
+These formulas are derived from Taylor Series representations.
+Values for vr, vz, and vrz are produced and saved within the
+grid structure.
+:param unit_spacing: Allow for the derivatives to be calculated on a unit cell,</p>
+<blockquote>
+<div><p>or on a grid with any other spacing. Default is true.</p>
+</div></blockquote>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.Gradient">
+<code class="sig-name descname">Gradient</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xy</span><span class="p">:</span> <span class="n">tuple</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#ingrid.interpol.EfitData.Gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines the first partial derivatives to solve the system for
+maximum, minimum, and saddle locations.
+:param xy: Contains x and y. Ex: xy = (x0, y0).
+:type xy: array-like</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>F</strong> – Vector function to be used in find root.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.Hessian">
+<code class="sig-name descname">Hessian</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xy</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData.Hessian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.PlotLevel">
+<code class="sig-name descname">PlotLevel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">level</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'red'</span></em>, <em class="sig-param"><span class="n">label</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">linestyles</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'solid'</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.interpol.EfitData.PlotLevel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.PsiFunction">
+<code class="sig-name descname">PsiFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xy</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData.PsiFunction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.clear_plot">
+<code class="sig-name descname">clear_plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData.clear_plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.get_psi">
+<code class="sig-name descname">get_psi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r0</span></em>, <em class="sig-param"><span class="n">z0</span></em>, <em class="sig-param"><span class="n">tag</span><span class="o">=</span><span class="default_value">'v'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData.get_psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>find grid cell encompassing (r0,z0)
+note: grid is the crude grid. Uses Bicubic Interpolation
+to calculate the exact value at the point. Useful for
+finding information inbetween grid points.
+:param r0: R coordinate of the point of interest
+:type r0: float
+:param z0: Z coordinate of same point.
+:type z0: float
+:param tag: tag is the type of derivative we want: v, vr, vz, vrz</p>
+<blockquote>
+<div><p>if nothing is provided, it assumes no derivative (v).</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Value of psi or its derviative at the coordinate specified.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.get_v">
+<code class="sig-name descname">get_v</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag</span><span class="o">=</span><span class="default_value">'v'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData.get_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the entire array of v, vr, vz, or vrz.
+If you want a single value use self.get_psi
+:param tag: Specify the type of derivative. ‘v’, ‘vr’, ‘vz’, ‘vrz’
+:type tag: str, optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>value of the function or its derivative over the entire
+grid.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.locate_cell">
+<code class="sig-name descname">locate_cell</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r0</span></em>, <em class="sig-param"><span class="n">z0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData.locate_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Locate the cell on the rectangular grid that surrounds
+a point of interest.
+:param r0: R or x coordinate of the point
+:type r0: float
+:param z0: Z or y coordinate of the tested point
+:type z0: float</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>node indices of grid cell encompassing tested point</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.plot_data">
+<code class="sig-name descname">plot_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nlev</span><span class="o">=</span><span class="default_value">30</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData.plot_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>generates the plot that we will be able to manipulate
+using the root finder
+:param nlev: number of levels we want to be plotted
+:type nlev: int, optional</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.plot_levels">
+<code class="sig-name descname">plot_levels</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">level</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'red'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData.plot_levels" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is useful if you need to quickly see
+where a particular line of constant psi is. It in’t able to store
+points of intersection, and cannot be generalized. If you
+need just a segment of psi, use the draw_lines method in the
+line tracing class.
+:param level: Value of psi you wish to see
+:type level: float, optional
+:param color: color of the line.
+:type color: str, optional</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.interpol.EfitData.set_v">
+<code class="sig-name descname">set_v</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">coords</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tag</span><span class="o">=</span><span class="default_value">'v'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.interpol.EfitData.set_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets a value for v, vr, vz, or vrz.
+:param value: new set of values for the function. Must be the same shape</p>
+<blockquote>
+<div><p>as the grid if you are setting every value. Also accepts a
+single float for setting spevific values.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>coords</strong> (<em>array-like</em><em>, </em><em>optional</em>) – The coordinates of a single value, if you are setting one value.
+if set to none, it will set the entire value</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ingrid.line_tracing">
+<span id="ingrid-line-tracing-module"></span><h2>ingrid.line_tracing module<a class="headerlink" href="#module-ingrid.line_tracing" title="Permalink to this headline">¶</a></h2>
+<p>Created on Wed Jul  3 14:07:45 2019</p>
+<p>&#64;author: watkins35, garcia299</p>
+<dl class="py class">
+<dt id="ingrid.line_tracing.LineTracing">
+<em class="property">class </em><code class="sig-prename descclassname">ingrid.line_tracing.</code><code class="sig-name descname">LineTracing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">grid</span></em>, <em class="sig-param"><span class="n">settings</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">1e-06</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">5e-05</span></em>, <em class="sig-param"><span class="n">first_step</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">numPoints</span><span class="o">=</span><span class="default_value">25</span></em>, <em class="sig-param"><span class="n">dt</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">option</span><span class="o">=</span><span class="default_value">'xpt_circ'</span></em>, <em class="sig-param"><span class="n">direction</span><span class="o">=</span><span class="default_value">'cw'</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.LineTracing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class traces the polodal and radial lines of a given psi
+function based of the points where the user clicks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grid</strong> (<em>EfitData.EfitData</em>) – The grid object upon which the lines will be drawn.</p></li>
+<li><p><strong>settings</strong> (<em>dict</em>) – YAML file containing all INGRID parameters.</p></li>
+<li><p><strong>eps</strong> (<em>float</em><em>, </em><em>optional</em>) – Short for epsilon. Specifies the size of the circle drawn
+around the zero point.</p></li>
+<li><p><strong>tol</strong> (<em>float</em><em>, </em><em>optional</em>) – Short for tolerance. Specifies how close to the final point the
+line must get before converging. Also defines a circle.</p></li>
+<li><p><strong>numPoints</strong> (<em>int</em>) – Number of points in the circle of radius eps.</p></li>
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Specify the size of each line segment that is traced by
+scipy.integrate.solve_ivp.</p></li>
+<li><p><strong>option</strong> (<em>str</em><em>, </em><em>optional</em>) – ‘theta’ draws the poloidal line where the user clicks.
+‘rho’ draws the radial line where the user clicked.
+‘xpt_circ’: uses the root finder to find the root closest
+to where the user clicked. Then finds the points around
+that circle a distance epsilon away.</p></li>
+<li><p><strong>direction</strong> (<em>str</em><em>, </em><em>optional</em>) – ‘cw’ or ‘ccw’. Specifies clockwise or counterclockwise line
+tracing.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="ingrid.line_tracing.LineTracing.DNL_find_NSEW">
+<code class="sig-name descname">DNL_find_NSEW</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt1</span></em>, <em class="sig-param"><span class="n">xpt2</span></em>, <em class="sig-param"><span class="n">magx</span></em>, <em class="sig-param"><span class="n">visual</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.LineTracing.DNL_find_NSEW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find NSEW based off primary x-point and magnetic axis,</p>
+<dl class="simple">
+<dt>xpt<span class="classifier">array/tuple-like</span></dt><dd><p>R, Z coordinate of the primary x-point.</p>
+</dd>
+<dt>mag<span class="classifier">array/tuple-like</span></dt><dd><p>R, Z coordinate of the magnetic axis.</p>
+</dd>
+</dl>
+<p>Post-Call:
+self.LineTracer_psi will contain NSEW information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.line_tracing.LineTracing.PsiCostFunc">
+<code class="sig-name descname">PsiCostFunc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xy</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.LineTracing.PsiCostFunc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.line_tracing.LineTracing.SNL_find_NSEW">
+<code class="sig-name descname">SNL_find_NSEW</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt</span></em>, <em class="sig-param"><span class="n">magx</span></em>, <em class="sig-param"><span class="n">visual</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.LineTracing.SNL_find_NSEW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find NSEW based off primary x-point and magnetic axis,</p>
+<dl class="simple">
+<dt>xpt<span class="classifier">array/tuple-like</span></dt><dd><p>R, Z coordinate of the primary x-point.</p>
+</dd>
+<dt>mag<span class="classifier">array/tuple-like</span></dt><dd><p>R, Z coordinate of the magnetic axis.</p>
+</dd>
+</dl>
+<p>Post-Call:
+self.LineTracer_psi will contain NSEW information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.line_tracing.LineTracing.analyze_saddle">
+<code class="sig-name descname">analyze_saddle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt</span></em>, <em class="sig-param"><span class="n">xpt_ID</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.LineTracing.analyze_saddle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds theta values to be tested for N and S directions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.line_tracing.LineTracing.disconnect">
+<code class="sig-name descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.LineTracing.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turns off the click functionality</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.line_tracing.LineTracing.draw_line">
+<code class="sig-name descname">draw_line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rz_start</span></em>, <em class="sig-param"><span class="n">rz_end</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'purple'</span></em>, <em class="sig-param"><span class="n">option</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">direction</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_plot</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">dynamic_step</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.LineTracing.draw_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses scipy.integrate.solve_ivp to trace poloidal or radial
+lines. Uses the LSODA method to solve the differential
+equations. Three options for termination criteria, specified
+by rz_end.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rz_start</strong> (<em>array-like</em><em> or </em><em>geometry.Point</em>) – Starting location for line tracing.</p></li>
+<li><p><strong>rz_end</strong> (<em>dict</em><em>, </em><em>optional</em>) – Defaults to be rz_start. This is how we specify the
+termination critera. i.e. {‘point’: Point}, {‘line’: Line},
+{‘psi’: Psi}
+Points can be a geometry.Point, or array-like
+i.e. (x, y)
+Lines can be a geometry.Line, or array-like
+i.e. ((x, y), (x, y))
+Psi must be a scalar, i.e. 1.1, and specifies the
+level of psi to stop on.</p></li>
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – Specifies the color of the produced grid lines.</p></li>
+<li><p><strong>option</strong> (<em>str</em><em>, </em><em>optional</em>) – Change which differential equation is used in the line
+tracing proccess. ‘theta’, ‘rho’</p></li>
+<li><p><strong>direction</strong> (<em>str</em>) – determines if the function plots clockwise (cw) or
+counterclockwise (ccw). default is None.</p></li>
+<li><p><strong>show_plot</strong> (<em>bool</em><em>, </em><em>optional</em>) – Show the user real-time tracing and the line tracer works.</p></li>
+<li><p><strong>text</strong> (<em>bool</em><em>, </em><em>optional</em>) – Prints convergence method, number of iterations, and
+time taken to the terminal window.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>line</strong> – Curved line consisting of the start and end points of each
+segment calculated by solve_ivp. Does not store the
+intermediate points.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>geometry.Line</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.line_tracing.LineTracing.flip_NSEW_lookup">
+<code class="sig-name descname">flip_NSEW_lookup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt_ID</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.LineTracing.flip_NSEW_lookup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.line_tracing.LineTracing.map_xpt">
+<code class="sig-name descname">map_xpt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt</span></em>, <em class="sig-param"><span class="n">magx</span></em>, <em class="sig-param"><span class="n">xpt_ID</span><span class="o">=</span><span class="default_value">'xpt1'</span></em>, <em class="sig-param"><span class="n">visual</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.LineTracing.map_xpt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.line_tracing.LineTracing.rotate_NSEW_lookup">
+<code class="sig-name descname">rotate_NSEW_lookup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt_ID</span></em>, <em class="sig-param"><span class="n">turns</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.LineTracing.rotate_NSEW_lookup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="ingrid.line_tracing.RegionEntered">
+<em class="property">exception </em><code class="sig-prename descclassname">ingrid.line_tracing.</code><code class="sig-name descname">RegionEntered</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span></em>, <em class="sig-param"><span class="n">region</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.line_tracing.RegionEntered" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ingrid.gui.html" class="btn btn-neutral float-right" title="ingrid.gui package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to ingrid’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Bryan Garcia, Jerome Guterl, Joey Watkins
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

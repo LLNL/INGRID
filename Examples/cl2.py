@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import sys
 import pathlib
 import numpy as np
-sys.path.append('../src/')
+sys.path.append('../ingrid/')
 
 from ingrid import Ingrid  # noqa: E402
 

@@ -1,0 +1,528 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ingrid.utils package &mdash; ingrid  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="ingrid.topologies package" href="ingrid.topologies.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ingrid
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="ingrid.html">ingrid package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ingrid.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ingrid.gui.html">ingrid.gui package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ingrid.topologies.html">ingrid.topologies package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ingrid.utils package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ingrid.utils.ingrid_utils">ingrid.utils.ingrid_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ingrid.utils.topology_utils">ingrid.utils.topology_utils module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html#module-ingrid.ImportEqFiles">ingrid.ImportEqFiles module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html#module-ingrid.OMFITgeqdsk">ingrid.OMFITgeqdsk module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html#ingrid-root-finder-module">ingrid.Root_Finder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html#ingrid-geometry-module">ingrid.geometry module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html#module-ingrid.ingrid">ingrid.ingrid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html#module-ingrid.interpol">ingrid.interpol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html#module-ingrid.line_tracing">ingrid.line_tracing module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ingrid</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="ingrid.html">ingrid package</a> &raquo;</li>
+        
+      <li>ingrid.utils package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ingrid.utils.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-ingrid.utils">
+<span id="ingrid-utils-package"></span><h1>ingrid.utils package<a class="headerlink" href="#module-ingrid.utils" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ingrid.utils.ingrid_utils">
+<span id="ingrid-utils-ingrid-utils-module"></span><h2>ingrid.utils.ingrid_utils module<a class="headerlink" href="#module-ingrid.utils.ingrid_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils">
+<em class="property">class </em><code class="sig-prename descclassname">ingrid.utils.ingrid_utils.</code><code class="sig-name descname">IngridUtils</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">{}</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.CheckOverlapCells">
+<em class="property">classmethod </em><code class="sig-name descname">CheckOverlapCells</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.CheckOverlapCells" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.CheckPatches">
+<code class="sig-name descname">CheckPatches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.CheckPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.ClassifyTopology">
+<code class="sig-name descname">ClassifyTopology</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">visual</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.ClassifyTopology" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.FindMagAxis">
+<code class="sig-name descname">FindMagAxis</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.FindMagAxis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.FindXPoint">
+<code class="sig-name descname">FindXPoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.FindXPoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.FindXPoint2">
+<code class="sig-name descname">FindXPoint2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.FindXPoint2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.GetPatchTagMap">
+<code class="sig-name descname">GetPatchTagMap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.GetPatchTagMap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.OMFIT_read_psi">
+<code class="sig-name descname">OMFIT_read_psi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.OMFIT_read_psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Python class to read the psi data in from an ascii file.
+Saves the boundary information and generated efit_data instance
+&#64;author: watkins35</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.OrderLimiter">
+<code class="sig-name descname">OrderLimiter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.OrderLimiter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures limiter geometry is oriented clockwise around magnetic axis</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.OrderTargetPlate">
+<code class="sig-name descname">OrderTargetPlate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">plate_key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.OrderTargetPlate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures the target plate points are oriented clockwise around the
+magnetic axis.</p>
+<p>&#64;author: garcia299</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.OrderTargetPlates">
+<code class="sig-name descname">OrderTargetPlates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.OrderTargetPlates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.ParseFileCoordinates">
+<code class="sig-name descname">ParseFileCoordinates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fpath</span></em>, <em class="sig-param"><span class="n">rshift</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">zshift</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.ParseFileCoordinates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.PrepGridue">
+<code class="sig-name descname">PrepGridue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.PrepGridue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.PrepLineTracing">
+<code class="sig-name descname">PrepLineTracing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">interactive</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.PrepLineTracing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the line tracing class for the construction
+of the grid.
+Parameter:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>refresh : boolean</p></li>
+</ul>
+<p>Re-initialize the LineTracing class.</p>
+</div></blockquote>
+<p>&#64;author: watkins35, garcia299</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.ProcessKeywords">
+<code class="sig-name descname">ProcessKeywords</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.ProcessKeywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.ReconstructPatches">
+<code class="sig-name descname">ReconstructPatches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.ReconstructPatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconstruct a patch from Patch.as_np() formatted npy file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.SetDefaultParams">
+<code class="sig-name descname">SetDefaultParams</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.SetDefaultParams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.SetLimiter">
+<code class="sig-name descname">SetLimiter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coordinates</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fpath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rshift</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">zshift</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.SetLimiter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.SetTargetPlate">
+<code class="sig-name descname">SetTargetPlate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span></em>, <em class="sig-param"><span class="n">rshift</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">zshift</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.SetTargetPlate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.SetTargetPlates">
+<code class="sig-name descname">SetTargetPlates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.SetTargetPlates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.WriteGridueDNL">
+<code class="sig-name descname">WriteGridueDNL</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gridue_settings</span></em>, <em class="sig-param"><span class="n">fname</span><span class="o">=</span><span class="default_value">'gridue'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.WriteGridueDNL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.WriteGridueSNL">
+<code class="sig-name descname">WriteGridueSNL</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gridue_settings</span></em>, <em class="sig-param"><span class="n">fname</span><span class="o">=</span><span class="default_value">'gridue'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.WriteGridueSNL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.calc_efit_derivs">
+<code class="sig-name descname">calc_efit_derivs</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.calc_efit_derivs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the partial derivatives using finite differences
+for the un</p>
+<p>Wrapper for the member function in the EfitData class.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.find_psi_lines">
+<code class="sig-name descname">find_psi_lines</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tk_controller</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.find_psi_lines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.find_roots">
+<code class="sig-name descname">find_roots</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tk_controller</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.find_roots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays a plot, and has the user click on an approximate
+zero point. Uses a root finder to adjust to the more exact point.
+Right click to disable.
+Parameter:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>tk_controller : Tk object</p></li>
+</ul>
+<p>A reference to the root TK object (for usage in gui mode).</p>
+</div></blockquote>
+<p>&#64;author: watkins35, garcia299</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.get_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.process_yaml">
+<code class="sig-name descname">process_yaml</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.process_yaml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the contents of a YAML dump (dictionary object).
+Parameter:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>settings : dict</p></li>
+</ul>
+<p>Dictionary object conforming to INGRID YAML requirements.</p>
+</div></blockquote>
+<p>&#64;author: garcia299</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.ingrid_utils.IngridUtils.toggle_root_finder">
+<code class="sig-name descname">toggle_root_finder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.ingrid_utils.IngridUtils.toggle_root_finder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Activates or deactivates the root finder ability. Enables
+the user to save the location where they last clicked.
+&#64;author: watkins35</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ingrid.utils.topology_utils">
+<span id="ingrid-utils-topology-utils-module"></span><h2>ingrid.utils.topology_utils module<a class="headerlink" href="#module-ingrid.utils.topology_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="ingrid.utils.topology_utils.Topology">
+<em class="property">class </em><code class="sig-prename descclassname">ingrid.utils.topology_utils.</code><code class="sig-name descname">Topology</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ingrid_obj</span></em>, <em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.AdjustGrid">
+<code class="sig-name descname">AdjustGrid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.AdjustGrid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.CheckFunction">
+<code class="sig-name descname">CheckFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Str</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.CheckFunction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.CheckPatches">
+<code class="sig-name descname">CheckPatches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.CheckPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.GetBoundaryPoints">
+<code class="sig-name descname">GetBoundaryPoints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">AdjacentPatch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.GetBoundaryPoints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.GetCorrectDistortionSettings">
+<code class="sig-name descname">GetCorrectDistortionSettings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.GetCorrectDistortionSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.GetFunctions">
+<code class="sig-name descname">GetFunctions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Patch</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.GetFunctions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.GetNpoints">
+<code class="sig-name descname">GetNpoints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.GetNpoints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.OrderPatches">
+<code class="sig-name descname">OrderPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.OrderPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.RefreshSettings">
+<code class="sig-name descname">RefreshSettings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.RefreshSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.SetPatchBoundaryPoints">
+<code class="sig-name descname">SetPatchBoundaryPoints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.SetPatchBoundaryPoints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.SetupPatchMatrix">
+<code class="sig-name descname">SetupPatchMatrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.SetupPatchMatrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.add_guardc">
+<code class="sig-name descname">add_guardc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cell_map</span></em>, <em class="sig-param"><span class="n">ixlb</span></em>, <em class="sig-param"><span class="n">ixrb</span></em>, <em class="sig-param"><span class="n">nxpt</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.add_guardc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.animate_grid">
+<code class="sig-name descname">animate_grid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.animate_grid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.concat_grid">
+<code class="sig-name descname">concat_grid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.concat_grid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.construct_grid">
+<code class="sig-name descname">construct_grid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">np_cells</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">nr_cells</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ShowVertices</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">RestartScratch</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">OptionTrace</span><span class="o">=</span><span class="default_value">'theta'</span></em>, <em class="sig-param"><span class="n">ExtraSettings</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">ListPatches</span><span class="o">=</span><span class="default_value">'all'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.construct_grid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string indicating whether the</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.get_func">
+<code class="sig-name descname">get_func</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">_func</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.get_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.grid_diagram">
+<code class="sig-name descname">grid_diagram</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.grid_diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create Grid matplotlib figure for an SNL object.
+&#64;author: watkins35, garcia299</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.utils.topology_utils.Topology.patch_diagram">
+<code class="sig-name descname">patch_diagram</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fig</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ingrid.utils.topology_utils.Topology.patch_diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the patch diagram for a given configuration.
+&#64;author: watkins35, garcia299</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="ingrid.topologies.html" class="btn btn-neutral float-left" title="ingrid.topologies package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Bryan Garcia, Jerome Guterl, Joey Watkins
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

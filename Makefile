@@ -3,7 +3,7 @@
 #=============================================#
 
 all:
-	cd src; make; cd -
+	cd ingrid; make; cd -
 
 clean:
-	cd src; make clean; cd -
+	cd ingrid; make clean; cd -

@@ -8,7 +8,7 @@ CL_startup
 """
 
 import sys
-sys.path.append('../src/')
+sys.path.append('../ingrid/')
 from ingrid import Ingrid
 import pathlib
 import numpy as np
@@ -69,4 +69,4 @@ if __name__ == '__main__':
     GridDemo.CreateSubgrid(NewFig=True)
     # Export gridue file.
     fname = 'gridue'
-    GridDemo.export(fname=fname)
+    GridDemo.ExportGridue(fname=fname)

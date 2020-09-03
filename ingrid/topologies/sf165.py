@@ -86,13 +86,13 @@ class SF165(Topology):
         except KeyError:
             verbose = False
         try:
-            west_tilt = self.settings['grid_settings']['patch_generation']['west_tilt']
+            tilt_1 = self.settings['grid_settings']['patch_generation']['tilt_1']
         except KeyError:
-            west_tilt = 0.0
+            tilt_1 = 0.0
         try:
-            east_tilt = self.settings['grid_settings']['patch_generation']['east_tilt']
+            tilt_2 = self.settings['grid_settings']['patch_generation']['tilt_2']
         except KeyError:
-            east_tilt = 0.0
+            tilt_2 = 0.0
 
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         xpt2 = self.LineTracer.NSEW_lookup['xpt2']['coor']
@@ -122,14 +122,14 @@ class SF165(Topology):
             EastPlate2 = Line([Point(i) for i in self.plate_E2])
 
         # Generate Horizontal Mid-Plane lines
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(west_tilt), magx[1] - 1e6 * np.sin(west_tilt))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(west_tilt), magx[1] + 1e6 * np.sin(west_tilt))
-        west_midLine = Line([LHS_Point, RHS_Point])
-        west_midLine.plot()
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_1), magx[1] - 1e6 * np.sin(tilt_1))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_1), magx[1] + 1e6 * np.sin(tilt_1))
+        midline_1 = Line([LHS_Point, RHS_Point])
+        midline_1.plot()
 
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(east_tilt), magx[1] - 1e6 * np.sin(east_tilt))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(east_tilt), magx[1] + 1e6 * np.sin(east_tilt))
-        east_midLine = Line([LHS_Point, RHS_Point])
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_2), magx[1] - 1e6 * np.sin(tilt_2))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_2), magx[1] + 1e6 * np.sin(tilt_2))
+        midline_2 = Line([LHS_Point, RHS_Point])
         # outer_midLine.plot()
 
         # Generate Vertical Mid-Plane line
@@ -140,18 +140,18 @@ class SF165(Topology):
         E1_E = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core}, option='rho', direction='cw', show_plot=visual, text=verbose)
         H1_W = E1_E.reverse_copy()
 
-        E1_S = self.LineTracer.draw_line(E1_E.p[-1], {'line': east_midLine}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+        E1_S = self.LineTracer.draw_line(E1_E.p[-1], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
         D1_S = self.LineTracer.draw_line(E1_S.p[-1], {'line': topLine}, option='theta', direction='ccw', show_plot=visual, text=verbose)
 
-        B1_S__H1_S = self.LineTracer.draw_line(E1_E.p[-1], {'line': west_midLine}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+        B1_S__H1_S = self.LineTracer.draw_line(E1_E.p[-1], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
         C1_S = self.LineTracer.draw_line(B1_S__H1_S.p[0], {'line': topLine}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
 
-        H1_N__B1_N = self.LineTracer.draw_line(xpt1['NW'], {'line': west_midLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        H1_N__B1_N = self.LineTracer.draw_line(xpt1['NW'], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose)
 
         C1_N = self.LineTracer.draw_line(H1_N__B1_N.p[-1], {'line': topLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
         C2_S = C1_N.reverse_copy()
 
-        E2_S = self.LineTracer.draw_line(xpt1['NE'], {'line': east_midLine}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+        E2_S = self.LineTracer.draw_line(xpt1['NE'], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
         E1_N = E2_S.reverse_copy()
 
         D2_S = self.LineTracer.draw_line(E2_S.p[-1], {'line': topLine}, option='theta', direction='ccw', show_plot=visual, text=verbose)
@@ -173,20 +173,20 @@ class SF165(Topology):
         A3_E = B3_W.reverse_copy()
 
         A3_N = self.LineTracer.draw_line(B3_W.p[-1], {'line': WestPlate2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
-        B3_N = self.LineTracer.draw_line(A3_N.p[-1], {'line': west_midLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        B3_N = self.LineTracer.draw_line(A3_N.p[-1], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose)
         C3_N = self.LineTracer.draw_line(B3_N.p[-1], {'line': topLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
 
         F3_N = self.LineTracer.draw_line(F2_W__F3_W.p[-1], {'line': EastPlate1}, option='theta', direction='cw', show_plot=visual, text=verbose)
-        E3_N = self.LineTracer.draw_line(F3_N.p[0], {'line': east_midLine}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+        E3_N = self.LineTracer.draw_line(F3_N.p[0], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         D3_N = self.LineTracer.draw_line(E3_N.p[0], {'line': topLine}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
 
-        B2_N = self.LineTracer.draw_line(xpt2['NW'], {'line': west_midLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        B2_N = self.LineTracer.draw_line(xpt2['NW'], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose)
         B3_S = B2_N.reverse_copy()
 
         C2_N = self.LineTracer.draw_line(B2_N.p[-1], {'line': topLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
         C3_S = C2_N.reverse_copy()
 
-        D2_N = self.LineTracer.draw_line(C2_N.p[-1], {'line': east_midLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        D2_N = self.LineTracer.draw_line(C2_N.p[-1], {'line': midline_2}, option='theta', direction='cw', show_plot=visual, text=verbose)
         D3_S = D2_N.reverse_copy()
 
         E2_N = self.LineTracer.draw_line(D2_N.p[-1], {'line': F2_W__F3_W}, option='theta', direction='cw', show_plot=visual, text=verbose)
@@ -248,14 +248,14 @@ class SF165(Topology):
         I3_S = self.LineTracer.draw_line(xpt2['SE'], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
         I2_N = I3_S.reverse_copy()
 
-        B3_E = self.LineTracer.draw_line(B3_N.p[-1], {'psi_horizontal': (psi_separatrix_2, west_tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        B3_E = self.LineTracer.draw_line(B3_N.p[-1], {'psi_horizontal': (psi_separatrix_2, tilt_1)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
 
         C3_W = B3_E.reverse_copy()
 
-        B2_E = self.LineTracer.draw_line(B3_E.p[-1], {'psi_horizontal': (1.0, west_tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        B2_E = self.LineTracer.draw_line(B3_E.p[-1], {'psi_horizontal': (1.0, tilt_1)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
         C2_W = B2_E.reverse_copy()
 
-        B1_E = self.LineTracer.draw_line(B2_E.p[-1], {'psi_horizontal': (psi_core, west_tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        B1_E = self.LineTracer.draw_line(B2_E.p[-1], {'psi_horizontal': (psi_core, tilt_1)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
         C1_W = B1_E.reverse_copy()
 
         C3_E = self.LineTracer.draw_line(C3_N.p[-1], {'psi_vertical': psi_separatrix_2}, option='r_const', direction='ccw', show_plot=visual, text=verbose)
@@ -267,13 +267,13 @@ class SF165(Topology):
         C1_E = self.LineTracer.draw_line(C1_N.p[-1], {'psi_vertical': psi_core}, option='r_const', direction='ccw', show_plot=visual, text=verbose)
         D1_W = C1_E.reverse_copy()
 
-        D3_E = self.LineTracer.draw_line(D3_N.p[-1], {'psi_horizontal': (psi_separatrix_2, east_tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        D3_E = self.LineTracer.draw_line(D3_N.p[-1], {'psi_horizontal': (psi_separatrix_2, tilt_2)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
         E3_W = D3_E.reverse_copy()
 
-        D2_E = self.LineTracer.draw_line(D3_E.p[-1], {'psi_horizontal': (1.0, east_tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        D2_E = self.LineTracer.draw_line(D3_E.p[-1], {'psi_horizontal': (1.0, tilt_2)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
         E2_W = D2_E.reverse_copy()
 
-        D1_E = self.LineTracer.draw_line(D2_E.p[-1], {'psi_horizontal': (psi_core, east_tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        D1_E = self.LineTracer.draw_line(D2_E.p[-1], {'psi_horizontal': (psi_core, tilt_2)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
         E1_W = D1_E.reverse_copy()
 
         A1_W = trim_geometry(WestPlate2, A1_S.p[-1], A1_N.p[0])

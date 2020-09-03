@@ -51,7 +51,7 @@ class IngridGUI(tk.Tk):
 
         # attached to the parent Ingrid instance instead of new instance
         if IngridSession is None:
-            self.ResetIngrid()
+            self.NewIG()
         else:
             self.Ingrid = IngridSession
 
@@ -184,7 +184,6 @@ class FilePicker(tk.Tk):
             pass
         elif fpath.is_file() and fpath.suffix in ['.yml', '.yaml']:
             self.ParamFileEntry_String.set(f'Loaded: "../{fpath.name}"')
-            self.controller.NewIG()
             self.ProcessParameterFile(fname)
             self.ReadyIngridData()
         else:
@@ -203,18 +202,12 @@ class FilePicker(tk.Tk):
             IG.AutoRefineXPoint2()
         IG.SetGeometry({'limiter': IG.settings['limiter']})
         IG.SetTargetPlates()
-        IG.SetMagReference(topology)
+        IG.SetMagReference()
         IG.CalcPsiNorm()
 
     def PreviewIngridData(self):
         IG = self.Ingrid
-        IG.CloseOpenPlots()
-        IG.PlotPsiNorm()
-        IG.PlotPsiNormMagReference()
-        IG.PlotStrikeGeometry()
-        IG.PlotPsiNormBounds()
-        IG.PlotMidplane()
-        IG.PrintSummaryParams()
+        IG.ShowSetup()
 
     def AnalyzeTopology(self):
         IG = self.Ingrid

@@ -1,11 +1,6 @@
 ingrid package
 ==============
 
-.. automodule:: ingrid
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Subpackages
 -----------
 
@@ -18,6 +13,22 @@ Subpackages
 
 Submodules
 ----------
+
+ingrid.ingrid module
+--------------------
+
+.. automodule:: ingrid.ingrid
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ingrid.interpol module
+----------------------
+
+.. automodule:: ingrid.interpol
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 ingrid.ImportEqFiles module
 ---------------------------
@@ -47,22 +58,6 @@ ingrid.geometry module
 ----------------------
 
 .. automodule:: ingrid.geometry
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ingrid.ingrid module
---------------------
-
-.. automodule:: ingrid.ingrid
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-ingrid.interpol module
-----------------------
-
-.. automodule:: ingrid.interpol
    :members:
    :undoc-members:
    :show-inheritance:

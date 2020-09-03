@@ -1,4 +1,4 @@
-ingrid
+INGRID
 ======
 
 .. toctree::

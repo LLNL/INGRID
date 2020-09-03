@@ -61,25 +61,30 @@ class Topology():
         # ax.legend()
         f.show()
 
-    def grid_diagram(self, ax=None):
+    def grid_diagram(self, fig=None, ax=None):
         """
         Create Grid matplotlib figure for an SNL object.
         @author: watkins35, garcia299
         """
-        fig = plt.figure('INGRID Grid', figsize=(6, 10))
+        if fig is None:
+            fig = plt.figure('INGRID Grid', figsize=(6, 10))
+
         if ax is None:
             ax = fig.gca()
-        for patch in self.patches:
-            patch.plot_subgrid(ax)
-            print('patch completed...')
 
-        plt.xlim(self.PsiUNorm.rmin, self.PsiUNorm.rmax)
-        plt.ylim(self.PsiUNorm.zmin, self.PsiUNorm.zmax)
-        plt.gca().set_aspect('equal', adjustable='box')
-        plt.xlabel('R')
-        plt.ylabel('Z')
-        plt.title(f'{self.config} Subgrid')
-        plt.show()
+        ax.set_xlim(self.PsiUNorm.rmin, self.PsiUNorm.rmax)
+        ax.set_ylim(self.PsiUNorm.zmin, self.PsiUNorm.zmax)
+        ax.set_aspect('equal', adjustable='box')
+
+        ax.set_xlabel('R')
+        ax.set_ylabel('Z')
+        ax.set_title(f'{self.config} Subgrid')
+
+        for patch in self.patches.values():
+            patch.plot_subgrid(ax=ax)
+            print(f'# Plotting subgrid {patch.patchName}')
+
+        fig.show()
 
     def animate_grid(self):
 
@@ -245,9 +250,6 @@ class Topology():
 
                 self.AdjustGrid(patch)
                 self.CurrentListPatch[name] = patch
-
-        for patch in self.patches.values():
-            patch.plot_subgrid()
 
     def AdjustGrid(self, patch):
 

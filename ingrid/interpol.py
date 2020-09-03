@@ -464,14 +464,14 @@ class EfitData:
         self.ax = ax if ax is not None else self.fig.add_subplot(111)
         self.ax.contourf(self.r, self.z, self.v, lev, cmap='gist_gray')
         self.ax.set_aspect('equal', adjustable='box')
-        plt.suptitle(self.name)
-        plt.xlabel('R')
-        plt.ylabel('Z')
-        plt.xlim(self.rmin, self.rmax)
-        plt.ylim(self.zmin, self.zmax)
+        self.ax.set_title(f'{self.name}')
+        self.ax.set_xlabel('R')
+        self.ax.set_ylabel('Z')
+        self.ax.set_xlim(self.rmin, self.rmax)
+        self.ax.set_ylim(self.zmin, self.zmax)
         if interactive:
             plt.ion()
-        plt.show()
+        fig.show()
 
     def clear_plot(self):
         if plt.get_fignums():

@@ -915,6 +915,18 @@ class Ingrid(IngridUtils):
         self.CurrentTopology.patch_diagram(fig=self._PatchFig, ax=self.PatchAx)
         self.PlotStrikeGeometry(ax=self.PatchAx)
 
+    def PlotSubgrid(self) -> None:
+        """
+        Plot the grid that was generated with method 'CreateSubgrid'.
+        """
+        try:
+            plt.close(self._SubgridFig)
+        except:
+            pass
+        self._SubgridFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Grid', figsize=(6, 10))
+        self._SubgridAx = self._SubgridFig.add_subplot(111)
+        self.CurrentTopology.grid_diagram(fig=self._SubgridFig, ax=self._SubgridAx)
+
     def AutoRefineMagAxis(self) -> None:
         """
         Refine magnetic axis RZ coordinates.
@@ -973,7 +985,7 @@ class Ingrid(IngridUtils):
         self.PsiNorm.set_v(psinorm)
         self.PsiNorm.Calculate_PDeriv()
 
-        self._PsiNormFig = plt.figure(self.PsiNorm.name, figsize=(6, 10))
+        self._PsiNormFig = plt.figure('INGRID: ' + self.PsiNorm.name, figsize=(6, 10))
         self.PsiNormAx = self._PsiNormFig.add_subplot(111)
 
     def AnalyzeTopology(self) -> None:
@@ -1200,23 +1212,6 @@ class Ingrid(IngridUtils):
             the particular patch.
 
         """
-
-        if NewFig:
-            try:
-                plt.close(self._GridFig)
-            except:
-                pass
-            self._GridFig = plt.figure(f'INGRID: {self.CurrentTopology.config} Grid', figsize=(6, 10))
-            ax = self._GridFig.gca()
-            ax.set_xlim([self.PsiUNorm.rmin, self.PsiUNorm.rmax])
-            ax.set_ylim([self.PsiUNorm.zmin, self.PsiUNorm.zmax])
-            ax.set_aspect('equal', adjustable='box')
-
-            ax.set_xlabel('R')
-            ax.set_ylabel('Z')
-            ax.set_title(f'{self.CurrentTopology.config} Grid Diagram')
-            ax.set_aspect('equal', adjustable='box')
-
         self.CurrentTopology.construct_grid()
 
     def ExportGridue(self, fname: str = 'gridue') -> None:

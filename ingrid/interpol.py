@@ -91,20 +91,28 @@ class EfitData:
     cylindrical coordinates, where R and Z are similar to the cartesian
     x and y. The phi components goes away due to the symmetry of a
     tokamak.
+
+
     Parameters
     ----------
     rmin : float, optional
         left boundary of the grid
+
     rmax : float, optional
         right boundary
+
     nr : int, optional
         number of grid points in the R direction
+
     zmin : float, optional
         bottom boundary for the grid
+
     zmax : float, optional
         top boundary
+
     nz : int, optional
         number of grid points in the Z direction
+
     name : str, optional
         Specify the title of the figure the data will be plotted on.
     """
@@ -442,7 +450,7 @@ class EfitData:
             #self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=False, fontsize=10, fmt='%1.9f')
             self.psi_levels[label].collections[0].set_label(label)
 
-    def plot_data(self, nlev=30, interactive=True):
+    def plot_data(self, nlevs=30, interactive=True, fig=None, ax=None):
         """ generates the plot that we will be able to manipulate
         using the root finder
         Parameters
@@ -451,11 +459,11 @@ class EfitData:
             number of levels we want to be plotted
         """
         lev = (self.v.min() + (self.v.max()
-               - self.v.min()) * np.arange(nlev) / (nlev - 1))
-        self.fig = plt.figure('INGRID: ' + self.name, figsize=(6, 10))
-        self.ax = self.fig.add_subplot(111)
+                - self.v.min()) * np.arange(nlevs) / (nlevs - 1))
+        self.fig = fig if fig is not None else plt.figure('INGRID: ' + self.name, figsize=(6, 10))
+        self.ax = ax if ax is not None else self.fig.add_subplot(111)
         self.ax.contourf(self.r, self.z, self.v, lev, cmap='gist_gray')
-        plt.gca().set_aspect('equal', adjustable='box')
+        self.ax.set_aspect('equal', adjustable='box')
         plt.suptitle(self.name)
         plt.xlabel('R')
         plt.ylabel('Z')

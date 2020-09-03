@@ -21,9 +21,9 @@
 #                         used for patch bounds.
 #          zmagx_shift - (double) Translate the z-coordinate of the magnetic axis
 #                         for the patch bounds.
-#          west_tilt - (double) RADIAN value to tilt the inner horizontal-line patch
+#          tilt_1 - (double) RADIAN value to tilt the inner horizontal-line patch
 #                        boundary that intersects the magnetic-axis
-#          east_tilt - (double) RADIAN value to tilt the outer horizontal-line patch
+#          tilt_2 - (double) RADIAN value to tilt the outer horizontal-line patch
 #                        boundary that intersects the magnetic-axis
 #          use_NW - (bool/logical-int) Trace linearly from primary-xpt in the 'NW' direction 
 #                    rather than tracing 'W' in rho.
@@ -200,8 +200,8 @@ grid_settings:
     patch_generation:
         NE_adjust: 0.0
         NW_adjust: 0.0
-        west_tilt: -0.7
-        east_tilt: -0.7
+        tilt_1: -0.7
+        tilt_2: -0.7
         rmagx_shift: 0.0
         secondary_NE_adjust: 0.0
         secondary_NW_adjust: 0.0

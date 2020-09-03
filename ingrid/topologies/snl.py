@@ -98,13 +98,13 @@ class SNL(Topology):
         except KeyError:
             verbose = False
         try:
-            west_tilt = self.settings['grid_settings']['patch_generation']['west_tilt']
+            tilt_1 = self.settings['grid_settings']['patch_generation']['tilt_1']
         except KeyError:
-            west_tilt = 0.0
+            tilt_1 = 0.0
         try:
-            east_tilt = self.settings['grid_settings']['patch_generation']['east_tilt']
+            tilt_2 = self.settings['grid_settings']['patch_generation']['tilt_2']
         except KeyError:
-            east_tilt = 0.0
+            tilt_2 = 0.0
 
         self.RefreshSettings()
 
@@ -125,13 +125,13 @@ class SNL(Topology):
         psi_pf_1 = self.settings['grid_settings']['psi_pf_1']
 
         # Generate Horizontal Mid-Plane lines
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(west_tilt), magx[1] - 1e6 * np.sin(west_tilt))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(west_tilt), magx[1] + 1e6 * np.sin(west_tilt))
-        west_midLine = Line([LHS_Point, RHS_Point])
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_1), magx[1] - 1e6 * np.sin(tilt_1))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_1), magx[1] + 1e6 * np.sin(tilt_1))
+        midline_1 = Line([LHS_Point, RHS_Point])
 
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(east_tilt), magx[1] - 1e6 * np.sin(east_tilt))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(east_tilt), magx[1] + 1e6 * np.sin(east_tilt))
-        east_midLine = Line([LHS_Point, RHS_Point])
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_2), magx[1] - 1e6 * np.sin(tilt_2))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_2), magx[1] + 1e6 * np.sin(tilt_2))
+        midline_2 = Line([LHS_Point, RHS_Point])
 
         # Generate Vertical Mid-Plane line
         Lower_Point = Point(magx[0], magx[1] - 1e6)
@@ -140,14 +140,14 @@ class SNL(Topology):
 
         # If USN, we swap east and west lines
         if self.config == 'USN':
-            temp = west_midLine.copy()
-            west_midLine = east_midLine
-            east_midLine = temp
+            temp = midline_1.copy()
+            midline_1 = midline_2
+            midline_2 = temp
 
         # Drawing Separatrix
-        xptNW_midLine = self.LineTracer.draw_line(xpt['NW'], {'line': west_midLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        xptNW_midLine = self.LineTracer.draw_line(xpt['NW'], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose)
         xptN_psiMinCore = self.LineTracer.draw_line(xpt['N'], {'psi': psi_core}, option='rho', direction='cw', show_plot=visual, text=verbose)
-        xptNE_midLine = self.LineTracer.draw_line(xpt['NE'], {'line': east_midLine}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+        xptNE_midLine = self.LineTracer.draw_line(xpt['NE'], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
 
         # Drawing Lower-SNL region
         if self.settings['grid_settings']['patch_generation']['use_NW']:
@@ -178,13 +178,13 @@ class SNL(Topology):
 
         # Integrating horizontally along mid-line towards psiMax and psiMinCore
 
-        imidLine_psiMax = self.LineTracer.draw_line(xptNW_midLine.p[-1], {'psi_horizontal': (psi_max, west_tilt)}, option='z_const',
+        imidLine_psiMax = self.LineTracer.draw_line(xptNW_midLine.p[-1], {'psi_horizontal': (psi_max, tilt_1)}, option='z_const',
                 direction='ccw' if self.config == 'LSN' else 'cw', show_plot=visual, text=verbose)
-        imidLine_psiMinCore = self.LineTracer.draw_line(xptNW_midLine.p[-1], {'psi_horizontal': (psi_core, west_tilt)}, option='z_const',
+        imidLine_psiMinCore = self.LineTracer.draw_line(xptNW_midLine.p[-1], {'psi_horizontal': (psi_core, tilt_1)}, option='z_const',
                 direction='cw' if self.config == 'LSN' else 'ccw', show_plot=visual, text=verbose)
-        omidLine_psiMax = self.LineTracer.draw_line(xptNE_midLine.p[-1], {'psi_horizontal': (psi_max, east_tilt)}, option='z_const',
+        omidLine_psiMax = self.LineTracer.draw_line(xptNE_midLine.p[-1], {'psi_horizontal': (psi_max, tilt_2)}, option='z_const',
                 direction='cw' if self.config == 'LSN' else 'ccw', show_plot=visual, text=verbose)
-        omidLine_psiMinCore = self.LineTracer.draw_line(xptNE_midLine.p[-1], {'psi_horizontal': (psi_core, east_tilt)}, option='z_const',
+        omidLine_psiMinCore = self.LineTracer.draw_line(xptNE_midLine.p[-1], {'psi_horizontal': (psi_core, tilt_2)}, option='z_const',
                 direction='ccw' if self.config == 'LSN' else 'cw', show_plot=visual, text=verbose)
 
         # Integrating vertically along top-line towards psiMax and psiMinCore
@@ -225,7 +225,7 @@ class SNL(Topology):
 
         # B2 Patch
 
-        B2_N = self.LineTracer.draw_line(A2_N.p[-1], {'line': west_midLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        B2_N = self.LineTracer.draw_line(A2_N.p[-1], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose)
         B2_S = xptNW_midLine.reverse_copy()
         B2_E = Line([B2_N.p[-1], B2_S.p[0]])
         B2_W = xptW_psiMax
@@ -233,7 +233,7 @@ class SNL(Topology):
 
         # B1 Patch
         B1_N = B2_S.reverse_copy()
-        B1_S = self.LineTracer.draw_line(xptN_psiMinCore.p[-1], {'line': west_midLine}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+        B1_S = self.LineTracer.draw_line(xptN_psiMinCore.p[-1], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
         B1_E = Line([B1_N.p[-1], B1_S.p[0]])
         B1_W = xptN_psiMinCore.reverse_copy()
         B1 = Patch([B1_N, B1_E, B1_S, B1_W], patchName='ICB' if self.config == 'LSN' else 'OCB')
@@ -271,7 +271,7 @@ class SNL(Topology):
             platePatch=True, plateLocation=location)
 
         # E2 Patch
-        E2_N = self.LineTracer.draw_line(F2_N.p[0], {'line': east_midLine}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+        E2_N = self.LineTracer.draw_line(F2_N.p[0], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         E2_S = xptNE_midLine
         E2_E = xptE_psiMax.reverse_copy()
         E2_W = Line([E2_S.p[-1], E2_N.p[0]])
@@ -279,7 +279,7 @@ class SNL(Topology):
 
         # E1 Patch
         E1_N = E2_S.reverse_copy()
-        E1_S = self.LineTracer.draw_line(xptN_psiMinCore.p[-1], {'line': east_midLine}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+        E1_S = self.LineTracer.draw_line(xptN_psiMinCore.p[-1], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
         E1_E = xptN_psiMinCore
         E1_W = Line([E1_S.p[-1], E1_N.p[0]])
         E1 = Patch([E1_N, E1_E, E1_S, E1_W], patchName='OCB' if self.config == 'LSN' else 'ICB')

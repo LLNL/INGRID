@@ -35,11 +35,16 @@ class IngridUtils():
             'DEBUG'
         ]
         self.GeometryAx = {
+            'magx': None,
+            'xpt1': None,
+            'xpt2': None,
             'plate_W1': None,
             'plate_E1': None,
             'plate_W2': None,
             'plate_E2': None,
-            'limiter': None
+            'limiter': None,
+            'midline_1': None,
+            'midline_2': None
         }
         self.SetDefaultParams()
         self.process_yaml(settings)
@@ -75,8 +80,8 @@ class IngridUtils():
             'patch_generation': {
                 'rmagx_shift': 0.0,
                 'zmagx_shift': 0.0,
-                'west_tilt': 0.0,
-                'east_tilt': 0.0,
+                'tilt_1': 0.0,
+                'tilt_2': 0.0,
                 'use_NW': False,
                 'use_NE': False,
                 'use_secondary_NW': False,

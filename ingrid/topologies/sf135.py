@@ -86,13 +86,13 @@ class SF135(Topology):
         except KeyError:
             verbose = False
         try:
-            west_tilt = self.settings['grid_settings']['patch_generation']['west_tilt']
+            tilt_1 = self.settings['grid_settings']['patch_generation']['tilt_1']
         except KeyError:
-            west_tilt = 0.0
+            tilt_1 = 0.0
         try:
-            east_tilt = self.settings['grid_settings']['patch_generation']['east_tilt']
+            tilt_2 = self.settings['grid_settings']['patch_generation']['tilt_2']
         except KeyError:
-            east_tilt = 0.0
+            tilt_2 = 0.0
 
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         xpt2 = self.LineTracer.NSEW_lookup['xpt2']['coor']
@@ -122,14 +122,14 @@ class SF135(Topology):
             EastPlate2 = Line([Point(i) for i in self.plate_E2])
 
         # Generate Horizontal Mid-Plane lines
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(west_tilt), magx[1] - 1e6 * np.sin(west_tilt))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(west_tilt), magx[1] + 1e6 * np.sin(west_tilt))
-        west_midLine = Line([LHS_Point, RHS_Point])
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_1), magx[1] - 1e6 * np.sin(tilt_1))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_1), magx[1] + 1e6 * np.sin(tilt_1))
+        midline_1 = Line([LHS_Point, RHS_Point])
         # inner_midLine.plot()
 
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(east_tilt), magx[1] - 1e6 * np.sin(east_tilt))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(east_tilt), magx[1] + 1e6 * np.sin(east_tilt))
-        east_midLine = Line([LHS_Point, RHS_Point])
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_2), magx[1] - 1e6 * np.sin(tilt_2))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_2), magx[1] + 1e6 * np.sin(tilt_2))
+        midline_2 = Line([LHS_Point, RHS_Point])
         # outer_midLine.plot()
 
         # Generate Vertical Mid-Plane line
@@ -141,11 +141,11 @@ class SF135(Topology):
             show_plot=visual, text=verbose)
         C1_W = F1_E.reverse_copy()
 
-        C1_N = self.LineTracer.draw_line(xpt1['NW'], {'line': west_midLine}, option='theta', direction='cw',
+        C1_N = self.LineTracer.draw_line(xpt1['NW'], {'line': midline_1}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
         C2_S = C1_N.reverse_copy()
 
-        C1_S = self.LineTracer.draw_line(C1_W.p[0], {'line': west_midLine}, option='theta', direction='cw',
+        C1_S = self.LineTracer.draw_line(C1_W.p[0], {'line': midline_1}, option='theta', direction='cw',
             show_plot=visual, text=verbose).reverse_copy()
 
         D1_N = self.LineTracer.draw_line(C1_N.p[-1], {'line': topLine}, option='theta', direction='cw',
@@ -155,11 +155,11 @@ class SF135(Topology):
         D1_S = self.LineTracer.draw_line(C1_S.p[0], {'line': topLine}, option='theta', direction='cw',
             show_plot=visual, text=verbose).reverse_copy()
 
-        F2_S = self.LineTracer.draw_line(xpt1['NE'], {'line': east_midLine}, option='theta', direction='ccw',
+        F2_S = self.LineTracer.draw_line(xpt1['NE'], {'line': midline_2}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
         F1_N = F2_S.reverse_copy()
 
-        F1_S = self.LineTracer.draw_line(F1_E.p[-1], {'line': east_midLine}, option='theta', direction='ccw',
+        F1_S = self.LineTracer.draw_line(F1_E.p[-1], {'line': midline_2}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
         E2_S = self.LineTracer.draw_line(F2_S.p[-1], {'line': topLine}, option='theta', direction='ccw',
@@ -186,14 +186,14 @@ class SF135(Topology):
         H1_S__B1_S = d(B1_E.p[-1], {'line': WestPlate1}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
-        B2_N__C2_N = d(xpt2['NW'], {'line': west_midLine}, option='theta', direction='cw',
+        B2_N__C2_N = d(xpt2['NW'], {'line': midline_1}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
 
         D2_N = d(B2_N__C2_N.p[-1], {'line': topLine}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
         D3_S = D2_N.reverse_copy()
 
-        E2_N = d(D2_N.p[-1], {'line': east_midLine}, option='theta', direction='cw',
+        E2_N = d(D2_N.p[-1], {'line': midline_2}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
         E3_S = E2_N.reverse_copy()
 
@@ -275,7 +275,7 @@ class SF135(Topology):
         A3_N = d(A3_E.p[0], {'line': WestPlate2}, option='theta', direction='ccw',
             show_plot=visual, text=verbose).reverse_copy()
 
-        B3_N__C3_N = d(B3_W.p[-1], {'line': west_midLine}, option='theta', direction='cw',
+        B3_N__C3_N = d(B3_W.p[-1], {'line': midline_1}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
 
         C3_W = d(B2_N.p[-1], {'line': B3_N__C3_N}, option='rho', direction='ccw',
@@ -286,7 +286,7 @@ class SF135(Topology):
 
         D3_N = d(C3_N.p[-1], {'line': topLine}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
-        E3_N = d(D3_N.p[-1], {'line': east_midLine}, option='theta', direction='cw')
+        E3_N = d(D3_N.p[-1], {'line': midline_2}, option='theta', direction='cw')
 
         F3_N__G3_N = d(E3_N.p[-1], {'line': EastPlate1}, option='theta', direction='cw')
 

@@ -244,6 +244,7 @@ class FilePicker(tk.Tk):
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
         IG.CreateSubgrid()
+        IG.PlotSubgrid()
 
     def ExportGridue(self):
         IG = self.Ingrid

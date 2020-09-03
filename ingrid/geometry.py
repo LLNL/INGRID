@@ -431,20 +431,23 @@ class Cell:
 
         self.p = list(N.p) + list(S.p)
 
-    def plot_border(self, color='red'):
-        plt.plot([self.vertices['NW'].x, self.vertices['NE'].x],
+    def plot_border(self, color='red', ax=None):
+        if ax is None:
+            ax = plt.gca()
+
+        ax.plot([self.vertices['NW'].x, self.vertices['NE'].x],
                 [self.vertices['NW'].y, self.vertices['NE'].y],
                 linewidth=1, color=color, label='cell')
 
-        plt.plot([self.vertices['NE'].x, self.vertices['SE'].x],
+        ax.plot([self.vertices['NE'].x, self.vertices['SE'].x],
                 [self.vertices['NE'].y, self.vertices['SE'].y],
                 linewidth=1, color=color, label='cell')
 
-        plt.plot([self.vertices['SE'].x, self.vertices['SW'].x],
+        ax.plot([self.vertices['SE'].x, self.vertices['SW'].x],
                 [self.vertices['SE'].y, self.vertices['SW'].y],
                 linewidth=1, color=color, label='cell')
 
-        plt.plot([self.vertices['SW'].x, self.vertices['NW'].x],
+        ax.plot([self.vertices['SW'].x, self.vertices['NW'].x],
                 [self.vertices['SW'].y, self.vertices['NW'].y],
                 linewidth=1, color=color, label='cell')
 
@@ -574,9 +577,11 @@ class Patch:
         _ax.plot()
 
     def plot_subgrid(self, ax=None, color='blue'):
+        if ax is None:
+            ax = plt.gca()
         for row in self.cell_grid:
             for cell in row:
-                cell.plot_border(color)
+                cell.plot_border(color=color, ax=ax)
         plt.pause(0.1)
 
     def RemoveDuplicatePoints(self):

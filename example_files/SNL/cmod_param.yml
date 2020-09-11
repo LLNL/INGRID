@@ -30,7 +30,7 @@ grid_settings:
     rmagx_shift: 0.0
     secondary_NE_adjust: 0.0
     secondary_NW_adjust: 0.0
-    strike_geometry: limiter
+    strike_geometry: target_plates
     tilt_1: 0.0
     tilt_2: -0.5
     use_NE: true

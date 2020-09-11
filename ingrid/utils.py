@@ -259,6 +259,7 @@ class IngridUtils():
         self.default_limiter_settings = {
             'file': '',
             'use_efit_bounds': False,
+            'efit_bounds_buffer': 1e-2,
             'use_default_data': True,
             'rshift': 0.0,
             'zshift': 0.0
@@ -619,11 +620,12 @@ class IngridUtils():
             use_efit_bounds = True
 
         if use_efit_bounds:
-            coordinates = [(self.PsiUNorm.rmin + 1e-2, self.PsiUNorm.zmin + 1e-2),
-                           (self.PsiUNorm.rmax - 1e-2, self.PsiUNorm.zmin + 1e-2),
-                           (self.PsiUNorm.rmax - 1e-2, self.PsiUNorm.zmax - 1e-2),
-                           (self.PsiUNorm.rmin + 1e-2, self.PsiUNorm.zmax - 1e-2),
-                           (self.PsiUNorm.rmin + 1e-2, self.PsiUNorm.zmin + 1e-2)]
+            buff = self.settings['limiter']['efit_bounds_buffer']
+            coordinates = [(self.PsiUNorm.rmin + buff, self.PsiUNorm.zmin + buff),
+                           (self.PsiUNorm.rmax - buff, self.PsiUNorm.zmin + buff),
+                           (self.PsiUNorm.rmax - buff, self.PsiUNorm.zmax - buff),
+                           (self.PsiUNorm.rmin + buff, self.PsiUNorm.zmax - buff),
+                           (self.PsiUNorm.rmin + buff, self.PsiUNorm.zmin + buff)]
 
             RLIM, ZLIM = [], []
             for c in coordinates:

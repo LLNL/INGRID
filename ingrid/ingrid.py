@@ -229,7 +229,7 @@ class Ingrid(IngridUtils):
         print('Summary:')
         print(' # Number of x-points:', self.settings['grid_settings']['num_xpt'])
         print(' # Use full domain:', self.settings['grid_settings']['full_domain'])
-        print(' # Use limiter:', self.settings['grid_settings']['patch_generation']['strike_geometry'])
+        print(' # Using strike geometry:', self.settings['grid_settings']['patch_generation']['strike_geometry'])
         print(' # Use patch data-file:', self.settings['patch_data']['use_file'])
         print('')
         self.PrintSummaryInput()

@@ -41,6 +41,7 @@ grid_settings:
     use_secondary_NW: false
     zmagx_shift: 0.0
   psi_1: 1.066
+  psi_max_east: 1.066
   psi_core: 0.8
   psi_pf_1: 0.99
   psi_pf_2: 0.0

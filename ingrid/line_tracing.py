@@ -854,14 +854,14 @@ class LineTracing:
                 print('Spent {} '.format(self.time_in_converged)
                       + 'seconds checking convergence.')
 
-            def save_line(x, y):
+            def save_line(x, y, linecolor=color, marker='.-', markersize=1.5):
                 # Plots the current line segments and saves
                 # it for future use
                 # x: list -- r endpoints
                 # y: list -- z endpoints
                 line.append(Point(x[-1], y[-1]))
                 if show_plot:
-                    self.grid.ax.plot(x, y, '.-', linewidth=2, color=color, markersize=1.5)
+                    self.grid.ax.plot(x, y, '.-', linewidth=2, linecolor=color, markersize=1.5)
                     plt.draw()
                     plt.pause(np.finfo(float).eps)
 
@@ -876,14 +876,12 @@ class LineTracing:
             for edge in boundary:
                 p1 = (points[0][0], points[1][0])
                 p2 = (points[0][-1], points[1][-1])
-                result = test2points(p1, p2, edge)
-                if result == True:
-                    print('The line went over the boundary')
-                    if text:
-                        success('edge')
-                    r, z = segment_intersect((p1, p2), edge, text)
-                    save_line([p1[0], r], [p1[1], z])
-                    return True
+                # result = test2points(p1, p2, edge)
+                intersected, segment = segment_intersect((p1, p2), edge, text)
+                if intersected is True:
+                    self.grid.ax.plot(segment[1][0], segment[1][1], marker='s', color='red', markersize=12.5, zorder=20)
+                    self.grid.ax.plot(segment[1][0], segment[1][1], marker='o', color='black', markersize=8, zorder=21)
+                    raise ValueError(f'# LineTracing Error: The line missed the intended target of type "{test}" and intersected the boundary instead.')
 
             # check if any point is close enough to the endpoint
             # this currently works by checking all the intermediate points
@@ -903,10 +901,10 @@ class LineTracing:
                 p1 = (points[0][0], points[1][0])
                 p2 = (points[0][-1], points[1][-1])
 
-                result = test2points(p1, p2, endLine)
+                #result = test2points(p1, p2, endLine)
                 intersected, segment = segment_intersect((p1, p2), endLine, text)
 
-                if result and intersected:
+                if intersected:
                     success('line crossing')
                     save_line((p1[0], segment[1][0]), (p1[1], segment[1][1]))
                     return True

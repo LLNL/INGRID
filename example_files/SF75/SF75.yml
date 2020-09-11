@@ -31,7 +31,7 @@ grid_settings:
     rmagx_shift: 0.0
     secondary_NE_adjust: 0.0
     secondary_NW_adjust: 0.0
-    strike_geometry: limiter
+    strike_geometry: target_plates
     tilt_1: 0.0
     tilt_2: 0.0
     use_NE: false
@@ -65,10 +65,10 @@ limiter:
   use_efit_bounds: true
   zshift: 0.0
 patch_data:
-  file: SF75_patches_data.npy
+  file: ../data/SF75/SF75_patches_data.npy
   preferences:
     new_file: false
-    new_fname: SF75_patches_data.npy
+    new_fname: ../data/SF75/SF75_patches_data.npy
   use_file: false
 target_plates:
   plate_E1:
@@ -79,7 +79,7 @@ target_plates:
   plate_E2:
     file: ../data/SF75/plate_E2.txt
     name: plate_E2
-    rshift: -0.48
+    rshift: -0.47
     zshift: 0.0
   plate_W1:
     file: ../data/ADX/wplate.txt

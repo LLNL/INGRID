@@ -10,7 +10,7 @@ Welcome to ingrid's documentation!
     :maxdepth: 2
     :caption: Contents:
 
-    ingrid
+    modules
 
 Indices and tables
 ==================

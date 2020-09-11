@@ -1,9 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul  3 14:07:45 2019
 
-@author: watkins35, garcia299
 """
 
 # want to click on a point close to a zero, adjust to the exact point
@@ -14,9 +12,9 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from scipy.integrate import solve_ivp, LSODA
 from scipy.optimize import root_scalar, minimize
-from Root_Finder import RootFinder
 from time import time
-import geometry as geo
+from geometry import Point, Line, rotate, find_split_index, angle_between, \
+    segment_intersect, test2points
 
 
 class RegionEntered(Exception):
@@ -59,7 +57,7 @@ class LineTracing:
     """
 
     def __init__(self, grid, settings, eps=1e-6, tol=5e-5, first_step=1e-5,
-                 numPoints=25, dt=0.01, option='xpt_circ', direction='cw', interactive=True):
+                 numPoints=25, dt=0.01, option='xpt_circ', direction='cw'):
 
         self.grid = grid
         self.settings = settings
@@ -68,13 +66,6 @@ class LineTracing:
                             'xpt1': {'coor': {}},
                             'xpt2': {'coor': {}, 'theta': {} }
                             }
-        # if interactive:
-        #     self.cid = self.grid.ax.figure.canvas.mpl_connect('button_press_event', self)
-        # else:
-        #     self.cid=None
-
-        if self.option == 'xpt_circ':
-            self.root = RootFinder(self.grid, active=interactive)
 
         try:
             settings['integrator_settings']['eps']
@@ -224,20 +215,6 @@ class LineTracing:
 
         if self.option in ['theta', 'rho']:
             self.draw_line((x0, y0), show_plot=True, text=True)
-        """
-        elif self.option == 'xpt_circ':
-            # no longer using this...
-            self.root.find_root(x0, y0)
-            r, z = self.root.final_root
-            self.calc_equal_psi_points(r, z)
-
-            # this part is just plotting
-            for key, (x, y) in self.LineTracer_psi.items():
-                plt.plot(x, y, 'x', label=key)
-
-            plt.legend()
-            plt.draw()
-        """
 
     def disconnect(self):
         """ Turns off the click functionality """
@@ -263,14 +240,14 @@ class LineTracing:
         origin = np.array([rxpt, zxpt])
 
         N = np.array([rxpt + self.first_step * eigvect[0][index], zxpt + self.first_step * eigvect[1][index]])
-        W = geo.rotate(N, np.pi / 2, origin)
+        W = rotate(N, np.pi / 2, origin)
         S = np.array([rxpt - self.first_step * eigvect[0][index], zxpt - self.first_step * eigvect[1][index]])
-        E = geo.rotate(S, np.pi / 2, origin)
+        E = rotate(S, np.pi / 2, origin)
 
-        NW = geo.rotate(N, np.pi / 4, origin)
-        SW = geo.rotate(W, np.pi / 4, origin)
-        SE = geo.rotate(S, np.pi / 4, origin)
-        NE = geo.rotate(E, np.pi / 4, origin)
+        NW = rotate(N, np.pi / 4, origin)
+        SW = rotate(W, np.pi / 4, origin)
+        SE = rotate(S, np.pi / 4, origin)
+        NE = rotate(E, np.pi / 4, origin)
 
         self.NSEW_lookup[xpt_ID]['coor'] = {'center': xpt, 'N': N, 'S': S, 'E': E, 'W': W,
                                             'NE': NE, 'NW': NW, 'SE': SE, 'SW': SW }
@@ -297,6 +274,212 @@ class LineTracing:
         for k, v in self.NSEW_lookup[xpt_ID]['coor'].items():
             temp_dict[swap_key[k]] = v
         self.NSEW_lookup[xpt_ID]['coor'] = temp_dict
+
+    # def map_xpt(self, xpt, magx, xpt_ID='xpt1', visual=False, verbose=False):
+
+    #     if xpt_ID == 'xpt1':
+    #         self.analyze_saddle(xpt, xpt_ID)
+    #         self._set_function('rho', 'cw')
+
+    #         NS_buffer = self.NSEW_lookup[xpt_ID]['coor']
+
+    #         N_sol = solve_ivp(self.function, (0, self.dt), NS_buffer['N'], method='LSODA',
+    #             first_step=self.first_step, max_step=self.max_step, rtol=1e-13, atol=1e-12).y
+    #         S_sol = solve_ivp(self.function, (0, self.dt), NS_buffer['S'], method='LSODA',
+    #             first_step=self.first_step, max_step=self.max_step, rtol=1e-13, atol=1e-12).y
+
+    #         N_guess = (N_sol[0][-1], N_sol[1][-1])
+    #         S_guess = (S_sol[0][-1], S_sol[1][-1])
+
+    #         r_bounds = (self.grid.rmin, self.grid.rmax)
+    #         z_bounds = (self.grid.zmin, self.grid.zmax)
+    #         N_minimizer = minimize(self.PsiCostFunc, N_guess, method='L-BFGS-B',
+    #             jac=self.grid.Gradient, bounds=[r_bounds, z_bounds]).x
+    #         S_minimizer = minimize(self.PsiCostFunc, S_guess, method='L-BFGS-B',
+    #             jac=self.grid.Gradient, bounds=[r_bounds, z_bounds]).x
+
+    #         if (np.linalg.norm(N_minimizer - magx) >= self.eps):
+    #             self.flip_NSEW_lookup(xpt_ID)
+
+    #         self.config = 'LSN' if self.NSEW_lookup['xpt1']['coor']['N'][1] > xpt[1] else 'USN'
+
+    #     elif xpt_ID == 'xpt2':
+
+    #         from matplotlib.patches import Polygon
+    #         def cb_region_check(xk):
+    #             if core_polygon.get_path().contains_point(xk):
+    #                 raise RegionEntered(message='# Entered Core...', region='Core')
+    #             elif pf_polygon.get_path().contains_point(xk):
+    #                 raise RegionEntered(message='# Entered PF...', region='PF')
+
+    #         def reorder_limiter(new_start, limiter):
+    #             start_index, = find_split_index(new_start, limiter)
+    #             return limiter
+
+    #         def limiter_split(start, end, limiter):
+    #             start_index, sls = find_split_index(start, limiter)
+    #             end_index, sls = find_split_index(end, limiter)
+    #             if end_index <= start_index:
+    #                 limiter.p = limiter.p[start_index:] + limiter.p[:start_index + 1]
+    #             return limiter
+
+    #         try:
+    #             visual = self.grid.parent.settings['DEBUG']['visual']['SF_analysis']
+    #         except KeyError:
+    #             visual = False
+    #         try:
+    #             verbose = self.grid.parent.settings['DEBUG']['verbose']['SF_analysis']
+    #         except KeyError:
+    #             verbose = False
+
+    #         xpt1 = self.NSEW_lookup['xpt1']['coor']
+    #         magx = np.array([self.grid.parent.settings['grid_settings']['rmagx'], self.grid.parent.settings['grid_settings']['zmagx']])
+
+    #         use_lim = self.grid.parent.settings['patch_generation']['strike_geometry']
+
+    #         if use_lim is True:
+    #             limiter = self.grid.parent.LimiterData.copy()
+
+    #         else:
+    #             WestPlate1 = self.grid.parent.PlateData['plate_W1']
+    #             WestPlate2 = self.grid.parent.PlateData['plate_W2']
+
+    #             EastPlate1 = self.grid.parent.PlateData['plate_E1']
+    #             EastPlate2 = self.grid.parent.PlateData['plate_E2']
+
+    #             minimal_theta = angle_between(EastPlate1.p[0].as_np(), EastPlate1.p[-1].as_np(), magx)
+
+    #             target_index = 0
+    #             for i, p in enumerate(WestPlate1.p):
+    #                 if angle_between(EastPlate1.p[0].as_np(), p.as_np(), magx) > minimal_theta:
+    #                     target_index = i
+    #                     break
+
+    #             limiter = Line(EastPlate1.p + WestPlate1.p[i:])
+
+    #         psi_1 = self.grid.parent.settings['grid_settings']['psi_1']
+    #         psi_core = self.grid.parent.settings['grid_settings']['psi_core']
+    #         psi_pf_1 = self.grid.parent.settings['grid_settings']['psi_pf_1']
+
+    #         # Create mid-line
+    #         LHS_Point = Point(magx[0] - 1e6, magx[1])
+    #         RHS_Point = Point(magx[0] + 1e6, magx[1])
+    #         midline = Line([LHS_Point, RHS_Point])
+
+    #         # Generate Vertical Mid-Plane line
+    #         Lower_Point = Point(magx[0], magx[1] - 1e6)
+    #         Upper_Point = Point(magx[0], magx[1] + 1e6)
+    #         topline = Line([Lower_Point, Upper_Point])
+
+    #         # Drawing Separatrix
+    #         print('# Tracing core region...')
+    #         xptNW_midLine = self.draw_line(xpt1['NW'], {'line': midline}, option='theta', direction='cw', show_plot=visual, text=verbose)
+    #         xptNE_midLine = self.draw_line(xpt1['NE'], {'line': midline}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+    #         midline_topline_west = self.draw_line(xptNW_midLine.p[-1], {'line': topline}, option='theta', direction='cw', show_plot=visual, text=verbose)
+    #         midline_topline_east = self.draw_line(xptNE_midLine.p[-1], {'line': topline}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+
+    #         print('# Tracing PF region...')
+    #         xptSW_limiter = self.draw_line(xpt1['SW'], {'line': limiter}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+    #         xptSE_limiter = self.draw_line(xpt1['SE'], {'line': limiter}, option='theta', direction='cw', show_plot=visual, text=verbose)
+    #         core_boundary = Line((xptNW_midLine.p + midline_topline_west.p + midline_topline_east.reverse_copy().p + xptNE_midLine.reverse_copy().p))
+    #         core_polygon = Polygon(np.column_stack(core_boundary.points()).T, fill=True, closed=True, color='violet', label='Core Region')
+
+    #         pf_boundary = Line((xptSW_limiter.p + xptSE_limiter.p +
+    #             (limiter_split(xptSE_limiter.p[-1], xptSW_limiter.p[0], limiter).split(xptSE_limiter.p[-1])[1]).split(xptSW_limiter.p[0], add_split_point=True)[0].p))
+
+    #         pf_polygon = Polygon(np.column_stack(pf_boundary.points()).T, fill=True, closed=True, color='dodgerblue', label='PF Region')
+
+    #         self.RegionPolygon = {'core': core_polygon, 'pf': pf_polygon}
+
+    #         if (pf_polygon.get_path().contains_point(xpt)):
+    #             print("# Snowflake-plus...")
+    #             self.analyze_saddle(xpt, xpt_ID='xpt2')
+    #             # Rotate NSEW so that 'W' is set to 'N' and 'E' to 'S'
+    #             self.rotate_NSEW_lookup(xpt_ID=xpt_ID, turns=6)
+
+    #             self._set_function('rho', 'ccw')
+    #             xpt2 = self.NSEW_lookup['xpt2']['coor']
+    #             N_sol = solve_ivp(self.function, (0, self.dt), xpt2['N'], method='LSODA',
+    #                     first_step=self.first_step, max_step=self.max_step, rtol=1e-13, atol=1e-12).y
+    #             N_guess = (N_sol[0][-1], N_sol[1][-1])
+
+    #             lg = [xptSW_limiter, xptSE_limiter, limiter]
+    #             self.RegionLineCut = self.draw_line(xpt2['N'], {'line_group': lg},
+    #                 option='rho', direction='ccw', show_plot=visual, text=verbose)
+
+    #             if self.line_group_intersect == limiter.points():
+    #                 self.flip_NSEW_lookup()
+    #                 xpt2 = self.NSEW_lookup['xpt2']['coor']
+    #                 self.RegionLineCut = self.draw_line(xpt2['N'], {'line_group': [xptSW_limiter, xptSE_limiter, limiter]},
+    #                     option='rho', direction='ccw', show_plot=visual, text=verbose)
+
+    #             if self.line_group_intersect == xptSE_limiter.points():
+    #                 self.config = 'SF75'
+    #             elif self.line_group_intersect == xptSW_limiter.points():
+    #                 self.config = 'SF105'
+
+    #         else:
+    #             print("# Snowflake-minus...")
+
+    #             # Obtain candidate NSEW directions
+    #             self.analyze_saddle(xpt, xpt_ID='xpt2')
+
+    #             # Prepare minimizer for identification of SF- type
+    #             self._set_function('rho', 'cw')
+    #             xpt2 = self.NSEW_lookup['xpt2']['coor']
+    #             N_sol = solve_ivp(self.function, (0, self.dt), xpt2['N'], method='LSODA',
+    #                     first_step=self.first_step, max_step=self.max_step, rtol=1e-13, atol=1e-12).y
+    #             S_sol = solve_ivp(self.function, (0, self.dt), xpt2['S'], method='LSODA',
+    #                     first_step=self.first_step, max_step=self.max_step, rtol=1e-13, atol=1e-12).y
+
+    #             N_guess = (N_sol[0][-1], N_sol[1][-1])
+    #             S_guess = (S_sol[0][-1], S_sol[1][-1])
+
+    #             for guess in [N_guess, S_guess]:
+    #                 try:
+    #                     minimize(self.PsiCostFunc, guess, method='trust-ncg', jac=self.grid.parent.PsiNorm.Gradient, hess=self.grid.parent.PsiNorm.Hessian,
+    #                         options={'initial_trust_radius': self.eps, 'max_trust_radius': self.dt}, callback=cb_region_check)
+    #                 except RegionEntered as e:
+    #                     region = e.region
+
+    #                     if region == 'Core':
+    #                         # True south should land in region of interest
+    #                         if guess is S_guess:
+    #                             self.flip_NSEW_lookup(xpt_ID)
+    #                             xpt2 = self.NSEW_lookup['xpt2']['coor']
+
+    #                         # Determine whether SF15 or SF165 based off of intersection with core boundary
+    #                         self.RegionLineCut = self.draw_line(xpt2['N'], {'line_group': [xptNE_midLine, xptNW_midLine,
+    #                             midline_topline_west, midline_topline_east, limiter]},
+    #                             option='rho', direction='cw', show_plot=visual, text=verbose)
+
+    #                         if self.line_group_intersect == xptNE_midLine.points():
+    #                             self.config = 'SF15'
+    #                         elif self.line_group_intersect == xptNW_midLine.points():
+    #                             self.config = 'SF165'
+    #                         elif self.line_group_intersect == midline_topline_west.points():
+    #                             self.config = 'UDN'
+    #                         elif self.line_group_intersect == midline_topline_east.points():
+    #                             self.config = 'UDN'
+    #                         break
+
+    #                     elif region == 'PF':
+    #                         # True south should land in region of interest
+    #                         if guess is S_guess:
+    #                             self.flip_NSEW_lookup(xpt_ID)
+    #                             xpt2 = self.NSEW_lookup['xpt2']['coor']
+
+    #                         # Determine whether SF15 or SF165 based off of intersection with core boundary
+    #                         self.RegionLineCut = self.draw_line(xpt2['N'], {'line_group': [xptSW_limiter, xptSE_limiter]},
+    #                             option='rho', direction='cw', show_plot=visual, text=verbose)
+
+    #                         if self.line_group_intersect == xptSE_limiter.points():
+    #                             self.config = 'SF45'
+    #                         elif self.line_group_intersect == xptSW_limiter.points():
+    #                             self.config = 'SF135'
+    #                         break
+    #     else:
+    #         raise ValueError(f'# Invalid xpt_ID "{xpt_ID}"in function map_xpt(). Valid IDs are "xpt1" and "xpt2".')
 
     def map_xpt(self, xpt, magx, xpt_ID='xpt1', visual=False, verbose=False):
 
@@ -329,6 +512,7 @@ class LineTracing:
         elif xpt_ID == 'xpt2':
 
             from matplotlib.patches import Polygon
+
             def cb_region_check(xk):
                 if core_polygon.get_path().contains_point(xk):
                     raise RegionEntered(message='# Entered Core...', region='Core')
@@ -336,12 +520,12 @@ class LineTracing:
                     raise RegionEntered(message='# Entered PF...', region='PF')
 
             def reorder_limiter(new_start, limiter):
-                start_index, = geo.find_split_index(new_start, limiter)
+                start_index, = find_split_index(new_start, limiter)
                 return limiter
 
             def limiter_split(start, end, limiter):
-                start_index, sls = geo.find_split_index(start, limiter)
-                end_index, sls = geo.find_split_index(end, limiter)
+                start_index, sls = find_split_index(start, limiter)
+                end_index, sls = find_split_index(end, limiter)
                 if end_index <= start_index:
                     limiter.p = limiter.p[start_index:] + limiter.p[:start_index + 1]
                 return limiter
@@ -363,19 +547,19 @@ class LineTracing:
             xpt1 = self.NSEW_lookup['xpt1']['coor']
             magx = np.array([self.grid.parent.settings['grid_settings']['rmagx'], self.grid.parent.settings['grid_settings']['zmagx']])
 
-            psi_max = self.grid.parent.settings['grid_settings']['psi_max']
+            psi_max = self.grid.parent.settings['grid_settings']['psi_1']
             psi_core = self.grid.parent.settings['grid_settings']['psi_core']
             psi_pf_1 = self.grid.parent.settings['grid_settings']['psi_pf_1']
 
             # Create mid-line
-            LHS_Point = geo.Point(magx[0] - 1e6, magx[1])
-            RHS_Point = geo.Point(magx[0] + 1e6, magx[1])
-            midline = geo.Line([LHS_Point, RHS_Point])
+            LHS_Point = Point(magx[0] - 1e6, magx[1])
+            RHS_Point = Point(magx[0] + 1e6, magx[1])
+            midline = Line([LHS_Point, RHS_Point])
 
             # Generate Vertical Mid-Plane line
-            Lower_Point = geo.Point(magx[0], magx[1] - 1e6)
-            Upper_Point = geo.Point(magx[0], magx[1] + 1e6)
-            topline = geo.Line([Lower_Point, Upper_Point])
+            Lower_Point = Point(magx[0], magx[1] - 1e6)
+            Upper_Point = Point(magx[0], magx[1] + 1e6)
+            topline = Line([Lower_Point, Upper_Point])
 
             # Drawing Separatrix
             print('# Tracing core region...')
@@ -387,10 +571,10 @@ class LineTracing:
             print('# Tracing PF region...')
             xptSW_limiter = self.draw_line(xpt1['SW'], {'line': limiter}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
             xptSE_limiter = self.draw_line(xpt1['SE'], {'line': limiter}, option='theta', direction='cw', show_plot=visual, text=verbose)
-            core_boundary = geo.Line((xptNW_midLine.p + midline_topline_west.p + midline_topline_east.reverse_copy().p + xptNE_midLine.reverse_copy().p))
+            core_boundary = Line((xptNW_midLine.p + midline_topline_west.p + midline_topline_east.reverse_copy().p + xptNE_midLine.reverse_copy().p))
             core_polygon = Polygon(np.column_stack(core_boundary.points()).T, fill=True, closed=True, color='violet', label='Core Region')
 
-            pf_boundary = geo.Line((xptSW_limiter.p + xptSE_limiter.p +
+            pf_boundary = Line((xptSW_limiter.p + xptSE_limiter.p +
                 (limiter_split(xptSE_limiter.p[-1], xptSW_limiter.p[0], limiter).split(xptSE_limiter.p[-1])[1]).split(xptSW_limiter.p[0], add_split_point=True)[0].p))
             pf_polygon = Polygon(np.column_stack(pf_boundary.points()).T, fill=True, closed=True, color='dodgerblue', label='PF Region')
 
@@ -489,15 +673,16 @@ class LineTracing:
         """
         Find NSEW based off primary x-point and magnetic axis,
 
-        Parameters:
+        Parameters
         ----------
-        xpt : array/tuple-like
+        xpt : array-like
             R, Z coordinate of the primary x-point.
-        mag : array/tuple-like
+        mag : array-like
             R, Z coordinate of the magnetic axis.
 
-        Post-Call:
-        self.LineTracer_psi will contain NSEW information.
+        Notes
+        -----
+        self.LineTracer_psi will contain NSEW information post call.
         """
         self.map_xpt(xpt, magx, xpt_ID='xpt1')
 
@@ -505,15 +690,16 @@ class LineTracing:
         """
         Find NSEW based off primary x-point and magnetic axis,
 
-        Parameters:
+        Parameters
         ----------
-        xpt : array/tuple-like
+        xpt : array-like
             R, Z coordinate of the primary x-point.
-        mag : array/tuple-like
+        mag : array-like
             R, Z coordinate of the magnetic axis.
 
-        Post-Call:
-        self.LineTracer_psi will contain NSEW information.
+        Notes
+        -----
+        LineTracer_psi will contain NSEW information post call.
         """
         self.map_xpt(xpt1, magx, xpt_ID='xpt1')
         self.map_xpt(xpt2, magx, xpt_ID='xpt2')
@@ -566,7 +752,7 @@ class LineTracing:
             self._set_function(option, direction)
 
         # check rz_start
-        if isinstance(rz_start, geo.Point):
+        if isinstance(rz_start, Point):
             ynot = (rz_start.x, rz_start.y)
         else:
             ynot = rz_start
@@ -586,7 +772,7 @@ class LineTracing:
         elif key_list == ['point']:
             print('# Starting search for Point convergence...')
             test = 'point'
-            if isinstance(rz_end['point'], geo.Point):
+            if isinstance(rz_end['point'], Point):
                 xf = rz_end['point'].x
                 yf = rz_end['point'].y
             else:
@@ -598,14 +784,14 @@ class LineTracing:
             test = 'line'
             try:
                 self.tilt_angle = rz_end['line'][1]
-                if isinstance(rz_end['line'][0], geo.Line):
+                if isinstance(rz_end['line'][0], Line):
                     # extract
                     endLine = rz_end['line'][0].points()
                 else:
                     # form ((),())
                     endLine = rz_end['line'][0]
             except:
-                if isinstance(rz_end['line'], geo.Line):
+                if isinstance(rz_end['line'], Line):
                     # extract
                     endLine = rz_end['line'].points()
                 else:
@@ -617,7 +803,7 @@ class LineTracing:
             line_group = []
             for L in rz_end['line_group']:
 
-                if isinstance(L, geo.Line):
+                if isinstance(L, Line):
                     # extract
                     line_group.append(L.points())
                 else:
@@ -656,7 +842,7 @@ class LineTracing:
         zmax = self.grid.zmax
 
         self.time_in_converged = 0
-        line = [geo.Point(ynot)]
+        line = [Point(ynot)]
 
         def converged(points):
             # checks for converence of the line in various ways
@@ -673,7 +859,7 @@ class LineTracing:
                 # it for future use
                 # x: list -- r endpoints
                 # y: list -- z endpoints
-                line.append(geo.Point(x[-1], y[-1]))
+                line.append(Point(x[-1], y[-1]))
                 if show_plot:
                     self.grid.ax.plot(x, y, '.-', linewidth=2, color=color, markersize=1.5)
                     plt.draw()
@@ -690,12 +876,12 @@ class LineTracing:
             for edge in boundary:
                 p1 = (points[0][0], points[1][0])
                 p2 = (points[0][-1], points[1][-1])
-                result = geo.test2points(p1, p2, edge)
+                result = test2points(p1, p2, edge)
                 if result == True:
                     print('The line went over the boundary')
                     if text:
                         success('edge')
-                    r, z = geo.intersect((p1, p2), edge, text)
+                    r, z = segment_intersect((p1, p2), edge, text)
                     save_line([p1[0], r], [p1[1], z])
                     return True
 
@@ -717,8 +903,8 @@ class LineTracing:
                 p1 = (points[0][0], points[1][0])
                 p2 = (points[0][-1], points[1][-1])
 
-                result = geo.test2points(p1, p2, endLine)
-                intersected, segment = geo.segment_intersect((p1, p2), endLine, text)
+                result = test2points(p1, p2, endLine)
+                intersected, segment = segment_intersect((p1, p2), endLine, text)
 
                 if result and intersected:
                     success('line crossing')
@@ -734,8 +920,8 @@ class LineTracing:
                 p2 = (points[0][-1], points[1][-1])
 
                 for L in line_group:
-                    result = geo.test2points(p1, p2, L)
-                    intersected, segment = geo.segment_intersect((p1, p2), L, text)
+                    result = test2points(p1, p2, L)
+                    intersected, segment = segment_intersect((p1, p2), L, text)
 
                     if result and intersected:
                         success('line crossing')
@@ -866,19 +1052,8 @@ class LineTracing:
         if text:
             print('Drew for {} seconds\n'.format(end - start))
         print('')
-        return geo.Line(line)
+        return Line(line)
 
     def PsiCostFunc(self, xy):
         x, y = xy
         return self.grid.get_psi(x, y)
-
-
-if __name__ == '__main__':
-    from Read_Psi_Data import read_psi_data
-
-    plt.close('all')
-    grid = read_psi_data()
-    grid.Calculate_PDeriv()
-    grid.plot_data()
-    click = LineTracing(grid, option='rho')
-

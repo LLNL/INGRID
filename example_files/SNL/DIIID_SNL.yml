@@ -1,0 +1,86 @@
+DEBUG:
+  verbose:
+    grid_generation: 0
+    patch_generation: 1
+    target_plates: 0
+  visual:
+    find_NSEW: 0
+    gridue: 0
+    patch_map: 0
+    subgrid: 0
+eqdsk: ../data/SNL/DIII-D/neqdsk
+grid_settings:
+  grid_generation:
+    distortion_correction:
+      all:
+        active: false
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+    np_default: 3
+    nr_default: 3
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+  guard_cell_eps: 0.001
+  nlevs: 30
+  num_xpt: 1
+  patch_generation:
+    NE_adjust: 0.0
+    NW_adjust: 0.0
+    rmagx_shift: 0.0
+    secondary_NE_adjust: 0.0
+    secondary_NW_adjust: 0.0
+    strike_geometry: limiter
+    tilt_1: 0.0
+    tilt_2: 0.0
+    use_NE: false
+    use_NW: false
+    use_SE: false
+    use_SW: false
+    use_secondary_NE: false
+    use_secondary_NW: false
+    zmagx_shift: 0.0
+  psi_1: 1.066
+  psi_core: 0.8
+  psi_pf_1: 0.99
+  psi_pf_2: 0.0
+  rmagx: 1.75785604
+  rxpt: 1.300094032687
+  rxpt2: 0.0
+  view_mode: filled
+  zmagx: -0.0292478683
+  zxpt: -1.133159375302
+  zxpt2: 0.0
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-06
+  first_step: 5.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+limiter:
+  file: ''
+  use_efit_bounds: false
+patch_data:
+  file: ../data/SNL/DIII-D/LSN_patches_1597099640.npy
+  preferences:
+    new_file: true
+    new_fname: ../data/SNL/DIII-D/LSN_patches_1597099640.npy
+  use_file: false
+target_plates:
+  plate_E1:
+    file: ../data/SNL/DIII-D/d3d_otp.txt
+    name: plate_E1
+    zshift: 1.6
+  plate_E2:
+    file: null
+    name: null
+    zshift: 0.0
+  plate_W1:
+    file: ../data/SNL/DIII-D/d3d_itp.txt
+    name: plate_W1
+    zshift: 1.6
+  plate_W2:
+    file: null
+    name: null
+    zshift: 0.0

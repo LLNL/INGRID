@@ -7,10 +7,14 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = build
+INGRID_SRC    = /Users/torvaltz/Desktop/INGRID/ingrid/ 
 
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+rst:
+	sphinx-apidoc -f -o ./source $(INGRID_SRC)
 
 .PHONY: help Makefile
 

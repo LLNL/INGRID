@@ -29,7 +29,7 @@ from collections import OrderedDict
 from OMFITgeqdsk import OMFITgeqdsk
 from interpol import EfitData
 from interpol import Bicubic
-from utils.ingrid_utils import IngridUtils
+from utils import IngridUtils
 from topologies.snl import SNL
 from topologies.sf15 import SF15
 from topologies.sf45 import SF45
@@ -38,7 +38,6 @@ from topologies.sf105 import SF105
 from topologies.sf135 import SF135
 from topologies.sf165 import SF165
 from topologies.udn import UDN
-from Root_Finder import RootFinder
 from line_tracing import LineTracing
 from geometry import Point, Line
 
@@ -84,28 +83,24 @@ class Ingrid(IngridUtils):
 
     Attributes
     ----------
-    settings : :obj:`dict`
+    settings : dict
         Dictionary representation of the settings file.
 
-    PlateData : :obj:`dict`
+    PlateData : dict
         Dictionary mapping target plates to their
         corresponding class 'Line' objects.
 
     LimiterData : Line
         Line class object representing tokamak limiter.
 
-    magx : :obj:`tuple`
+    magx : tuple
         (R, Z) coordinates of magnetic-axis (float entries).
 
-    xpt1 : :obj:`tuple`
+    xpt1 : tuple
         (R, Z) coordinates of primary x-point (float entries).
 
-    xpt2 : :obj:`tuple`
+    xpt2 : tuple
         (R, Z) coordinates of secondary x-point (float entries).
-
-    PsiUNorm : EfitData
-        'EfitData' class object containing unormalized
-        psi data from provided neqdsk file in settings.
 
     PsiNorm : EfitData
         'EfitData' class object containing normalized
@@ -172,8 +167,9 @@ class Ingrid(IngridUtils):
             the '.yml' file. Defaults to empty dict which produces a
             template settings file.
 
-        Returns:
-            Path (:obj: 'Path'): Path object of saved file.
+        Returns
+        -------
+            A Path instance representing the saved YAML file.
         """
 
         if fname == '':
@@ -186,7 +182,7 @@ class Ingrid(IngridUtils):
         elif fpath.suffix != '.yml':
             fname = fname[:-4] + '.yml'
 
-        self.process_yaml(settings)
+        self.PopulateSettings(settings)
 
         with open(fname, 'w') as f:
             yml.dump(self.settings, f)
@@ -210,7 +206,7 @@ class Ingrid(IngridUtils):
             print('Patch data-file:')
             print(' # Patch data-file:', self.settings['patch_data']['file'])
 
-        if self.settings['limiter']['use_limiter']:
+        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'limiter':
             print('Limiter File:')
 
             if self.settings['limiter']['file'] == '':
@@ -233,7 +229,7 @@ class Ingrid(IngridUtils):
         print('Summary:')
         print(' # Number of x-points:', self.settings['grid_settings']['num_xpt'])
         print(' # Use full domain:', self.settings['grid_settings']['full_domain'])
-        print(' # Use limiter:', self.settings['limiter']['use_limiter'])
+        print(' # Use limiter:', self.settings['grid_settings']['patch_generation']['strike_geometry'])
         print(' # Use patch data-file:', self.settings['patch_data']['use_file'])
         print('')
         self.PrintSummaryInput()
@@ -244,37 +240,40 @@ class Ingrid(IngridUtils):
         Allows the user to set target plate data and/or limiter data that
         will be used to generate a patch map.
 
-
         Parameters
         ----------
         geo_items : dict
             Argument dict specifying which item(s) to set and by what way.
 
-        rshift : optional
+        rshift : float, optional
             Translate 'geo_items' to coordinate R',
             with R' = R - rshift. Will override all 'rshift' provided entries
             in 'geo_items'.
 
-        zshift : optional
+        zshift : float, optional
             Translate 'geo_items' to coordinate Z',
             with Z' = Z - zshift. Will override all 'zshift' provided entries
             in 'geo_items'.
 
-
         Notes
         -----
         Multiple geometry items can be set at once, but the following
-        key-value format must be obeyed for any number of entries.
+        key-value format must be obeyed for any number of entries:
+
+        ``{geo_key: geo_item}``
 
         All keys for 'geo_items' are type 'str'. Accepted key
         values are as follows:
 
-        Geometry:  Key value:
-        Plate W1 - 'plate_W1', 'W1'
-        Plate E1 - 'plate_E1', 'E1'
-        Plate W2 - 'plate_W2', 'W2'
-        Plate E2 - 'plate_E2', 'E2'
-        Limiter  - 'limiter', 'wall'
+        ======== =====================
+        Geometry   Accepted Keys (str)
+        -------- ---------------------
+        Plate W1 ``plate_W1``, ``W1``
+        Plate E1 ``plate_E1``, ``W1``
+        Plate W2 ``plate_W2``, ``W1``
+        Plate E2 ``plate_E2``, ``W1``
+        Limiter  ``limiter``, ``wall``
+        ======== =====================
 
         **The above keys are NOT case sensitive.**
 
@@ -365,12 +364,17 @@ class Ingrid(IngridUtils):
 
         Raises
         ------
-        ValueError: If file path provided does not lead to actual file.
-        ValueError: If file provided is not of suffix '.txt' or '.npy'.
-        ValueError: If invalid 'geo_items' key provided.
-        ValueError: If 'geo_items' dict value contains invalid key.
-        ValueError: If value associated with 'geo_items' key is not of
-            supported data type.
+        ValueError
+            If file path provided does not lead to actual file.
+        ValueError
+            If file provided is not of suffix '.txt' or '.npy'.
+        ValueError
+            If invalid 'geo_items' key provided.
+        ValueError
+            If 'geo_items' dict value contains invalid key.
+        ValueError
+            If value associated with 'geo_items' key is not of
+                supported data type.
         """
 
         def _parse_v_for_file_values(k_str, v_dict):
@@ -380,7 +384,7 @@ class Ingrid(IngridUtils):
                     raise ValueError(f"# File '{v_dict['file']}'' provided in settings dict corresponding to '{k_str}' does not exist.")
 
                 if Path(v_dict['file']).suffix == '.txt':
-                    x_ret_val, y_ret_val = self.ParseFileCoordinates(v_dict['file'])
+                    x_ret_val, y_ret_val = self.ParseTxtCoordinates(v_dict['file'])
                 elif Path(v_dict['file']).suffix == '.npy':
                     x_ret_val, y_ret_val = np.load(v_dict['file'])
                 else:
@@ -449,7 +453,7 @@ class Ingrid(IngridUtils):
                 if Limiter and v.lower() in ['default', 'eq']:
                     DefaultEQ = True
                 elif Path(v).suffix == '.txt':
-                    x, y = self.ParseFileCoordinates(v)
+                    x, y = self.ParseTxtCoordinates(v)
                 elif Path(v).suffix == '.npy':
                     x, y = np.load(v)
                 else:
@@ -490,11 +494,25 @@ class Ingrid(IngridUtils):
             if TargetPlate:
                 self.SetTargetPlate({k: [x, y]}, rshift=rshift, zshift=zshift)
             elif Limiter and not DefaultEQ:
-                self.SetLimiter([x, y], rshift=rshift, zshift=zshift)
+                self.SetLimiter(coordinates=[x, y], rshift=rshift, zshift=zshift)
             elif Limiter and DefaultEQ:
                 self.SetLimiter(rshift=rshift, zshift=zshift)
             else:
                 raise ValueError(f"# Invalid key '{k}' was used for setting geometry.")
+
+    def SetTargetPlates(self) -> None:
+        """
+        Define target plate geometries based off of ``settings`` dict specifications.
+
+        This is a convenience method that calls SetGeometry.
+        """
+        for plate in self.settings['target_plates']:
+            try:
+                self.SetGeometry({plate: self.settings['target_plates'][plate]['file']},
+                                 rshift=self.settings['target_plates'][plate]['rshift'],
+                                 zshift=self.settings['target_plates'][plate]['zshift'])
+            except:
+                continue
 
     def SaveGeometryData(self, geo_items: dict, timestamp: bool = False) -> None:
         """
@@ -503,11 +521,12 @@ class Ingrid(IngridUtils):
         Geometry data files created with this method can be used in the INGRID
         parameter file.
 
+
         Parameters
         ----------
         geo_items : dict
-            Argument dict specifying which target plate to save
-            and the file name/path
+            A dictionary specifying which target plate to save and the
+            file name/path. Said dictionary takes the following form:
 
             ``{geo_name: data_fname, ... }``
 
@@ -520,11 +539,16 @@ class Ingrid(IngridUtils):
 
         Raises
         ------
-        ValueError: If 'geo_items' is not type 'dict'.
-        ValueError: If invalid 'geo_items' key provided.
-        ValueError: If data_fname entry is not of type 'str'.
-        ValueError: If data_fname entry is an empty string.
-        ValueError: If requested strike geometry Line to save has no data.
+        ValueError
+            If 'geo_items' is not type 'dict'.
+        ValueError
+            If invalid 'geo_items' key provided.
+        ValueError
+            If data_fname entry is not of type 'str'.
+        ValueError
+            If data_fname entry is an empty string.
+        ValueError
+            If requested strike geometry Line to save has no data.
         """
 
         if type(settings) is dict:
@@ -587,22 +611,30 @@ class Ingrid(IngridUtils):
         Parameters
         ----------
         geo_items : dict
-            Argument dict specifying which target plate to load
-            data into. Format is as follows:
+            The argument dict specifying which strike geometry to load data into.
 
-            ``{geo_name: data_fname, ... }``
+        Notes
+        -----
+        ``geo_items`` is of the form: ``{geo_name: data_fname, ... }``
 
-            Where both geo_name and data_fname are of type str. Multiple
-            data_fname files can be loaded at once in a manner similar to
-            method 'SetGeometry' (see documentation for 'SetGeometry').
+        where both ``geo_name`` and ``data_fname`` are of type str.
+
+        Multiple ``data_fname`` files can be loaded at once in a manner similar
+        to method :meth:`~SetGeometry`.
 
         Raises
         ------
-        ValueError: If 'geo_items' is not type 'dict'.
-        ValueError: If invalid 'geo_items' key provided.
-        ValueError: If data_fname entry is not of type 'str'.
-        ValueError: If data_fname is not a file.
-        ValueError: If data_fname file is not of format '.txt' or '.npy'
+        ValueError
+            If 'geo_items' is not type 'dict'.
+        ValueError
+            If invalid 'geo_items' key provided.
+        ValueError
+            If data_fname entry is not of type 'str'.
+        ValueError
+            If data_fname is not a file.
+        ValueError
+            If data_fname file is not of format '.txt' or '.npy'
+
         """
         if type(geo_items) is dict:
 
@@ -634,7 +666,7 @@ class Ingrid(IngridUtils):
                 if suffix == '.npy':
                     R, Z = np.load(fname)
                 elif suffix == '.txt':
-                    R, Z = self.ParseFileCoordinates(fname)
+                    R, Z = self.ParseTxtCoordinates(fname)
                 else:
                     raise ValueError(f"# File type '{suffix}' is not supported (requires '.txt', '.npy')")
 
@@ -671,7 +703,7 @@ class Ingrid(IngridUtils):
         Plot all strike geometry to be used for drawing the Patch Map.
 
         Checks the central INGRID ``settings`` attribute for whether
-        ``settings['limiter']['use_limiter']`` is ``True`` or if
+        ``settings['patch_generation']['strike_geometry']`` is ``True`` or if
         ``settings['grid_settings']['num_xpt']`` is equal to ``2`` in order
         to determine whether or not to plot the limiter geometry.
 
@@ -686,10 +718,11 @@ class Ingrid(IngridUtils):
         for plate_label in self.PlateData.keys():
             self.RemovePlotItem(label=plate_label, ax=ax)
 
-        if self.settings['grid_settings']['num_xpt'] == 2 or self.settings['limiter']['use_limiter'] is True:
+        if self.settings['grid_settings']['num_xpt'] == 2:
             self.PlotLimiter(ax=ax)
-            if self.settings['limiter']['use_limiter'] is False:
-                self.PlotTargetPlates(ax=ax)
+
+        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'limiter':
+            self.PlotLimiter(ax=ax)
         else:
             self.PlotTargetPlates(ax=ax)
 
@@ -750,7 +783,7 @@ class Ingrid(IngridUtils):
             pass
         self.PsiUNorm.plot_data(self.settings['grid_settings']['nlevs'])
 
-    def PlotPsiNorm(self) -> None:
+    def PlotPsiNorm(self, view_mode: str = 'filled') -> None:
         """
         Plot normalized psi data.
         """
@@ -760,7 +793,8 @@ class Ingrid(IngridUtils):
                 plt.draw()
         except:
             pass
-        self.PsiNorm.plot_data(nlevs=self.settings['grid_settings']['nlevs'], fig=self._PsiNormFig, ax=self.PsiNormAx)
+
+        self.PsiNorm.plot_data(nlevs=self.settings['grid_settings']['nlevs'], fig=self._PsiNormFig, ax=self.PsiNormAx, view_mode=view_mode)
 
     def PlotPsiNormBounds(self) -> None:
         """
@@ -771,22 +805,22 @@ class Ingrid(IngridUtils):
         and, if applicable, secondary separatrix are plotted as well.
 
         If the user is operating on a single null configuration, the psi values
-        plotted are 'psi_max', 'psi_core', 'psi_pf_1'.
+        plotted are 'psi_1', 'psi_core', 'psi_pf_1'.
 
         If the user is operating on a case with two x-points, the psi values
-        are the same as above but with 'psi_max_west', 'psi_max_east', and
+        are the same as above but with 'psi_1', 'psi_2', and
         'psi_pf_2' also included in the plot.
         """
 
         nxpt = self.settings['grid_settings']['num_xpt']
         if nxpt == 1:
-            Dic = {'psi_max': 'lime',
+            Dic = {'psi_1': 'lime',
                    'psi_core': 'cyan',
                    'psi_pf_1': 'white'}
         elif nxpt == 2:
             Dic = {'psi_core': 'cyan',
-                   'psi_max_west': 'magenta',
-                   'psi_max_east': 'lime',
+                   'psi_1': 'lime',
+                   'psi_2': 'fuchsia',
                    'psi_pf_1': 'white',
                    'psi_pf_2': 'yellow'}
 
@@ -801,7 +835,7 @@ class Ingrid(IngridUtils):
         handles, labels = self.PsiNorm.ax.get_legend_handles_labels()
         lookup = {label: handle for label, handle in zip(labels, handles)}
         self.PsiNorm.ax.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
-                               bbox_to_anchor=(0.5, -0.15), loc='lower center',
+                               bbox_to_anchor=(0.5, -0.25), loc='lower center',
                                ncol=len([label for label in lookup.keys()]) // 4)
 
     def PlotPsiNormMagReference(self, ax: object = None) -> None:
@@ -894,13 +928,13 @@ class Ingrid(IngridUtils):
             [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'midline_1']
         except:
             pass
-        midline_1.plot(color='cyan', label='midline_1')
+        midline_1.plot(color='darkkhaki', label='midline_1')
 
         try:
             [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'midline_2']
         except:
             pass
-        midline_2.plot(color='magenta', label='midline_2')
+        midline_2.plot(color='lightpink', label='midline_2')
 
     def PlotPatches(self) -> None:
         """
@@ -998,7 +1032,7 @@ class Ingrid(IngridUtils):
         except:
             visual = False
 
-        self.PrepLineTracing(interactive=False)
+        self.PrepLineTracing()
         self.OrderLimiter()
         self.OrderTargetPlates()
         self.ClassifyTopology(visual=visual)
@@ -1032,7 +1066,8 @@ class Ingrid(IngridUtils):
 
         Raises
         ------
-        ValueError: If user provided unrecognized string entry.
+        ValueError
+            If user provided unrecognized string entry.
         """
         if topology in ['LSN', 'USN']:
             ingrid_topology = SNL(self, topology)
@@ -1090,21 +1125,21 @@ class Ingrid(IngridUtils):
         self.AutoRefineXPoint()
         if topology == 'DNL':
             self.AutoRefineXPoint2()
-        if self.settings['limiter']['use_limiter']:
+        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'limiter':
             self.SetGeometry({'limiter': self.settings['limiter']})
         self.SetTargetPlates()
         self.SetMagReference()
         self.CalcPsiNorm()
         self.PrepLineTracing()
 
-    def ShowSetup(self) -> None:
+    def ShowSetup(self, view_mode: str = 'filled') -> None:
         """
         Show Ingrid setup that a patch map will be generated from.
 
         This method plots normalized psi data, psi boundaries, strike geometry,
         and midplane lines through the magnetic axis.
         """
-        self.PlotPsiNorm()
+        self.PlotPsiNorm(view_mode=view_mode)
         self.PlotPsiNormMagReference()
         self.PlotStrikeGeometry(ax=self.PsiNormAx)
         self.PlotMidplane(ax=self.PsiNormAx)
@@ -1127,10 +1162,9 @@ class Ingrid(IngridUtils):
         with a value of 'True'.
 
         """
-        self.CurrentTopology.RefreshSettings()
         self.OrderLimiter()
         self.OrderTargetPlates()
-        self.PrepLineTracing(interactive=False)
+        self.PrepLineTracing()
         self.CurrentTopology.construct_patches()
         self.CurrentTopology.GroupPatches()
         self.CheckPatches()
@@ -1157,7 +1191,11 @@ class Ingrid(IngridUtils):
         patch_data.insert(0, self.CurrentTopology.config)
         patch_data.insert(1, self.CurrentTopology.LineTracer.NSEW_lookup)
         np.save(fname, np.array(patch_data))
-        print(f"# Saved patch data for file {fname}.npy")
+        if Path(fname).suffix == '.npy':
+            tail = ''
+        else:
+            tail = '.npy'
+        print(f"# Saved patch data for file {Path(fname).name + tail}")
 
     def LoadPatches(self, fname: str = '') -> None:
         """
@@ -1166,11 +1204,9 @@ class Ingrid(IngridUtils):
         Parameters
         ----------
         fname : str, optional
-            Path to patch data. If no fname is provided to
-            method 'LoadPatches', Ingrid code will check the settings
-            'dict' for a file under entry
-
-            'settings[''patch_data''][''file'']'
+            Path to patch data.
+                If no fname is provided to method 'LoadPatches', Ingrid code will check the settings
+                'dict' for a file under entry ``settings['patch_data']['file']``
 
         """
 
@@ -1180,7 +1216,7 @@ class Ingrid(IngridUtils):
         if fname.strip() == '':  # Check if settings contains patch data.
             fname = self.settings['patch_data']['file']
         config, xpt_data, patches = self.ReconstructPatches(fname)
-        self.process_yaml(Ingrid.ReadyamlFile(self.InputFile))
+        self.PopulateSettings(Ingrid.ReadYamlFile(self.InputFile))
         self.StartSetup()
         self.LineTracer.NSEW_lookup = xpt_data
         self.SetTopology(config)
@@ -1224,7 +1260,6 @@ class Ingrid(IngridUtils):
             Name of gridue file to save.
 
         """
-        self.PrepGridue()
         if type(self.CurrentTopology) in [SNL]:
             if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")
@@ -1331,7 +1366,7 @@ class Ingrid(IngridUtils):
         plt.show()
 
     @staticmethod
-    def ReadyamlFile(FileName: str) -> dict:
+    def ReadYamlFile(FileName: str) -> dict:
         """
         Read a yaml file and return a dictionary
 

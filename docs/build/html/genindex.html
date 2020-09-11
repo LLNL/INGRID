@@ -25,6 +25,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -80,7 +81,7 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="ingrid.html">ingrid package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">ingrid</a></li>
 </ul>
 
             
@@ -150,29 +151,78 @@
  <a href="#A"><strong>A</strong></a>
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
  
 </div>
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.add_guardc">add_guardc() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="geometry.html#geometry.Patch.adjust_corner">adjust_corner() (geometry.Patch method)</a>
 </li>
+      <li><a href="geometry.html#geometry.Patch.AdjustBorder">AdjustBorder() (geometry.Patch method)</a>
+</li>
+      <li><a href="utils.html#utils.TopologyUtils.AdjustGrid">AdjustGrid() (utils.TopologyUtils method)</a>
+</li>
+      <li><a href="topologies.html#topologies.sf105.SF105.AdjustPatch">AdjustPatch() (topologies.sf105.SF105 method)</a>
+
+      <ul>
+        <li><a href="topologies.html#topologies.sf135.SF135.AdjustPatch">(topologies.sf135.SF135 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf15.SF15.AdjustPatch">(topologies.sf15.SF15 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf165.SF165.AdjustPatch">(topologies.sf165.SF165 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf45.SF45.AdjustPatch">(topologies.sf45.SF45 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf75.SF75.AdjustPatch">(topologies.sf75.SF75 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.snl.SNL.AdjustPatch">(topologies.snl.SNL method)</a>
+</li>
+        <li><a href="topologies.html#topologies.udn.UDN.AdjustPatch">(topologies.udn.UDN method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.AdjustGrid">AdjustGrid() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="line_tracing.html#line_tracing.LineTracing.analyze_saddle">analyze_saddle() (line_tracing.LineTracing method)</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.animate_grid">animate_grid() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="ingrid.html#ingrid.Ingrid.AnalyzeTopology">AnalyzeTopology() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="geometry.html#geometry.angle_between">angle_between() (in module geometry)</a>
+</li>
+      <li><a href="geometry.html#geometry.Vector.arr">arr() (geometry.Vector method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Cell.as_np">as_np() (geometry.Cell method)</a>
+
+      <ul>
+        <li><a href="geometry.html#geometry.Line.as_np">(geometry.Line method)</a>
+</li>
+        <li><a href="geometry.html#geometry.Patch.as_np">(geometry.Patch method)</a>
+</li>
+        <li><a href="geometry.html#geometry.Point.as_np">(geometry.Point method)</a>
+</li>
+      </ul></li>
+      <li><a href="ingrid.html#ingrid.Ingrid.AutoRefineMagAxis">AutoRefineMagAxis() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.AutoRefineXPoint">AutoRefineXPoint() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.AutoRefineXPoint2">AutoRefineXPoint2() (ingrid.Ingrid method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -180,7 +230,7 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.html#ingrid.interpol.Bicubic">Bicubic() (in module ingrid.interpol)</a>
+      <li><a href="interpol.html#interpol.Bicubic">Bicubic() (in module interpol)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -188,19 +238,79 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.Calculate_PDeriv">Calculate_PDeriv() (ingrid.interpol.EfitData method)</a>
+      <li><a href="utils.html#utils.IngridUtils.calc_efit_derivs">calc_efit_derivs() (utils.IngridUtils method)</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.CheckFunction">CheckFunction() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="geometry.html#geometry.calc_mid_point">calc_mid_point() (in module geometry)</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.CheckPatches">CheckPatches() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="ingrid.html#ingrid.Ingrid.CalcPsiNorm">CalcPsiNorm() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="interpol.html#interpol.EfitData.Calculate_PDeriv">Calculate_PDeriv() (interpol.EfitData method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Cell">Cell (class in geometry)</a>
+</li>
+      <li><a href="geometry.html#geometry.Patch.cell_grid_as_np">cell_grid_as_np() (geometry.Patch method)</a>
+</li>
+      <li><a href="utils.html#utils.TopologyUtils.CheckFunction">CheckFunction() (utils.TopologyUtils method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Patch.CheckPatch">CheckPatch() (geometry.Patch method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.CheckPatches">CheckPatches() (utils.IngridUtils method)</a>
+
+      <ul>
+        <li><a href="utils.html#utils.TopologyUtils.CheckPatches">(utils.TopologyUtils method)</a>
+</li>
+      </ul></li>
+      <li><a href="utils.html#utils.IngridUtils.ClassifyTopology">ClassifyTopology() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="interpol.html#interpol.EfitData.clear_plot">clear_plot() (interpol.EfitData method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.ClearLegend">ClearLegend() (ingrid.Ingrid method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.clear_plot">clear_plot() (ingrid.interpol.EfitData method)</a>
+      <li><a href="utils.html#utils.TopologyUtils.concat_grid">concat_grid() (utils.TopologyUtils method)</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.concat_grid">concat_grid() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="utils.html#utils.TopologyUtils.construct_grid">construct_grid() (utils.TopologyUtils method)</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.construct_grid">construct_grid() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="topologies.html#topologies.sf105.SF105.construct_patches">construct_patches() (topologies.sf105.SF105 method)</a>
+
+      <ul>
+        <li><a href="topologies.html#topologies.sf135.SF135.construct_patches">(topologies.sf135.SF135 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf15.SF15.construct_patches">(topologies.sf15.SF15 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf165.SF165.construct_patches">(topologies.sf165.SF165 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf45.SF45.construct_patches">(topologies.sf45.SF45 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf75.SF75.construct_patches">(topologies.sf75.SF75 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.snl.SNL.construct_patches">(topologies.snl.SNL method)</a>
+</li>
+        <li><a href="topologies.html#topologies.udn.UDN.construct_patches">(topologies.udn.UDN method)</a>
+</li>
+      </ul></li>
+      <li><a href="ingrid.html#ingrid.Ingrid.ConstructPatches">ConstructPatches() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Line.copy">copy() (geometry.Line method)</a>
+</li>
+      <li><a href="geometry.html#geometry.distortion_correction">CorrectDistortion() (in module geometry)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.CreateSubgrid">CreateSubgrid() (ingrid.Ingrid method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="line_tracing.html#line_tracing.LineTracing.disconnect">disconnect() (line_tracing.LineTracing method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="line_tracing.html#line_tracing.LineTracing.DNL_find_NSEW">DNL_find_NSEW() (line_tracing.LineTracing method)</a>
+</li>
+      <li><a href="line_tracing.html#line_tracing.LineTracing.draw_line">draw_line() (line_tracing.LineTracing method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -208,7 +318,35 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData">EfitData (class in ingrid.interpol)</a>
+      <li><a href="interpol.html#interpol.EfitData">EfitData (class in interpol)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ingrid.html#ingrid.Ingrid.ExportGridue">ExportGridue() (ingrid.Ingrid method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="geometry.html#geometry.Patch.fill">fill() (geometry.Patch method)</a>
+</li>
+      <li><a href="geometry.html#geometry.find_split_index">find_split_index() (in module geometry)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.FindMagAxis">FindMagAxis() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.FindXPoint">FindXPoint() (utils.IngridUtils method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#utils.IngridUtils.FindXPoint2">FindXPoint2() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="line_tracing.html#line_tracing.LineTracing.flip_NSEW_lookup">flip_NSEW_lookup() (line_tracing.LineTracing method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Line.fluff">fluff() (geometry.Line method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Line.fluff_copy">fluff_copy() (geometry.Line method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -216,35 +354,70 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.get_config">get_config() (ingrid.utils.topology_utils.Topology method)</a>
+      <li>
+    geometry
+
+      <ul>
+        <li><a href="geometry.html#module-geometry">module</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.get_func">get_func() (ingrid.utils.topology_utils.Topology method)</a>
+      </ul></li>
+      <li><a href="utils.html#utils.IngridUtils.get_config">get_config() (utils.IngridUtils method)</a>
+
+      <ul>
+        <li><a href="utils.html#utils.TopologyUtils.get_config">(utils.TopologyUtils method)</a>
 </li>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.get_psi">get_psi() (ingrid.interpol.EfitData method)</a>
+      </ul></li>
+      <li><a href="utils.html#utils.TopologyUtils.get_func">get_func() (utils.TopologyUtils method)</a>
 </li>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.get_v">get_v() (ingrid.interpol.EfitData method)</a>
+      <li><a href="interpol.html#interpol.EfitData.get_psi">get_psi() (interpol.EfitData method)</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.GetBoundaryPoints">GetBoundaryPoints() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="geometry.html#geometry.Patch.get_settings">get_settings() (geometry.Patch method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Patch.get_tag">get_tag() (geometry.Patch method)</a>
+</li>
+      <li><a href="interpol.html#interpol.EfitData.get_v">get_v() (interpol.EfitData method)</a>
+</li>
+      <li><a href="utils.html#utils.TopologyUtils.GetBoundaryPoints">GetBoundaryPoints() (utils.TopologyUtils method)</a>
+</li>
+      <li><a href="utils.html#utils.TopologyUtils.GetDistortionCorrectionSettings">GetDistortionCorrectionSettings() (utils.TopologyUtils method)</a>
+</li>
+      <li><a href="utils.html#utils.TopologyUtils.GetFunctions">GetFunctions() (utils.TopologyUtils method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.GetCorrectDistortionSettings">GetCorrectDistortionSettings() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="utils.html#utils.TopologyUtils.GetNpoints">GetNpoints() (utils.TopologyUtils method)</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.GetFunctions">GetFunctions() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="utils.html#utils.IngridUtils.GetPatchTagMap">GetPatchTagMap() (utils.IngridUtils method)</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.GetNpoints">GetNpoints() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="interpol.html#interpol.EfitData.Gradient">Gradient() (interpol.EfitData method)</a>
 </li>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.Gradient">Gradient() (ingrid.interpol.EfitData method)</a>
+      <li><a href="utils.html#utils.TopologyUtils.grid_diagram">grid_diagram() (utils.TopologyUtils method)</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.grid_diagram">grid_diagram() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="topologies.html#topologies.sf105.SF105.GroupPatches">GroupPatches() (topologies.sf105.SF105 method)</a>
+
+      <ul>
+        <li><a href="topologies.html#topologies.sf135.SF135.GroupPatches">(topologies.sf135.SF135 method)</a>
 </li>
+        <li><a href="topologies.html#topologies.sf15.SF15.GroupPatches">(topologies.sf15.SF15 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf165.SF165.GroupPatches">(topologies.sf165.SF165 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf45.SF45.GroupPatches">(topologies.sf45.SF45 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf75.SF75.GroupPatches">(topologies.sf75.SF75 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.snl.SNL.GroupPatches">(topologies.snl.SNL method)</a>
+</li>
+        <li><a href="topologies.html#topologies.udn.UDN.GroupPatches">(topologies.udn.UDN method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.Hessian">Hessian() (ingrid.interpol.EfitData method)</a>
+      <li><a href="interpol.html#interpol.EfitData.Hessian">Hessian() (interpol.EfitData method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -252,7 +425,7 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.html#ingrid.ImportEqFiles.ImportEqFiles">ImportEqFiles() (in module ingrid.ImportEqFiles)</a>
+      <li><a href="ingrid.html#ingrid.Ingrid.ImportGridue">ImportGridue() (ingrid.Ingrid static method)</a>
 </li>
       <li>
     ingrid
@@ -261,64 +434,51 @@
         <li><a href="ingrid.html#module-ingrid">module</a>
 </li>
       </ul></li>
-      <li>
-    ingrid.gui
-
-      <ul>
-        <li><a href="ingrid.gui.html#module-ingrid.gui">module</a>
+      <li><a href="ingrid.html#ingrid.Ingrid">Ingrid (class in ingrid)</a>
 </li>
-      </ul></li>
-      <li>
-    ingrid.ImportEqFiles
-
-      <ul>
-        <li><a href="ingrid.html#module-ingrid.ImportEqFiles">module</a>
-</li>
-      </ul></li>
-      <li>
-    ingrid.interpol
-
-      <ul>
-        <li><a href="ingrid.html#module-ingrid.interpol">module</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#utils.IngridUtils">IngridUtils (class in utils)</a>
+</li>
       <li>
-    ingrid.OMFITgeqdsk
+    interpol
 
       <ul>
-        <li><a href="ingrid.html#module-ingrid.OMFITgeqdsk">module</a>
+        <li><a href="interpol.html#module-interpol">module</a>
 </li>
       </ul></li>
-      <li>
-    ingrid.topologies
-
-      <ul>
-        <li><a href="ingrid.topologies.html#module-ingrid.topologies">module</a>
+      <li><a href="geometry.html#geometry.intersect">intersect() (in module geometry)</a>
 </li>
-      </ul></li>
-      <li>
-    ingrid.utils
-
-      <ul>
-        <li><a href="ingrid.utils.html#module-ingrid.utils">module</a>
+      <li><a href="geometry.html#geometry.is_between">is_between() (in module geometry)</a>
 </li>
-      </ul></li>
-      <li>
-    ingrid.utils.topology_utils
-
-      <ul>
-        <li><a href="ingrid.utils.html#module-ingrid.utils.topology_utils">module</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.locate_cell">locate_cell() (ingrid.interpol.EfitData method)</a>
+      <li><a href="geometry.html#geometry.limiter_split">limiter_split() (in module geometry)</a>
+</li>
+      <li><a href="geometry.html#geometry.Line">Line (class in geometry)</a>
+</li>
+      <li>
+    line_tracing
+
+      <ul>
+        <li><a href="line_tracing.html#module-line_tracing">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="line_tracing.html#line_tracing.LineTracing">LineTracing (class in line_tracing)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.LoadEFIT">LoadEFIT() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.LoadGeometryData">LoadGeometryData() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.LoadPatches">LoadPatches() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="interpol.html#interpol.EfitData.locate_cell">locate_cell() (interpol.EfitData method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -326,38 +486,94 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="geometry.html#geometry.Vector.mag">mag() (geometry.Vector method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Patch.make_subgrid">make_subgrid() (geometry.Patch method)</a>
+</li>
+      <li><a href="line_tracing.html#line_tracing.LineTracing.map_xpt">map_xpt() (line_tracing.LineTracing method)</a>
+</li>
       <li>
     module
 
       <ul>
+        <li><a href="geometry.html#module-geometry">geometry</a>
+</li>
         <li><a href="ingrid.html#module-ingrid">ingrid</a>
 </li>
-        <li><a href="ingrid.gui.html#module-ingrid.gui">ingrid.gui</a>
+        <li><a href="interpol.html#module-interpol">interpol</a>
 </li>
-        <li><a href="ingrid.html#module-ingrid.ImportEqFiles">ingrid.ImportEqFiles</a>
+        <li><a href="line_tracing.html#module-line_tracing">line_tracing</a>
 </li>
-        <li><a href="ingrid.html#module-ingrid.interpol">ingrid.interpol</a>
+        <li><a href="topologies.html#module-topologies">topologies</a>
 </li>
-        <li><a href="ingrid.html#module-ingrid.OMFITgeqdsk">ingrid.OMFITgeqdsk</a>
+        <li><a href="topologies.html#module-topologies.sf105">topologies.sf105</a>
 </li>
-        <li><a href="ingrid.topologies.html#module-ingrid.topologies">ingrid.topologies</a>
+        <li><a href="topologies.html#module-topologies.sf135">topologies.sf135</a>
 </li>
-        <li><a href="ingrid.utils.html#module-ingrid.utils">ingrid.utils</a>
+        <li><a href="topologies.html#module-topologies.sf15">topologies.sf15</a>
 </li>
-        <li><a href="ingrid.utils.html#module-ingrid.utils.topology_utils">ingrid.utils.topology_utils</a>
+        <li><a href="topologies.html#module-topologies.sf165">topologies.sf165</a>
+</li>
+        <li><a href="topologies.html#module-topologies.sf45">topologies.sf45</a>
+</li>
+        <li><a href="topologies.html#module-topologies.sf75">topologies.sf75</a>
+</li>
+        <li><a href="topologies.html#module-topologies.snl">topologies.snl</a>
+</li>
+        <li><a href="topologies.html#module-topologies.udn">topologies.udn</a>
+</li>
+        <li><a href="utils.html#module-utils">utils</a>
 </li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="geometry.html#geometry.non_decreasing">non_decreasing() (in module geometry)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="geometry.html#geometry.non_increasing">non_increasing() (in module geometry)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.html#ingrid.OMFITgeqdsk.OMFITgeqdsk">OMFITgeqdsk (class in ingrid.OMFITgeqdsk)</a>
+      <li><a href="utils.html#utils.IngridUtils.OMFIT_read_psi">OMFIT_read_psi() (utils.IngridUtils method)</a>
 </li>
+      <li><a href="utils.html#utils.IngridUtils.OrderLimiter">OrderLimiter() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="topologies.html#topologies.sf105.SF105.OrderPatches">OrderPatches() (topologies.sf105.SF105 method)</a>
+
+      <ul>
+        <li><a href="topologies.html#topologies.sf135.SF135.OrderPatches">(topologies.sf135.SF135 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf15.SF15.OrderPatches">(topologies.sf15.SF15 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf165.SF165.OrderPatches">(topologies.sf165.SF165 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf45.SF45.OrderPatches">(topologies.sf45.SF45 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf75.SF75.OrderPatches">(topologies.sf75.SF75 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.snl.SNL.OrderPatches">(topologies.snl.SNL method)</a>
+</li>
+        <li><a href="topologies.html#topologies.udn.UDN.OrderPatches">(topologies.udn.UDN method)</a>
+</li>
+        <li><a href="utils.html#utils.TopologyUtils.OrderPatches">(utils.TopologyUtils method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.OrderPatches">OrderPatches() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="utils.html#utils.IngridUtils.OrderTargetPlate">OrderTargetPlate() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.OrderTargetPlates">OrderTargetPlates() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="geometry.html#geometry.orientation_between">orientation_between() (in module geometry)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -365,17 +581,95 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.patch_diagram">patch_diagram() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="utils.html#utils.IngridUtils.ParseTxtCoordinates">ParseTxtCoordinates() (utils.IngridUtils method)</a>
 </li>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.plot_data">plot_data() (ingrid.interpol.EfitData method)</a>
+      <li><a href="geometry.html#geometry.Patch">Patch (class in geometry)</a>
+</li>
+      <li><a href="utils.html#utils.TopologyUtils.patch_diagram">patch_diagram() (utils.TopologyUtils method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Line.plot">plot() (geometry.Line method)</a>
+
+      <ul>
+        <li><a href="geometry.html#geometry.Point.plot">(geometry.Point method)</a>
+</li>
+      </ul></li>
+      <li><a href="geometry.html#geometry.Cell.plot_border">plot_border() (geometry.Cell method)</a>
+
+      <ul>
+        <li><a href="geometry.html#geometry.Patch.plot_border">(geometry.Patch method)</a>
+</li>
+      </ul></li>
+      <li><a href="geometry.html#geometry.Cell.plot_center">plot_center() (geometry.Cell method)</a>
+</li>
+      <li><a href="interpol.html#interpol.EfitData.plot_data">plot_data() (interpol.EfitData method)</a>
+</li>
+      <li><a href="interpol.html#interpol.EfitData.plot_levels">plot_levels() (interpol.EfitData method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Patch.plot_subgrid">plot_subgrid() (geometry.Patch method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.Plotgridue">Plotgridue() (ingrid.Ingrid static method)</a>
+</li>
+      <li><a href="interpol.html#interpol.EfitData.PlotLevel">PlotLevel() (interpol.EfitData method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotLimiter">PlotLimiter() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotMidplane">PlotMidplane() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotPatches">PlotPatches() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotPsiLevel">PlotPsiLevel() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotPsiNorm">PlotPsiNorm() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotPsiNormBounds">PlotPsiNormBounds() (ingrid.Ingrid method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.plot_levels">plot_levels() (ingrid.interpol.EfitData method)</a>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotPsiNormMagReference">PlotPsiNormMagReference() (ingrid.Ingrid method)</a>
 </li>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.PlotLevel">PlotLevel() (ingrid.interpol.EfitData method)</a>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotPsiUNorm">PlotPsiUNorm() (ingrid.Ingrid method)</a>
 </li>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.PsiFunction">PsiFunction() (ingrid.interpol.EfitData method)</a>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotStrikeGeometry">PlotStrikeGeometry() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotSubgrid">PlotSubgrid() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotTargetPlate">PlotTargetPlate() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotTargetPlates">PlotTargetPlates() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PlotTopologyAnalysis">PlotTopologyAnalysis() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Point">Point (class in geometry)</a>
+</li>
+      <li><a href="geometry.html#geometry.Line.points">points() (geometry.Line method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.PopulateSettings">PopulateSettings() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.PrepGridue">PrepGridue() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.PrepLineTracing">PrepLineTracing() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Line.print_points">print_points() (geometry.Line method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PrintSummaryInput">PrintSummaryInput() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.PrintSummaryParams">PrintSummaryParams() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.ProcessKeywords">ProcessKeywords() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Point.psi">psi() (geometry.Point method)</a>
+</li>
+      <li><a href="line_tracing.html#line_tracing.LineTracing.PsiCostFunc">PsiCostFunc() (line_tracing.LineTracing method)</a>
+</li>
+      <li><a href="interpol.html#interpol.EfitData.PsiFunction">PsiFunction() (interpol.EfitData method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ingrid.html#ingrid.QuickStart">QuickStart() (in module ingrid)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -383,7 +677,31 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.RefreshSettings">RefreshSettings() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="ingrid.html#ingrid.Ingrid.ReadYamlFile">ReadYamlFile() (ingrid.Ingrid static method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.ReconstructPatches">ReconstructPatches() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="line_tracing.html#line_tracing.RegionEntered">RegionEntered</a>
+</li>
+      <li><a href="geometry.html#geometry.Line.RemoveDuplicatePoints">RemoveDuplicatePoints() (geometry.Line method)</a>
+
+      <ul>
+        <li><a href="geometry.html#geometry.Patch.RemoveDuplicatePoints">(geometry.Patch method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ingrid.html#ingrid.Ingrid.RemovePlotItem">RemovePlotItem() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="geometry.html#geometry.reorder_limiter">reorder_limiter() (in module geometry)</a>
+</li>
+      <li><a href="geometry.html#geometry.Line.reverse_copy">reverse_copy() (geometry.Line method)</a>
+</li>
+      <li><a href="geometry.html#geometry.rotate">rotate() (in module geometry)</a>
+</li>
+      <li><a href="line_tracing.html#line_tracing.LineTracing.rotate_NSEW_lookup">rotate_NSEW_lookup() (line_tracing.LineTracing method)</a>
+</li>
+      <li><a href="geometry.html#geometry.rotmatrix">rotmatrix() (in module geometry)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -391,13 +709,81 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.html#ingrid.interpol.EfitData.set_v">set_v() (ingrid.interpol.EfitData method)</a>
+      <li><a href="ingrid.html#ingrid.Ingrid.SaveGeometryData">SaveGeometryData() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.SavePatches">SavePatches() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.SaveSettingsFile">SaveSettingsFile() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="geometry.html#geometry.segment_intersect">segment_intersect() (in module geometry)</a>
+</li>
+      <li><a href="topologies.html#topologies.sf105.SF105.set_gridue">set_gridue() (topologies.sf105.SF105 method)</a>
+
+      <ul>
+        <li><a href="topologies.html#topologies.sf135.SF135.set_gridue">(topologies.sf135.SF135 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf15.SF15.set_gridue">(topologies.sf15.SF15 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf165.SF165.set_gridue">(topologies.sf165.SF165 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf45.SF45.set_gridue">(topologies.sf45.SF45 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.sf75.SF75.set_gridue">(topologies.sf75.SF75 method)</a>
+</li>
+        <li><a href="topologies.html#topologies.snl.SNL.set_gridue">(topologies.snl.SNL method)</a>
+</li>
+        <li><a href="topologies.html#topologies.udn.UDN.set_gridue">(topologies.udn.UDN method)</a>
+</li>
+      </ul></li>
+      <li><a href="interpol.html#interpol.EfitData.set_v">set_v() (interpol.EfitData method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.SetDefaultSettings">SetDefaultSettings() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.SetGeometry">SetGeometry() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.SetLimiter">SetLimiter() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.SetMagReference">SetMagReference() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="utils.html#utils.TopologyUtils.SetPatchBoundaryPoints">SetPatchBoundaryPoints() (utils.TopologyUtils method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.SetPatchBoundaryPoints">SetPatchBoundaryPoints() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="utils.html#utils.IngridUtils.SetTargetPlate">SetTargetPlate() (utils.IngridUtils method)</a>
 </li>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology.SetupPatchMatrix">SetupPatchMatrix() (ingrid.utils.topology_utils.Topology method)</a>
+      <li><a href="ingrid.html#ingrid.Ingrid.SetTargetPlates">SetTargetPlates() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.SetTopology">SetTopology() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="utils.html#utils.TopologyUtils.SetupPatchMatrix">SetupPatchMatrix() (utils.TopologyUtils method)</a>
+</li>
+      <li><a href="topologies.html#topologies.sf105.SF105">SF105 (class in topologies.sf105)</a>
+</li>
+      <li><a href="topologies.html#topologies.sf135.SF135">SF135 (class in topologies.sf135)</a>
+</li>
+      <li><a href="topologies.html#topologies.sf15.SF15">SF15 (class in topologies.sf15)</a>
+</li>
+      <li><a href="topologies.html#topologies.sf165.SF165">SF165 (class in topologies.sf165)</a>
+</li>
+      <li><a href="topologies.html#topologies.sf45.SF45">SF45 (class in topologies.sf45)</a>
+</li>
+      <li><a href="topologies.html#topologies.sf75.SF75">SF75 (class in topologies.sf75)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.ShowSetup">ShowSetup() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="topologies.html#topologies.snl.SNL">SNL (class in topologies.snl)</a>
+</li>
+      <li><a href="line_tracing.html#line_tracing.LineTracing.SNL_find_NSEW">SNL_find_NSEW() (line_tracing.LineTracing method)</a>
+</li>
+      <li><a href="geometry.html#geometry.Line.split">split() (geometry.Line method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.StartGUI">StartGUI() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="ingrid.html#ingrid.Ingrid.StartSetup">StartSetup() (ingrid.Ingrid method)</a>
+</li>
+      <li><a href="geometry.html#geometry.strictly_decreasing">strictly_decreasing() (in module geometry)</a>
+</li>
+      <li><a href="geometry.html#geometry.strictly_increasing">strictly_increasing() (in module geometry)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -405,7 +791,121 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ingrid.utils.html#ingrid.utils.topology_utils.Topology">Topology (class in ingrid.utils.topology_utils)</a>
+      <li><a href="geometry.html#geometry.test2points">test2points() (in module geometry)</a>
+</li>
+      <li>
+    topologies
+
+      <ul>
+        <li><a href="topologies.html#module-topologies">module</a>
+</li>
+      </ul></li>
+      <li>
+    topologies.sf105
+
+      <ul>
+        <li><a href="topologies.html#module-topologies.sf105">module</a>
+</li>
+      </ul></li>
+      <li>
+    topologies.sf135
+
+      <ul>
+        <li><a href="topologies.html#module-topologies.sf135">module</a>
+</li>
+      </ul></li>
+      <li>
+    topologies.sf15
+
+      <ul>
+        <li><a href="topologies.html#module-topologies.sf15">module</a>
+</li>
+      </ul></li>
+      <li>
+    topologies.sf165
+
+      <ul>
+        <li><a href="topologies.html#module-topologies.sf165">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    topologies.sf45
+
+      <ul>
+        <li><a href="topologies.html#module-topologies.sf45">module</a>
+</li>
+      </ul></li>
+      <li>
+    topologies.sf75
+
+      <ul>
+        <li><a href="topologies.html#module-topologies.sf75">module</a>
+</li>
+      </ul></li>
+      <li>
+    topologies.snl
+
+      <ul>
+        <li><a href="topologies.html#module-topologies.snl">module</a>
+</li>
+      </ul></li>
+      <li>
+    topologies.udn
+
+      <ul>
+        <li><a href="topologies.html#module-topologies.udn">module</a>
+</li>
+      </ul></li>
+      <li><a href="utils.html#utils.TopologyUtils">TopologyUtils (class in utils)</a>
+</li>
+      <li><a href="geometry.html#geometry.trim_geometry">trim_geometry() (in module geometry)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="topologies.html#topologies.udn.UDN">UDN (class in topologies.udn)</a>
+</li>
+      <li><a href="geometry.html#geometry.UnfoldLabel">UnfoldLabel() (in module geometry)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="geometry.html#geometry.unit_vector">unit_vector() (in module geometry)</a>
+</li>
+      <li>
+    utils
+
+      <ul>
+        <li><a href="utils.html#module-utils">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="geometry.html#geometry.Vector">Vector (class in geometry)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="geometry.html#geometry.which_increasing">which_increasing() (in module geometry)</a>
+</li>
+      <li><a href="geometry.html#geometry.which_non_increasing">which_non_increasing() (in module geometry)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#utils.IngridUtils.WriteGridueDNL">WriteGridueDNL() (utils.IngridUtils method)</a>
+</li>
+      <li><a href="utils.html#utils.IngridUtils.WriteGridueSNL">WriteGridueSNL() (utils.IngridUtils method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -422,7 +922,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Bryan Garcia, Jerome Guterl, Joey Watkins
+        &copy; Copyright 2020, Bryan Max Garcia
 
     </p>
   </div>

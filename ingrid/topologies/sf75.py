@@ -1,10 +1,8 @@
 """
-SF15.py
+The ``sf75`` module contains :class:`SF75` for representing a Snowflake-75
+topology/configuration.
 
-Description:
-    SNL configuration class.
-
-Created: June 18, 2020
+Child of base :class:`utils.TopologyUtils`.
 
 """
 import numpy as np
@@ -15,14 +13,33 @@ try:
 except:
     pass
 import matplotlib.pyplot as plt
-from utils.topology_utils import Topology
+from utils import TopologyUtils
 from geometry import Point, Line, Patch, trim_geometry
 from collections import OrderedDict
 
 
-class SF75(Topology):
-    def __init__(self, Ingrid_obj, config):
-        Topology.__init__(self, Ingrid_obj, config)
+class SF75(TopologyUtils):
+    """
+    The `SF75` class for handling `Snowflake-75` configurations within a tokamak.
+
+    Parameters
+    ----------
+    Ingrid_obj : Ingrid
+        Ingrid object the SF75 object is being managed by.
+
+    config : str, optional
+        String code representing the configuration.
+
+    Attributes
+    ----------
+    ConnexionMap : dict
+        A mapping defining dependencies between Patch objects for grid generation.
+
+    patches : dict
+        The collection of Patch objects representing the topology.
+    """
+    def __init__(self, Ingrid_obj: 'ingrid.Ingrid', config: str = 'SF75'):
+        TopologyUtils.__init__(self, Ingrid_obj, config)
 
         self.ConnexionMap = {
             'A1': {'N': ('A2', 'S')},
@@ -90,13 +107,13 @@ class SF75(Topology):
         magx = np.array([self.settings['grid_settings']['rmagx'] + self.settings['grid_settings']['patch_generation']['rmagx_shift'],
             self.settings['grid_settings']['zmagx'] + self.settings['grid_settings']['patch_generation']['zmagx_shift']])
 
-        psi_max_west = self.settings['grid_settings']['psi_max_west']
-        psi_max_east = self.settings['grid_settings']['psi_max_east']
+        psi_1 = self.settings['grid_settings']['psi_1']
+        psi_2 = self.settings['grid_settings']['psi_2']
         psi_core = self.settings['grid_settings']['psi_core']
         psi_pf_1 = self.settings['grid_settings']['psi_pf_1']
         psi_pf_2 = self.settings['grid_settings']['psi_pf_2']
 
-        if self.settings['limiter']['use_limiter']:
+        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'limiter':
             WestPlate1 = self.parent.LimiterData.copy()
             WestPlate2 = self.parent.LimiterData.copy()
 
@@ -181,11 +198,11 @@ class SF75(Topology):
         D1_S = self.LineTracer.draw_line(E1_S.p[-1], {'line': topLine}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
-        B3_W = self.LineTracer.draw_line(xpt1['W'], {'psi': psi_max_west}, option='rho', direction='ccw',
+        B3_W = self.LineTracer.draw_line(xpt1['W'], {'psi': psi_1}, option='rho', direction='ccw',
             show_plot=visual, text=verbose)
         A3_E = B3_W.reverse_copy()
 
-        F3_W = self.LineTracer.draw_line(xpt1['E'], {'psi': psi_max_west}, option='rho', direction='ccw',
+        F3_W = self.LineTracer.draw_line(xpt1['E'], {'psi': psi_1}, option='rho', direction='ccw',
             show_plot=visual, text=verbose)
         E3_E = F3_W.reverse_copy()
 
@@ -283,7 +300,7 @@ class SF75(Topology):
             show_plot=visual, text=verbose).reverse_copy()
         H3_S = H2_N.reverse_copy()
 
-        H1_E = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_max_east}, option='rho', direction='cw')
+        H1_E = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_2}, option='rho', direction='cw')
         G1_W = H1_E.reverse_copy()
 
         G1_S = self.LineTracer.draw_line(H1_E.p[-1], {'line': EastPlate1}, option='theta', direction='cw',
@@ -349,67 +366,67 @@ class SF75(Topology):
         H3_W = trim_geometry(EastPlate2, H3_S.p[-1], H3_N.p[0])
 
         # ============== Patch A1 ==============
-        A1 = Patch([A1_N, A1_E, A1_S, A1_W], patchName='A1', platePatch=True, plateLocation='W')
+        A1 = Patch([A1_N, A1_E, A1_S, A1_W], patch_name='A1', plate_patch=True, plate_location='W')
         # ============== Patch A2 ==============
-        A2 = Patch([A2_N, A2_E, A2_S, A2_W], patchName='A2', platePatch=True, plateLocation='W')
+        A2 = Patch([A2_N, A2_E, A2_S, A2_W], patch_name='A2', plate_patch=True, plate_location='W')
         # ============== Patch A3 ==============
-        A3 = Patch([A3_N, A3_E, A3_S, A3_W], patchName='A3', platePatch=True, plateLocation='W')
+        A3 = Patch([A3_N, A3_E, A3_S, A3_W], patch_name='A3', plate_patch=True, plate_location='W')
 
         # ============== Patch B1 ==============
-        B1 = Patch([B1_N, B1_E, B1_S, B1_W], patchName='B1')
+        B1 = Patch([B1_N, B1_E, B1_S, B1_W], patch_name='B1')
         # ============== Patch B2 ==============
-        B2 = Patch([B2_N, B2_E, B2_S, B2_W], patchName='B2')
+        B2 = Patch([B2_N, B2_E, B2_S, B2_W], patch_name='B2')
         # ============== Patch B3 ==============
-        B3 = Patch([B3_N, B3_E, B3_S, B3_W], patchName='B3')
+        B3 = Patch([B3_N, B3_E, B3_S, B3_W], patch_name='B3')
 
         # ============== Patch C1 ==============
-        C1 = Patch([C1_N, C1_E, C1_S, C1_W], patchName='C1')
+        C1 = Patch([C1_N, C1_E, C1_S, C1_W], patch_name='C1')
         # ============== Patch C2 ==============
-        C2 = Patch([C2_N, C2_E, C2_S, C2_W], patchName='C2')
+        C2 = Patch([C2_N, C2_E, C2_S, C2_W], patch_name='C2')
         # ============== Patch C3 ==============
-        C3 = Patch([C3_N, C3_E, C3_S, C3_W], patchName='C3')
+        C3 = Patch([C3_N, C3_E, C3_S, C3_W], patch_name='C3')
 
         # ============== Patch D1 ==============
-        D1 = Patch([D1_N, D1_E, D1_S, D1_W], patchName='D1')
+        D1 = Patch([D1_N, D1_E, D1_S, D1_W], patch_name='D1')
         # ============== Patch D2 ==============
-        D2 = Patch([D2_N, D2_E, D2_S, D2_W], patchName='D2')
+        D2 = Patch([D2_N, D2_E, D2_S, D2_W], patch_name='D2')
         # ============== Patch D3 ==============
-        D3 = Patch([D3_N, D3_E, D3_S, D3_W], patchName='D3')
+        D3 = Patch([D3_N, D3_E, D3_S, D3_W], patch_name='D3')
 
         # ============== Patch E1 ==============
-        E1 = Patch([E1_N, E1_E, E1_S, E1_W], patchName='E1')
+        E1 = Patch([E1_N, E1_E, E1_S, E1_W], patch_name='E1')
         # ============== Patch E2 ==============
-        E2 = Patch([E2_N, E2_E, E2_S, E2_W], patchName='E2')
+        E2 = Patch([E2_N, E2_E, E2_S, E2_W], patch_name='E2')
         # ============== Patch E3 ==============
-        E3 = Patch([E3_N, E3_E, E3_S, E3_W], patchName='E3')
+        E3 = Patch([E3_N, E3_E, E3_S, E3_W], patch_name='E3')
 
         # ============== Patch F1 ==============
-        F1 = Patch([F1_N, F1_E, F1_S, F1_W], patchName='F1')
+        F1 = Patch([F1_N, F1_E, F1_S, F1_W], patch_name='F1')
         # ============== Patch F2 ==============
-        F2 = Patch([F2_N, F2_E, F2_S, F2_W], patchName='F2')
+        F2 = Patch([F2_N, F2_E, F2_S, F2_W], patch_name='F2')
         # ============== Patch F3 ==============
-        F3 = Patch([F3_N, F3_E, F3_S, F3_W], patchName='F3')
+        F3 = Patch([F3_N, F3_E, F3_S, F3_W], patch_name='F3')
 
         # ============== Patch G1 ==============
-        G1 = Patch([G1_N, G1_E, G1_S, G1_W], patchName='G1', platePatch=True, plateLocation='E')
+        G1 = Patch([G1_N, G1_E, G1_S, G1_W], patch_name='G1', plate_patch=True, plate_location='E')
         # ============== Patch G2 ==============
-        G2 = Patch([G2_N, G2_E, G2_S, G2_W], patchName='G2', platePatch=True, plateLocation='E')
+        G2 = Patch([G2_N, G2_E, G2_S, G2_W], patch_name='G2', plate_patch=True, plate_location='E')
         # ============== Patch G3 ==============
-        G3 = Patch([G3_N, G3_E, G3_S, G3_W], patchName='G3', platePatch=True, plateLocation='E')
+        G3 = Patch([G3_N, G3_E, G3_S, G3_W], patch_name='G3', plate_patch=True, plate_location='E')
 
         # ============== Patch H1 ==============
-        H1 = Patch([H1_N, H1_E, H1_S, H1_W], patchName='H1', platePatch=True, plateLocation='W')
+        H1 = Patch([H1_N, H1_E, H1_S, H1_W], patch_name='H1', plate_patch=True, plate_location='W')
         # ============== Patch H2 ==============
-        H2 = Patch([H2_N, H2_E, H2_S, H2_W], patchName='H2', platePatch=True, plateLocation='W')
+        H2 = Patch([H2_N, H2_E, H2_S, H2_W], patch_name='H2', plate_patch=True, plate_location='W')
         # ============== Patch H3 ==============
-        H3 = Patch([H3_N, H3_E, H3_S, H3_W], patchName='H3', platePatch=True, plateLocation='W')
+        H3 = Patch([H3_N, H3_E, H3_S, H3_W], patch_name='H3', plate_patch=True, plate_location='W')
 
         # ============== Patch I1 ==============
-        I1 = Patch([I1_N, I1_E, I1_S, I1_W], patchName='I1', platePatch=True, plateLocation='E')
+        I1 = Patch([I1_N, I1_E, I1_S, I1_W], patch_name='I1', plate_patch=True, plate_location='E')
         # ============== Patch I2 ==============
-        I2 = Patch([I2_N, I2_E, I2_S, I2_W], patchName='I2', platePatch=True, plateLocation='E')
+        I2 = Patch([I2_N, I2_E, I2_S, I2_W], patch_name='I2', plate_patch=True, plate_location='E')
         # ============== Patch I3 ==============
-        I3 = Patch([I3_N, I3_E, I3_S, I3_W], patchName='I3', platePatch=True, plateLocation='E')
+        I3 = Patch([I3_N, I3_E, I3_S, I3_W], patch_name='I3', plate_patch=True, plate_location='E')
 
         patches = [A3, A2, A1, B3, B2, B1, C3, C2, C1, D3, D2, D1, E3, E2, E1,
                    F3, F2, F1, G3, G2, G1, H3, H2, H1, I3, I2, I1]
@@ -418,7 +435,7 @@ class SF75(Topology):
         for patch in patches:
             patch.parent = self
             patch.PatchTagMap = self.PatchTagMap
-            self.patches[patch.patchName] = patch
+            self.patches[patch.patch_name] = patch
         self.OrderPatches()
 
     def OrderPatches(self):
@@ -477,14 +494,15 @@ class SF75(Topology):
 
     def set_gridue(self):
         """
-        set_gridue:
-            Prepares 'self.gridue_settings' dictionary with required data.
-            The self.gridue_settings attribute is used to write a gridue
-            formatted file
-        Parameters:
-            N/A
-        Return:
-            N/A
+        Prepares a ``gridue_settings`` dictionary with required data
+        for writing a gridue file.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
 
         ixlb = 0
@@ -555,9 +573,11 @@ class SF75(Topology):
                     bphi[i][j][k] = _bphi
                     b[i][j][k] = _b
 
-        self.gridue_settings = {'nxm': nxm, 'nym': nym, 'iyseparatrix1': iyseparatrix1, 'iyseparatrix2': iyseparatrix2,
-                'ix_plate1': ix_plate1, 'ix_cut1': ix_cut1, 'ix_cut2': ix_cut2, 'ix_plate2': ix_plate2, 'iyseparatrix3': iyseparatrix3,
-                'iyseparatrix4': iyseparatrix4, 'ix_plate3': ix_plate3, 'ix_cut3': ix_cut3, 'ix_cut4': ix_cut4, 'ix_plate4': ix_plate4,
-                'rm': self.rm, 'zm': self.zm, 'psi': psi, 'br': br, 'bz': bz, 'bpol': bpol, 'bphi': bphi, 'b': b, '_FILLER_': -1}
+        self.gridue_settings = {
+            'nxm': nxm, 'nym': nym, 'iyseparatrix1': iyseparatrix1, 'iyseparatrix2': iyseparatrix2,
+            'ix_plate1': ix_plate1, 'ix_cut1': ix_cut1, 'ix_cut2': ix_cut2, 'ix_plate2': ix_plate2, 'iyseparatrix3': iyseparatrix3,
+            'iyseparatrix4': iyseparatrix4, 'ix_plate3': ix_plate3, 'ix_cut3': ix_cut3, 'ix_cut4': ix_cut4, 'ix_plate4': ix_plate4,
+            'rm': self.rm, 'zm': self.zm, 'psi': psi, 'br': br, 'bz': bz, 'bpol': bpol, 'bphi': bphi, 'b': b, '_FILLER_': -1
+        }
 
-
+        return self.gridue_settings

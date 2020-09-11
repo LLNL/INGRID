@@ -1,138 +1,25 @@
-#!/usr/bin/env python2
+#!/usr/bin/env pythonu
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul 25 16:00:04 2019
-
-@author: watkins35, garcia299
+The `geometry` module contains core classes that support the INGRID
+geometrical object hierarchy. This module also contains various helper
+functions that work in tandem with the `LineTracing` class to generate
+Patch maps and grids.
 """
 from __future__ import print_function, division
 import numpy as np
+import matplotlib
+try:
+    matplotlib.use("TkAgg")
+except:
+    pass
 import matplotlib.pyplot as plt
-import time
 import sys
 import linecache
 from matplotlib.patches import Polygon
 from scipy.optimize import fsolve, curve_fit, root_scalar, brentq
 from scipy.interpolate import splprep, splev
 from collections import OrderedDict
-
-
-def strictly_increasing(L):
-    return all(x < y for x, y in zip(L, L[1:]))
-
-
-def strictly_decreasing(L):
-    return all(x > y for x, y in zip(L, L[1:]))
-
-
-def non_increasing(L):
-    return all(x >= y for x, y in zip(L, L[1:]))
-
-
-def which_non_increasing(L):
-    return [i for i, (x, y) in enumerate(zip(L, L[1:])) if x > y]
-
-
-def which_increasing(L):
-    return [i for i, (x, y) in enumerate(zip(L, L[1:])) if x < y]
-
-
-def non_decreasing(L):
-    return all(x <= y for x, y in zip(L, L[1:]))
-
-
-def find_split_index(split_point, line):
-    same_line_split = False
-    for i in range(len(line.p) - 1):
-        # Split point is exactly on a Line object's point. Occurs often
-        # when splitting a Line object with itself.
-
-        if split_point.y == line.p[i].y and split_point.x == line.p[i].x:
-            same_line_split = True
-            return i, same_line_split
-        # Create two vectors.
-        end_u = np.array([line.p[i + 1].x - line.p[i].x, line.p[i + 1].y - line.p[i].y])
-        split_v = np.array([split_point.x - line.p[i].x, split_point.y - line.p[i].y])
-
-        if is_between(end_u, split_v):
-            # store index corresponding to the start of the segment containing the split_point.
-            return i, same_line_split
-        else:
-            continue
-    return None, same_line_split
-
-
-def is_between(end_u, split_v):
-    eps = 1e-9
-    # check cross product vector norm against eps.
-    if np.linalg.norm(np.cross(end_u, split_v)) < eps:
-        # Colinear up to eps.
-        # Ensure dot product is positive and vector v lies in distance of u norm.
-        if (np.dot(end_u, split_v) > 0) and (np.linalg.norm(end_u) > np.linalg.norm(split_v)):
-            return True
-    else:
-        return False
-
-
-def rotmatrix(theta):
-    rot = np.zeros((2, 2))
-    rot[0, 0] = np.cos(theta)
-    rot[1, 1] = np.cos(theta)
-    rot[0, 1] = -np.sin(theta)
-    rot[1, 0] = np.sin(theta)
-    return rot
-
-
-def rotate(vec, theta, origin):
-    return np.matmul(rotmatrix(theta), vec - origin) + origin
-
-
-def unit_vector(v):
-    """
-    Returns unit vector
-    """
-    return v / np.linalg.norm(v)
-
-
-def angle_between(u, v, origin, relative=False):
-    """
-    Compute angle in radians between vectors u and v
-    """
-    u_norm = unit_vector(u - origin)
-    v_norm = unit_vector(v - origin)
-    angle = np.arccos(np.clip(np.dot(u_norm, v_norm), -1, 1))
-    return orientation_between(u, v, origin) * angle if relative else angle
-
-
-def orientation_between(u, v, origin):
-    """
-    Compute angle in radians between vectors u and v
-    """
-    u_norm = unit_vector(u - origin)
-    v_norm = unit_vector(v - origin)
-    return np.sign(np.arctan2(u_norm[0] * v_norm[1] - u_norm[1] * v_norm[0],
-        u_norm[0] * v_norm[0] + u_norm[0] * v_norm[1]))
-
-
-def reorder_limiter(new_start, limiter):
-    start_index, = find_split_index(new_start, limiter)
-    return limiter
-
-
-def limiter_split(start, end, limiter):
-    start_index, sls = find_split_index(start, limiter)
-    end_index, sls = find_split_index(end, limiter)
-    if end_index <= start_index:
-        limiter.p = limiter.p[start_index:] + limiter.p[:start_index + 1]
-    return limiter
-
-
-def trim_geometry(geoline, start, end):
-    try:
-        trim = (geoline.split(start)[1]).split(end, add_split_point=True)[0]
-    except:
-        trim = limiter_split(start, end, geoline)
-    return trim
 
 
 class Vector:
@@ -146,9 +33,26 @@ class Vector:
     origin : array-like
         Location of the origin. This is to adjust for not being at the
         origin of the axes. Of the form (x, y).
+
+    Attributes
+    ----------
+    x : float
+        x-coordinate
+    y : float
+        y-coordinate
+    xorigin : float
+        x-coordinate of vector origin
+    yorigin : float
+        y-coordinate of vector origin
+    xnorm : float
+        x relative to origin
+    ynorm : float
+        y relative to origin
+    quadrant : int
+        Quadrant vector resides in
     """
 
-    def __init__(self, xy, origin):
+    def __init__(self, xy: 'array-like', origin: 'array-like'):
         self.x, self.y = xy
         self.xorigin = origin[0]
         self.yorigin = origin[1]
@@ -156,34 +60,53 @@ class Vector:
         self.ynorm = self.y - self.yorigin
         self.quadrant = (int(np.sign(self.xnorm)), int(np.sign(self.ynorm)))
 
-    def arr(self):
+    def arr(self) -> np.ndarray:
         """
+        Return the vector object as an array.
+
+        Parameters
+        ----------
+
         Returns
         -------
-        ndarray
-            Returns the vector as an array.
+            The vector as an numpy ndarray.
         """
         return np.array([self.xnorm, self.ynorm])
 
-    def mag(self):
+    def mag(self) -> float:
         """
+        Return the L2 norm of the vector.
+
+        Parameters
+        ----------
+
         Returns
         -------
-        float
-            Computes the magnitude, or length of the vector.
+            Vector norm.
         """
         return np.linalg.norm(self.arr())
 
 
 class Point:
     """
-    Point object
+    Define a Point.
+
+    Can be used to later define Line objects.
 
     Parameters
     ----------
     pts : array-like
         Accepts either two values x, y as floats, or
         a single tuple/list value (x, y).
+
+    Attributes
+    ----------
+    x : float
+        x coordinate of the point
+    y : float
+        y coordinate of the point
+    coor : tuple
+        x and y coordinates together as a tuple
     """
 
     def __init__(self, *pts):
@@ -197,45 +120,80 @@ class Point:
             print('incompatible form')
             print(np.shape(pts), pts)
 
-    def psi(self, grid, tag='v'):
+    def psi(self, grid: 'EfitData', tag: str = 'v') -> float:
         """
+        Get the psi value of this Point from an EfitData instance.
+
         Parameters
         ----------
-        grid : EfitData.EfitData
-            Must pass in the grid upon which the value of psi is to be
-            calculated on. Must be the Efit grid object.
+        grid : EfitData
+            The grid upon which the value of psi is to be calculated on.
         tag : str, optional
-            This is to specify the type of psi derivative, if desired.
-            Accepts 'v', 'vr', 'vz', 'vrz'.
-            The default is 'v', or no derivative.
+            Char to specify the type of psi derivative.
+            Defaults 'v' (no derivative).
 
         Returns
         -------
-        float
-            Calculate the value of psi at the point.
+            The psi value at the Point.
         """
         return grid.PsiNorm.get_psi(self.x, self.y, tag)
 
-    def plot(self):
-        """ Places an x on the location of the point. """
-        plt.plot(self.x, self.y, 'x')
+    def plot(self, ax: 'matplotlib.axes.Axes' = None) -> None:
+        """
+        Plot the Point.
 
-    def as_np(self):
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            The Axes instance to plot to.
+            Default is None and calls function `matplotlib.pyplot.gca`.
+
+        Returns
+        -------
+        """
+
+        if ax is None:
+            ax = plt.gca()
+
+        ax.plot(self.x, self.y, 'x')
+
+    def as_np(self) -> np.ndarray:
+        """
+        Return the Point object as a numpy ndarray.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+            An ndarray representation of the Point object.
+        """
         return np.array([self.x, self.y])
 
 
 class Line:
     """
-    Line object, in which an ordered set of points defines a line.
+    Define an arbitrary line/curve.
+
+    This is ordered collection of Point objects can later be used to define
+    a Patch object.
 
     Parameters
     ----------
     points : list
-        Points are of the form p = (x, y), and the list should be
-        made up of multiple points. [p, p, p]...
+        The Point objects that define the Line.
+
+    Attributes
+    ----------
+    p : list
+        The list of Point objects that define this Line.
+    xval : list
+        A list consisting the x-coordinates for each Point.
+    yval : list
+        A list consisting the y-coordinates for each Point.
     """
 
-    def __init__(self, points):
+    def __init__(self, points: list):
         self.p = points
         self.xval = [p.x for p in points]
         self.yval = [p.y for p in points]
@@ -246,104 +204,85 @@ class Line:
             self.X = 0
             self.Y = 0
 
-    def Norm(self):
+    def copy(self) -> 'Line':
         """
-        Return norm of the lines
+        Create a copy of this Line object.
 
-        Returns:
-            None.
-
-        """
-
-        return np.sqrt(self.X**2 + self.Y**2)
-
-    def GetAngle(self, Line):
-        """
-        Return the angle between two lines in degree (between 0 and 180 degrees) 
-
-        Args:
-            Line (TYPE): DESCRIPTION.
-
-        Returns:
-            None.
-
-        """
-        if Line.Norm() != 0 and self.Norm() != 0:
-            return np.rad2deg(np.arccos(((self.X) * (Line.X) + (self.Y) * (Line.Y)) / (Line.Norm() * self.Norm())))
-        else:
-            return None
-
-    def reverse(self):
-        """ Points the line in the other direction.
-        It is intended to be used right after generating a line
-        using the draw_line funciton from the line tracer.
-        For example; LineTracing.draw_line(args...).reverse().
+        Parameters
+        ----------
 
         Returns
         -------
-        self
-            geometry.Line
-        """
-        self.p = self.p[::-1]
-        return self
+            A new Line instance.
 
-    def copy(self):
-        """
-        Returns a copy of the line.
         """
         return Line(self.p[::])
 
-    def reverse_copy(self):
+    def reverse_copy(self) -> 'Line':
         """
-        Returns a copy of the line in the reversed direction.
-        Does not overwrite the current line.
-        """
+        Create a copy of this Line in reversed order.
 
+        Parameters
+        ----------
+
+        Returns
+        -------
+            A new Line instance
+        """
         return Line(self.p[::-1])
 
-    def straighten(self):
+    def plot(self, color: str = '#1f77b4', label: str = '',
+             ax: 'matplotlib.axes.Axes' = None, linewidth: float = 1.0) -> 'matplotlib.axes.Axes':
         """
-        Returns a Line instance consisting of the caller's
-        first point and final point. To be used with 'curves'
-        in order to generate chords.
-        """
-
-        return Line([self.p[0], self.p[-1]])
-
-    def plot(self, color='#1f77b4', label=None, ax=None, linewidth=1.0):
-        """ Plots the line of the current figure.
+        Plot the Line.
 
         Parameters
         ----------
         color : str, optional
             Defaults to a light blue.
-        """
+        label : str, optional
+            A label to plot with. Defaults to None.
+        ax : matplotlib.axes.Axes, optional
+            The Axes instance to plot the Line to.
+        linewidth : float, optional
+            The linewidth to plot with.
 
+        Returns
+        -------
+            The matplotlib.axes.Axes instance plotted on.
+        """
+        label = None if label == '' else label
         _ax = plt.gca() if ax is None else ax
         _ax.plot(self.xval, self.yval, color=color, zorder=5, label=label, linewidth=linewidth)
         return _ax
 
-    def print_points(self):
+    def print_points(self) -> None:
         """ Prints each point in the line to the terminal. """
         print([(p.x, p.y) for p in self.p])
 
-    def divisions(self, num):
+    def fluff(self, num: int = 1000, verbose: bool = False) -> tuple:
         """
-        Splits the line into discrete segments.
+        Obtain linspaced copies of the ``xval`` and ``yval`` attributes.
 
         Parameters
         ----------
-        num : int
-            Number of points in the segmented line.
-        """
-        self.xs = np.linspace(self.p[0].x, self.p[-1].x, num)
-        self.ys = np.linspace(self.p[0].y, self.p[-1].y, num)
+        num : int, optional
+            Number of entries to include between **each** segment within the Line.
+            Defaults to 100.
+        verbose : bool, optional
+            Print full output to terminal.
+            Defaults to False
 
-    def fluff(self, num=1000, verbose=False):
-        if verbose: print('# Fluffing with n=', 1000)
+        Returns
+        -------
+            A 2-tuple consisting of 'fluffed' ``xval`` and ``yval``.
+        """
+        if verbose is True:
+            print(f'# Fluffing with n = {num}')
         x_fluff = np.empty(0)
         y_fluff = np.empty(0)
-        if verbose: print('# fluff: len(self.xval)=', len(self.xval))
+        if verbose is True:
+            print(f'# fluff: len(self.xval) = {len(self.xval)}')
         for i in range(len(self.xval) - 1):
             x_fluff = np.append(x_fluff, np.linspace(self.xval[i], self.xval[i + 1], num, endpoint=False))
             y_fluff = np.append(y_fluff, np.linspace(self.yval[i], self.yval[i + 1], num, endpoint=False))
@@ -352,22 +291,46 @@ class Line:
 
         return x_fluff, y_fluff
 
-    def fluff_copy(self, num=5):
+    def fluff_copy(self, num: int = 5) -> 'Line':
+        """
+        Create a 'fluffed' copy of this Line.
+
+        Calls the method ``fluff`` internally.
+
+        Parameters
+        ----------
+        num : int, optional
+            Number of entries to include between **each** segment within the Line copy.
+
+        Returns
+        -------
+            A 'fluffed' copy of the calling Line object.
+        """
         pts = []
         xf, yf = self.fluff(num)
         for i in zip(xf, yf):
             pts.append(Point(i))
         return Line(pts)
 
-    def split(self, split_point, add_split_point=False):
+    def split(self, split_point, add_split_point=False) -> tuple:
         """
         Split a line object into two line objects at a particular point.
+
         Returns two Line objects Segment A and Segment B (corresponding to both subsets of Points)
-        split_point: Point object
-            - Point that determines splitting location.
-            - split_point is always included in Segment B
-        add_split_point: Boolean
-            - Append the split point to Segment A.
+        The split_point is always included in Segment B.
+
+        Parameters
+        ----------
+        split_point: Point
+            Point that determines splitting location.
+
+        add_split_point: bool
+            Append the split point to Segment A while still including the
+            split point in Segment B.
+
+        Returns
+        -------
+            A tuple with Line objects representing Segment A and Segment B.
         """
         d_arr = []
 
@@ -388,30 +351,104 @@ class Line:
 
         return Line(start__split), Line(split__end)
 
-    def points(self):
-        """ Returns the points in the line as a tuple. """
+    def points(self) -> list:
+        """
+        Get a list of all coordinates within the Line object.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+            A list of tuples representing (x, y) coordinates of the Line.
+        """
         return [(p.x, p.y) for p in self.p]
 
-    def as_np(self):
+    def as_np(self) -> np.ndarray:
+        """
+        Get the calling Line object represented as an ndarray.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+            An ndarray representation of the Line.
+
+        Notes
+        -----
+        Format of ndarray is of shape (2, n), with n being the number of
+        Point objects in the Line.
+
+        The first entry of the ndarray is the ``xval`` attribute.
+        The second entry of the ndarray is the ``yval`` attribute.
+
+        This method is used to encode the `patch_data` file.
+        """
         return np.array([self.xval, self.yval])
 
     def RemoveDuplicatePoints(self):
-        '''
-        Remove any duplicate points from list
-        '''
+        """
+        Remove any duplicate points from list of points
+        """
         ordered_points = OrderedDict([(p.coor, p) for p in self.p])
         self.p = [p for p in ordered_points.values()]
+
+    def Norm(self):
+        """
+        Return norm of the lines
+        Returns:
+            None.
+        """
+
+        return np.sqrt(self.X**2 + self.Y**2)
+
+    def GetAngle(self, Line):
+        """
+        Return the angle between two lines in degree (between 0 and 180 degrees) 
+        Args:
+            Line (TYPE): DESCRIPTION.
+        Returns:
+            None.
+        """
+        if Line.Norm() != 0 and self.Norm() != 0:
+            return np.rad2deg(np.arccos(((self.X) * (Line.X) + (self.Y) * (Line.Y)) / (Line.Norm() * self.Norm())))
+        else:
+            return None
 
 
 class Cell:
     """
-    Each Cell is contained within a patch
+    Define a Cell that resides within a grid.
 
-    Parameters:
-    -----------
-    vertices : geometry.Point
-        Each cell is defined by four points in a clockwise order.
-        NW -> NE -> SE -> SW
+    Parameters
+    ----------
+    lines : array-like
+        A collection of 4 Line objects that define the borders of a Cell.
+
+    Attributes
+    ----------
+    lines : array-like
+        The 4 Lines that create the border of the Cell.
+    vertices : dict
+        A lookup for accessing NW, NE, SE, SW, and CENTER spatial information.
+    p : list
+        A list of Point objects along the North and South border.
+
+    Notes
+    -----
+    When accessing vertices, we have the following convention:
+
+    ========= =====================
+    Location   Accepted Key (str)
+    --------- ---------------------
+    NW Corner ``NW``
+    NE Corner ``NE``
+    SW Corner ``SW``
+    SE Corner ``SE``
+    Center    ``CENTER``
+    ========= =====================
+
     """
 
     def __init__(self, lines):
@@ -425,13 +462,29 @@ class Cell:
                          'SW': S.p[0], 'SE': S.p[-1]}
 
         self.center = Point((np.mean([p.x for p in [self.vertices[coor] for coor in ['NW', 'NE', 'SE', 'SW']]]),
-                np.mean([p.y for p in [self.vertices[coor] for coor in ['NW', 'NE', 'SE', 'SW']]])))
+                             np.mean([p.y for p in [self.vertices[coor] for coor in ['NW', 'NE', 'SE', 'SW']]])))
 
         self.vertices.update({'CENTER': self.center})
 
         self.p = list(N.p) + list(S.p)
 
-    def plot_border(self, color='red', ax=None):
+    def plot_border(self, color: str = 'red', ax: 'matplotlib.axes.Axes' = None) -> None:
+        """
+        Plot the Cell.
+
+        Parameters
+        ----------
+        color : str, optional
+            Color of the Cell border.
+            Defaults to 'red'
+
+        ax : matplotlib.axes.Axes, optional
+            The Axes instance to plot the Cell to.
+
+        Returns
+        -------
+
+        """
         if ax is None:
             ax = plt.gca()
 
@@ -451,39 +504,37 @@ class Cell:
                 [self.vertices['SW'].y, self.vertices['NW'].y],
                 linewidth=1, color=color, label='cell')
 
-    def CollectBorder(self, color='red'):
-        segs[0, 0, 0] = self.vertices['NW'].x
-        segs[0, 1, 0] = self.vertices['NW'].y
-        segs[1, 0, 0] = self.vertices['NE'].x
-        segs[1, 1, 0] = self.vertices['NE'].y
-
-        plt.plot([self.vertices['NE'].x, self.vertices['SE'].x],
-                [self.vertices['NE'].y, self.vertices['SE'].y],
-                linewidth=1, color=color)
-
-        plt.plot([self.vertices['SE'].x, self.vertices['SW'].x],
-                [self.vertices['SE'].y, self.vertices['SW'].y],
-                linewidth=1, color=color)
-
-        plt.plot([self.vertices['SW'].x, self.vertices['NW'].x],
-                [self.vertices['SW'].y, self.vertices['NW'].y],
-                linewidth=1, color=color)
-
-    def plot_center(self, color='black'):
-        plt.plot(self.center.x, self.center.y, '.', markersize=1, color=color, label='cell')
+    def plot_center(self, color='black', ax: 'matplotlib.axes.Axes' = None) -> None:
         """
-        Line([self.vertices['NW'], self.vertices['NE']]).plot(color)
-        Line([self.vertices['NE'], self.vertices['SE']]).plot(color)
-        Line([self.vertices['SE'], self.vertices['SW']]).plot(color)
-        Line([self.vertices['SW'], self.vertices['NW']]).plot(color)
+        Plot the center of a Cell.
+
+        Parameters
+        ----------
+        color : str, optional
+            The color of the marker.
+            Defaults to 'black'
+        ax : matplotlib.axes.Axes, optional
+            The Axes instance to plot the Cell center to.
+
+        Returns
+        -------
+
         """
+        if ax is None:
+            ax = plt.gca()
+        ax.plot(self.center.x, self.center.y, '.', markersize=1, color=color, label='cell')
 
-    def fill(self, color='salmon'):
-        x = [p.x for p in self.p]
-        y = [p.y for p in self.p]
-        plt.fill(y, x, facecolor=color)
+    def as_np(self) -> np.ndarray:
+        """
+        Get the ndarray representation of a Cell object
 
-    def as_np(self):
+        Parameters
+        ----------
+
+        Returns
+        -------
+            An ndarray representing a cell
+        """
         NW = self.vertices['NW'].as_np()
         NE = self.vertices['NE'].as_np()
         SW = self.vertices['SW'].as_np()
@@ -494,17 +545,21 @@ class Cell:
 
 class Patch:
     """
-    Each patch contains a grid, and has it's own shape.
+    Define a Patch representing a portion of the tokamak domain.
+
+    Each Patch can be refined into a subgrid that can then create a global grid.
 
     Parameters
     ----------
-    lines : geometry.Line
-        Each patch defined by four lines in order -
-        Nline, Eline, Sline, Wline - order points to go clockwise.
+    lines : array-like
+        The four Line objects defining the boundary of this Patch (N, E, S, W).
+
+    patch_name : 
 
     """
 
-    def __init__(self, lines, patchName='', PatchTagMap=None, platePatch=False, plateLocation=None, color='blue'):
+    def __init__(self, lines: 'array-like', patch_name: str = '', PatchTagMap: dict = None,
+                 plate_patch: bool = False, plate_location: str = None, color: str = 'blue'):
         self.lines = lines
         self.N = lines[0]
         self.E = lines[1]
@@ -517,9 +572,9 @@ class Patch:
         self.RemoveDuplicatePoints()
         self.p = list(self.N.p) + list(self.E.p) + list(self.S.p) + list(self.W.p)
         self.PatchTagMap = PatchTagMap
-        self.platePatch = platePatch
-        self.plateLocation = plateLocation
-        self.patchName = patchName
+        self.plate_patch = plate_patch
+        self.plate_location = plate_location
+        self.patch_name = patch_name
         self.color = color
         self.Verbose = True
 
@@ -533,13 +588,13 @@ class Patch:
             'O': ' Outer',
             'D': 'Divertor',
             'L': 'Leg',
-           'P': 'Private',
-           'F': 'Flux',
+            'P': 'Private',
+            'F': 'Flux',
             'T': 'Top',
             'B': 'Bottom',
             'S': 'SOL',
             'C': 'Core'
-            }
+        }
 
         self.ax = None
         self.cell_grid = None
@@ -570,7 +625,7 @@ class Patch:
         x = np.array([p.x for p in self.p])
         y = np.array([p.y for p in self.p])
         arr = np.column_stack((x, y))
-        PatchLabel = self.patchName + ' (' + UnfoldLabel(self.PatchLabelDoc, self.patchName) + ')'
+        PatchLabel = self.patch_name + ' (' + UnfoldLabel(self.PatchLabelDoc, self.patch_name) + ')'
         patch = Polygon(arr, fill=True, closed=True, color=color, label=PatchLabel, alpha=alpha)
         _ax = plt.gca() if ax is None else ax
         _ax.add_patch(patch)
@@ -625,13 +680,13 @@ class Patch:
             raise ValueError(f"# Invalid face '{face}' provided for adjusting.")
 
     def get_tag(self):
-        return self.PatchTagMap[self.patchName]
+        return self.PatchTagMap[self.patch_name]
 
     def get_settings(self):
         settings = {}
-        settings['patchName'] = self.patchName
-        settings['platePatch'] = self.platePatch
-        settings['plateLocation'] = self.plateLocation
+        settings['patch_name'] = self.patch_name
+        settings['plate_patch'] = self.plate_patch
+        settings['plate_location'] = self.plate_location
         settings['PatchTagMap'] = self.PatchTagMap
         return settings
 
@@ -666,9 +721,9 @@ class Patch:
         This 'refined-grid' within a Patch is a collection
         of num x num Cell objects
 
-        Parameters:
+        Parameters
         ----------
-        grid : Ingrid object
+        grid : Ingrid
                 To be used for obtaining Efit data and all
                 other class information.
         num  : int, optional
@@ -723,7 +778,7 @@ class Patch:
         cell_grid = []
 
         if verbose:
-            print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(self.patchName, np_cells, nr_cells))
+            print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(self.patch_name, np_cells, nr_cells))
             print(np_cells)
             print(nr_cells)
         np_lines = np_cells + 1
@@ -765,10 +820,10 @@ class Patch:
             print(' Number of points on the boundary:', len(self.E.p))
             plt.plot(E_vals[0], E_vals[1], '.', color='black')
             print(repr(e))
-        if verbose: print(' #check platePatch')
+        if verbose: print(' #check plate_patch')
         # ACCURACY ON PSI_MIN SIDE OF W IDL LINE ISSUE.
 
-        if self.platePatch:
+        if self.plate_patch:
 
             def f(u, *args):
                 _y = splev(u, args[0])
@@ -779,13 +834,13 @@ class Patch:
                 idx = (np.abs(array - value)).argmin()
                 return array[idx]
 
-            if self.plateLocation == 'W':
+            if self.plate_location == 'W':
                 _u = uW
                 U_vals = W_vals
                 U_spl = self.W_spl
                 plate_north = [N_vals[0][0], N_vals[1][0]]
                 plate_south = [S_vals[0][0], S_vals[1][0]]
-            elif self.plateLocation == 'E':
+            elif self.plate_location == 'E':
                 _u = uE
                 U_vals = E_vals
                 U_spl = self.E_spl
@@ -821,11 +876,11 @@ class Patch:
             U_vals = [U_vals[0][plate_south_index:plate_north_index + 1], U_vals[1][plate_south_index:plate_north_index + 1]]
             U_spl, _u = splprep([U_vals[0], U_vals[1]], u=psi_parameterize(grid, U_vals[0], U_vals[1]), s=0)
 
-            if self.plateLocation == 'W':
+            if self.plate_location == 'W':
                 W_vals = U_vals
                 self.W_spl = U_spl
                 uW = _u
-            elif self.plateLocation == 'E':
+            elif self.plate_location == 'E':
                 E_vals = U_vals
                 self.E_spl = U_spl
                 uE = _u
@@ -845,7 +900,7 @@ class Patch:
                 _n = splev(_poloidal_f(i / (np_lines - 1)), self.N_spl)
                 self.N_vertices.append(Point((float(_n[0]), float(_n[1]))))
         else:
-            if self.Verbose: print('Find boundary points at face "N" for {}:{}'.format(self.patchName, self.BoundaryPoints.get('N')))
+            if self.Verbose: print('Find boundary points at face "N" for {}:{}'.format(self.patch_name, self.BoundaryPoints.get('N')))
             self.N_vertices = self.BoundaryPoints.get('N')
 
         if self.BoundaryPoints.get('S') is None:
@@ -926,10 +981,10 @@ class Patch:
                 u = _poloidal_f(j / (np_lines - 1))
                 _r = splev(u, self.radial_spl[i])
                 Pt = Point((float(_r[0]), float(_r[1])))
-                if self.CorrectDistortion['Active'] and j > 0 and j < np_lines - 1:
-                    Res = self.CorrectDistortion['Resolution']
-                    ThetaMin = self.CorrectDistortion['ThetaMin']
-                    ThetaMax = self.CorrectDistortion['ThetaMax']
+                if self.distortion_correction['active'] and j > 0 and j < np_lines - 1:
+                    Res = self.distortion_correction['resolution']
+                    ThetaMin = self.distortion_correction['theta_min']
+                    ThetaMax = self.distortion_correction['theta_max']
                     umin = _poloidal_f((j - 1) / (np_lines - 1))
                     umax = _poloidal_f((j + 1) / (np_lines - 1))
                     Pt1 = radial_vertices[i][j]
@@ -948,13 +1003,13 @@ class Patch:
         self.E_vertices = temp_vertices
 
         #Correct point on south boundary
-        if self.CorrectDistortion['Active']:
+        if self.distortion_correction['active']:
             for j in range(1, np_lines - 1):
                 u = _poloidal_f(j / (np_lines - 1))
                 Pt = self.S_vertices[j]
-                Res = self.CorrectDistortion['Resolution']
-                ThetaMin = self.CorrectDistortion['ThetaMin']
-                ThetaMax = self.CorrectDistortion['ThetaMax']
+                Res = self.distortion_correction['resolution']
+                ThetaMin = self.distortion_correction['theta_min']
+                ThetaMax = self.distortion_correction['theta_max']
                 umin = _poloidal_f((j - 1) / (np_lines - 1))
                 umax = _poloidal_f((j + 1) / (np_lines - 1))
                 Pt1 = radial_vertices[-1][j]
@@ -1021,6 +1076,235 @@ class Patch:
         if verbose: print(' ## Checking monoticity of Psi values along the boundaries')
         IsMonotonic(PsiW, W_vals[0], W_vals[1], 'PsiW')
         IsMonotonic(PsiE, E_vals[0], E_vals[1], 'PsiE')
+
+
+def strictly_increasing(L: 'array-like') -> bool:
+    """
+    Determine if strictly increasing.
+
+    Parameters
+    ----------
+    L : array-like
+        Values to test.
+
+    Returns
+    -------
+        True if strictly increasing and False otherwise
+    """
+    return all(x < y for x, y in zip(L, L[1:]))
+
+
+def strictly_decreasing(L: 'array-like') -> bool:
+    """
+    Determine if strictly decreasing.
+
+    Parameters
+    ----------
+    L : array-like
+        Values to test.
+
+    Returns
+    -------
+        True if strictly decreasing and False otherwise
+    """
+    return all(x > y for x, y in zip(L, L[1:]))
+
+
+def non_increasing(L: 'array-like') -> bool:
+    """
+    Determine if non-increasing.
+
+    Parameters
+    ----------
+    L : array-like
+        Values to test.
+
+    Returns
+    -------
+        True if non-increasing and False otherwise
+    """
+    return all(x >= y for x, y in zip(L, L[1:]))
+
+
+def which_non_increasing(L: 'array-like') -> list:
+    """
+    Determine non-increasing values.
+
+    Parameters
+    ----------
+    L : array-like
+        Values to test.
+
+    Returns
+    -------
+        A list of 2-tuples containing index and non-increasing element.
+    """
+    return [i for i, (x, y) in enumerate(zip(L, L[1:])) if x > y]
+
+
+def which_increasing(L: 'array-like') -> list:
+    """
+    Determine increasing values.
+
+    Parameters
+    ----------
+    L : array-like
+        Values to test.
+
+    Returns
+    -------
+        A list of 2-tuples containing index and increasing element
+    """
+    return [i for i, (x, y) in enumerate(zip(L, L[1:])) if x < y]
+
+
+def non_decreasing(L: 'array-like') -> bool:
+    """
+    Determine if non-decreasing.
+
+    Parameters
+    ----------
+    L : array-like
+        Values to test.
+
+    Returns
+    -------
+        True if non-decreasing and False otherwise
+    """
+    return all(x <= y for x, y in zip(L, L[1:]))
+
+
+def find_split_index(split_point: Point, line: Line) -> tuple:
+    """
+    Determine which index a Point would best split a Line.
+
+    This method is useful for modifying Line objects during line tracing
+    (searching for intersection of two line objects and trimming excess)
+
+    Parameters
+    ----------
+    split_point : Point
+        The candidate Point to find the split index with respect to.
+
+    line : Line
+        The Line to search for a split index within.
+
+    Returns
+    -------
+        A 2-tuple containing the split-index and a boolean flag indicating
+            whether the split_point was contained within the Line
+
+    Notes
+    -----
+    Should no appropriate split index be found, the method will return a
+    None value in place of an integer index.
+
+    The second entry of the tuple return value would be a value of True if
+    the `split_point` parameter was used to define the `line` parameter.
+    """
+    same_line_split = False
+    for i in range(len(line.p) - 1):
+        # Split point is exactly on a Line object's point. Occurs often
+        # when splitting a Line object with itself.
+
+        if split_point.y == line.p[i].y and split_point.x == line.p[i].x:
+            same_line_split = True
+            return i, same_line_split
+        # Create two vectors.
+        end_u = np.array([line.p[i + 1].x - line.p[i].x, line.p[i + 1].y - line.p[i].y])
+        split_v = np.array([split_point.x - line.p[i].x, split_point.y - line.p[i].y])
+
+        if is_between(end_u, split_v):
+            # store index corresponding to the start of the segment containing the split_point.
+            return i, same_line_split
+        else:
+            continue
+    return None, same_line_split
+
+
+def is_between(end_u: 'array-like', split_v: 'array-like') -> bool:
+    eps = 1e-9
+    # check cross product vector norm against eps.
+    if np.linalg.norm(np.cross(end_u, split_v)) < eps:
+        # Colinear up to eps.
+        # Ensure dot product is positive and vector v lies in distance of u norm.
+        if (np.dot(end_u, split_v) > 0) and (np.linalg.norm(end_u) > np.linalg.norm(split_v)):
+            return True
+    else:
+        return False
+
+
+def rotmatrix(theta: float) -> 'numpy.ndarray':
+    """
+    Construct a rotation matrix
+
+    Parameters
+    ----------
+    theta : float
+        Angle in radians.
+
+    Returns
+    -------
+        An ndarray with shape (2, 2) representing a 2D rotation matrix.
+    """
+    rot = np.zeros((2, 2))
+    rot[0, 0] = np.cos(theta)
+    rot[1, 1] = np.cos(theta)
+    rot[0, 1] = -np.sin(theta)
+    rot[1, 0] = np.sin(theta)
+    return rot
+
+
+def rotate(vec, theta, origin):
+    return np.matmul(rotmatrix(theta), vec - origin) + origin
+
+
+def unit_vector(v):
+    """
+    Returns unit vector
+    """
+    return v / np.linalg.norm(v)
+
+
+def angle_between(u, v, origin, relative=False):
+    """
+    Compute angle in radians between vectors u and v
+    """
+    u_norm = unit_vector(u - origin)
+    v_norm = unit_vector(v - origin)
+    angle = np.arccos(np.clip(np.dot(u_norm, v_norm), -1, 1))
+    return orientation_between(u, v, origin) * angle if relative else angle
+
+
+def orientation_between(u, v, origin):
+    """
+    Compute angle in radians between vectors u and v
+    """
+    u_norm = unit_vector(u - origin)
+    v_norm = unit_vector(v - origin)
+    return np.sign(np.arctan2(u_norm[0] * v_norm[1] - u_norm[1] * v_norm[0],
+                   u_norm[0] * v_norm[0] + u_norm[0] * v_norm[1]))
+
+
+def reorder_limiter(new_start, limiter):
+    start_index, = find_split_index(new_start, limiter)
+    return limiter
+
+
+def limiter_split(start, end, limiter):
+    start_index, sls = find_split_index(start, limiter)
+    end_index, sls = find_split_index(end, limiter)
+    if end_index <= start_index:
+        limiter.p = limiter.p[start_index:] + limiter.p[:start_index + 1]
+    return limiter
+
+
+def trim_geometry(geoline, start, end):
+    try:
+        trim = (geoline.split(start)[1]).split(end, add_split_point=True)[0]
+    except:
+        trim = limiter_split(start, end, geoline)
+    return trim
 
 
 def CorrectDistortion(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, Resolution, visual, Tag, MinTol=1.02, MaxTol=0.98, Verbose=False):
@@ -1208,75 +1492,35 @@ def segment_intersect(line1, line2, verbose=False):
             continue
 
         if (sol[0] <= 1) and (sol[1] <= 1) \
-            and (sol[0] >= 0) and (sol[1] >= 0):
+                and (sol[0] >= 0) and (sol[1] >= 0):
             return True, [(xc, yc), (xc + sol[1] * (xd - xc), yc + sol[1] * (yd - yc))]
     return False, [(np.nan, np.nan), (np.nan, np.nan)]
 
 
-if __name__ == "__main__":
-    p1 = Point(1, 2)
-    p2 = Point(3, 2)
-    p3 = Point(4, 3)
-    p4 = Point(2, 5)
+def UnfoldLabel(Dic: dict, Name: str) -> str:
+    """
+    Unfold Patch label (e.g. "ICT" -> "Inner Core Top")
 
-    # functionality of a patch
-    fig = plt.figure('patches', figsize=(6, 10))
-    plt.clf()
-    # pass in list of points - typically four
-    patch = Patch([p1, p2, p3, p4])
-    # plot the boundary
+    Parameters
+    ----------
+    Dic : dict
+        Dictionnary containing description of acronym characters
+    Name : str
+        patch label
 
-#    patch.plot_bounds()
-    patch.fill('lightsalmon')
+    Returns
+    -------
+    str
+        Unfolded patch label.
 
-    # borders
-    patch.plot_border('red')
-
-    plt.xlim(0, 6)
-    plt.ylim(0, 6)
-    plt.gca().set_aspect('equal', adjustable='box')
-    plt.xlabel('R')
-    plt.ylabel('Z')
-    plt.title('Example Patch')
-    plt.show()
-
-
-def UnfoldLabel(Dic: dict, Name: str)->str:
-        '''
-        Unfold Patch label (e.g. "ICT" -> "Inner Core Top")
-
-        Parameters
-        ----------
-        Dic : dict
-            Dictionnary containing description of acronym characters
-        Name : str
-            patch label
-
-        Returns
-        -------
-        str
-            Unfolded patch label.
-
-        '''
-        Output = []
-        for s in Name:
-            if Dic.get(s) != None:
-                Output.append(Dic.get(s) + ' ')
-            else:
-                Output.append(s)
-        if len(Output) > 0:
-            return ''.join(Output)
+    """
+    Output = []
+    for s in Name:
+        if Dic.get(s) is not None:
+            Output.append(Dic.get(s) + ' ')
         else:
-            return ''
-
-
-#def CheckRadialVertices(radial_vertices,i):
-    # for j in range(len(radial_vertices[i]) - 1):
-    #     NW = radial_vertices[i-1][j]
-    #     NE = radial_vertices[i-1][j+1]
-    #     SW = radial_vertices[i][j]
-    #     SE = radial_vertices[i][j+1]
-    #     AngleNWE=Getangle(Line([NW, NE]))
-
-    #     cell_grid[i].append(Cell([, Line([SW, SE]), ), Line([SW, NW])]))
-
+            Output.append(s)
+    if len(Output) > 0:
+        return ''.join(Output)
+    else:
+        return ''

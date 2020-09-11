@@ -1,0 +1,79 @@
+DEBUG:
+  verbose:
+    grid_generation: 1
+    patch_generation: 0
+    target_plates: 1
+  visual:
+    find_NSEW: 0
+    gridue: 0
+    patch_map: 0
+    subgrid: 0
+eqdsk: ../data/SNL/C-MOD/neqdsk
+grid_settings:
+  grid_generation:
+    distortion_correction:
+      all:
+        active: false
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+    np_default: 5
+    nr_default: 5
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+  guard_cell_eps: 0.001
+  nlevs: 30
+  num_xpt: 1
+  patch_generation:
+    NE_adjust: 0.2
+    NW_adjust: -0.4
+    rmagx_shift: 0.0
+    secondary_NE_adjust: 0.0
+    secondary_NW_adjust: 0.0
+    strike_geometry: limiter
+    tilt_1: 0.0
+    tilt_2: -0.5
+    use_NE: true
+    use_NW: true
+    use_SE: false
+    use_SW: false
+    use_secondary_NE: false
+    use_secondary_NW: false
+    zmagx_shift: 0.0
+  psi_1: 1.08
+  psi_core: 0.971886263593
+  psi_pf_1: 0.96983650612
+  psi_pf_2: 0.0
+  rmagx: 0.681827575433
+  rxpt: 0.563043114769
+  rxpt2: 0.0
+  view_mode: filled
+  zmagx: -0.003614829399
+  zxpt: -0.394986500081
+  zxpt2: 0.0
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-05
+  first_step: 1.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+target_plates:
+  plate_E1:
+    file: ../data/SNL/C-MOD/cmod_otp.txt
+    name: plate_E1
+    zshift: 0.0
+  plate_E2:
+    file: ''
+    name: plate_E2
+    np_local: 3
+    poloidal_f: x, x
+    zshift: 0.0
+  plate_W1:
+    file: ../data/SNL/C-MOD/cmod_itp.txt
+    name: plate_W1
+    zshift: 0.0
+  plate_W2:
+    file: ''
+    name: plate_W2
+    zshift: 0.0

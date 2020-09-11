@@ -1,0 +1,77 @@
+DEBUG:
+  verbose:
+    grid_generation: 0
+    patch_generation: 0
+    target_plates: 0
+  visual:
+    find_NSEW: 0
+    gridue: 0
+    patch_map: 0
+    subgrid: 0
+eqdsk: ../data/DNL/DIII-D/neqdsk
+grid_settings:
+  grid_generation:
+    distortion_correction:
+      all:
+        active: false
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+    np_default: 2
+    nr_default: 2
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+  guard_cell_eps: 0.001
+  nlevs: 30
+  num_xpt: 2
+  patch_generation:
+    NE_adjust: 0.0
+    NW_adjust: 0.0
+    rmagx_shift: 0.0
+    secondary_NE_adjust: 0.0
+    secondary_NW_adjust: 0.0
+    strike_geometry: target_plates
+    tilt_1: 0.0
+    tilt_2: 0.0
+    use_NE: false
+    use_NW: false
+    use_SE: false
+    use_SW: false
+    use_secondary_NE: false
+    use_secondary_NW: false
+    zmagx_shift: 0.0
+  psi_1: 1.157435084695
+  psi_2: 1.151758078227
+  psi_core: 0.975770930045
+  psi_pf_1: 0.957326087084
+  rmagx: 1.75785604
+  rxpt: 1.300094032688
+  rxpt2: 1.217505027591
+  view_mode: filled
+  zmagx: -0.0292478683
+  zxpt: -1.133159375304
+  zxpt2: 1.219825715749
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-05
+  first_step: 5.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+target_plates:
+  plate_E1:
+    file: ../data/DNL/DIII-D/d3d_otp.txt
+    name: plate_E1
+    zshift: 1.6
+  plate_E2:
+    file: ../data/DNL/DIII-D/d3d_upper_itp.txt
+    name: plate_E2
+    zshift: 0.0
+  plate_W1:
+    file: ../data/DNL/DIII-D/d3d_itp.txt
+    name: plate_W1
+    zshift: 1.6
+  plate_W2:
+    file: ../data/DNL/DIII-D/d3d_upper_otp.txt
+    name: plate_W2
+    zshift: 0.0

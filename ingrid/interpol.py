@@ -1,21 +1,25 @@
 #!/usr/bin/env pythonu
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun  7 15:31:15 2019
-@author: watkins35
+Module containing Bicubic class and EfitData class for handling all interpolation
+related computations.
 """
 from __future__ import division, print_function, absolute_import
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-def Bicubic(f, fx, fy, fxy, x0, y0, derivs=None):
+def Bicubic(f, fx: 'array-like', fy: 'array-like', fxy: 'array-like', x0: float, y0: float, derivs: str = '') -> float:
     """ Bicubic interpolation on unit square [0,1]x[0,1].
     Returns the value of the interpolated polynomial at the given interior
     point (x0,y0).
-    f, fx, fy, fxy can be arrays, lists, tulpes etc. They must each
-    have four values and are ordered
-    f_{i,j}, f_{i,j+1}, f_{i+1,j}, f_{i+1,j+1}.
+    f, fx, fy, fxy can be arrays, lists, tulpes etc.
+    They must each have four values and are ordered:
+
+    .. math::
+
+        f_{i,j}, f_{i,j+1}, f_{i+1,j}, f_{i+1,j+1}.
+
     This is the natural order produced by the locate cell method,
     in the EfitData.EFit_Data class, which how
     this function is usually called.
@@ -40,9 +44,7 @@ def Bicubic(f, fx, fy, fxy, x0, y0, derivs=None):
 
     Returns
     -------
-    res : float
         The value of the function of its derivative at a given location
-
     """
     # All known quantities on 4 vertices.
     xall = np.array([[f[0], f[2], fy[0], fy[2]],
@@ -64,7 +66,7 @@ def Bicubic(f, fx, fy, fxy, x0, y0, derivs=None):
     alp = np.matmul(A1, np.matmul(xall, A2))
 
     # build the polynomial using the relative coordinates
-    if derivs == 'v' or derivs is None:
+    if derivs == 'v' or derivs == '':
         res = np.matmul([1, x0, x0**2, x0**3], np.matmul(alp, [1, y0, y0**2, y0**3]))
 
     elif derivs == 'vr':
@@ -149,13 +151,15 @@ class EfitData:
         self.parent = parent
         self.psi_levels = {}
 
-    def Gradient(self, xy: tuple)->np.ndarray:
+    def Gradient(self, xy: tuple) -> 'np.ndarray':
         """ Combines the first partial derivatives to solve the system for
         maximum, minimum, and saddle locations.
+
         Parameters
         ----------
         xy : array-like
             Contains x and y. Ex: xy = (x0, y0).
+
         Returns
         -------
         F : array
@@ -168,7 +172,19 @@ class EfitData:
         F[1] = self.get_psi(x, y, tag='vz')
         return F
 
-    def Hessian(self, xy):
+    def Hessian(self, xy: tuple) -> 'np.ndarray':
+        """ Compute the Hessian at a point.
+
+        Parameters
+        ----------
+        xy : array-like
+            Contains x and y. Ex: xy = (x0, y0).
+
+        Returns
+        -------
+        H : array
+            Numpy array of shape (2, 2) representing the Hessian at xy.
+        """
         x, y = xy
         H = np.zeros((2, 2))
         H[0, 0] = self.get_psi(x, y, 'vrr')
@@ -181,13 +197,15 @@ class EfitData:
         x, y = xy
         return self.get_psi(x, y)
 
-    def get_v(self, tag='v'):
-        """ returns the entire array of v, vr, vz, or vrz.
+    def get_v(self, tag: str = 'v') -> 'np.ndarray':
+        """ Returns the entire array of v, vr, vz, or vrz.
         If you want a single value use self.get_psi
+
         Parameters
         ----------
         tag : str, optional
             Specify the type of derivative. 'v', 'vr', 'vz', 'vrz'
+
         Returns
         -------
         ndarray
@@ -205,12 +223,14 @@ class EfitData:
 
     def set_v(self, value, coords=None, tag='v'):
         """ sets a value for v, vr, vz, or vrz.
+
         Parameters
         ----------
         value : ndarray, float
             new set of values for the function. Must be the same shape
             as the grid if you are setting every value. Also accepts a
             single float for setting spevific values.
+
         coords : array-like, optional
             The coordinates of a single value, if you are setting one value.
             if set to none, it will set the entire value
@@ -236,11 +256,14 @@ class EfitData:
 
     def Calculate_PDeriv(self, unit_spacing=True):
         """ Calculate partial derivatives at grid nodes.
+
         Use finite differences to increase accuracy at the
         boundaries.
+
         These formulas are derived from Taylor Series representations.
         Values for vr, vz, and vrz are produced and saved within the
         grid structure.
+
         Parameters
         ----------
         unit_spacing : bool, optional
@@ -343,20 +366,21 @@ class EfitData:
         end = time()
         print("Time calculating derivatives", end - start)
 
-    def locate_cell(self, r0, z0):
+    def locate_cell(self, r0: float, z0: float) -> dict:
         """
         Locate the cell on the rectangular grid that surrounds
         a point of interest.
+
         Parameters
         ----------
         r0 : float
             R or x coordinate of the point
         z0 : float
             Z or y coordinate of the tested point
+
         Returns
         -------
-        dict
-            node indices of grid cell encompassing tested point
+            A dict with node indices of grid cell encompassing tested point
         """
         # indices of lower left vertex of the cell
         # (and make sure they are within [0,nr-1])
@@ -375,6 +399,7 @@ class EfitData:
         note: grid is the crude grid. Uses Bicubic Interpolation
         to calculate the exact value at the point. Useful for
         finding information inbetween grid points.
+
         Parameters
         ----------
         r0 : float
@@ -384,6 +409,7 @@ class EfitData:
         tag : str, optional
             tag is the type of derivative we want: v, vr, vz, vrz
             if nothing is provided, it assumes no derivative (v).
+
         Returns
         -------
         float
@@ -424,35 +450,50 @@ class EfitData:
         points of intersection, and cannot be generalized. If you
         need just a segment of psi, use the draw_lines method in the
         line tracing class.
+
         Parameters
         ----------
         level : float, optional
             Value of psi you wish to see
         color : str, optional
             color of the line.
+
         """
         # draw contour line on top of existing figure
         level = float(level)
         self.ax.contour(self.r, self.z, self.v, level, colors=color)
 
-    def PlotLevel(self: object, level: float = 1.0, color: str = 'red', label: str = '', linestyles: str = 'solid')->None:
+    def PlotLevel(self: object, level: float = 1.0, color: str = 'red', label: str = '', linestyles: str = 'solid') -> None:
         """
+        Plot a psi level and provide it a label.
+
+        This function is useful for management of psi boundaries
+        such as 'psi_pf', 'psi_core', etc and ensuring the contour will
+        be properly replotted (no duplicate of same label).
+
+        Parameters
+        ----------
+        level : float, optional
+            Psi level to plot. Default to 1.0 (separatrix of normalized psi)
+        color : str, optional
+            Color to pass to matplotlib contour function
+        label : str, optional
+            Label to associate with the psi level
+        linestyles : str, optional
+            Line style to pass to matplotlib contour function
         """
         try:
             self.psi_levels[label].collections[0].remove()
-            #for l in self.psi_levels[label+'label']:
-                #l.remove()
             self.psi_levels[label] = plt.contour(self.r, self.z, self.v, [float(level)], colors=color, label=label, linestyles=linestyles)
-            #self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=False, fontsize=10, fmt='%1.9f')
             self.psi_levels[label].collections[0].set_label(label)
         except:
             self.psi_levels[label] = plt.contour(self.r, self.z, self.v, [float(level)], colors=color, label=label, linestyles=linestyles)
-            #self.psi_levels[label+'label']=plt.clabel(self.psi_levels[label], inline=False, fontsize=10, fmt='%1.9f')
             self.psi_levels[label].collections[0].set_label(label)
 
-    def plot_data(self, nlevs=30, interactive=True, fig=None, ax=None):
+    def plot_data(self, nlevs=30, interactive=True, fig=None, ax=None, view_mode='filled'):
         """ generates the plot that we will be able to manipulate
         using the root finder
+
         Parameters
         ----------
         nlev : int, optional
@@ -461,8 +502,12 @@ class EfitData:
         lev = (self.v.min() + (self.v.max()
                 - self.v.min()) * np.arange(nlevs) / (nlevs - 1))
         self.fig = fig if fig is not None else plt.figure('INGRID: ' + self.name, figsize=(6, 10))
+        self.fig.subplots_adjust(bottom=0.2)
         self.ax = ax if ax is not None else self.fig.add_subplot(111)
-        self.ax.contourf(self.r, self.z, self.v, lev, cmap='gist_gray')
+        if view_mode == 'lines':
+            self.ax.contour(self.r, self.z, self.v, lev, cmap='gist_gray')
+        elif view_mode == 'filled':
+            self.ax.contourf(self.r, self.z, self.v, lev, cmap='gist_gray')
         self.ax.set_aspect('equal', adjustable='box')
         self.ax.set_title(f'{self.name}')
         self.ax.set_xlabel('R')

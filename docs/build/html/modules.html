@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>INGRID &mdash; ingrid  documentation</title>
+  <title>ingrid &mdash; ingrid  documentation</title>
   
 
   
@@ -25,6 +25,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -34,7 +35,9 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ingrid module" href="ingrid.html" />
+    <link rel="prev" title="Welcome to ingrid’s documentation!" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -79,8 +82,16 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ingrid.html">ingrid package</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ingrid</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html">ingrid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">topologies package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html">geometry module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="line_tracing.html">line_tracing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interpol.html">interpol module</a></li>
+</ul>
+</li>
 </ul>
 
             
@@ -126,7 +137,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>INGRID</li>
+      <li>ingrid</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -146,46 +157,27 @@
            <div itemprop="articleBody">
             
   <div class="section" id="ingrid">
-<h1>INGRID<a class="headerlink" href="#ingrid" title="Permalink to this headline">¶</a></h1>
+<h1>ingrid<a class="headerlink" href="#ingrid" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="ingrid.html">ingrid package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ingrid.gui.html">ingrid.gui package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.gui.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.gui.html#ingrid-gui-ingrid-gui-module">ingrid.gui.ingrid_gui module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ingrid.html">ingrid module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topologies.html">topologies package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html#module-topologies.sf105">topologies.sf105 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html#module-topologies.sf135">topologies.sf135 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html#module-topologies.sf15">topologies.sf15 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html#module-topologies.sf165">topologies.sf165 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html#module-topologies.sf45">topologies.sf45 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html#module-topologies.sf75">topologies.sf75 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html#module-topologies.snl">topologies.snl module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html#module-topologies.udn">topologies.udn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html#module-topologies">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="ingrid.topologies.html">ingrid.topologies package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.topologies.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.topologies.html#ingrid-topologies-sf105-module">ingrid.topologies.sf105 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.topologies.html#ingrid-topologies-sf135-module">ingrid.topologies.sf135 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.topologies.html#ingrid-topologies-sf15-module">ingrid.topologies.sf15 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.topologies.html#ingrid-topologies-sf165-module">ingrid.topologies.sf165 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.topologies.html#ingrid-topologies-sf45-module">ingrid.topologies.sf45 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.topologies.html#ingrid-topologies-sf75-module">ingrid.topologies.sf75 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.topologies.html#ingrid-topologies-snl-module">ingrid.topologies.snl module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.topologies.html#ingrid-topologies-udn-module">ingrid.topologies.udn module</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="ingrid.utils.html">ingrid.utils package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.utils.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.utils.html#ingrid-utils-ingrid-utils-module">ingrid.utils.ingrid_utils module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ingrid.utils.html#module-ingrid.utils.topology_utils">ingrid.utils.topology_utils module</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html#module-ingrid.ImportEqFiles">ingrid.ImportEqFiles module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html#module-ingrid.OMFITgeqdsk">ingrid.OMFITgeqdsk module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html#ingrid-root-finder-module">ingrid.Root_Finder module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html#ingrid-geometry-module">ingrid.geometry module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html#ingrid-ingrid-module">ingrid.ingrid module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html#module-ingrid.interpol">ingrid.interpol module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html#ingrid-line-tracing-module">ingrid.line_tracing module</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geometry.html">geometry module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="line_tracing.html">line_tracing module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpol.html">interpol module</a></li>
 </ul>
 </div>
 </div>
@@ -196,12 +188,21 @@
           </div>
           <footer>
   
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ingrid.html" class="btn btn-neutral float-right" title="ingrid module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to ingrid’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Bryan Garcia, Jerome Guterl, Joey Watkins
+        &copy; Copyright 2020, Bryan Max Garcia
 
     </p>
   </div>

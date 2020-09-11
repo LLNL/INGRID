@@ -32,7 +32,6 @@ except:
 
 import yaml
 from ingrid import Ingrid
-import Root_Finder
 from time import time
 
 #helv_large = 'Helvetica 13 bold'
@@ -173,7 +172,7 @@ class FilePicker(tk.Tk):
 
     def ProcessParameterFile(self, fname):
         self.Ingrid.InputFile = fname
-        self.Ingrid.process_yaml(Ingrid.ReadyamlFile(fname))
+        self.Ingrid.PopulateSettings(Ingrid.ReadYamlFile(fname))
         self.ParamFileMtime = getmtime(fname)
         self.ParamFileName = fname
 
@@ -207,7 +206,7 @@ class FilePicker(tk.Tk):
 
     def PreviewIngridData(self):
         IG = self.Ingrid
-        IG.ShowSetup()
+        IG.ShowSetup(view_mode=IG.settings['grid_settings']['view_mode'])
 
     def AnalyzeTopology(self):
         IG = self.Ingrid
@@ -245,6 +244,7 @@ class FilePicker(tk.Tk):
             self.ProcessParameterFile(self.ParamFileName)
         IG.CreateSubgrid()
         IG.PlotSubgrid()
+        IG.PrepGridue(guard_cell_eps=IG.settings['grid_settings']['guard_cell_eps'])
 
     def ExportGridue(self):
         IG = self.Ingrid

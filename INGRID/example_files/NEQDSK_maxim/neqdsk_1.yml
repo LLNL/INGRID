@@ -1,0 +1,90 @@
+DEBUG:
+  verbose:
+    grid_generation: 0
+    patch_generation: 1
+    target_plates: 0
+  visual:
+    SF_analysis: 0
+    find_NSEW: 0
+    gridue: 0
+    patch_map: 0
+    subgrid: 0
+eqdsk: ../data/NEQDSK_maxim/neqdsk_1
+grid_settings:
+  grid_generation:
+    distortion_correction:
+      all:
+        active: false
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+    np_default: 2
+    nr_default: 2
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+  guard_cell_eps: 0.001
+  nlevs: 30
+  num_xpt: 2
+  patch_generation:
+    NE_adjust: 0.0
+    NW_adjust: 0.0
+    rmagx_shift: 0.0
+    secondary_NE_adjust: 0.0
+    secondary_NW_adjust: 0.0
+    strike_geometry: limiter
+    tilt_1: 0.0
+    tilt_2: 0.0
+    use_NE: false
+    use_NW: false
+    use_SE: false
+    use_SW: false
+    use_secondary_NE: false
+    use_secondary_NW: false
+    zmagx_shift: 0.0
+  psi_1: 1.5
+  psi_2: 1.45
+  psi_core: 0.89
+  psi_pf_1: 0.89
+  psi_pf_2: 1.2
+  rmagx: 1.6
+  rxpt: 1.5
+  rxpt2: 1.6
+  view_mode: filled
+  zmagx: 0.0
+  zxpt: -0.62
+  zxpt2: 0.6
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-06
+  first_step: 5.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+limiter:
+  file: ''
+  rshift: 0.0
+  use_efit_bounds: false
+  zshift: 0.0
+patch_data:
+  file: ../data/NEQDSK_maxim/UDN_patches_1597867289.npy
+  preferences:
+    new_file: true
+    new_fname: ../data/NEQDSK_maxim/UDN_patches_1597867289.npy
+  use_file: true
+target_plates:
+  plate_E1:
+    file: ''
+    name: plate_E1
+    zshift: 0.0
+  plate_E2:
+    file: ''
+    name: null
+    zshift: 0.0
+  plate_W1:
+    file: ''
+    name: plate_W1
+    zshift: 0.0
+  plate_W2:
+    file: ''
+    name: null
+    zshift: 0.0

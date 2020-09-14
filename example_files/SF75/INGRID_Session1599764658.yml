@@ -63,14 +63,14 @@ integrator_settings:
   tol: 0.005
 limiter:
   file: ''
-  rshift: 0.0
+  rshift: 0.00
   use_default_data: true
   use_efit_bounds: false
-  zshift: -0.25
+  zshift: -0.00
 patch_data:
   file: ''
   preferences:
-    new_file: true
+    new_file: false
     new_fname: ''
   use_file: false
 target_plates:

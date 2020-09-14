@@ -40,7 +40,7 @@ grid_settings:
     use_secondary_NE: false
     use_secondary_NW: false
     zmagx_shift: 0.0
-  psi_1: 1.010749105907
+  psi_1: 1.01249105907
   psi_core: 0.904041825299
   psi_pf_1: 0.978234882796
   psi_pf_2: 0.0
@@ -63,7 +63,7 @@ patch_data:
   preferences:
     new_file: true
     new_fname: ../data/SNL/USN_patches_1598047632.npy
-  use_file: true
+  use_file: True
 target_plates:
   plate_E1:
     file: ../data/SNL/SAS1/itp4.txt

@@ -1575,7 +1575,14 @@ class TopologyUtils():
                 _poloidal_f = lambda x: x
 
         try:
-            _radial_f = self.settings['grid_settings']['grid_generation'][r_f]
+
+            # Adding CORE radial_f support for SNL cases via entry 'radial_f_3'
+            if self.config in ['USN', 'LSN'] \
+                and self.settings['grid_settings']['grid_generation'].get('radial_f_3') is not None \
+                    and poloidal_tag + radial_tag in ['B1', 'C1', 'D1', 'E1']:
+                _radial_f = self.settings['grid_settings']['grid_generation']['radial_f_3']
+            else:
+                _radial_f = self.settings['grid_settings']['grid_generation'][r_f]
             valid_function = self.CheckFunction(_radial_f, Verbose)
             if valid_function:
                 _radial_f = self.get_func(_radial_f)

@@ -142,7 +142,7 @@ class Ingrid(IngridUtils):
         def on_closing():
             if messagebox.askyesno('', 'Are you sure you want to quit?'):
                 plt.close('all')
-                self._IngridWindow.destroy()
+                self.IngridWindow.destroy()
 
         from gui.ingrid_gui import IngridGUI
         self.IngridWindow = IngridGUI(IngridSession=self)
@@ -692,9 +692,27 @@ class Ingrid(IngridUtils):
         if self.PsiNorm.ax.get_legend() is not None:
             [line.remove() for line in self.PsiNorm.ax.get_legend().get_lines()]
 
-    def RemovePlotItem(self, label: str, ax: object = None) -> None:
+    def RemovePlotLine(self, label: str, ax: object = None) -> None:
+        if ax is None:
+            ax = plt.gca()
         try:
             [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == label]
+        except:
+            pass
+
+    def RemovePlotPoint(self, label: str, ax: object = None) -> None:
+        if ax is None:
+            ax = plt.gca()
+        try:
+            [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == label]
+        except:
+            pass
+
+    def RemovePlotPatch(self, label: str, ax: object = None) -> None:
+        if ax is None:
+            ax = plt.gca()
+        try:
+            [ax_patch.remove() for ax_patch in ax.patches if ax_patch.get_label() == label]
         except:
             pass
 
@@ -714,9 +732,9 @@ class Ingrid(IngridUtils):
             ax = plt.gca()
 
         # In case previous plot still contains limiter when not needed.
-        self.RemovePlotItem(label='limiter', ax=ax)
+        self.RemovePlotLine(label='limiter', ax=ax)
         for plate_label in self.PlateData.keys():
-            self.RemovePlotItem(label=plate_label, ax=ax)
+            self.RemovePlotLine(label=plate_label, ax=ax)
 
         if self.settings['grid_settings']['num_xpt'] == 2:
             self.PlotLimiter(ax=ax)
@@ -755,7 +773,7 @@ class Ingrid(IngridUtils):
 
         if plate_key in [k for k in self.PlateData.keys()]:
             if type(self.PlateData[plate_key]) is Line:
-                self.RemovePlotItem(label=plate_key, ax=ax)
+                self.RemovePlotLine(label=plate_key, ax=ax)
                 self.PlateData[plate_key].plot(label=plate_key, color=color)
             else:
                 pass
@@ -768,7 +786,7 @@ class Ingrid(IngridUtils):
         """
         if ax is None:
             ax = plt.gca()
-        self.RemovePlotItem(label='limiter', ax=ax)
+        self.RemovePlotLine(label='limiter', ax=ax)
         self.LimiterData.plot(color='dodgerblue', label='limiter')
 
     def PlotPsiUNorm(self) -> None:
@@ -847,14 +865,14 @@ class Ingrid(IngridUtils):
             ax = plt.gca()
 
         (x, y) = self.magx
-        self.RemovePlotItem(label='magx', ax=ax)
+        self.RemovePlotPoint(label='magx', ax=ax)
         ax.plot(x, y, '+', color='yellow', ms=15, linewidth=5, label='magx')
 
         (x, y) = self.xpt1
-        self.RemovePlotItem(label='xpt1', ax=ax)
+        self.RemovePlotPoint(label='xpt1', ax=ax)
         ax.plot(x, y, '+', color='orange', ms=15, linewidth=5, label='xpt1')
 
-        self.RemovePlotItem(label='xpt2', ax=ax)
+        self.RemovePlotPoint(label='xpt2', ax=ax)
         if self.settings['grid_settings']['num_xpt'] == 2:
             try:
                 (x, y) = self.xpt2
@@ -870,9 +888,15 @@ class Ingrid(IngridUtils):
         This method can be used to interpret which type of configuration the
         user is handling.
         """
-        self.PsiNorm.ax.add_patch(self.LineTracer.RegionPolygon['core'])
-        self.PsiNorm.ax.add_patch(self.LineTracer.RegionPolygon['pf'])
-        self.LineTracer.RegionLineCut.plot(color='white')
+
+        # Clean up the figure.
+        self.RemovePlotPatch(label='Core')
+        self.RemovePlotPatch(label='PF_1')
+        self.RemovePlotLine(label='RegionLineCut')
+
+        self.PsiNorm.ax.add_patch(self.LineTracer.RegionPolygon['Core'])
+        self.PsiNorm.ax.add_patch(self.LineTracer.RegionPolygon['PF_1'])
+        self.LineTracer.RegionLineCut.plot(color='white', label='RegionLineCut')
 
     def PlotPsiLevel(self, efit_psi: object, level: float, Label: str = '') -> None:
         """
@@ -947,6 +971,11 @@ class Ingrid(IngridUtils):
         self._PatchFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Patches', figsize=(6, 10))
         self.PatchAx = self._PatchFig.add_subplot(111)
         self.CurrentTopology.patch_diagram(fig=self._PatchFig, ax=self.PatchAx)
+        # handles, labels = self.PatchAx.get_legend_handles_labels()
+        # lookup = {label: handle for label, handle in zip(labels, handles)}
+        # self.PatchAx.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
+        #                        bbox_to_anchor=(0.5, -0.25), loc='lower center',
+        #                        ncol=len([label for label in lookup.keys()]) // 4)
         self.PlotStrikeGeometry(ax=self.PatchAx)
 
     def PlotSubgrid(self) -> None:

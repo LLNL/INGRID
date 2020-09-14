@@ -67,7 +67,7 @@ def Bicubic(f, fx: 'array-like', fy: 'array-like', fxy: 'array-like', x0: float,
 
     # build the polynomial using the relative coordinates
     if derivs == 'v' or derivs == '':
-        res = np.matmul([1, x0, x0**2, x0**3], np.matmul(alp, [1, y0, y0**2, y0**3]))
+        res = np.matmul([1, x0, x0**2, x0**3], np.matmul(alp, [1, y0, y0**2, y0**3]), dtype=np.ndarray)
 
     elif derivs == 'vr':
         res = np.matmul([0, 1, 2 * x0, 3 * x0**2], np.matmul(alp, [1, y0, y0**2, y0**3]))

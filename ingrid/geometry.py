@@ -539,7 +539,7 @@ class Cell:
         NE = self.vertices['NE'].as_np()
         SW = self.vertices['SW'].as_np()
         SE = self.vertices['SE'].as_np()
-        C = self.vertices['C'].as_np()
+        C = self.vertices['CENTER'].as_np()
         return np.array([NW, NE, SW, SE, C])
 
 

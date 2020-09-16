@@ -6,6 +6,8 @@
 Welcome to ingrid's documentation!
 ==================================
 
+.. mdinclude:: ../../README.md
+
 .. toctree::
     :maxdepth: 2
     :caption: Contents:

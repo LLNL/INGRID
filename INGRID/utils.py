@@ -1374,7 +1374,7 @@ class TopologyUtils():
         # ax.legend()
         f.show()
 
-    def grid_diagram(self, fig: object = None, ax: object = None) -> None:
+    def grid_diagram(self, fig: object = None, ax: object = None,color=None,**kwargs) -> None:
         """
         Generates the grid diagram for a given configuration.
 
@@ -1403,7 +1403,8 @@ class TopologyUtils():
         ax.set_title(f'{self.config} Subgrid')
 
         for patch in self.patches.values():
-            patch.plot_subgrid(ax=ax)
+            #patch.plot_subgrid(ax=ax)
+            patch.PlotSubGrid(ax=ax,color=color)
             print(f'# Plotting subgrid {patch.patch_name}')
 
         fig.show()

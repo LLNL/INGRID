@@ -976,17 +976,22 @@ class Ingrid(IngridUtils):
         #                        ncol=len([label for label in lookup.keys()]) // 4)
         self.PlotStrikeGeometry(ax=self.PatchAx)
 
-    def PlotSubgrid(self) -> None:
+    def PlotSubgrid(self,NewFig=False,**kwargs) -> None:
         """
         Plot the grid that was generated with method 'CreateSubgrid'.
         """
+        
         try:
             plt.close(self._SubgridFig)
         except:
             pass
-        self._SubgridFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Grid', figsize=(6, 10))
-        self._SubgridAx = self._SubgridFig.add_subplot(111)
-        self.CurrentTopology.grid_diagram(fig=self._SubgridFig, ax=self._SubgridAx)
+        if NewFig:
+            self._SubgridFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Grid', figsize=(6, 10))
+            self._SubgridAx = self._SubgridFig.add_subplot(111)
+        else:
+            self._SubgridFig = plt.gcf()
+            self._SubgridAx = plt.gca()
+        self.CurrentTopology.grid_diagram(fig=self._SubgridFig, ax=self._SubgridAx,**kwargs)
 
     def AutoRefineMagAxis(self) -> None:
         """

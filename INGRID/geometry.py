@@ -504,6 +504,10 @@ class Cell:
                 [self.vertices['SW'].y, self.vertices['NW'].y],
                 linewidth=1, color=color, label='cell')
 
+    def CollectBorder(self):
+        return np.array([(self.vertices[P].x, self.vertices[P].y) for P in ['NE','NW','SW','SE','NE']])
+
+        
     def plot_center(self, color='black', ax: 'matplotlib.axes.Axes' = None) -> None:
         """
         Plot the center of a Cell.
@@ -649,7 +653,23 @@ class Patch:
             for cell in row:
                 cell.plot_border(color=color, ax=ax)
         #plt.pause(0.1)
-
+        
+    def PlotSubGrid(self,ax=None,color=None):
+        if ax is None:
+            ax = plt.gca()
+        Collec=[]
+        for row in self.cell_grid:
+            for cell in row:
+                Collec.append(matplotlib.patches.Polygon(cell.CollectBorder(),edgecolor=color,fill=False))
+        C=matplotlib.collections.PatchCollection(Collec)
+        C.set_facecolor('')
+        if color is None:
+            C.set_edgecolor(self.color)
+        else:
+            C.set_edgecolor(color)
+        ax.add_collection(C)                      
+        #ax.autoscale_view()
+                
     def RemoveDuplicatePoints(self):
         for line in [self.N, self.E, self.S, self.W]:
             line.RemoveDuplicatePoints()

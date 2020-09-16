@@ -1189,13 +1189,14 @@ class IngridUtils():
             A 3-tuple (str, dict, dict) containing the configuration, x-point NSEW information, and reconstructed Patch objects.
         """
         data = np.load(fname, allow_pickle=True)
-        config = data[0]
-        xpt_data = data[1]
+        config = data['config']
+        xpt_data = data['xpt_data']
+        Vertices=data['Vertices']
 
         patches = {}
 
-        for raw_patch in data[2:]:
-            patch_data, cell_data, patch_settings,Vertices,cell_grid = raw_patch
+        for raw_patch in data['raw_patch']:
+            patch_data, cell_data, patch_settings = raw_patch
             NR = patch_data[0]
             NZ = patch_data[1]
             ER = patch_data[2]
@@ -1214,8 +1215,7 @@ class IngridUtils():
                           plate_patch=patch_settings['plate_patch'],
                           plate_location=patch_settings['plate_location'],
                           PatchTagMap=patch_settings['PatchTagMap'])
-            patch.SetVertices(Vertices)
-            patch.cell_grid=cell_grid
+
             patches[patch.patch_name] = patch
 
         patches = OrderedDict([(k, v) for k, v in patches.items()])
@@ -1650,7 +1650,7 @@ class TopologyUtils():
         return CD
 
     def construct_grid(self, np_cells: int = 1, nr_cells: int = 1, Verbose: bool = False,
-                       ShowVertices: bool = False, RestartScratch: bool = False, ListPatches: str = 'all',Visual=True) -> None:
+                       ShowVertices: bool = False, RestartScratch: bool = False, ListPatches: str = 'all') -> None:
         """
         Construct a grid by refining a Patch map.
 
@@ -1718,15 +1718,12 @@ class TopologyUtils():
             visual = self.settings['DEBUG']['visual']['subgrid']
         except:
             visual = False
-        if Visual:
-            visual=True
         try:
             verbose = self.settings['DEBUG']['verbose']['grid_generation']
         except:
             verbose = False
 
-        if Verbose:
-            verbose=True
+        verbose = Verbose or verbose
 
         self.GetDistortionCorrectionSettings()
 
@@ -1744,6 +1741,9 @@ class TopologyUtils():
                 patch.distortion_correction = self.distortion_correction.get('all')
             else:
                 patch.distortion_correction = {'Active': False}
+            
+            
+        
             if (ListPatches == 'all' and patch not in self.CurrentListPatch) or (ListPatches != 'all' and patch.get_tag() in ListPatches):
                 self.SetPatchBoundaryPoints(patch)
                 (nr_cells, np_cells) = self.GetNpoints(patch)

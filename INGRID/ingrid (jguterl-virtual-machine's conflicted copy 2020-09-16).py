@@ -1196,9 +1196,8 @@ class Ingrid(IngridUtils):
         self.CurrentTopology.GroupPatches()
         self.CheckPatches()
 
-        #not practical in a workflow
-        #if self.settings['patch_data']['preferences']['new_file']:
-        #   self.SavePatches(self.settings['patch_data']['preferences']['new_fname'])
+        if self.settings['patch_data']['preferences']['new_file']:
+            self.SavePatches(self.settings['patch_data']['preferences']['new_fname'])
 
     def SavePatches(self, fname: str = '') -> None:
         """
@@ -1214,10 +1213,10 @@ class Ingrid(IngridUtils):
         """
         if fname in ['', None]:
             fname = self.CurrentTopology.config + '_patches_' + str(int(time()))
-
-        patch_data = [patch.as_np() for patch in self.CurrentTopology.patches.values()]
-        patch_data.insert(0, self.CurrentTopology.config)
-        patch_data.insert(1, self.CurrentTopology.LineTracer.NSEW_lookup)
+        patch_data={}
+        patch_data['raw_data'] = [(patch.as_np(),patch.GetVertices()) for patch in self.CurrentTopology.patches.values()]
+        patch_data['config']= self.CurrentTopology.config
+        patch_data['NSEW']=self.CurrentTopology.LineTracer.NSEW_lookup
         np.save(fname, np.array(patch_data))
         if Path(fname).suffix == '.npy':
             tail = ''

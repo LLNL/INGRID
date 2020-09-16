@@ -565,10 +565,6 @@ class Patch:
         self.E = lines[1]
         self.S = lines[2]
         self.W = lines[3]
-        self.E_vertices=[]
-        self.W_vertices=[]
-        self.N_vertices=[]
-        self.S_vertices=[]
         self.BoundaryPoints = {}
 
         # This is the border for the fill function
@@ -648,7 +644,7 @@ class Patch:
         for row in self.cell_grid:
             for cell in row:
                 cell.plot_border(color=color, ax=ax)
-        #plt.pause(0.1)
+        plt.pause(0.1)
 
     def RemoveDuplicatePoints(self):
         for line in [self.N, self.E, self.S, self.W]:
@@ -723,9 +719,8 @@ class Patch:
             patch_data.append(Z)
         patch_data = np.array(patch_data)
         cell_data = self.cell_grid_as_np()
-        cell_grid = self.cell_grid
         patch_settings = self.get_settings()
-        return np.array([patch_data, cell_data, patch_settings,self.GetVertices(),cell_grid])
+        return np.array([patch_data, cell_data, patch_settings])
 
     def make_subgrid(self, grid, np_cells=2, nr_cells=2, _poloidal_f=lambda x: x, _radial_f=lambda x: x, verbose=False, visual=False, ShowVertices=False):
         """
@@ -925,7 +920,7 @@ class Patch:
         u = [_radial_f(i / (nr_lines - 1)) for i in range(nr_lines)]
 
         Npts = 1000
-        #xy = splev(np.linspace(0, 1, Npts), self.E_spl)
+        xy = splev(np.linspace(0, 1, Npts), self.E_spl)
 
         if self.BoundaryPoints.get('W') is None:
             for i in range(nr_lines):
@@ -964,11 +959,11 @@ class Patch:
 
             else:
                 color = self.color
-                ms = 10
-                markers = ['o', 'P', 's', 'D']
+                ms = 6
+                markers = ['o', 'X', 's', 'D']
             for vertices, mark in zip([self.W_vertices, self.E_vertices, self.N_vertices, self.S_vertices], markers):
                 for p in vertices:
-                    plt.plot(p.x, p.y, '.', color=color, markersize=ms, marker=mark, markeredgecolor=color)
+                    plt.plot(p.x, p.y, '.', color=color, markersize=ms, marker=mark, markeredgecolor='black')
         # Radial lines of Psi surfaces. Ordered with increasing magnitude, starting with
         # the South boundary of the current Patch, and ending with the North boundary of
         # this current Patch. These will serve as delimiters when constructing cells.
@@ -995,12 +990,15 @@ class Patch:
                 _r = splev(u, self.radial_spl[i])
                 Pt = Point((float(_r[0]), float(_r[1])))
                 if self.distortion_correction['active'] and j > 0 and j < np_lines - 1:
+                    Res = self.distortion_correction['resolution']
+                    ThetaMin = self.distortion_correction['theta_min']
+                    ThetaMax = self.distortion_correction['theta_max']
                     umin = _poloidal_f((j - 1) / (np_lines - 1))
                     umax = _poloidal_f((j + 1) / (np_lines - 1))
                     Pt1 = radial_vertices[i][j]
                     Pt2 = radial_vertices[i][j - 1]
                     Tag = '---- Correcting points: {},{}'.format(i, j)
-                    Pt = CorrectDistortion(u, Pt, Pt1, Pt2, self.radial_spl[i],umin,umax,Tag,**self.distortion_correction)
+                    Pt = CorrectDistortion(u, Pt, Pt1, Pt2, self.radial_spl[i], ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
 
                 vertex_list.append(Pt)
                 if visual:
@@ -1017,12 +1015,15 @@ class Patch:
             for j in range(1, np_lines - 1):
                 u = _poloidal_f(j / (np_lines - 1))
                 Pt = self.S_vertices[j]
+                Res = self.distortion_correction['resolution']
+                ThetaMin = self.distortion_correction['theta_min']
+                ThetaMax = self.distortion_correction['theta_max']
                 umin = _poloidal_f((j - 1) / (np_lines - 1))
                 umax = _poloidal_f((j + 1) / (np_lines - 1))
                 Pt1 = radial_vertices[-1][j]
                 Pt2 = radial_vertices[-1][j - 1]
                 Tag = '---- Correcting south boundary points:{}'.format(j)
-                self.S_vertices[j] = CorrectDistortion(u, Pt, Pt1, Pt2, self.S_spl, umin, umax,  Tag,**self.distortion_correction)
+                self.S_vertices[j] = CorrectDistortion(u, Pt, Pt1, Pt2, self.S_spl, ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
         radial_vertices.append(self.S_vertices)
         if verbose: print('# Create Cells: South boundary -> North Boundary')
         # Create Cells: South boundary -> North Boundary
@@ -1314,36 +1315,34 @@ def trim_geometry(geoline, start, end):
     return trim
 
 
-def CorrectDistortion(u, Pt, Pt1, Pt2, spl, umin, umax , Tag, theta_min=60, theta_max=120,resolution=1000,min_tol=1.05, max_tol=0.95, zero_span=0.90,verbose=False,visual=False,**kwargs):
-    MaxIter = resolution * 10
-    dumax = (umax - u) / resolution
-    dumin = (u - umin) / resolution
+def CorrectDistortion(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, Resolution, visual, Tag, MinTol=1.02, MaxTol=0.98, Verbose=False):
+    MaxIter = Resolution * 10
+    dumax = (umax - u) / Resolution
+    dumin = (u - umin) / Resolution
     Theta = Line([Pt1, Pt]).GetAngle(Line([Pt1, Pt2]))
-    if verbose: print(f'Current theta value: {Theta}')
-    if Theta < theta_min or Theta > theta_max:
-        if verbose: print('{}: u={};Theta={};ThetaMin={};ThetaMax={}'.format(Tag, u, Theta, theta_min, theta_max))
+    if Verbose: print(f'Current theta value: {Theta}')
+    if Theta < ThetaMin or Theta > ThetaMax:
+        if Verbose: print('{}: u={};Theta={};ThetaMin={};ThetaMax={}'.format(Tag, u, Theta, ThetaMin, ThetaMax))
         if visual:
                 plt.plot(Pt.x, Pt.y, '.', color='red', markersize=8, marker='o')
                 plt.show()
                 plt.draw()
         icount = 0
         color = 'purple'
-        u0=u
-
-        while Theta < theta_min or Theta > theta_max:
+        while Theta < ThetaMin or Theta > ThetaMax:
             icount += 1
-            if Theta < theta_min:
+            if Theta < ThetaMin:
                u = u + dumax
-            elif Theta > theta_max:
+            elif Theta > ThetaMax:
                u = u - dumin
-            if (u > umax * max_tol or u < umin * min_tol) or icount >= MaxIter or (abs(umin)<1e-12 and u<u0*zero_span):
-               if verbose: print('[{}]>>>> umax={} umin={};u:{};Theta={}'.format(icount, umax, umin, u, Theta))
+            if (u > umax * MaxTol or u < umin * MinTol) or icount >= MaxIter:
+               if Verbose: print('[{}]>>>> umax={} umin={};u:{};Theta={}'.format(icount, umax, umin, u, Theta))
                color = 'gray'
                break
             _r = splev(u, spl)
             Pt = Point((_r[0], _r[1]))
             Theta = Line([Pt1, Pt]).GetAngle(Line([Pt1, Pt2]))
-        if verbose: print('[{}]>>>> u:{};Theta={}'.format(icount, u, Theta))
+        if True: print('[{}]>>>> u:{};Theta={}'.format(icount, u, Theta))
         if visual:
             plt.plot(Pt.x, Pt.y, '.', color=color, markersize=8, marker='s')
     return Pt

@@ -7,7 +7,7 @@ Created on Mon Sep 14 09:03:11 2020
 """
 
 # Always prefer setuptools over distutils
-from setuptools import setup
+from setuptools import setup,find_packages
 
 import pathlib
 
@@ -46,7 +46,7 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
     ],
     keywords='sample, setuptools, development',  # Optional
-    packages=['INGRID'],
+    packages=find_packages(),
     python_requires='>=3.5, <4',
     install_requires=['m2r2','omfit-eqdsk'],  # Run "pip freeze > requirements.txt" to get a list
     #extras_require={  # Optional

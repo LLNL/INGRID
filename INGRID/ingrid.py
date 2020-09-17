@@ -25,7 +25,7 @@ from pathlib import Path
 from time import time
 
 
-
+from INGRID.DistribFunc import *
 from INGRID.interpol import EfitData
 
 from INGRID.utils import IngridUtils
@@ -38,6 +38,9 @@ from INGRID.topologies.sf135 import SF135
 from INGRID.topologies.sf165 import SF165
 from INGRID.topologies.udn import UDN
 from INGRID.geometry import Point, Line
+import types
+
+
 
 
 def QuickStart() -> None:
@@ -1229,6 +1232,32 @@ class Ingrid(IngridUtils):
         else:
             tail = '.npy'
         print(f"# Saved patch data for file {Path(fname).name + tail}")
+        
+    def SuperSavePatches(self, fname: str = '') -> None:
+        """
+        Save patches as '.npy' file for later reconstruction in Ingrid.
+
+        This file contains the information required to reconstruct patches
+        at a later time and bypass the line_tracing.
+
+        Parameters
+        ----------
+        fname : str, optional
+            Name of file/location for patch data.
+        """
+        if fname in ['', None]:
+            fname = self.CurrentTopology.config + '_patches_' + str(int(time()))
+        Data={'patches':self.CurrentTopology.patches,
+              'config':self.CurrentTopology.config,
+              'xpt_data':self.CurrentTopology.LineTracer.NSEW_lookup
+              }
+        np.save(fname, Data)
+        
+        if Path(fname).suffix == '.npy':
+            tail = ''
+        else:
+            tail = '.npy'
+        print(f"# Saved patch data for file {Path(fname).name + tail}")
 
     def LoadPatches(self, fname: str = '') -> None:
         """
@@ -1254,6 +1283,35 @@ class Ingrid(IngridUtils):
         self.LineTracer.NSEW_lookup = xpt_data
         self.SetTopology(config)
         self.CurrentTopology.patches = patches
+        self.CurrentTopology.OrderPatches()
+        self.CurrentTopology.SetupPatchMatrix()
+        self.CheckPatches()
+        
+    def SuperLoadPatches(self, fname: str = '') -> None:
+        """
+        Load patches stored in an Ingrid generated '.npy' file.
+
+        Parameters
+        ----------
+        fname : str, optional
+            Path to patch data.
+                If no fname is provided to method 'LoadPatches', Ingrid code will check the settings
+                'dict' for a file under entry ``settings['patch_data']['file']``
+
+        """
+
+        if type(fname) is not str:
+            raise ValueError('# User did not provide a string to patch data.')
+
+        if fname.strip() == '':  # Check if settings contains patch data.
+            fname = self.settings['patch_data']['file']
+        Data=np.load(fname,allow_pickle=True).tolist()[0]
+        #config, xpt_data, patches = self.ReconstructPatches(fname)
+        #self.PopulateSettings(Ingrid.ReadYamlFile(self.InputFile))
+        self.StartSetup()
+        self.LineTracer.NSEW_lookup = Data['xpt_data']
+        self.SetTopology(Data['config'])
+        self.CurrentTopology.patches = Data['patches']
         self.CurrentTopology.OrderPatches()
         self.CurrentTopology.SetupPatchMatrix()
         self.CheckPatches()

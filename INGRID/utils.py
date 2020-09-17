@@ -28,7 +28,7 @@ from omfit_eqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line, Patch, orientation_between
-
+import types
 
 class IngridUtils():
     """
@@ -1370,6 +1370,7 @@ class TopologyUtils():
         for i, patch in enumerate(self.patches.values()):
             patch.plot_border(color='black', ax=a)
             patch.fill(colors[patch.get_tag()[0]], ax=a, alpha=alpha[patch.get_tag()[-1]])
+            patch.alpha=alpha[patch.get_tag()[-1]]
             patch.color = colors[patch.get_tag()[0]]
         # ax.legend()
         f.show()
@@ -1443,96 +1444,171 @@ class TopologyUtils():
         """
         return self.config
 
-    def get_func(self, func: str) -> 'function':
-        """
-        Create a function from a string input.
+    
+    def SetPatchesOrientation(self):
+        
+        
+        # set radial orientation negative if patch is in PFR
+        for name, patch in self.patches.items():
+            if patch.plate_patch and self.GetPatchLetterNumber(patch.get_tag())[1]!=2:
+                patch.RadOrientation=-1
+            else:
+                patch.RadOrientation=1
+        
+        #set poloidal orientation negative if patches in high field side region (must be checked for other config)
+        Letters=list(dict.fromkeys([L for L,N in  self.GetPatchLetterNumber(self.GetListAllPatches())]))
+        Nhalf=int(len(Letters)/2)
+        ListLFS=Letters[0:Nhalf]
+        for name, patch in self.patches.items():
+            if self.GetPatchLetterNumber(patch.get_tag())[0] in ListLFS:
+                patch.PolOrientation=-1
+            else:
+                patch.PolOrientation=1
+        
+        
+        
+        
+                
+        
+    def ImportFunc(self,F:str or types.FunctionType='x,x',**kwargs)->types.FunctionType:
+        
+        def get_lambdafunc( func: str) -> types.FunctionType:
+            """
+            Create a function from a string input.
+    
+            Will be used to generate a poloidal or radial transformation
+            function.
+    
+            Parameters
+            ----------
+            func : str
+                An expression to generate a function from.
+    
+            Returns
+            -------
+                A function generated from the str input.
+    
+            Examples
+            --------
+            When calling method ``get_func`` the user must provide a **string**
+            with the following general format:
+    
+            .. math::
+    
+                x, f(x)
+    
+            That is, the dependent variable and expression to evaluate are
+            separated with a comma character.
+    
+            The `Sympy` library supports most expressions that can be generated with
+            Python natively. See the `Sympy` documentation for advanced features.
+    
+            Defining a function representing f(x) = x ^ 2:
+    
+            >>> func = 'x, x ** 2'
+            >>> f = MyTopologyUtils.get_func(func)
+            >>> f(np.array([0, 1, 2, 3]))
+            array([0, 1, 4, 9])
+    
+            Defining a function representing f(x) = exp(x)
+    
+            >>> func = 'x, exp(x)'
+            >>> f = MyTopologyUtils.get_func(func)
+            >>> f(np.array([0, 1, 2, 3]))
+            array([ 1.        ,  2.71828183,  7.3890561 , 20.08553692])
+    
+            """
+    
+            def make_sympy_func(var, expression):
+                import sympy as sp
+                _f = sp.lambdify(var, expression, 'numpy')
+                return _f
+    
+            f_str_raw = func
+    
+            f_str_raw = f_str_raw.replace(' ', '')
+            delim = f_str_raw.index(',')
+    
+            var = f_str_raw[0: delim]
+            expression = f_str_raw[delim + 1:]
+    
+            func = make_sympy_func(var, expression)
+            # TODO: Check Normalization of the function to 1
+            return func
+    
+        def CheckLambdaFunction(expression: str, Verbose: bool = False) -> bool:
+            """
+            Check if a str is in the correct format for method ``get_func``
+    
+            Parameters
+            ----------
+            expression : str
+                Expression to check.
+    
+            Verbose : bool, optional
+                Print full output to terminal. Default to False
+    
+            Returns
+            -------
+                True if expression is valid. False otherwise.
+            """
+            ExpValid = False
+            try:
+                com = 'lambda {}:{}'.format(expression.split(',')[0], expression.split(',')[1])
+                if Verbose:
+                    print(com)
+                eval(com)
+                ExpValid = True
+            except:
+                ExpValid=False
+            return ExpValid
+        
+        
+        if type(F)==str:
+            if F=='exp':
+                if kwargs.get('alpha') is None:
+                    alpha=1
+                else:
+                    alpha=kwargs.get('alpha')
+                def Func(x):
+                    return (1-np.exp(-(x)/alpha))/(1-np.exp(-1/alpha))
+            elif F=='mexp':
+                if kwargs.get('alpha') is None:
+                    alpha=1
+                else:
+                    alpha=kwargs.get('alpha')
+                def Func(x):
+                    return 1-((1-np.exp(-((1-x)/alpha)))/(1-np.exp(-1/alpha)))    
+        
+            elif F=='pow':
+                if kwargs.get('alpha') is None:
+                    alpha=1
+                else:
+                    alpha=kwargs.get('alpha')
+                def Func(x):
+                    return x**alpha
+            elif F=='mpow':
+                if kwargs.get('alpha') is None:
+                    alpha=1
+                else:
+                    alpha=kwargs.get('alpha')
+                def Func(x):
+                    return 1-x**alpha
+            else:
+                if CheckLambdaFunction(F):    
+                    Func=get_lambdafunc(F)
+                else:
+                    raise ValueError('Unable to parse expression entry "{}".'.format(F))
+                    Func=None
+        else:
+            Func=F
+        
+        if not callable(Func):
+            Func=None
+            
+        return Func    
+    
 
-        Will be used to generate a poloidal or radial transformation
-        function.
-
-        Parameters
-        ----------
-        func : str
-            An expression to generate a function from.
-
-        Returns
-        -------
-            A function generated from the str input.
-
-        Examples
-        --------
-        When calling method ``get_func`` the user must provide a **string**
-        with the following general format:
-
-        .. math::
-
-            x, f(x)
-
-        That is, the dependent variable and expression to evaluate are
-        separated with a comma character.
-
-        The `Sympy` library supports most expressions that can be generated with
-        Python natively. See the `Sympy` documentation for advanced features.
-
-        Defining a function representing f(x) = x ^ 2:
-
-        >>> func = 'x, x ** 2'
-        >>> f = MyTopologyUtils.get_func(func)
-        >>> f(np.array([0, 1, 2, 3]))
-        array([0, 1, 4, 9])
-
-        Defining a function representing f(x) = exp(x)
-
-        >>> func = 'x, exp(x)'
-        >>> f = MyTopologyUtils.get_func(func)
-        >>> f(np.array([0, 1, 2, 3]))
-        array([ 1.        ,  2.71828183,  7.3890561 , 20.08553692])
-
-        """
-
-        def make_sympy_func(var, expression):
-            import sympy as sp
-            _f = sp.lambdify(var, expression, 'numpy')
-            return _f
-
-        f_str_raw = func
-
-        f_str_raw = f_str_raw.replace(' ', '')
-        delim = f_str_raw.index(',')
-
-        var = f_str_raw[0: delim]
-        expression = f_str_raw[delim + 1:]
-
-        func = make_sympy_func(var, expression)
-        # TODO: Check Normalization of the function to 1
-        return func
-
-    def CheckFunction(self, expression: str, Verbose: bool = False) -> bool:
-        """
-        Check if a str is in the correct format for method ``get_func``
-
-        Parameters
-        ----------
-        expression : str
-            Expression to check.
-
-        Verbose : bool, optional
-            Print full output to terminal. Default to False
-
-        Returns
-        -------
-            True if expression is valid. False otherwise.
-        """
-        ExpValid = False
-        try:
-            com = 'lambda {}:{}'.format(expression.split(',')[0], expression.split(',')[1])
-            if Verbose:
-                print(com)
-            eval(com)
-            ExpValid = True
-        except:
-            raise ValueError('Unable to parse expression entry "{}".'.format(expression))
-        return ExpValid
 
     def GetFunctions(self, Patch: Patch, Verbose: bool = False) -> tuple:
         """
@@ -1559,45 +1635,41 @@ class TopologyUtils():
         poloidal_tag, radial_tag = Patch.get_tag()
         p_f = 'poloidal_f_' + poloidal_tag
         r_f = 'radial_f_' + radial_tag
+        
+        _poloidal_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get(p_f))
+        if _poloidal_f is None:
+            _poloidal_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get('poloidal_f_default'))
+        if _poloidal_f is None:
+            _poloidal_f = self.ImportFunc('x:x')
 
-        try:
-            _poloidal_f = self.settings['grid_settings']['grid_generation'][p_f]
-            valid_function = self.CheckFunction(_poloidal_f, Verbose)
-            if valid_function:
-                _poloidal_f = self.get_func(_poloidal_f)
-            else:
-                raise ValueError('# Invalid function entry. Applying default poloidal function.')
-        except:
-            _poloidal_f = self.settings['grid_settings']['grid_generation']['poloidal_f_default']
-            valid_function = self.CheckFunction(_poloidal_f, Verbose)
-            if valid_function:
-                _poloidal_f = self.get_func(_poloidal_f)
-            else:
-                _poloidal_f = lambda x: x
+    
 
-        try:
-
-            # Adding CORE radial_f support for SNL cases via entry 'radial_f_3'
-            if self.config in ['USN', 'LSN'] \
-                and self.settings['grid_settings']['grid_generation'].get('radial_f_3') is not None \
-                    and poloidal_tag + radial_tag in ['B1', 'C1', 'D1', 'E1']:
-                _radial_f = self.settings['grid_settings']['grid_generation']['radial_f_3']
-            else:
-                _radial_f = self.settings['grid_settings']['grid_generation'][r_f]
-            valid_function = self.CheckFunction(_radial_f, Verbose)
-            if valid_function:
-                _radial_f = self.get_func(_radial_f)
-            else:
-                raise ValueError('# Invalid function entry. Applying default radial function.')
-        except:
-            _radial_f = self.settings['grid_settings']['grid_generation']['radial_f_default']
-            valid_function = self.CheckFunction(_radial_f, Verbose)
-            if valid_function:
-                _radial_f = self.get_func(_radial_f)
-            else:
-                _radial_f = lambda x: x
-
-        return (_radial_f, _poloidal_f)
+        # Adding CORE radial_f support for SNL cases via entry 'radial_f_3'
+        if self.config in ['USN', 'LSN'] \
+            and self.settings['grid_settings']['grid_generation'].get('radial_f_3') is not None \
+                and poloidal_tag + radial_tag in ['B1', 'C1', 'D1', 'E1']:
+            _radial_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get('radial_f_3'))
+        else:
+            _radial_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get(r_f))
+        if _radial_f is None:
+            _radial_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get('radial_f_default'))
+        if _radial_f is None:
+            _radial_f = lambda x: x
+            
+        if hasattr(Patch,'RadOrientation') and Patch.RadOrientation==-1:
+            _radial_f_=lambda x:1-_radial_f(1-x)
+        else:
+            _radial_f_=_radial_f
+        if hasattr(Patch,'PolOrientation') and Patch.PolOrientation==-1:
+            _poloidal_f_=lambda x:1-_poloidal_f(1-x)
+        else:
+            _poloidal_f_=_poloidal_f
+            
+            
+        
+        return (_radial_f_, _poloidal_f_)
+    
+    
 
     def GetNpoints(self, Patch: Patch) -> tuple:
         """
@@ -1650,6 +1722,9 @@ class TopologyUtils():
         self.distortion_correction = CD
         return CD
 
+    def GetListAllPatches(self):
+        return [v.get_tag() for k,v in self.patches.items()]
+    
     def construct_grid(self, np_cells: int = 1, nr_cells: int = 1, Verbose: bool = False,
                        ShowVertices: bool = False, RestartScratch: bool = False, ListPatches: str = 'all',Visual=True) -> None:
         """
@@ -1728,10 +1803,14 @@ class TopologyUtils():
 
         if Verbose:
             verbose=True
-
+        ListAllPatches=self.GetListAllPatches()
+        print('>>> Existing Patches :',ListAllPatches)
+        ListPatches=self.ProcessListPatches(ListPatches)
+        print('>>> Generating grids for patches:',ListPatches)
+        self.SetPatchesOrientation()
         self.GetDistortionCorrectionSettings()
-
-        print('>>> Patches:', [v.get_tag() for k,v in self.patches.items()])
+        
+        
         if RestartScratch:
             self.CurrentListPatch = {}
 
@@ -1755,7 +1834,63 @@ class TopologyUtils():
 
                 self.AdjustGrid(patch)
                 self.CurrentListPatch[name] = patch
-
+    
+    @staticmethod
+    def GetPatchLetterNumber(PatchName:str or str)->tuple:
+        
+        if type(PatchName)==str:
+            if len(PatchName)<1 or len(PatchName)>2:
+                raise IOError('PatchName must be a string of one or two characters')
+            L=''
+            N=None
+            
+            for C in PatchName:
+                if C.isnumeric():
+                    N=C
+                elif C.isalpha():
+                    L=C
+                else:
+                    raise IOError('PatchName must be a string of one or two characters with one letter max and one digit max')
+            return (L,N) 
+        
+        elif type(PatchName)==list:
+            Out=[]
+            for P in PatchName:
+                Out.append(TopologyUtils.GetPatchLetterNumber(P))
+            return Out
+        else:
+            raise ValueError('PatchName must be a list of a str')
+        
+    def ProcessListPatches(self,ListPatches:list or str):
+        if type(ListPatches)==str:
+            ListPatches=[ListPatches]
+        OrderedList=self.GetListAllPatches()
+  
+        Numbers=list(dict.fromkeys([N for L,N in  self.GetPatchLetterNumber(OrderedList) if N is not None]))
+        Letters=list(dict.fromkeys([L for L,N in  self.GetPatchLetterNumber(OrderedList) if L!='']))
+        if self.Verbose:
+            print('Numbers:',Numbers)
+            print('Letters:',Letters)
+        if 'all' in ListPatches:
+            return OrderedList
+        else:
+            
+            OutList=ListPatches.copy()
+            for P in ListPatches:
+                (L,N)=self.GetPatchLetterNumber(P)
+                if L=='' and N is None:
+                    raise ValueError('Incorrect patch name pattern:{}'.format(P))
+                elif N is None:   
+                    OutList.remove(P)
+                    OutList.extend([L+Num for Num in Numbers])
+                elif L=='':
+                    OutList.remove(P)
+                    OutList.extend([Let+N for Let in Letters])
+            # now let order them 
+            OutList=[P for P in OrderedList if P in list(dict.fromkeys(OutList))]
+            return OutList
+        
+        
     def AdjustGrid(self, patch: Patch) -> None:
         """
         Adjust the grid so that no holes occur at x-points.

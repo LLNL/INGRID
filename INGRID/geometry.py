@@ -507,6 +507,15 @@ class Cell:
     def CollectBorder(self):
         return np.array([(self.vertices[P].x, self.vertices[P].y) for P in ['NE','NW','SW','SE','NE']])
 
+    def CollectEdges(self):
+        Line1=[(self.vertices['NW'].x, self.vertices['NW'].y),(self.vertices['NE'].x, self.vertices['NE'].y)]
+        Line2=[(self.vertices['NE'].x, self.vertices['NE'].y),(self.vertices['SE'].x, self.vertices['SE'].y)]
+        Line3=[(self.vertices['SE'].x, self.vertices['SE'].y),(self.vertices['SW'].x, self.vertices['SW'].y)]
+        Line4=[(self.vertices['SW'].x, self.vertices['SW'].y),(self.vertices['NW'].x, self.vertices['NW'].y)]
+        return [Line1,Line2,Line3,Line4]
+    
+    
+
         
     def plot_center(self, color='black', ax: 'matplotlib.axes.Axes' = None) -> None:
         """
@@ -584,7 +593,10 @@ class Patch:
         self.plate_location = plate_location
         self.patch_name = patch_name
         self.color = color
+        self.alpha=1
         self.Verbose = True
+        self.RadOrientation=1
+        self.PolOrientation=1
 
         # TODO: Populate these attributes when generating subgrid.
         #       Currently this is being done in the concat_grid method.
@@ -603,8 +615,6 @@ class Patch:
             'S': 'SOL',
             'C': 'Core'
         }
-
-        self.ax = None
         self.cell_grid = None
         
     def GetVertices(self):
@@ -657,18 +667,65 @@ class Patch:
     def PlotSubGrid(self,ax=None,color=None):
         if ax is None:
             ax = plt.gca()
-        Collec=[]
+        ListBorder=[]
+        ListEdges=[]
+        DataEdges=[]
+        
         for row in self.cell_grid:
             for cell in row:
-                Collec.append(matplotlib.patches.Polygon(cell.CollectBorder(),edgecolor=color,fill=False))
-        C=matplotlib.collections.PatchCollection(Collec)
+                Border=cell.CollectBorder()
+                
+                p=matplotlib.patches.Polygon(Border,edgecolor=color,fill=False)
+                ListBorder.append(p)
+                Edges=cell.CollectEdges()
+                ListEdges.extend(Edges)
+                for E in Edges:
+                    DataEdges.append(GetLength(E))
+                  
+
+        #Collection border of cell
+        C=matplotlib.collections.PatchCollection(ListBorder)
+        C.set_picker(True)
         C.set_facecolor('')
         if color is None:
             C.set_edgecolor(self.color)
         else:
             C.set_edgecolor(color)
-        ax.add_collection(C)                      
-        #ax.autoscale_view()
+        #ax.add_collection(C) 
+        
+        #Collection edges of cells
+        CE=matplotlib.collections.LineCollection(ListEdges,array=np.array(range(0,len(ListEdges))))
+        CE.set_picker(1)
+        ax.add_collection(CE) 
+        if color is None:
+            CE.set_color(self.color)
+            CE.set_edgecolors(self.color)
+            CE.set_facecolors(self.color)
+        else:
+            CE.set_color(color)
+            CE.set_edgecolors(color)
+            CE.set_facecolors(color)
+            
+        CE.set_alpha(self.alpha)
+        
+            
+        def onpick(evt):           
+            if evt.artist==CE:
+                annot.set_visible(False)
+                annot.xy = (evt.mouseevent.xdata, evt.mouseevent.ydata)
+                annot.set_text('length={:.2e} m'.format(DataEdges[evt.artist.get_array()[evt.ind[0]]]))
+                annot.set_visible(True)
+            if evt.mouseevent.button == 3:
+                annot.set_visible(False)  
+            ax.figure.canvas.draw_idle()                 
+        annot = ax.annotate("", xy=(0,0), xytext=(-20,20),textcoords="offset points",
+                                bbox=dict(boxstyle="round", fc="w"),
+                                arrowprops=dict(arrowstyle="->"))
+        annot.set_visible(False)
+        ax.figure.canvas.mpl_connect('pick_event', onpick)
+        
+                             
+        ax.autoscale_view()
                 
     def RemoveDuplicatePoints(self):
         for line in [self.N, self.E, self.S, self.W]:
@@ -946,14 +1003,14 @@ class Patch:
 
         Npts = 1000
         #xy = splev(np.linspace(0, 1, Npts), self.E_spl)
-
+        self.W_vertices_old=self.W_vertices
         if self.BoundaryPoints.get('W') is None:
             for i in range(nr_lines):
                 _w = splev(u[i], self.W_spl)
                 self.W_vertices.append(Point((float(_w[0]), float(_w[1]))))
         else:
             self.W_vertices = self.BoundaryPoints.get('W')
-
+        
         if self.BoundaryPoints.get('E') is None:
             for i in range(nr_lines):
                 _e = splev(u[i], self.E_spl)
@@ -997,18 +1054,26 @@ class Patch:
         dynamic_step = set_dynamic_step()
         if verbose: print('# Interpolate radial lines between North and South patch boundaries..')
         # Interpolate radial lines between North and South patch boundaries.
+        if hasattr(self,'radial_spl'):
+            self.radial_spl_old=self.radial_spl
+        else:
+            self.radial_spl_old=[]
         self.radial_spl = []
         temp_vertices = []
         temp_vertices.append(self.N.p[-1])
         for i in range(len(self.W_vertices) - 2):
-            if verbose: print(self.W_vertices[i + 1],self.E)
             #TODO: parallelize tracing of radial lines (draw_line function must be "externalized" in the scope of the script)
-            radial_lines.append(grid.LineTracer.draw_line(self.W_vertices[i + 1], {'line': self.E}, option='theta',
-                direction='cw', show_plot=0, dynamic_step=dynamic_step))
-            temp_vertices.append(radial_lines[-1].p[-1])
-            radial_vals = radial_lines[i + 1].fluff(1000)
-            Radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s=0)
-            self.radial_spl.append(Radial_spl)
+            if (len(self.W_vertices)!=len(self.W_vertices_old) or self.W_vertices[i+1]!=self.W_vertices_old[i+1]) or len(self.radial_spl_old)!=len(self.W_vertices)-2:
+    
+                radial_lines.append(grid.LineTracer.draw_line(self.W_vertices[i + 1], {'line': self.E}, option='theta',
+                    direction='cw', show_plot=0, dynamic_step=dynamic_step))
+                temp_vertices.append(radial_lines[-1].p[-1])
+                radial_vals = radial_lines[i + 1].fluff(1000)
+                Radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s=0)
+                self.radial_spl.append(Radial_spl)
+            else:
+                self.radial_spl.append(self.radial_spl_old[i])
+                
             vertex_list = []
             for j in range(np_lines):
                 u = _poloidal_f(j / (np_lines - 1))
@@ -1334,7 +1399,7 @@ def trim_geometry(geoline, start, end):
     return trim
 
 
-def CorrectDistortion(u, Pt, Pt1, Pt2, spl, umin, umax , Tag, theta_min=60, theta_max=120,resolution=1000,min_tol=1.05, max_tol=0.95, zero_span=0.90,verbose=False,visual=False,**kwargs):
+def CorrectDistortion(u, Pt, Pt1, Pt2, spl, umin, umax , Tag, theta_min=60, theta_max=120,resolution=1000,min_tol=1.05, max_tol=0.95, zero_span=0.90,max_span=1,verbose=False,visual=False,**kwargs):
     MaxIter = resolution * 10
     dumax = (umax - u) / resolution
     dumin = (u - umin) / resolution
@@ -1356,7 +1421,7 @@ def CorrectDistortion(u, Pt, Pt1, Pt2, spl, umin, umax , Tag, theta_min=60, thet
                u = u + dumax
             elif Theta > theta_max:
                u = u - dumin
-            if (u > umax * max_tol or u < umin * min_tol) or icount >= MaxIter or (abs(umin)<1e-12 and u<u0*zero_span):
+            if (u-u0) > (umax* max_tol-u0)*max_span or (u-u0) < (umin * min_tol-u0)*max_span or icount >= MaxIter or (abs(umin)<1e-12 and u<u0*zero_span):
                if verbose: print('[{}]>>>> umax={} umin={};u:{};Theta={}'.format(icount, umax, umin, u, Theta))
                color = 'gray'
                break
@@ -1553,3 +1618,6 @@ def UnfoldLabel(Dic: dict, Name: str) -> str:
         return ''.join(Output)
     else:
         return ''
+    
+def GetLength(E):
+    return np.sqrt((E[1][0]-E[0][0])**2+(E[1][1]-E[1][1])**2)

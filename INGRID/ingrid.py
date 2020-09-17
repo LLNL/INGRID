@@ -1201,9 +1201,9 @@ class Ingrid(IngridUtils):
         self.OrderTargetPlates()
         self.PrepLineTracing()
         self.CurrentTopology.construct_patches()
-        self.CurrentTopology.GroupPatches()
+        self.CurrentTopology.GroupPatches() 
         self.CheckPatches()
-
+        self.CurrentTopology.SetBoundarySplines()
         #not practical in a workflow
         #if self.settings['patch_data']['preferences']['new_file']:
         #   self.SavePatches(self.settings['patch_data']['preferences']['new_fname'])

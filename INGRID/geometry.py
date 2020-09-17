@@ -803,7 +803,128 @@ class Patch:
         cell_grid = self.cell_grid
         patch_settings = self.get_settings()
         return np.array([patch_data, cell_data, patch_settings,self.GetVertices(),cell_grid])
+    
+    
+    def CreateBoundarySplines(self,grid):
+        # Create B-Splines along the North and South boundaries.
+        if self.Verbose: print(' # Create B-Splines along the North and South boundaries.')
+        N_vals = self.N.fluff()
+        self.N_spl, uN = splprep([N_vals[0], N_vals[1]], s=0)
+        # Reverse the orientation of the South line to line up with the North.
 
+        S_vals = self.S.reverse_copy().fluff()
+        self.S_spl, uS = splprep([S_vals[0], S_vals[1]], s=0)
+        if self.Verbose: print(' # Create B-Splines along West boundaries.')
+        # Create B-Splines along the East and West boundaries.
+        # Parameterize EW splines in Psi
+        try:
+            #Cannot fluff with too many points
+            n = 500 if len(self.W.p) < 50 else 100
+           # W_vals = self.W.reverse_copy().fluff(num = n)
+            W_vals = self.W.reverse_copy().fluff(n, verbose=self.Verbose)
+            Psi = self.psi_parameterize(grid, W_vals[0], W_vals[1])
+            self.W_spl, uW = splprep([W_vals[0], W_vals[1]], u=Psi, s=10)
+        except Exception as e:
+            exc_type, exc_obj, tb = sys.exc_info()
+            f = tb.tb_frame
+            lineno = tb.tb_lineno
+            filename = f.f_code.co_filename
+            linecache.checkcache(filename)
+            line = linecache.getline(filename, lineno, f.f_globals)
+            print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
+
+        if self.Verbose: print(' # Create B-Splines along the East boundaries.')
+        try:
+            n = 500 if len(self.E.p) < 50 else 100
+            E_vals = self.E.fluff(num=n)
+            self.E_spl, uE = splprep([E_vals[0], E_vals[1]], u=self.psi_parameterize(grid, E_vals[0], E_vals[1]), s=10)
+        except Exception as e:
+            print(' Number of points on the boundary:', len(self.E.p))
+            plt.plot(E_vals[0], E_vals[1], '.', color='black')
+            print(repr(e))
+        if self.Verbose: print(' #check plate_patch')
+        # ACCURACY ON PSI_MIN SIDE OF W IDL LINE ISSUE.
+
+        if self.plate_patch:
+
+            def f(u, *args):
+                _y = splev(u, args[0])
+                return grid.PsiNorm.get_psi(args[1], args[2]) - grid.PsiNorm.get_psi(_y[0], _y[1])
+
+            def find_nearest(array, value):
+                array = np.asarray(array)
+                idx = (np.abs(array - value)).argmin()
+                return array[idx]
+
+            if self.plate_location == 'W':
+                _u = uW
+                U_vals = W_vals
+                U_spl = self.W_spl
+                plate_north = [N_vals[0][0], N_vals[1][0]]
+                plate_south = [S_vals[0][0], S_vals[1][0]]
+            elif self.plate_location == 'E':
+                _u = uE
+                U_vals = E_vals
+                U_spl = self.E_spl
+                plate_north = [N_vals[0][-1], N_vals[1][-1]]
+                plate_south = [S_vals[0][-1], S_vals[1][-1]]
+
+            if self.Verbose:
+                print('=' * 80 + '\n')
+                print('Parameterization of Target Plate in PSI:')
+                print(_u)
+                print('=' * 80 + '\n')
+
+            lookup = {}
+            for i in range(len(_u)):
+                lookup[_u[i]] = i
+            try:
+                plate_north_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_north[0], plate_north[1])))]
+            except ValueError:
+                try:
+                    plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_north[0], plate_north[1])))]
+                except:
+                    print('NorthIndex: ERROR IN PARAMETERIZATION IN PSI')
+            try:
+                plate_south_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_south[0], plate_south[1])))]
+            except ValueError:
+                try:
+                    plate_south_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_south[0], plate_south[1])))]
+                except:
+                    print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
+            if plate_south_index > plate_north_index:
+                plate_north_index, plate_south_index = plate_south_index, plate_north_index
+
+            U_vals = [U_vals[0][plate_south_index:plate_north_index + 1], U_vals[1][plate_south_index:plate_north_index + 1]]
+            U_spl, _u = splprep([U_vals[0], U_vals[1]], u=self.psi_parameterize(grid, U_vals[0], U_vals[1]), s=0)
+
+            if self.plate_location == 'W':
+                W_vals = U_vals
+                self.W_spl = U_spl
+                uW = _u
+            elif self.plate_location == 'E':
+                E_vals = U_vals
+                self.E_spl = U_spl
+                uE = _u
+                
+                
+    @staticmethod
+    def psi_parameterize(grid, r, z):
+            """
+            Helper function to be used to generate a
+            list of values to parameterize a spline
+            in Psi. Returns a list to be used for splprep only
+            """
+            vmax = grid.PsiNorm.get_psi(r[-1], z[-1])
+            vmin = grid.PsiNorm.get_psi(r[0], z[0])
+
+            vparameterization = np.empty(0)
+            for i in range(len(r)):
+                vcurr = grid.PsiNorm.get_psi(r[i], z[i])
+                vparameterization = np.append(vparameterization, abs((vcurr - vmin) / (vmax - vmin)))
+
+            return vparameterization
+        
     def make_subgrid(self, grid, np_cells=2, nr_cells=2, _poloidal_f=lambda x: x, _radial_f=lambda x: x, verbose=False, visual=False, ShowVertices=False):
         """
         Generate a refined grid within a patch.
@@ -820,21 +941,7 @@ class Patch:
                 cells within our Patch.
         """
 
-        def psi_parameterize(grid, r, z):
-            """
-            Helper function to be used to generate a
-            list of values to parameterize a spline
-            in Psi. Returns a list to be used for splprep only
-            """
-            vmax = grid.PsiNorm.get_psi(r[-1], z[-1])
-            vmin = grid.PsiNorm.get_psi(r[0], z[0])
-
-            vparameterization = np.empty(0)
-            for i in range(len(r)):
-                vcurr = grid.PsiNorm.get_psi(r[i], z[i])
-                vparameterization = np.append(vparameterization, abs((vcurr - vmin) / (vmax - vmin)))
-
-            return vparameterization
+        
 
         def psi_test(leg, grid):
             """
@@ -872,110 +979,13 @@ class Patch:
             print(nr_cells)
         np_lines = np_cells + 1
         nr_lines = nr_cells + 1
-        if verbose: print(' # Create B-Splines along the North and South boundaries.')
-        # Create B-Splines along the North and South boundaries.
-        N_vals = self.N.fluff()
-
-        self.N_spl, uN = splprep([N_vals[0], N_vals[1]], s=0)
-        # Reverse the orientation of the South line to line up with the North.
-
-        S_vals = self.S.reverse_copy().fluff()
-        self.S_spl, uS = splprep([S_vals[0], S_vals[1]], s=0)
-        if verbose: print(' # Create B-Splines along West boundaries.')
-        # Create B-Splines along the East and West boundaries.
-        # Parameterize EW splines in Psi
-        try:
-            #Cannot fluff with too many points
-            n = 500 if len(self.W.p) < 50 else 100
-           # W_vals = self.W.reverse_copy().fluff(num = n)
-            W_vals = self.W.reverse_copy().fluff(n, verbose=verbose)
-            Psi = psi_parameterize(grid, W_vals[0], W_vals[1])
-            self.W_spl, uW = splprep([W_vals[0], W_vals[1]], u=Psi, s=10)
-        except Exception as e:
-            exc_type, exc_obj, tb = sys.exc_info()
-            f = tb.tb_frame
-            lineno = tb.tb_lineno
-            filename = f.f_code.co_filename
-            linecache.checkcache(filename)
-            line = linecache.getline(filename, lineno, f.f_globals)
-            print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
-
-        if verbose: print(' # Create B-Splines along the East boundaries.')
-        try:
-            n = 500 if len(self.E.p) < 50 else 100
-            E_vals = self.E.fluff(num=n)
-            self.E_spl, uE = splprep([E_vals[0], E_vals[1]], u=psi_parameterize(grid, E_vals[0], E_vals[1]), s=10)
-        except Exception as e:
-            print(' Number of points on the boundary:', len(self.E.p))
-            plt.plot(E_vals[0], E_vals[1], '.', color='black')
-            print(repr(e))
-        if verbose: print(' #check plate_patch')
-        # ACCURACY ON PSI_MIN SIDE OF W IDL LINE ISSUE.
-
-        if self.plate_patch:
-
-            def f(u, *args):
-                _y = splev(u, args[0])
-                return grid.PsiNorm.get_psi(args[1], args[2]) - grid.PsiNorm.get_psi(_y[0], _y[1])
-
-            def find_nearest(array, value):
-                array = np.asarray(array)
-                idx = (np.abs(array - value)).argmin()
-                return array[idx]
-
-            if self.plate_location == 'W':
-                _u = uW
-                U_vals = W_vals
-                U_spl = self.W_spl
-                plate_north = [N_vals[0][0], N_vals[1][0]]
-                plate_south = [S_vals[0][0], S_vals[1][0]]
-            elif self.plate_location == 'E':
-                _u = uE
-                U_vals = E_vals
-                U_spl = self.E_spl
-                plate_north = [N_vals[0][-1], N_vals[1][-1]]
-                plate_south = [S_vals[0][-1], S_vals[1][-1]]
-
-            if verbose:
-                print('=' * 80 + '\n')
-                print('Parameterization of Target Plate in PSI:')
-                print(_u)
-                print('=' * 80 + '\n')
-
-            lookup = {}
-            for i in range(len(_u)):
-                lookup[_u[i]] = i
-            try:
-                plate_north_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_north[0], plate_north[1])))]
-            except ValueError:
-                try:
-                    plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_north[0], plate_north[1])))]
-                except:
-                    print('NorthIndex: ERROR IN PARAMETERIZATION IN PSI')
-            try:
-                plate_south_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_south[0], plate_south[1])))]
-            except ValueError:
-                try:
-                    plate_south_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_south[0], plate_south[1])))]
-                except:
-                    print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
-            if plate_south_index > plate_north_index:
-                plate_north_index, plate_south_index = plate_south_index, plate_north_index
-
-            U_vals = [U_vals[0][plate_south_index:plate_north_index + 1], U_vals[1][plate_south_index:plate_north_index + 1]]
-            U_spl, _u = splprep([U_vals[0], U_vals[1]], u=psi_parameterize(grid, U_vals[0], U_vals[1]), s=0)
-
-            if self.plate_location == 'W':
-                W_vals = U_vals
-                self.W_spl = U_spl
-                uW = _u
-            elif self.plate_location == 'E':
-                E_vals = U_vals
-                self.E_spl = U_spl
-                uE = _u
+        
+        #self.CreatBoundarySpleen()
 
         # Generate our sub-grid anchor points along the North
         # and South boundaries of our patch.
+        self.W_vertices_old=self.W_vertices
+        
         self.N_vertices = []
         self.S_vertices = []
         self.E_vertices = []
@@ -1003,7 +1013,7 @@ class Patch:
 
         Npts = 1000
         #xy = splev(np.linspace(0, 1, Npts), self.E_spl)
-        self.W_vertices_old=self.W_vertices
+        
         if self.BoundaryPoints.get('W') is None:
             for i in range(nr_lines):
                 _w = splev(u[i], self.W_spl)

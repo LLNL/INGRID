@@ -1450,7 +1450,7 @@ class TopologyUtils():
         
         # set radial orientation negative if patch is in PFR
         for name, patch in self.patches.items():
-            if patch.plate_patch and self.GetPatchLetterNumber(patch.get_tag())[1]!=2:
+            if patch.plate_patch and self.GetPatchLetterNumber(patch.get_tag())[1]!='2':
                 patch.RadOrientation=-1
             else:
                 patch.RadOrientation=1
@@ -2311,3 +2311,8 @@ class TopologyUtils():
 
             if debug:
                 self._animate_grid()
+                
+    def SetBoundarySplines(self):
+        for n,p in self.patches.items():
+            p.CreateBoundarySplines(self)
+            

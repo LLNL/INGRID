@@ -17,8 +17,8 @@ grid_settings:
         resolution: 1000
         theta_max: 120.0
         theta_min: 80.0
-    np_default: 4
-    nr_default: 4
+    np_default: 10
+    nr_default: 10
     poloidal_f_default: x, x
     radial_f_default: x, x
   guard_cell_eps: 0.001

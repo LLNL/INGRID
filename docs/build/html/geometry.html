@@ -272,6 +272,26 @@ a Patch object.</p>
 </dd>
 </dl>
 <dl class="py method">
+<dt id="geometry.Line.GetAngle">
+<code class="sig-name descname">GetAngle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Line</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line.GetAngle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the angle between two lines in degree (between 0 and 180 degrees)
+:param Line: DESCRIPTION.
+:type Line: TYPE</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.Norm">
+<code class="sig-name descname">Norm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line.Norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return norm of the lines
+:returns: None.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="geometry.Line.RemoveDuplicatePoints">
 <code class="sig-name descname">RemoveDuplicatePoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line.RemoveDuplicatePoints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove any duplicate points from list of points</p>
@@ -410,14 +430,16 @@ split point in Segment B.</p></li>
 
 <dl class="py class">
 <dt id="geometry.Patch">
-<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Patch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lines</span></em>, <em class="sig-param"><span class="n">patch_name</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">PatchTagMap</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plate_patch</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plate_location</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'blue'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Patch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lines</span><span class="p">:</span> <span class="n">array - like</span></em>, <em class="sig-param"><span class="n">patch_name</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">PatchTagMap</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plate_patch</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plate_location</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'blue'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Define a Patch representing a portion of the tokamak domain.</p>
 <p>Each Patch can be refined into a subgrid that can then create a global grid.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>lines</strong> (<em>array-like</em>) – The four Line objects defining the boundary of this Patch.
-<strong>Order is critical and must follow the N, E, S, W clockwise orientation.</strong></p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lines</strong> (<em>array-like</em>) – The four Line objects defining the boundary of this Patch (N, E, S, W).</p></li>
+<li><p><strong>patch_name</strong> – </p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
@@ -619,8 +641,8 @@ origin of the axes. Of the form (x, y).</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.distortion_correction">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">CorrectDistortion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">u</span></em>, <em class="sig-param"><span class="n">Pt</span></em>, <em class="sig-param"><span class="n">Pt1</span></em>, <em class="sig-param"><span class="n">Pt2</span></em>, <em class="sig-param"><span class="n">spl</span></em>, <em class="sig-param"><span class="n">ThetaMin</span></em>, <em class="sig-param"><span class="n">ThetaMax</span></em>, <em class="sig-param"><span class="n">umin</span></em>, <em class="sig-param"><span class="n">umax</span></em>, <em class="sig-param"><span class="n">Resolution</span></em>, <em class="sig-param"><span class="n">visual</span></em>, <em class="sig-param"><span class="n">Tag</span></em>, <em class="sig-param"><span class="n">MinTol</span><span class="o">=</span><span class="default_value">1.02</span></em>, <em class="sig-param"><span class="n">MaxTol</span><span class="o">=</span><span class="default_value">0.98</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.distortion_correction" title="Permalink to this definition">¶</a></dt>
+<dt id="geometry.CorrectDistortion">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">CorrectDistortion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">u</span></em>, <em class="sig-param"><span class="n">Pt</span></em>, <em class="sig-param"><span class="n">Pt1</span></em>, <em class="sig-param"><span class="n">Pt2</span></em>, <em class="sig-param"><span class="n">spl</span></em>, <em class="sig-param"><span class="n">ThetaMin</span></em>, <em class="sig-param"><span class="n">ThetaMax</span></em>, <em class="sig-param"><span class="n">umin</span></em>, <em class="sig-param"><span class="n">umax</span></em>, <em class="sig-param"><span class="n">Resolution</span></em>, <em class="sig-param"><span class="n">visual</span></em>, <em class="sig-param"><span class="n">Tag</span></em>, <em class="sig-param"><span class="n">MinTol</span><span class="o">=</span><span class="default_value">1.02</span></em>, <em class="sig-param"><span class="n">MaxTol</span><span class="o">=</span><span class="default_value">0.98</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.CorrectDistortion" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">

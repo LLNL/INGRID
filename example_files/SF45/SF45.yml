@@ -62,8 +62,9 @@ integrator_settings:
 limiter:
   file: ''
   rshift: 0.0
-  use_efit_bounds: false
-  zshift: 0.0
+  use_efit_bounds: true
+  zshift: 0.
+  eps_efit_bounds: 0.3
 target_plates:
   plate_E1:
     file: ''

@@ -258,14 +258,3 @@ class FilePicker(tk.Tk):
 
     def Quit(self):
         self.controller.Exit()
-
-
-
-
-
-
-
-
-
-
-

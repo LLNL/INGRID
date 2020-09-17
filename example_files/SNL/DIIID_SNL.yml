@@ -30,7 +30,7 @@ grid_settings:
     rmagx_shift: 0.0
     secondary_NE_adjust: 0.0
     secondary_NW_adjust: 0.0
-    strike_geometry: limiter
+    strike_geometry: target_plates
     tilt_1: 0.0
     tilt_2: 0.0
     use_NE: false
@@ -41,7 +41,6 @@ grid_settings:
     use_secondary_NW: false
     zmagx_shift: 0.0
   psi_1: 1.066
-  psi_max_east: 1.066
   psi_core: 0.8
   psi_pf_1: 0.99
   psi_pf_2: 0.0
@@ -67,7 +66,7 @@ patch_data:
   preferences:
     new_file: true
     new_fname: ../data/SNL/DIII-D/LSN_patches_1597099640.npy
-  use_file: false
+  use_file: true
 target_plates:
   plate_E1:
     file: ../data/SNL/DIII-D/d3d_otp.txt

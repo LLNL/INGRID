@@ -1371,7 +1371,11 @@ class TopologyUtils():
             patch.plot_border(color='black', ax=a)
             patch.fill(colors[patch.get_tag()[0]], ax=a, alpha=alpha[patch.get_tag()[-1]])
             patch.color = colors[patch.get_tag()[0]]
-        # ax.legend()
+        handles, labels = a.get_legend_handles_labels()
+        lookup = {label: handle for label, handle in zip(labels, handles)}
+        a.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
+                               bbox_to_anchor=(1.25, 1.0), loc='upper right',
+                               ncol=1)
         f.show()
 
     def grid_diagram(self, fig: object = None, ax: object = None) -> None:

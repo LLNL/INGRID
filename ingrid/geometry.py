@@ -625,8 +625,7 @@ class Patch:
         x = np.array([p.x for p in self.p])
         y = np.array([p.y for p in self.p])
         arr = np.column_stack((x, y))
-        PatchLabel = self.patch_name + ' (' + UnfoldLabel(self.PatchLabelDoc, self.patch_name) + ')'
-        patch = Polygon(arr, fill=True, closed=True, color=color, label=PatchLabel, alpha=alpha)
+        patch = Polygon(arr, fill=True, closed=True, color=color, label=self.get_tag(), alpha=alpha)
         _ax = plt.gca() if ax is None else ax
         _ax.add_patch(patch)
         _ax.plot()

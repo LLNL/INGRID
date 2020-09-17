@@ -250,7 +250,7 @@ class LineTracing:
         NE = rotate(E, np.pi / 4, origin)
 
         self.NSEW_lookup[xpt_ID]['coor'] = {'center': xpt, 'N': N, 'S': S, 'E': E, 'W': W,
-                                            'NE': NE, 'NW': NW, 'SE': SE, 'SW': SW }
+                                            'NE': NE, 'NW': NW, 'SE': SE, 'SW': SW}
 
     def rotate_NSEW_lookup(self, xpt_ID, turns=2):
         swap_key = {'N': 'NW', 'S': 'SE',
@@ -417,7 +417,7 @@ class LineTracing:
                 N_guess = (N_sol[0][-1], N_sol[1][-1])
                 S_guess = (S_sol[0][-1], S_sol[1][-1])
 
-                for guess in [N_guess, S_guess]:
+                for guess in [S_guess, N_guess]:
                     try:
                         minimize(self.PsiCostFunc, guess, method='trust-ncg', jac=self.grid.parent.PsiNorm.Gradient, hess=self.grid.parent.PsiNorm.Hessian,
                             options={'initial_trust_radius': self.eps, 'max_trust_radius': self.dt}, callback=cb_region_check)

@@ -69,7 +69,7 @@ patch_data:
   preferences:
     new_file: false
     new_fname: ../data/SF75/SF75_patches_data.npy
-  use_file: false
+  use_file: true
 target_plates:
   plate_E1:
     file: ../data/ADX/eplate.txt

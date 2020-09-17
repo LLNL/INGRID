@@ -9,7 +9,7 @@ DEBUG:
     gridue: 0
     patch_map: 0
     subgrid: 0
-eqdsk: /Users/torvaltz/Downloads/g44826.8000_mr4
+eqdsk: ../data/SF75/TCV/g44826.8000_mr4
 grid_settings:
   grid_generation:
     distortion_correction:
@@ -90,29 +90,29 @@ limiter:
   use_efit_bounds: false
   zshift: -0.35
 patch_data:
-  file: /Users/torvaltz/Downloads/SF75_patches_data.npy
+  file: ../data/SF75/TCV/SF75_patches_data.npy
   preferences:
     new_file: True
-    new_fname: /Users/torvaltz/Downloads/SF75_patches_data.npy
-  use_file: false
+    new_fname: ../data/SF75/TCV/SF75_patches_data.npy
+  use_file: true
 target_plates:
   plate_E1:
-    file: /Users/torvaltz/Downloads/plate_e1.txt
+    file: ../data/SF75/TCV/plate_e1.txt
     name: plate_E1
     rshift: 0.0
     zshift: 0.0
   plate_E2:
-    file: /Users/torvaltz/Downloads/plate_e2.txt
+    file: ../data/SF75/TCV/plate_e2.txt
     name: plate_E2
     rshift: 0.0
     zshift: 0.0
   plate_W1:
-    file: /Users/torvaltz/Downloads/plate_w1.txt
+    file: ../data/SF75/TCV/plate_w1.txt
     name: plate_W1
     rshift: 0.0
     zshift: 0.0
   plate_W2:
-    file: /Users/torvaltz/Downloads/plate_w2.txt
+    file: ../data/SF75/TCV/plate_w2.txt
     name: plate_W2
     rshift: 0.0
     zshift: 0.0

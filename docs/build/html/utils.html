@@ -403,7 +403,7 @@ each coordinate must appear on a new line withing the file.</p>
 
 <dl class="py method">
 <dt id="utils.IngridUtils.PopulateSettings">
-<code class="sig-name descname">PopulateSettings</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.PopulateSettings" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">PopulateSettings</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.PopulateSettings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Populate a settings dict with any missing entries that INGRID may need.</p>
 <p>This should be used to screen for any illegal parameter file entries
 and to ensure clean data entry.</p>
@@ -419,7 +419,7 @@ and to ensure clean data entry.</p>
 
 <dl class="py method">
 <dt id="utils.IngridUtils.PrepGridue">
-<code class="sig-name descname">PrepGridue</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.PrepGridue" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">PrepGridue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">guard_cell_eps</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.PrepGridue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prepare the gridue for writing.</p>
 <p>This method calls topology specific implementations of methods that
 concatenate the Patch object subgrids into a global grid.</p>

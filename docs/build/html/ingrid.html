@@ -394,7 +394,7 @@ transformations specified in settings.</p>
 
 <dl class="py method">
 <dt id="ingrid.Ingrid.PlotPsiNorm">
-<code class="sig-name descname">PlotPsiNorm</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.Ingrid.PlotPsiNorm" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">PlotPsiNorm</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">view_mode</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'filled'</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.Ingrid.PlotPsiNorm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot normalized psi data.</p>
 </dd></dl>
 
@@ -519,8 +519,18 @@ and limiter files.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ingrid.Ingrid.RemovePlotItem">
-<code class="sig-name descname">RemovePlotItem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">label</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.Ingrid.RemovePlotItem" title="Permalink to this definition">¶</a></dt>
+<dt id="ingrid.Ingrid.RemovePlotLine">
+<code class="sig-name descname">RemovePlotLine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">label</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.Ingrid.RemovePlotLine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.Ingrid.RemovePlotPatch">
+<code class="sig-name descname">RemovePlotPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">label</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.Ingrid.RemovePlotPatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="ingrid.Ingrid.RemovePlotPoint">
+<code class="sig-name descname">RemovePlotPoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">label</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.Ingrid.RemovePlotPoint" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -769,7 +779,7 @@ to initialize.</p>
 
 <dl class="py method">
 <dt id="ingrid.Ingrid.ShowSetup">
-<code class="sig-name descname">ShowSetup</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.Ingrid.ShowSetup" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">ShowSetup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">view_mode</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'filled'</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#ingrid.Ingrid.ShowSetup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Show Ingrid setup that a patch map will be generated from.</p>
 <p>This method plots normalized psi data, psi boundaries, strike geometry,
 and midplane lines through the magnetic axis.</p>

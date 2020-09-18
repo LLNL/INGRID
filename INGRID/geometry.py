@@ -583,7 +583,11 @@ class Patch:
         self.N_vertices=[]
         self.S_vertices=[]
         self.BoundaryPoints = {}
-
+        self.N_spl=None
+        self.E_spl=None
+        self.W_spl=None
+        self.N_spl=None
+        self.radial_spl=[]
         # This is the border for the fill function
         # It need to only include N and S lines
         self.RemoveDuplicatePoints()
@@ -616,6 +620,8 @@ class Patch:
             'C': 'Core'
         }
         self.cell_grid = None
+    def ResetSplines(self):
+        self.radial_spl=[]
         
     def GetVertices(self):
         return [getattr(self,'{}_vertices'.format(O)) for O in ['N','S','E','W']]
@@ -1073,16 +1079,16 @@ class Patch:
         temp_vertices.append(self.N.p[-1])
         for i in range(len(self.W_vertices) - 2):
             #TODO: parallelize tracing of radial lines (draw_line function must be "externalized" in the scope of the script)
-            if (len(self.W_vertices)!=len(self.W_vertices_old) or self.W_vertices[i+1]!=self.W_vertices_old[i+1]) or len(self.radial_spl_old)!=len(self.W_vertices)-2:
+            # if (len(self.W_vertices)!=len(self.W_vertices_old) or self.W_vertices[i+1]!=self.W_vertices_old[i+1]) or len(self.radial_spl_old)!=len(self.W_vertices)-2:
     
-                radial_lines.append(grid.LineTracer.draw_line(self.W_vertices[i + 1], {'line': self.E}, option='theta',
-                    direction='cw', show_plot=0, dynamic_step=dynamic_step))
-                temp_vertices.append(radial_lines[-1].p[-1])
-                radial_vals = radial_lines[i + 1].fluff(1000)
-                Radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s=0)
-                self.radial_spl.append(Radial_spl)
-            else:
-                self.radial_spl.append(self.radial_spl_old[i])
+            radial_lines.append(grid.LineTracer.draw_line(self.W_vertices[i + 1], {'line': self.E}, option='theta',
+                direction='cw', show_plot=0, dynamic_step=dynamic_step))
+            temp_vertices.append(radial_lines[-1].p[-1])
+            radial_vals = radial_lines[i + 1].fluff(1000)
+            Radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s=0)
+            self.radial_spl.append(Radial_spl)
+            # else:
+            #     self.radial_spl.append(self.radial_spl_old[i])
                 
             vertex_list = []
             for j in range(np_lines):
@@ -1409,7 +1415,7 @@ def trim_geometry(geoline, start, end):
     return trim
 
 
-def CorrectDistortion(u, Pt, Pt1, Pt2, spl, umin, umax , Tag, theta_min=60, theta_max=120,resolution=1000,min_tol=1.05, max_tol=0.95, zero_span=0.90,max_span=1,verbose=False,visual=False,**kwargs):
+def CorrectDistortion(u, Pt, Pt1, Pt2, spl, umin, umax , Tag, theta_min=60, theta_max=120,resolution=1000,min_tol=1.05, max_tol=0.95, zero_span=0.90,max_span=1.0,verbose=False,visual=False,**kwargs):
     MaxIter = resolution * 10
     dumax = (umax - u) / resolution
     dumin = (u - umin) / resolution

@@ -1450,7 +1450,7 @@ class TopologyUtils():
         
         # set radial orientation negative if patch is in PFR
         for name, patch in self.patches.items():
-            if patch.plate_patch and self.GetPatchLetterNumber(patch.get_tag())[1]!='2':
+            if  self.GetPatchLetterNumber(patch.get_tag())[1]=='1':
                 patch.RadOrientation=-1
             else:
                 patch.RadOrientation=1
@@ -1608,7 +1608,9 @@ class TopologyUtils():
             
         return Func    
     
-
+    def ResetHeavyAttr(self):
+        for p in self.patches.values():
+            p.ResetSplines()
 
     def GetFunctions(self, Patch: Patch, Verbose: bool = False) -> tuple:
         """
@@ -1631,7 +1633,7 @@ class TopologyUtils():
         -------
             2-tuple containing functions for radial and poloidal direction respectively.
         """
-
+        
         poloidal_tag, radial_tag = Patch.get_tag()
         p_f = 'poloidal_f_' + poloidal_tag
         r_f = 'radial_f_' + radial_tag
@@ -1643,11 +1645,9 @@ class TopologyUtils():
             _poloidal_f = self.ImportFunc('x:x')
 
     
-
+        (L,N)=self.GetPatchLetterNumber(Patch.get_tag())
         # Adding CORE radial_f support for SNL cases via entry 'radial_f_3'
-        if self.config in ['USN', 'LSN'] \
-            and self.settings['grid_settings']['grid_generation'].get('radial_f_3') is not None \
-                and poloidal_tag + radial_tag in ['B1', 'C1', 'D1', 'E1']:
+        if self.config in ['USN', 'LSN'] and N=='1' and Patch.plate_patch:
             _radial_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get('radial_f_3'))
         else:
             _radial_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get(r_f))
@@ -1715,12 +1715,26 @@ class TopologyUtils():
             A dictionary containing ``CorrectDistortion`` settings.
         """
         if self.settings['grid_settings']['grid_generation'].get('distortion_correction') is not None:
-            CD = self.settings['grid_settings']['grid_generation']['distortion_correction']
+            self.distortion_correction = self.settings['grid_settings']['grid_generation']['distortion_correction']
         else:
-            CD = {}
+            self.distortion_correction = {}
 
-        self.distortion_correction = CD
-        return CD
+        if hasattr(self,'patches'):
+            for name, patch in self.patches.items():
+                (L,N)=self.GetPatchLetterNumber(patch.get_tag())
+                if self.distortion_correction.get(name) is not None:
+                    patch.distortion_correction = self.distortion_correction.get(name)
+                elif self.distortion_correction.get(patch.get_tag()) is not None:
+                    patch.distortion_correction = self.distortion_correction.get(patch.get_tag())
+                elif self.distortion_correction.get(N) is not None:
+                    patch.distortion_correction = self.distortion_correction.get(N)
+                elif self.distortion_correction.get(L) is not None:
+                    patch.distortion_correction = self.distortion_correction.get(L)    
+                elif self.distortion_correction.get('all') is not None:
+                    patch.distortion_correction = self.distortion_correction.get('all')
+                else:
+                    patch.distortion_correction = {'active': False}
+        
 
     def GetListAllPatches(self):
         return [v.get_tag() for k,v in self.patches.items()]
@@ -1815,15 +1829,9 @@ class TopologyUtils():
             self.CurrentListPatch = {}
 
         for name, patch in self.patches.items():
-
-            if self.distortion_correction.get(name) is not None:
-                patch.distortion_correction = self.distortion_correction.get(name)
-            elif self.distortion_correction.get(patch.get_tag()) is not None:
-                patch.distortion_correction = self.distortion_correction.get(patch.get_tag())
-            elif self.distortion_correction.get('all') is not None:
-                patch.distortion_correction = self.distortion_correction.get('all')
-            else:
-                patch.distortion_correction = {'Active': False}
+            self.SetPatchBoundaryPoints(patch)
+            
+        for name, patch in self.patches.items():
             if (ListPatches == 'all' and patch not in self.CurrentListPatch) or (ListPatches != 'all' and patch.get_tag() in ListPatches):
                 self.SetPatchBoundaryPoints(patch)
                 (nr_cells, np_cells) = self.GetNpoints(patch)

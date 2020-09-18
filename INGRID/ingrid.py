@@ -1232,6 +1232,7 @@ class Ingrid(IngridUtils):
         else:
             tail = '.npy'
         print(f"# Saved patch data for file {Path(fname).name + tail}")
+
         
     def SuperSavePatches(self, fname: str = '') -> None:
         """
@@ -1247,6 +1248,8 @@ class Ingrid(IngridUtils):
         """
         if fname in ['', None]:
             fname = self.CurrentTopology.config + '_patches_' + str(int(time()))
+        self.CurrentTopology.ResetHeavyAttr()
+        
         Data={'patches':self.CurrentTopology.patches,
               'config':self.CurrentTopology.config,
               'xpt_data':self.CurrentTopology.LineTracer.NSEW_lookup
@@ -1305,7 +1308,7 @@ class Ingrid(IngridUtils):
 
         if fname.strip() == '':  # Check if settings contains patch data.
             fname = self.settings['patch_data']['file']
-        Data=np.load(fname,allow_pickle=True).tolist()[0]
+        Data=np.load(fname,allow_pickle=True).tolist()
         #config, xpt_data, patches = self.ReconstructPatches(fname)
         #self.PopulateSettings(Ingrid.ReadYamlFile(self.InputFile))
         self.StartSetup()

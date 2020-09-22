@@ -25,7 +25,7 @@ from pathlib import Path
 from time import time
 from collections import OrderedDict
 
-from OMFITgeqdsk import OMFITgeqdsk
+from omfit_eqdsk import OMFITgeqdsk
 from interpol import EfitData
 from line_tracing import LineTracing
 from geometry import Point, Line, Patch, segment_intersect, orientation_between

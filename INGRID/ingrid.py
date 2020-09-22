@@ -26,7 +26,7 @@ from pathlib import Path
 from time import time
 from collections import OrderedDict
 
-from OMFITgeqdsk import OMFITgeqdsk
+from omfit_eqdsk import OMFITgeqdsk
 from interpol import EfitData
 from interpol import Bicubic
 from utils import IngridUtils

@@ -46,9 +46,12 @@ setup(
     ],
     keywords='sample, setuptools, development',  # Optional
     packages=find_packages(),
-    python_requires='>=3.5, <4'
+    python_requires='>=3.5, <4',
+    install_requires=[
+        'm2r2',
+        'omfit-eqdsk',
+        'scipy'],  # Run "pip freeze > requirements.txt" to get a list
 )
-    #install_requires=['m2r2','omfit-eqdsk'],  # Run "pip freeze > requirements.txt" to get a list
     #extras_require={  # Optional
     #    'dev': ['check-manifest'],
     #    'test': ['coverage'],

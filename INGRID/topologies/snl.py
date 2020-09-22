@@ -13,8 +13,8 @@ try:
 except:
     pass
 import matplotlib.pyplot as plt
-from utils import TopologyUtils
-from geometry import Point, Line, Patch, trim_geometry, rotate
+from INGRID.utils import TopologyUtils
+from INGRID.geometry import Point, Line, Patch, trim_geometry, rotate
 from collections import OrderedDict
 
 

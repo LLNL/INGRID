@@ -50,7 +50,12 @@ setup(
     install_requires=[
         'm2r2',
         'omfit-eqdsk',
-        'scipy'],  # Run "pip freeze > requirements.txt" to get a list
+        'scipy >= 1.3.1',
+        'numpy',
+        'yaml',
+        'pyyaml',
+        'tk',
+    ],  # Run "pip freeze > requirements.txt" to get a list
 )
     #extras_require={  # Optional
     #    'dev': ['check-manifest'],

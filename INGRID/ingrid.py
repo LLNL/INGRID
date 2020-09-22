@@ -27,9 +27,10 @@ from time import time
 from collections import OrderedDict
 
 from omfit_eqdsk import OMFITgeqdsk
-from interpol import EfitData
-from interpol import Bicubic
-from utils import IngridUtils
+from INGRID.interpol import EfitData
+from INGRID.interpol import Bicubic
+from INGRID.utils import IngridUtils
+from INGRID import topologies
 from topologies.snl import SNL
 from topologies.sf15 import SF15
 from topologies.sf45 import SF45
@@ -38,8 +39,9 @@ from topologies.sf105 import SF105
 from topologies.sf135 import SF135
 from topologies.sf165 import SF165
 from topologies.udn import UDN
-from line_tracing import LineTracing
-from geometry import Point, Line
+from INGRID.line_tracing import LineTracing
+from INGRID.geometry import Point, Line
+from INGRID.gui.ingrid_gui import IngridGUI
 
 
 def QuickStart() -> None:
@@ -144,7 +146,6 @@ class Ingrid(IngridUtils):
                 plt.close('all')
                 self.IngridWindow.destroy()
 
-        from gui.ingrid_gui import IngridGUI
         self.IngridWindow = IngridGUI(IngridSession=self)
         self.IngridWindow.title('INGRID')
         self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)

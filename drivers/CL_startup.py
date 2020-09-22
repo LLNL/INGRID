@@ -7,9 +7,7 @@ CL_startup
 
 """
 
-import sys
-sys.path.append('../ingrid/')
-from ingrid import Ingrid
+from INGRID.ingrid import Ingrid
 import pathlib
 import numpy as np
 

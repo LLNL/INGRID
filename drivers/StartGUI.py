@@ -1,5 +1,4 @@
 import sys
-sys.path.append('../ingrid/')
-import ingrid as IG
+import INGRID.ingrid as IG
 
 IG.QuickStart()

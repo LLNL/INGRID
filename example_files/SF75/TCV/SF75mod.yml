@@ -12,60 +12,57 @@ DEBUG:
 eqdsk: ../data/SF75/TCV/g44826.8000_mr4
 grid_settings:
   grid_generation:
-    distortion_correction:
-      all:
-        active: true
-        resolution: 1000
-        theta_max: 120.0
-        theta_min: 80.0
-      F1:
-        active: false
-        resolution: 1000
-        theta_max: 120.0
-        theta_min: 100.0
-      F2:
-        active: false
-        resolution: 1000
-        theta_max: 120.0
-        theta_min: 100.0
-      F3:
-        active: false
-        resolution: 1000
-        theta_max: 120.0
-        theta_min: 100.0
-      A2:
-        active: true
-        resolution: 1000
-        theta_max: 120.0
-        theta_min: 100.0
-    np_default: 8
-    nr_1: 10
-    nr_2: 4
-    nr_3: 24
-    np_F: 3
-    np_A: 12
-    np_G: 16
+    # distortion_correction: # refined TCV
+    #   all:
+    #     active: true
+    #     resolution: 1000
+    #     theta_max: 120.0
+    #     theta_min: 80.0
+    #   F1:
+    #     active: false
+    #     resolution: 1000
+    #     theta_max: 120.0
+    #     theta_min: 100.0
+    #   F2:
+    #     active: false
+    #     resolution: 1000
+    #     theta_max: 120.0
+    #     theta_min: 100.0
+    #   F3:
+    #     active: false
+    #     resolution: 1000
+    #     theta_max: 120.0
+    #     theta_min: 100.0
+    #   A2:
+    #     active: true
+    #     resolution: 1000
+    #     theta_max: 120.0
+    #     theta_min: 100.0
+    # nr_1: 10 # refined TCV -> 10
+    # nr_2: 4 # refined TCV -> 4
+    # nr_3: 24 # refined TCV -> 24
+    # np_F: 3 # refined TCV -> 3
+    # np_A: 12 # refined TCV -> 12
+    # np_G: 16 # refined TCV -> 16
+    np_default: 3 #refined TCV -> 8
+    nr_default: 2
     poloidal_f_default: x, x
     radial_f_default: x, x
   guard_cell_eps: 0.001
   nlevs: 30
   num_xpt: 2
   patch_generation:
-    NE_adjust: 0.0
-    NW_adjust: 0.0
+    xpt1_E_tilt: 0.0
+    xpt1_W_tilt: 0.0
     rmagx_shift: 0.0
-    secondary_NE_adjust: 0.0
-    secondary_NW_adjust: 0.0
-    strike_geometry: target_plates
-    tilt_1: 0.1
-    tilt_2: -0.3
-    use_NE: false
-    use_NW: false
-    use_SE: false
-    use_SW: false
-    use_secondary_NE: false
-    use_secondary_NW: false
-    zmagx_shift: -0.3
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
+    strike_geometry: limiter # refined TCV used target_plates
+    magx_tilt_1: 0.0 # refined TCV -> 0.1
+    magx_tilt_2: 0.0 # refined TCV -> -0.3
+    use_xpt1_E: false
+    use_xpt1_W: false
+    zmagx_shift: 0.0 # refined TCV -> -0.3
   psi_1: 1.05
   psi_2: 0.988 #-lower right
   psi_core: 0.95
@@ -87,14 +84,16 @@ integrator_settings:
   tol: 0.005
 limiter:
   file: ''
-  use_efit_bounds: false
-  zshift: -0.35
+  use_efit_bounds: True # using for classification example
+  zshift: 0.0 # 0.35
+  # efit_buffer_r: 0.1
+  # efit_buffer_z: 0.4
 patch_data:
   file: ../data/SF75/TCV/SF75_patches_data.npy
   preferences:
     new_file: True
     new_fname: ../data/SF75/TCV/SF75_patches_data.npy
-  use_file: true
+  use_file: False
 target_plates:
   plate_E1:
     file: ../data/SF75/TCV/plate_e1.txt

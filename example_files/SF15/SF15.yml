@@ -14,32 +14,28 @@ grid_settings:
   grid_generation:
     distortion_correction:
       all:
-        active: false
+        active: true
         resolution: 1000
         theta_max: 120.0
         theta_min: 80.0
-    np_default: 5
-    nr_default: 5
+    np_default: 4
+    nr_default: 4
     poloidal_f_default: x, x
     radial_f_default: x, x
   guard_cell_eps: 0.001
   nlevs: 30
   num_xpt: 2
   patch_generation:
-    NE_adjust: 0.0
-    NW_adjust: 0.0
+    xpt1_E_tilt: 0.0
+    xpt1_W_tilt: 0.0
     rmagx_shift: 0.0
-    secondary_NE_adjust: 0.0
-    secondary_NW_adjust: 0.0
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
     strike_geometry: limiter
-    tilt_1: 0.0
-    tilt_2: 0.0
-    use_NE: false
-    use_NW: false
-    use_SE: false
-    use_SW: false
-    use_secondary_NE: false
-    use_secondary_NW: false
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    use_xpt1_E: false
+    use_xpt1_W: false
     zmagx_shift: 0.0
   psi_1: 1.03
   psi_2: 1.03
@@ -63,12 +59,15 @@ integrator_settings:
 limiter:
   file: ''
   rshift: 0.0
-  use_efit_bounds: false
+  use_efit_bounds: true
   zshift: -0.3
+  rshift: -0.05
+  efit_buffer_r: 0.25
+  efit_buffer_z: 0.5
 patch_data:
   file: ../data/NEQDSK_Maxim/SF15_patches_1597861710.npy
   preferences:
-    new_file: false
+    new_file: true
     new_fname: ../data/NEQDSK_Maxim/SF15_patches_1597861710.npy
   use_file: false
 target_plates:

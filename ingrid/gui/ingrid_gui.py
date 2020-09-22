@@ -220,6 +220,7 @@ class FilePicker(tk.Tk):
         IG = self.Ingrid
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
+            IG.RefreshSettings()
 
         patch_data_available = False
 
@@ -242,6 +243,7 @@ class FilePicker(tk.Tk):
         IG = self.Ingrid
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
+            IG.RefreshSettings()
         IG.CreateSubgrid()
         IG.PlotSubgrid()
         IG.PrepGridue(guard_cell_eps=IG.settings['grid_settings']['guard_cell_eps'])

@@ -516,7 +516,7 @@ class EfitData:
         self.ax.set_ylim(self.zmin, self.zmax)
         if interactive:
             plt.ion()
-        fig.show()
+        self.fig.show()
 
     def clear_plot(self):
         if plt.get_fignums():

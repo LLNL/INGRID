@@ -1,0 +1,88 @@
+# A toy SF45 case.
+#
+# Note: Modified EFIT bounds used as limiter in this case. An extreme example, but
+#       illustrates how this can be done when no limiter data is provided in the EFIT
+#       file (or invalid geometry) and when no user supplied geometry file is provided.
+#
+#       Illustrates de-activation of 'distortion_correction' for a single patch (I2)
+dir_settings:
+  patch_data: ../data/SF45/
+eqdsk: ../data/SF45/neqdsk
+patch_data:
+  file: 'SF45_patches_1600724872.npy'
+  use_file: False
+  preferences:
+    new_fname: 'SF45_patches_1600724872.npy'
+    new_file: True
+grid_settings:
+  grid_generation:
+    distortion_correction:   # Apply to all except patch I2
+      all:
+        active: true
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+      I2:
+        active: false
+    np_default: 2
+    nr_default: 2
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+  guard_cell_eps: 0.001
+  nlevs: 30
+  num_xpt: 2
+  patch_generation:
+    xpt1_E_tilt: 0.0
+    xpt1_W_tilt: 0.0
+    rmagx_shift: 0.0
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
+    strike_geometry: limiter
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    use_xpt1_E: false
+    use_xpt1_W: false
+    zmagx_shift: 0.0
+  psi_1: 1.203
+  psi_2: 1.203
+  psi_core: 0.95
+  psi_pf_1: 0.99
+  psi_pf_2: 1.201
+  rmagx: 1.81
+  rxpt: 1.5
+  rxpt2: 2.12
+  view_mode: filled
+  zmagx: 0.65
+  zxpt: -0.47
+  zxpt2: -1.13
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-06
+  first_step: 5.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+limiter:
+  file: ''  # No limiter file
+  rshift: 0.00
+  use_efit_bounds: true  # Opt out of EFIT limiter data 
+  zshift: 0.03  # Adjusting in Z to enclose xpts and psi-boundaries
+  efit_buffer_r: 0.025  # Adjust EFIT bound generated limiter in Z
+  efit_buffer_z: 0.450  # Adjust EFIT bound generated limiter in R
+target_plates:
+  plate_E1:
+    file: ''
+    name: plate_E1
+    zshift: 1.6
+  plate_E2:
+    file: null
+    name: null
+    zshift: 0.0
+  plate_W1:
+    file: ''
+    name: plate_W1
+    zshift: 1.6
+  plate_W2:
+    file: null
+    name: null
+    zshift: 0.0

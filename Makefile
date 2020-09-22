@@ -3,9 +3,7 @@
 #=============================================#
 
 all:
-	cd src; make; cd -
-	cd Docs; make html; cd -
+	cd ingrid; make; cd -
 
 clean:
-	cd src; make clean; cd -
-	cd Docs; make clean; cd -
+	cd ingrid; make clean; cd -

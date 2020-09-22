@@ -2,7 +2,6 @@ from __future__ import print_function
 
 from sys import platform as sys_pf
 from sys import path
-path.append('../src/')
 
 from os.path import getmtime
 import matplotlib
@@ -31,7 +30,7 @@ except:
     import tkMessageBox as tkMB
 
 import yaml
-from ingrid import Ingrid
+from INGRID.ingrid import Ingrid
 from time import time
 
 #helv_large = 'Helvetica 13 bold'

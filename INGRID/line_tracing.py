@@ -13,7 +13,7 @@ import matplotlib.animation as animation
 from scipy.integrate import solve_ivp, LSODA
 from scipy.optimize import root_scalar, minimize
 from time import time
-from geometry import Point, Line, rotate, find_split_index, angle_between, \
+from INGRID.geometry import Point, Line, rotate, find_split_index, angle_between, \
     segment_intersect, test2points
 
 

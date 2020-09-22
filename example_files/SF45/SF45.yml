@@ -1,22 +1,29 @@
-DEBUG:
-  verbose:
-    grid_generation: 0
-    patch_generation: 1
-    target_plates: 0
-  visual:
-    find_NSEW: 0
-    gridue: 0
-    patch_map: 0
-    subgrid: 0
+# A toy SF45 case.
+#
+# Note: Modified EFIT bounds used as limiter in this case. An extreme example, but
+#       illustrates how this can be done when no limiter data is provided in the EFIT
+#       file (or invalid geometry) and when no user supplied geometry file is provided.
+#
+#       Illustrates de-activation of 'distortion_correction' for a single patch (I2)
+dir_settings:
+  patch_data: ../data/SF45/
 eqdsk: ../data/SF45/neqdsk
+patch_data:
+  file: 'SF45_patches_1600724872.npy'
+  use_file: False
+  preferences:
+    new_fname: 'SF45_patches_1600724872.npy'
+    new_file: True
 grid_settings:
   grid_generation:
-    distortion_correction:
+    distortion_correction:   # Apply to all except patch I2
       all:
-        active: false
+        active: true
         resolution: 1000
         theta_max: 120.0
         theta_min: 80.0
+      I2:
+        active: false
     np_default: 2
     nr_default: 2
     poloidal_f_default: x, x
@@ -25,26 +32,22 @@ grid_settings:
   nlevs: 30
   num_xpt: 2
   patch_generation:
-    NE_adjust: 0.0
-    NW_adjust: 0.0
+    xpt1_E_tilt: 0.0
+    xpt1_W_tilt: 0.0
     rmagx_shift: 0.0
-    secondary_NE_adjust: 0.0
-    secondary_NW_adjust: 0.0
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
     strike_geometry: limiter
-    tilt_1: 0.0
-    tilt_2: 0.0
-    use_NE: false
-    use_NW: false
-    use_SE: false
-    use_SW: false
-    use_secondary_NE: false
-    use_secondary_NW: false
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    use_xpt1_E: false
+    use_xpt1_W: false
     zmagx_shift: 0.0
-  psi_1: 1.25
-  psi_2: 1.1
-  psi_core: 0.8
+  psi_1: 1.203
+  psi_2: 1.203
+  psi_core: 0.95
   psi_pf_1: 0.99
-  psi_pf_2: 1.199
+  psi_pf_2: 1.201
   rmagx: 1.81
   rxpt: 1.5
   rxpt2: 2.12
@@ -60,11 +63,12 @@ integrator_settings:
   step_ratio: 0.02
   tol: 0.005
 limiter:
-  file: ''
-  rshift: 0.0
-  use_efit_bounds: true
-  zshift: 0.
-  eps_efit_bounds: 0.3
+  file: ''  # No limiter file
+  rshift: 0.00
+  use_efit_bounds: true  # Opt out of EFIT limiter data 
+  zshift: 0.03  # Adjusting in Z to enclose xpts and psi-boundaries
+  efit_buffer_r: 0.025  # Adjust EFIT bound generated limiter in Z
+  efit_buffer_z: 0.450  # Adjust EFIT bound generated limiter in R
 target_plates:
   plate_E1:
     file: ''

@@ -564,7 +564,7 @@ class LineTracing:
             xf, yf = rz_end
 
         elif key_list == ['point']:
-            print('# Starting search for Point convergence...')
+            if Verbose: print('# Starting search for Point convergence...')
             test = 'point'
             if isinstance(rz_end['point'], Point):
                 xf = rz_end['point'].x
@@ -574,7 +574,7 @@ class LineTracing:
                 yf = rz_end['point'][1]
 
         elif key_list == ['line']:
-            print('# Starting search for Line intersection...')
+            if Verbose: print('# Starting search for Line intersection...')
             test = 'line'
             try:
                 self.tilt_angle = rz_end['line'][1]
@@ -592,7 +592,7 @@ class LineTracing:
                     # form ((),())
                     endLine = rz_end['line']
         elif key_list == ['line_group']:
-            print('# Starting search for Line (grouping) intersection...')
+            if Verbose: print('# Starting search for Line (grouping) intersection...')
             test = 'line_group'
             line_group = []
             for L in rz_end['line_group']:
@@ -605,7 +605,7 @@ class LineTracing:
                     line_group.append(rz_end['line'])
 
         elif key_list == ['psi']:
-            print('# Starting search for Psi value convergence...')
+            if Verbose: print('# Starting search for Psi value convergence...')
             test = 'psi'
             psi_test = rz_end['psi']
 
@@ -614,19 +614,19 @@ class LineTracing:
                 psi_test = rz_end['psi_horizontal'][0]
                 self.tilt_angle = rz_end['psi_horizontal'][1]
                 test = 'psi' if self.tilt_angle != 0.0 else 'psi_horizontal'
-                print('# Starting search for Psi value convergence...')
+                if Verbose: print('# Starting search for Psi value convergence...')
             except:
                 psi_test = rz_end['psi_horizontal']
                 self.tilt_angle = 0.0
                 test = 'psi_horizontal'
-                print('# Starting search for Psi value convergence...')
+                if Verbose: print('# Starting search for Psi value convergence...')
 
         elif key_list == ['psi_vertical']:
-            print('# Starting search for Psi value convergence...')
+            if Verbose: print('# Starting search for Psi value convergence...')
             test = 'psi_vertical'
             psi_test = rz_end['psi_vertical']
         else:
-            print('rz_end type not recognized')
+            if Verbose: print('rz_end type not recognized')
 
         count = 0
         # unpack boundaries
@@ -643,10 +643,11 @@ class LineTracing:
 
             def success(message):
                 # Displays a message so we know the convergence worked.
-                print('Converged via {}.'.format(message))
-                print('Iterations: ', count)
-                print('Spent {} '.format(self.time_in_converged)
-                      + 'seconds checking convergence.')
+                if Verbose:
+                    print('Converged via {}.'.format(message))
+                    print('Iterations: ', count)
+                    print('Spent {} '.format(self.time_in_converged)
+                          + 'seconds checking convergence.')
 
             def save_line(x, y, linecolor=color, marker='.-', markersize=1.5):
                 # Plots the current line segments and saves
@@ -655,6 +656,8 @@ class LineTracing:
                 # y: list -- z endpoints
                 line.append(Point(x[-1], y[-1]))
                 if show_plot:
+                    if hasattr(self.grid, 'ax') is False:
+                        self.grid.plot_data()
                     self.grid.ax.plot(x, y, '.-', linewidth=2, color=color, markersize=1.5)
                     plt.draw()
                     plt.pause(np.finfo(float).eps)
@@ -809,7 +812,7 @@ class LineTracing:
         else:
             dt = self.dt
 
-        print('# Tracing line', end='')
+        if Verbose: print('# Tracing line', end='')
         while not converged(points):
             t_span = (told, tnew)
             # solve the system of differential equations
@@ -831,17 +834,18 @@ class LineTracing:
             points = ((self.x[0], self.x[-1]), (self.y[0], self.y[-1]))
 
             if count > 3500:
-                print('did not converge, exiting...')
-                print('Iterations: ', count)
+                if Verbose:
+                    print('did not converge, exiting...')
+                    print('Iterations: ', count)
                 end = time()
-                print('Took {} '.format(end - start)
+                if Verbose: print('Took {} '.format(end - start)
                       + 'seconds trying Lto converge.')
                 break
             count += 1
-            print('.', end='', flush=True)
+            if Verbose: print('.', end='', flush=True)
         end = time()
 
-        if text:
+        if Verbose:
             print('Drew for {} seconds\n'.format(end - start))
         print('')
         return Line(line)

@@ -150,6 +150,12 @@ class Ingrid(IngridUtils):
         self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
         self.IngridWindow.mainloop()
 
+    def RefreshSettings(self):
+        try:
+            self.CurrentTopology.RefreshSettings()
+        except:
+            pass
+
     def SaveSettingsFile(self, fname: str = '', settings: dict = {}) -> 'Path':
         """
         Save a new settings .yml file.
@@ -209,10 +215,12 @@ class Ingrid(IngridUtils):
         if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'limiter':
             print('Limiter File:')
 
-            if self.settings['limiter']['file'] == '':
-                print(' # Limiter:', 'Using default eqdsk (RLIM, ZLIM) coordinates')
+            if self.settings['limiter']['file'] == '' or Path(self.settings['limiter']['file']).is_file() is False:
+
+                s = 'in eqdsk file.' if self.settings['limiter']['use_efit_bounds'] is False else 'from efit bounds.'
+                print(' # Limiter:', 'Using eqdsk (RLIM, ZLIM) coordinates ' + s)
             else:
-                print(' # Limiter', self.settings['limiter']['file'])
+                print(' # Limiter:', self.settings['limiter']['file'])
         else:
             print('Target Files:')
             print(' # W1:', self.settings['target_plates']['plate_W1']['file'])
@@ -247,12 +255,12 @@ class Ingrid(IngridUtils):
 
         rshift : float, optional
             Translate 'geo_items' to coordinate R',
-            with R' = R - rshift. Will override all 'rshift' provided entries
+            with R' = R + rshift. Will override all 'rshift' provided entries
             in 'geo_items'.
 
         zshift : float, optional
             Translate 'geo_items' to coordinate Z',
-            with Z' = Z - zshift. Will override all 'zshift' provided entries
+            with Z' = Z + zshift. Will override all 'zshift' provided entries
             in 'geo_items'.
 
         Notes
@@ -378,10 +386,10 @@ class Ingrid(IngridUtils):
         """
 
         def _parse_v_for_file_values(k_str, v_dict):
-            if v_dict.get('file') is not None:
+            if v_dict.get('file') not in [None, '', '.']:
 
                 if Path(v['file']).is_file() is False:
-                    raise ValueError(f"# File '{v_dict['file']}'' provided in settings dict corresponding to '{k_str}' does not exist.")
+                    raise ValueError(f"# File '{v_dict['file']}' provided in settings dict corresponding to '{k_str}' does not exist.")
 
                 if Path(v_dict['file']).suffix == '.txt':
                     x_ret_val, y_ret_val = self.ParseTxtCoordinates(v_dict['file'])
@@ -465,12 +473,12 @@ class Ingrid(IngridUtils):
 
                 if xy_result is None:  # Dict structure with settings file keys.
                     if TargetPlate:
-                        if v.get('file') not in ['', None]:  # Attempt to read file.
+                        if v.get('file') not in ['', '.', None] and Path(v['file']).is_file() is not False:  # Attempt to read file.
                             x, y = _parse_v_for_file_values(k, v)
                         else:
                             raise ValueError(f"# No data source for target plate '{k}' identified.")
                     elif Limiter:
-                        if v.get('file') not in ['', None]:  # Attempt to read file.
+                        if v.get('file') not in ['', '.', None] and Path(v['file']).is_file() is not False:  # Attempt to read file.
                             x, y = _parse_v_for_file_values(k, v)
                         else:
                             DefaultEQ = True
@@ -772,8 +780,8 @@ class Ingrid(IngridUtils):
             ax = plt.gca()
 
         if plate_key in [k for k in self.PlateData.keys()]:
+            self.RemovePlotLine(label=plate_key, ax=ax)
             if type(self.PlateData[plate_key]) is Line:
-                self.RemovePlotLine(label=plate_key, ax=ax)
                 self.PlateData[plate_key].plot(label=plate_key, color=color)
             else:
                 pass
@@ -865,6 +873,8 @@ class Ingrid(IngridUtils):
             ax = plt.gca()
 
         (x, y) = self.magx
+        x += self.settings['grid_settings']['patch_generation']['rmagx_shift']
+        y += self.settings['grid_settings']['patch_generation']['zmagx_shift']
         self.RemovePlotPoint(label='magx', ax=ax)
         ax.plot(x, y, '+', color='yellow', ms=15, linewidth=5, label='magx')
 
@@ -920,17 +930,17 @@ class Ingrid(IngridUtils):
         Plot midplane line through magnetic axis with any applied
         transformations specified in settings.
 
-        This method can be used to inspect the effects of 'tilt_1',
-        'tilt_2', 'rmagx_shift', and 'zmagx_shift'.
+        This method can be used to inspect the effects of 'magx_tilt_1',
+        'magx_tilt_2', 'rmagx_shift', and 'zmagx_shift'.
         """
         try:
-            tilt_1 = self.settings['grid_settings']['patch_generation']['tilt_1']
+            magx_tilt_1 = self.settings['grid_settings']['patch_generation']['magx_tilt_1']
         except KeyError:
-            tilt_1 = 0.0
+            magx_tilt_1 = 0.0
         try:
-            tilt_2 = self.settings['grid_settings']['patch_generation']['tilt_2']
+            magx_tilt_2 = self.settings['grid_settings']['patch_generation']['magx_tilt_2']
         except KeyError:
-            tilt_2 = 0.0
+            magx_tilt_2 = 0.0
 
         if ax is None:
             ax = plt.gca()
@@ -940,12 +950,12 @@ class Ingrid(IngridUtils):
         magx = Point(np.array([R, Z]))
 
         # Generate Horizontal Mid-Plane lines
-        LHS_Point = Point(magx.x - 1e6 * np.cos(tilt_1), magx.y - 1e6 * np.sin(tilt_1))
+        LHS_Point = Point(magx.x - 1e6 * np.cos(magx_tilt_1), magx.y - 1e6 * np.sin(magx_tilt_1))
         RHS_Point = Point(magx.x, magx.y)
         midline_1 = Line([LHS_Point, RHS_Point])
 
         LHS_Point = Point(magx.x, magx.y)
-        RHS_Point = Point(magx.x + 1e6 * np.cos(tilt_2), magx.y + 1e6 * np.sin(tilt_2))
+        RHS_Point = Point(magx.x + 1e6 * np.cos(magx_tilt_2), magx.y + 1e6 * np.sin(magx_tilt_2))
         midline_2 = Line([LHS_Point, RHS_Point])
 
         try:
@@ -959,6 +969,67 @@ class Ingrid(IngridUtils):
         except:
             pass
         midline_2.plot(color='lightpink', label='midline_2')
+
+    def PlotEastWestXpt1Ref(self, ax: object = None) -> None:
+        """
+        Plot midplane line through magnetic axis with any applied
+        transformations specified in settings.
+
+        This method can be used to inspect the effects of 'magx_tilt_1',
+        'magx_tilt_2', 'rmagx_shift', and 'zmagx_shift'.
+        """
+        try:
+            magx_tilt_1 = self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
+        except KeyError:
+            magx_tilt_1 = 0.0
+        try:
+            magx_tilt_2 = self.settings['grid_settings']['patch_generation']['xpt1_E_tilt']
+        except KeyError:
+            magx_tilt_2 = 0.0
+
+        if ax is None:
+            ax = plt.gca()
+
+        try:
+            [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt1_ref_E']
+        except:
+            pass
+        try:
+            [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt1_ref_W']
+        except:
+            pass
+
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_W'] is True:
+            R = self.settings['grid_settings']['rxpt']
+            Z = self.settings['grid_settings']['zxpt']
+            xpt1 = Point(np.array([R, Z]))
+
+        # Generate Horizontal Mid-Plane lines
+            LHS_Point = Point(xpt1.x - 1e6 * np.cos(magx_tilt_1), xpt1.y - 1e6 * np.sin(magx_tilt_1))
+            RHS_Point = Point(xpt1.x, xpt1.y)
+            xpt1_midline_ref_E = Line([LHS_Point, RHS_Point])
+
+            try:
+                [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt1_ref_W']
+            except:
+                pass
+            xpt1_midline_ref_E.plot(color='darkkhaki', label='xpt1_ref_W')
+
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_E'] is True:
+            R = self.settings['grid_settings']['rxpt']
+            Z = self.settings['grid_settings']['zxpt']
+            xpt1 = Point(np.array([R, Z]))
+
+        # Generate Horizontal Mid-Plane lines
+            LHS_Point = Point(xpt1.x, xpt1.y)
+            RHS_Point = Point(xpt1.x + 1e6 * np.cos(magx_tilt_2), xpt1.y + 1e6 * np.sin(magx_tilt_2))
+            xpt1_midline_ref_W = Line([LHS_Point, RHS_Point])
+
+            try:
+                [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt1_ref_E']
+            except:
+                pass
+            xpt1_midline_ref_W.plot(color='lightpink', label='xpt1_ref_E')
 
     def PlotPatches(self) -> None:
         """
@@ -977,6 +1048,8 @@ class Ingrid(IngridUtils):
         #                        bbox_to_anchor=(0.5, -0.25), loc='lower center',
         #                        ncol=len([label for label in lookup.keys()]) // 4)
         self.PlotStrikeGeometry(ax=self.PatchAx)
+        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'target_plates':
+            self.RemovePlotLine(label='limiter', ax=self.PatchAx)
 
     def PlotSubgrid(self) -> None:
         """
@@ -1172,6 +1245,7 @@ class Ingrid(IngridUtils):
         self.PlotPsiNormMagReference()
         self.PlotStrikeGeometry(ax=self.PsiNormAx)
         self.PlotMidplane(ax=self.PsiNormAx)
+        self.PlotEastWestXpt1Ref(ax=self.PsiNormAx)
         self.PlotPsiNormBounds()
         self.PrintSummaryParams()
 

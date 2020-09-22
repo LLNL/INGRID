@@ -104,13 +104,13 @@ class SF135(TopologyUtils):
         except KeyError:
             verbose = False
         try:
-            tilt_1 = self.settings['grid_settings']['patch_generation']['tilt_1']
+            magx_tilt_1 = self.settings['grid_settings']['patch_generation']['magx_tilt_1']
         except KeyError:
-            tilt_1 = 0.0
+            magx_tilt_1 = 0.0
         try:
-            tilt_2 = self.settings['grid_settings']['patch_generation']['tilt_2']
+            magx_tilt_2 = self.settings['grid_settings']['patch_generation']['magx_tilt_2']
         except KeyError:
-            tilt_2 = 0.0
+            magx_tilt_2 = 0.0
 
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         xpt2 = self.LineTracer.NSEW_lookup['xpt2']['coor']
@@ -140,15 +140,13 @@ class SF135(TopologyUtils):
             EastPlate2 = self.PlateData['plate_E2']
 
         # Generate Horizontal Mid-Plane lines
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_1), magx[1] - 1e6 * np.sin(tilt_1))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_1), magx[1] + 1e6 * np.sin(tilt_1))
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(magx_tilt_1), magx[1] - 1e6 * np.sin(magx_tilt_1))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(magx_tilt_1), magx[1] + 1e6 * np.sin(magx_tilt_1))
         midline_1 = Line([LHS_Point, RHS_Point])
-        # inner_midLine.plot()
 
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_2), magx[1] - 1e6 * np.sin(tilt_2))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_2), magx[1] + 1e6 * np.sin(tilt_2))
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(magx_tilt_2), magx[1] - 1e6 * np.sin(magx_tilt_2))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(magx_tilt_2), magx[1] + 1e6 * np.sin(magx_tilt_2))
         midline_2 = Line([LHS_Point, RHS_Point])
-        # outer_midLine.plot()
 
         # Generate Vertical Mid-Plane line
         Lower_Point = Point(magx[0], magx[1] - 1e6)
@@ -314,27 +312,21 @@ class SF135(TopologyUtils):
 
         F3_N, G3_N = F3_N__G3_N.split(G3_W.p[-1], add_split_point=True)
 
-        C3_E = d(C2_N.p[-1], {'psi_horizontal': psi_1}, option='z_const', direction='ccw',
-            show_plot=visual, text=verbose).reverse_copy()
-        C2_E = d(C2_N.p[-1], {'psi_horizontal': 1.0}, option='z_const', direction='cw',
-            show_plot=visual, text=verbose)
-        C1_E = d(C2_E.p[-1], {'psi_horizontal': psi_core}, option='z_const', direction='cw')
+        C3_E = Line([C3_N.p[-1], C3_S.p[0]])
+        C2_E = Line([C2_N.p[-1], C2_S.p[0]])
+        C1_E = Line([C1_N.p[-1], C1_S.p[0]])
 
         D3_W, D2_W, D1_W = C3_E.reverse_copy(), C2_E.reverse_copy(), C1_E.reverse_copy()
 
-        E3_E = d(E2_N.p[-1], {'psi_horizontal': psi_1}, option='z_const', direction='cw',
-            show_plot=visual, text=verbose).reverse_copy()
-        E2_E = d(E2_N.p[-1], {'psi_horizontal': 1.0}, option='z_const', direction='ccw',
-            show_plot=visual, text=verbose)
-        E1_E = d(E2_E.p[-1], {'psi_horizontal': psi_core}, option='z_const', direction='ccw')
+        E3_E = Line([E3_N.p[-1], E3_S.p[0]])
+        E2_E = Line([E2_N.p[-1], E2_S.p[0]])
+        E1_E = Line([E1_N.p[-1], E1_S.p[0]])
 
         F3_W, F2_W, F1_W = E3_E.reverse_copy(), E2_E.reverse_copy(), E1_E.reverse_copy()
 
-        D3_E = d(D2_N.p[-1], {'psi_vertical': psi_1}, option='r_const', direction='cw',
-            show_plot=visual, text=verbose).reverse_copy()
-        D2_E = d(D2_N.p[-1], {'psi_vertical': 1.0}, option='r_const', direction='ccw',
-            show_plot=visual, text=verbose)
-        D1_E = d(D2_E.p[-1], {'psi_vertical': psi_core}, option='r_const', direction='ccw')
+        D3_E = Line([D3_N.p[-1], D3_S.p[0]])
+        D2_E = Line([D2_N.p[-1], D2_S.p[0]])
+        D1_E = Line([D1_N.p[-1], D1_S.p[0]])
 
         E3_W, E2_W, E1_W = D3_E.reverse_copy(), D2_E.reverse_copy(), D1_E.reverse_copy()
 
@@ -437,6 +429,40 @@ class SF135(TopologyUtils):
 
         self.patches = OrderedDict([(pname, self.patches[pname]) for pname in patches])
 
+    def AdjustGrid(self) -> None:
+        """
+        Adjust the grid so that no holes occur at x-points, and cell grid
+        faces are alligned
+
+        A small epsilon radius is swept out around x-points during Patch
+        line tracing. This simple tidies up a grid.
+
+        Parameters
+        ----------
+        patch : Patch
+            The patch to tidy up (will only adjust if next to x-point).
+        """
+
+        for patch in self.patches.values():
+            # Adjust cell to any adjacent x-point
+            self.AdjustPatch(patch)
+
+            # Adjust cell grid face along vertical plane
+            poloidal_tag, radial_tag = patch.get_tag()
+            if poloidal_tag == 'D':
+                patch.AdjustBorder('E', self.patches['E' + radial_tag])
+
+            # Circular patch configuration requires adjustment of border to close loop.
+            # Convention chosen: 'E' indicates closed loop
+
+            try:
+                if patch.TerminatesLoop:
+                    # Get patch name of adjacent patch for linking boundary points
+                    pname = self.PatchTagMap[self.ConnexionMap.get(patch.get_tag())['E'][0]]
+                    patch.AdjustBorder('E', self.patches[pname])
+            except:
+                pass
+
     def AdjustPatch(self, patch):
         xpt1 = Point(self.LineTracer.NSEW_lookup['xpt1']['coor']['center'])
         xpt2 = Point(self.LineTracer.NSEW_lookup['xpt2']['coor']['center'])
@@ -477,8 +503,8 @@ class SF135(TopologyUtils):
     def GroupPatches(self):
         # p = self.patches
         # self.PatchGroup = {'SOL' : [],
-        # 'CORE' : (p['ICB'], p['ICT'], p['OCT'], p['OCB']),
-        # 'PF' : (p['IPF'], p['OPF'])}
+        # 'CORE' : (p['B1'], p['C1'], p['D1'], p['E1']),
+        # 'PF' : (p['A1'], p['F1'])}
         pass
 
     def set_gridue(self):

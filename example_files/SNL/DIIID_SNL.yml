@@ -1,44 +1,45 @@
-DEBUG:
-  verbose:
-    grid_generation: 0
-    patch_generation: 1
-    target_plates: 0
-  visual:
-    find_NSEW: 0
-    gridue: 0
-    patch_map: 0
-    subgrid: 0
 eqdsk: ../data/SNL/DIII-D/neqdsk
 grid_settings:
   grid_generation:
     distortion_correction:
       all:
-        active: false
+        active: True # true, 1 also valid.
         resolution: 1000
         theta_max: 120.0
         theta_min: 80.0
+      # F2:
+      #   active: False # true, 1 also valid.
+      #   resolution: 1000
+      #   theta_max: 120.0
+      #   theta_min: 80.0
+      # F1:
+      #   active: False # true, 1 also valid.
+      #   resolution: 1000
+      #   theta_max: 120.0
+      #   theta_min: 80.0
     np_default: 3
     nr_default: 3
     poloidal_f_default: x, x
     radial_f_default: x, x
+    # poloidal_f_A: x, 1-(1-exp(-(1-x)/0.30))/(1-exp(-1/0.30))
+    # poloidal_f_F: 'x, (1-exp(-(x)/0.30))/(1-exp(-1/0.30))'
+    # radial_f_1: 'x,1-(1-exp(-(1-x)/0.90))/(1-exp(-1/0.90))'
+    # radial_f_2: 'x,(1-exp(-(x)/0.50))/(1-exp(-1/0.50))'
+    # radial_f_3: 'x, x**1.4'
   guard_cell_eps: 0.001
   nlevs: 30
   num_xpt: 1
   patch_generation:
-    NE_adjust: 0.0
-    NW_adjust: 0.0
+    xpt1_E_tilt: 0.0
+    xpt1_W_tilt: -0.47
     rmagx_shift: 0.0
-    secondary_NE_adjust: 0.0
-    secondary_NW_adjust: 0.0
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
     strike_geometry: target_plates
-    tilt_1: 0.0
-    tilt_2: 0.0
-    use_NE: false
-    use_NW: false
-    use_SE: false
-    use_SW: false
-    use_secondary_NE: false
-    use_secondary_NW: false
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    use_xpt1_E: false
+    use_xpt1_W: false
     zmagx_shift: 0.0
   psi_1: 1.066
   psi_core: 0.8
@@ -66,7 +67,7 @@ patch_data:
   preferences:
     new_file: true
     new_fname: ../data/SNL/DIII-D/LSN_patches_1597099640.npy
-  use_file: true
+  use_file: false
 target_plates:
   plate_E1:
     file: ../data/SNL/DIII-D/d3d_otp.txt

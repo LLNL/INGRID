@@ -14,7 +14,7 @@ except:
     pass
 import matplotlib.pyplot as plt
 from utils import TopologyUtils
-from geometry import Point, Line, Patch, trim_geometry
+from geometry import Point, Line, Patch, trim_geometry, rotate
 from collections import OrderedDict
 
 
@@ -89,13 +89,13 @@ class UDN(TopologyUtils):
         except KeyError:
             verbose = False
         try:
-            tilt_1 = self.settings['grid_settings']['patch_generation']['tilt_1']
+            magx_tilt_1 = self.settings['grid_settings']['patch_generation']['magx_tilt_1']
         except KeyError:
-            tilt_1 = 0.0
+            magx_tilt_1 = 0.0
         try:
-            tilt_2 = self.settings['grid_settings']['patch_generation']['tilt_2']
+            magx_tilt_2 = self.settings['grid_settings']['patch_generation']['magx_tilt_2']
         except KeyError:
-            tilt_2 = 0.0
+            magx_tilt_2 = 0.0
 
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         xpt2 = self.LineTracer.NSEW_lookup['xpt2']['coor']
@@ -125,13 +125,13 @@ class UDN(TopologyUtils):
             EastPlate2 = self.PlateData['plate_E2']
 
         # Generate Horizontal Mid-Plane lines
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_1), magx[1] - 1e6 * np.sin(tilt_1))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_1), magx[1] + 1e6 * np.sin(tilt_1))
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(magx_tilt_1), magx[1] - 1e6 * np.sin(magx_tilt_1))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(magx_tilt_1), magx[1] + 1e6 * np.sin(magx_tilt_1))
         midline_1 = Line([LHS_Point, RHS_Point])
         # inner_midLine.plot()
 
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_2), magx[1] - 1e6 * np.sin(tilt_2))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_2), magx[1] + 1e6 * np.sin(tilt_2))
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(magx_tilt_2), magx[1] - 1e6 * np.sin(magx_tilt_2))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(magx_tilt_2), magx[1] + 1e6 * np.sin(magx_tilt_2))
         midline_2 = Line([LHS_Point, RHS_Point])
         # outer_midLine.plot()
 
@@ -145,7 +145,7 @@ class UDN(TopologyUtils):
 
         xpt1N__psiMinCore = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core},
             option='rho', direction='cw', show_plot=visual, text=verbose)
-        B1_W = xpt1N__psiMinCore
+        B1_W = xpt1N__psiMinCore.reverse_copy()
         G1_E = B1_W.reverse_copy()
 
         xpt1NW__midline_1 = self.LineTracer.draw_line(xpt1['NW'], {'line': midline_1},
@@ -235,12 +235,22 @@ class UDN(TopologyUtils):
         xpt2__midline_1__WestPlate1 = self.LineTracer.draw_line(xpt2NE__midline_1.p[-1], {'line': WestPlate1},
             option='theta', direction='ccw', show_plot=visual, text=verbose)
 
-        H2_W = self.LineTracer.draw_line(xpt1['E'], {'line': xpt2__midline_2__EastPlate1}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_E']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_E_tilt']
+            # H2_W = self.LineTracer.draw_line(xpt1['E'], {'line': xpt2__midline_2__EastPlate1}, option='rho', direction='ccw',
+            #     show_plot=visual, text=verbose)
+            H2_W = self.LineTracer.draw_line(xpt1['E'], {'line': (xpt2__midline_2__EastPlate1, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        else:
+            H2_W = self.LineTracer.draw_line(xpt1['E'], {'line': xpt2__midline_2__EastPlate1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
         G2_E = H2_W.reverse_copy()
 
-        B2_W = self.LineTracer.draw_line(xpt1['W'], {'line': xpt2__midline_1__WestPlate1}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
+            tilt = -self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
+            # B2_W = self.LineTracer.draw_line(xpt1['W'], {'line': xpt2__midline_1__WestPlate1}, option='rho', direction='ccw',
+            #             show_plot=visual, text=verbose)
+            B2_W = self.LineTracer.draw_line(xpt1['W'], {'line': (xpt2__midline_1__WestPlate1, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        else:
+            B2_W = self.LineTracer.draw_line(xpt1['W'], {'line': xpt2__midline_1__WestPlate1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
         A2_E = B2_W.reverse_copy()
 
         G2_N, H2_N = xpt2__midline_2__EastPlate1.split(H2_W.p[-1], add_split_point=True)
@@ -301,13 +311,30 @@ class UDN(TopologyUtils):
             option='theta', direction='cw', show_plot=visual, text=verbose)
         midline_1__WestPlate1 = self.LineTracer.draw_line(C3_N.p[0], {'line': WestPlate1},
             option='theta', direction='ccw', show_plot=visual, text=verbose)
-
-        H3_W = self.LineTracer.draw_line(H2_W.p[-1], {'line': midline_2__EastPlate1},
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_E']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_E_tilt']
+            # H2_W = self.LineTracer.draw_line(xpt1['E'], {'line': xpt2__midline_2__EastPlate1}, option='rho', direction='ccw',
+            #     show_plot=visual, text=verbose)
+            H3_W = self.LineTracer.draw_line(H2_W.p[-1], {'line': (midline_2__EastPlate1, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        else:
+            H3_W = self.LineTracer.draw_line(H2_W.p[-1], {'line': midline_2__EastPlate1},
             option='rho', direction='ccw', show_plot=visual, text=verbose)
+        G2_E = H2_W.reverse_copy()
+
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
+            tilt = -self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
+            # B2_W = self.LineTracer.draw_line(xpt1['W'], {'line': xpt2__midline_1__WestPlate1}, option='rho', direction='ccw',
+            #             show_plot=visual, text=verbose)
+            B3_W = self.LineTracer.draw_line(B2_W.p[-1], {'line': (midline_1__WestPlate1, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        else:
+            B3_W = self.LineTracer.draw_line(B2_W.p[-1], {'line': midline_1__WestPlate1},
+            option='rho', direction='ccw', show_plot=visual, text=verbose)
+        # H3_W = self.LineTracer.draw_line(H2_W.p[-1], {'line': midline_2__EastPlate1},
+        #     option='rho', direction='ccw', show_plot=visual, text=verbose)
         G3_E = H3_W.reverse_copy()
 
-        B3_W = self.LineTracer.draw_line(B2_W.p[-1], {'line': midline_1__WestPlate1},
-            option='rho', direction='ccw', show_plot=visual, text=verbose)
+        # B3_W = self.LineTracer.draw_line(B2_W.p[-1], {'line': midline_1__WestPlate1},
+        #     option='rho', direction='ccw', show_plot=visual, text=verbose)
         A3_E = B3_W.reverse_copy()
 
         A3_N, B3_N = midline_1__WestPlate1.reverse_copy().split(B3_W.p[-1], add_split_point=True)
@@ -429,6 +456,40 @@ class UDN(TopologyUtils):
 
         self.patches = OrderedDict([(pname, self.patches[pname]) for pname in patches])
 
+    def AdjustGrid(self) -> None:
+        """
+        Adjust the grid so that no holes occur at x-points, and cell grid
+        faces are alligned
+
+        A small epsilon radius is swept out around x-points during Patch
+        line tracing. This simple tidies up a grid.
+
+        Parameters
+        ----------
+        patch : Patch
+            The patch to tidy up (will only adjust if next to x-point).
+        """
+
+        for patch in self.patches.values():
+            # Adjust cell to any adjacent x-point
+            self.AdjustPatch(patch)
+
+            # Adjust cell grid face along vertical plane
+            poloidal_tag, radial_tag = patch.get_tag()
+            if poloidal_tag == 'C' and radial_tag in ['1', '2']:
+                patch.AdjustBorder('E', self.patches['F' + radial_tag])
+
+            # Circular patch configuration requires adjustment of border to close loop.
+            # Convention chosen: 'E' indicates closed loop
+
+            try:
+                if patch.TerminatesLoop:
+                    # Get patch name of adjacent patch for linking boundary points
+                    pname = self.PatchTagMap[self.ConnexionMap.get(patch.get_tag())['E'][0]]
+                    patch.AdjustBorder('E', self.patches[pname])
+            except:
+                pass
+
     def AdjustPatch(self, patch):
         xpt1 = Point(self.LineTracer.NSEW_lookup['xpt1']['coor']['center'])
         xpt2 = Point(self.LineTracer.NSEW_lookup['xpt2']['coor']['center'])
@@ -470,8 +531,8 @@ class UDN(TopologyUtils):
     def GroupPatches(self):
         # p = self.patches
         # self.PatchGroup = {'SOL' : [],
-        # 'CORE' : (p['ICB'], p['ICT'], p['OCT'], p['OCB']),
-        # 'PF' : (p['IPF'], p['OPF'])}
+        # 'CORE' : (p['B1'], p['C1'], p['D1'], p['E1']),
+        # 'PF' : (p['A1'], p['F1'])}
         pass
 
     def set_gridue(self) -> dict:

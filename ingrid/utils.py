@@ -127,6 +127,7 @@ class IngridUtils():
         self.InputFile = None
         self.config = None
         self.settings_lookup = [
+            'dir_settings',
             'grid_settings',
             'integrator_settings',
             'target_plates',
@@ -202,18 +203,14 @@ class IngridUtils():
                 'strike_geometry': 'limiter',
                 'rmagx_shift': 0.0,
                 'zmagx_shift': 0.0,
-                'tilt_1': 0.0,
-                'tilt_2': 0.0,
-                'use_NW': False,
-                'use_NE': False,
-                'use_secondary_NW': False,
-                'use_secondary_NE': False,
-                'use_SW': False,
-                'use_SE': False,
-                'NW_adjust': -0.785398,  # All values of pi / 4 radians.
-                'NE_adjust': 0.785398,
-                'secondary_NW_adjust': -0.785398,
-                'secondary_NE_adjust': 0.785398,
+                'magx_tilt_1': 0.0,
+                'magx_tilt_2': 0.0,
+                'use_xpt1_W': False,
+                'use_xpt1_E': False,
+                'xpt1_W_tilt': -0.785398,  # All values of pi / 4 radians.
+                'xpt1_E_tilt': 0.785398,
+                'xpt2_W_tilt': -0.785398,
+                'xpt2_E_tilt': 0.785398,
             }
         }
 
@@ -259,7 +256,8 @@ class IngridUtils():
         self.default_limiter_settings = {
             'file': '',
             'use_efit_bounds': False,
-            'efit_bounds_buffer': 1e-2,
+            'efit_buffer_r': 1e-2,
+            'efit_buffer_z': 1e-2,
             'use_default_data': True,
             'rshift': 0.0,
             'zshift': 0.0
@@ -291,8 +289,16 @@ class IngridUtils():
             }
         }
 
+        self.default_dir_settings = {
+            'eqdsk': '.',
+            'limiter': '.',
+            'patch_data': '.',
+            'target_plates': '.'
+        }
+
         self.default_values_lookup = {
             'eqdsk': '',
+            'dir_settings': self.default_dir_settings,
             'grid_settings': self.default_grid_settings,
             'integrator_settings': self.default_integrator_settings,
             'target_plates': self.default_target_plate_settings,
@@ -356,13 +362,14 @@ class IngridUtils():
 
         def _check_settings_input(input_settings, comparison):
             raise_assertion = False
+            items = []
             for k in input_settings.keys():
                 if comparison.get(k) is None:
-                    print(f'INVALID YML ENTRY "{k}" PROVIDED. REMOVE.')
+                    items.append(k)
                     raise_assertion = True
 
             if raise_assertion is True:
-                raise ValueError(f'Invalid entry in provided settings file f{self.InputFile}. Remove invalid entries listed above.')
+                raise ValueError(f'Invalid entries {items} in provided settings file f{self.InputFile}. Remove invalid entries listed.')
 
         def _get_default_values(item, sub_item=None, attribute=None):
             """
@@ -398,11 +405,12 @@ class IngridUtils():
                     print('Populated "{}" with default value of "{}".\n'.format(item, settings[item]))
                 continue
 
-            # Second level entries within YAML file dump.
-            if item == 'eqdsk':
+            if item in ['eqdsk']:
                 continue
 
             _check_settings_input(input_settings=settings[item], comparison=self.default_values_lookup[item])
+
+            # Second level entries within YAML file dump.
 
             for sub_item in self.default_values_lookup[item].keys():
                 try:
@@ -418,7 +426,8 @@ class IngridUtils():
                         and sub_item in ['patch_generation', 'grid_generation', 'plate_E1', 'plate_W1', 'plate_E2', 'plate_W2']:
                     for plate_attribute in self.default_values_lookup[item][sub_item].keys():
                         try:
-                            settings[item][sub_item][plate_attribute]
+                            if settings[item][sub_item][plate_attribute] is None:
+                                settings[item][sub_item][plate_attribute] = _get_default_values(item, sub_item, plate_attribute)
                         except:
                             settings[item][sub_item][plate_attribute] = _get_default_values(item, sub_item, plate_attribute)
 
@@ -428,6 +437,33 @@ class IngridUtils():
         self.integrator_settings = settings['integrator_settings']
         self.target_plates = settings['target_plates']
         self.DEBUG = settings['DEBUG']
+        self.ProcessPaths()
+
+    def ProcessPaths(self) -> None:
+        """
+        Update settings by pre-pending path entries to all file entries.
+        """
+        for k in self.default_dir_settings.keys():
+            path_obj = Path(self.settings['dir_settings'][k])
+            if path_obj.is_dir() is False:
+                raise ValueError(f"# Error processing directory provided for entry '{k}'. Entry '{v}' is not a valid directory.")
+
+            if k == 'eqdsk':
+                self.settings['eqdsk'] = str((path_obj / self.settings['eqdsk']).absolute())
+                continue
+            if k == 'limiter':
+                self.settings['limiter']['file'] = str((path_obj / self.settings['limiter']['file']).absolute())
+                continue
+            if k == 'target_plates':
+                self.settings['target_plates']['plate_W1']['file'] = str((path_obj / self.settings['target_plates']['plate_W1']['file']).absolute())
+                self.settings['target_plates']['plate_E1']['file'] = str((path_obj / self.settings['target_plates']['plate_E1']['file']).absolute())
+                self.settings['target_plates']['plate_W2']['file'] = str((path_obj / self.settings['target_plates']['plate_W2']['file']).absolute())
+                self.settings['target_plates']['plate_E2']['file'] = str((path_obj / self.settings['target_plates']['plate_E2']['file']).absolute())
+                continue
+            if k == 'patch_data':
+                self.settings['patch_data']['file'] = str((path_obj / self.settings['patch_data']['file']).absolute())
+                self.settings['patch_data']['preferences']['new_fname'] = str((path_obj / self.settings['patch_data']['preferences']['new_fname']).absolute())
+                continue
 
     def OMFIT_read_psi(self) -> None:
         """
@@ -557,8 +593,8 @@ class IngridUtils():
                             x = float(point.split(' ')[0])
                             y = float(point.split(' ')[1])
 
-                        R.append(x - rshift)
-                        Z.append(y - zshift)
+                        R.append(x + rshift)
+                        Z.append(y + zshift)
             except:
                 raise IOError(f"# Error occured when reading data from file {fpath}:\t 'open(fpath)' error")
 
@@ -600,7 +636,7 @@ class IngridUtils():
 
         use_efit_bounds = self.settings['limiter']['use_efit_bounds']
 
-        if fpath != '':
+        if fpath not in ['', '.']:
             try:
                 print('# Processing file for limiter data : {}'.format(fpath))
                 self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = self.ParseTxtCoordinates(fpath)
@@ -610,22 +646,23 @@ class IngridUtils():
         elif coordinates == []:
             g = OMFITgeqdsk(self.settings['eqdsk'])
             RLIM, ZLIM = g['RLIM'], g['ZLIM']
-            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM - rshift, ZLIM - zshift
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = RLIM + rshift, ZLIM + zshift
 
         elif coordinates != []:
             RLIM, ZLIM = coordinates
-            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = [r - rshift for r in RLIM], [z - zshift for z in ZLIM]
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = [r + rshift for r in RLIM], [z + zshift for z in ZLIM]
 
         if len(RLIM) == 0 or len(ZLIM) == 0:
             use_efit_bounds = True
 
         if use_efit_bounds:
-            buff = self.settings['limiter']['efit_bounds_buffer']
-            coordinates = [(self.PsiUNorm.rmin + buff, self.PsiUNorm.zmin + buff),
-                           (self.PsiUNorm.rmax - buff, self.PsiUNorm.zmin + buff),
-                           (self.PsiUNorm.rmax - buff, self.PsiUNorm.zmax - buff),
-                           (self.PsiUNorm.rmin + buff, self.PsiUNorm.zmax - buff),
-                           (self.PsiUNorm.rmin + buff, self.PsiUNorm.zmin + buff)]
+            rbuff = self.settings['limiter']['efit_buffer_r']
+            zbuff = self.settings['limiter']['efit_buffer_z']
+            coordinates = [(self.PsiUNorm.rmin + rbuff, self.PsiUNorm.zmin + zbuff),
+                           (self.PsiUNorm.rmax - rbuff, self.PsiUNorm.zmin + zbuff),
+                           (self.PsiUNorm.rmax - rbuff, self.PsiUNorm.zmax - zbuff),
+                           (self.PsiUNorm.rmin + rbuff, self.PsiUNorm.zmax - zbuff),
+                           (self.PsiUNorm.rmin + rbuff, self.PsiUNorm.zmin + zbuff)]
 
             RLIM, ZLIM = [], []
             for c in coordinates:
@@ -633,7 +670,7 @@ class IngridUtils():
                 RLIM.append(r)
                 ZLIM.append(z)
 
-            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = np.array(RLIM) - rshift, np.array(ZLIM) - zshift
+            self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = np.array(RLIM) + rshift, np.array(ZLIM) + zshift
 
         self.LimiterData = Line([Point(p) for p in zip(self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'])])
 
@@ -722,7 +759,7 @@ class IngridUtils():
         data = np.array([c for c in zip(R, Z)])
         a, index = np.unique(data, return_index=True, axis=0)
         index.sort()
-        self.PlateData[k] = Line([Point(x - rshift, y - zshift) for x, y in data[index]])
+        self.PlateData[k] = Line([Point(x + rshift, y + zshift) for x, y in data[index]])
 
     def OrderTargetPlate(self, plate_key: str) -> None:
         """
@@ -974,24 +1011,11 @@ class IngridUtils():
         -------
             A dictionary containing the tag to patch name mappings.
         """
-        if config == 'LSN':
-            PatchTagMap = {
-                'A1': 'IPF', 'A2': 'IDL',
-                'B1': 'ICB', 'B2': 'ISB',
-                'C1': 'ICT', 'C2': 'IST',
-                'D1': 'OCT', 'D2': 'OST',
-                'E1': 'OCB', 'E2': 'OSB',
-                'F1': 'OPF', 'F2': 'ODL',
-            }
-        elif config == 'USN':
-            PatchTagMap = {
-                'A1': 'OPF', 'A2': 'ODL',
-                'B1': 'OCB', 'B2': 'OSB',
-                'C1': 'OCT', 'C2': 'OST',
-                'D1': 'ICT', 'D2': 'IST',
-                'E1': 'ICB', 'E2': 'ISB',
-                'F1': 'IPF', 'F2': 'IDL',
-            }
+        PatchTagMap = {}
+        TempLabels = ['A', 'B', 'C', 'D', 'E', 'F']
+        for label in TempLabels:
+            for i in range(1, 3):
+                PatchTagMap[label + str(i)] = label + str(i)
         else:
             PatchTagMap = {}
             TempLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
@@ -1024,7 +1048,6 @@ class IngridUtils():
             If user specifies ``settings['grid_settings']['num_xpt']``
             with value other than 1 (int) or 2 (int).
         """
-
         print('')
         print("# Begin classification....")
         print('')
@@ -1033,7 +1056,21 @@ class IngridUtils():
             self.LineTracer.SNL_find_NSEW(self.xpt1, self.magx, visual)
 
         elif self.settings['grid_settings']['num_xpt'] == 2:
-            self.LineTracer.DNL_find_NSEW(self.xpt1, self.xpt2, self.magx, visual)
+            # Check if limiter contains magx, xpt1,and xpt2
+            from matplotlib.patches import Polygon
+            limiter = Polygon(np.column_stack(self.LimiterData.points()).T, fill=True, closed=True, color='red', label='Limiter')
+
+            missing_items = []
+            if (limiter.get_path().contains_point(self.magx)) is False:
+                missing_items.insert(0, 'magx')
+            if (limiter.get_path().contains_point(self.xpt1)) is False:
+                missing_items.insert(0, 'xpt1')
+            if (limiter.get_path().contains_point(self.xpt2)) is False:
+                missing_items.insert(0, 'xpt2')
+            if len(missing_items) == 0:
+                self.LineTracer.DNL_find_NSEW(self.xpt1, self.xpt2, self.magx, visual)
+            else:
+                raise ValueError(f"# Topological item(s) {missing_items} not contained in the limiter geometry provided. Check coordinates provided are correct and/or edit the limiter geometry.")
         else:
             raise ValueError(f"# No support available for 'num_xpt' value of {self.settings['grid_settings']['num_xpt']}")
 
@@ -1335,6 +1372,9 @@ class TopologyUtils():
         self.Verbose = False
         self.GetDistortionCorrectionSettings()
 
+    def RefreshSettings(self):
+        self.settings = self.parent.settings
+
     def OrderPatches(self):
         pass
 
@@ -1374,8 +1414,8 @@ class TopologyUtils():
         handles, labels = a.get_legend_handles_labels()
         lookup = {label: handle for label, handle in zip(labels, handles)}
         a.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
-                               bbox_to_anchor=(1.25, 1.0), loc='upper right',
-                               ncol=1)
+                 bbox_to_anchor=(1.25, 1.0), loc='upper right',
+                 ncol=1)
         f.show()
 
     def grid_diagram(self, fig: object = None, ax: object = None) -> None:
@@ -1696,7 +1736,7 @@ class TopologyUtils():
         Refining only the outer-most psi boundary (SOL) for a lower single-null
         configuration:
 
-        >>> patch_names = ['IDL', 'ISB', 'IST', 'OST', 'OSB', 'ODL']
+        >>> patch_names = ['A2', 'B2', 'C2', 'D2', 'E2', 'F2']
         >>> MyTopologyUtils.construct_grid(np_cells=3, nr_cells=3, ListPatches=patch_names)
 
         Refining only the inboard and outboard psi boundary for an unbalanced
@@ -1746,44 +1786,21 @@ class TopologyUtils():
             else:
                 patch.distortion_correction = {'Active': False}
             if (ListPatches == 'all' and patch not in self.CurrentListPatch) or (ListPatches != 'all' and name in ListPatches):
-                self.SetPatchBoundaryPoints(patch)
+                self.SetPatchBoundaryPoints(patch, verbose)
                 (nr_cells, np_cells) = self.GetNpoints(patch)
                 (_radial_f, _poloidal_f) = self.GetFunctions(patch)
-                print('>>> Making subgrid in patch:{} with np={},nr={},fp={},fr={}'.format(name, np_cells, nr_cells, inspect.getsource(_poloidal_f), inspect.getsource(_radial_f)))
+                print(f'>>> Making subgrid in patch {name}:')
+                print(f'    np = {np_cells}, nr = {nr_cells}')
+                print(f'    fp = {inspect.getsource(_poloidal_f)}')
+                print(f'    fr = {inspect.getsource(_radial_f)}', end='')
                 patch.RemoveDuplicatePoints()
                 patch.make_subgrid(self, np_cells, nr_cells, _poloidal_f=_poloidal_f, _radial_f=_radial_f, verbose=verbose, visual=visual, ShowVertices=ShowVertices)
 
-                self.AdjustGrid(patch)
                 self.CurrentListPatch[name] = patch
+                print(f'    {name} subgrid complete.\n\n')
+        self.AdjustGrid()
 
-    def AdjustGrid(self, patch: Patch) -> None:
-        """
-        Adjust the grid so that no holes occur at x-points.
-
-        A small epsilon radius is swept out around x-points during Patch
-        line tracing. This simple tidies up a grid.
-
-        Parameters
-        ----------
-        patch : Patch
-            The patch to tidy up (will only adjust if next to x-point).
-        """
-
-        # Adjust cell to any adjacent x-point
-        self.AdjustPatch(patch)
-
-        # Circular patch configuration requires adjustment of border to close loop.
-        # Convention chosen: 'E' indicates closed loop
-
-        try:
-            if patch.TerminatesLoop:
-                # Get patch name of adjacent patch for linking boundary points
-                pname = self.PatchTagMap[self.ConnexionMap.get(patch.get_tag())['E'][0]]
-                patch.AdjustBorder('E', self.patches[pname])
-        except:
-            pass
-
-    def SetPatchBoundaryPoints(self, Patch: Patch) -> None:
+    def SetPatchBoundaryPoints(self, Patch: Patch, verbose: bool = False) -> None:
         """
         Set the Patch ``BoundaryPoints`` dict based off TopologyUtils ``ConnexionMap``.
 
@@ -1791,6 +1808,8 @@ class TopologyUtils():
         ----------
         Patch : Patch
             The Patch to set the boundary points for.
+        verbose: bool
+            Print full output to terminal.
 
         Notes
         -----
@@ -1799,12 +1818,12 @@ class TopologyUtils():
         """
         Patch.TerminatesLoop = False
         if self.ConnexionMap.get(Patch.get_tag()) is not None:
-            if self.Verbose:
+            if verbose:
                 print('Find connexion map for patch {}'.format(Patch.patch_name))
             for v in self.ConnexionMap.get(Patch.get_tag()).items():
                 Boundary, AdjacentPatch = v
                 Patch.BoundaryPoints[Boundary] = self.GetBoundaryPoints(AdjacentPatch)
-                if self.Verbose:
+                if verbose:
                     print('Find Boundaries points for {}'.format(Patch.patch_name))
             if self.ConnexionMap.get(Patch.get_tag()).get('E') is not None:
                 Patch.TerminatesLoop = True
@@ -1859,7 +1878,7 @@ class TopologyUtils():
     def SetupPatchMatrix(self) -> list:
         """
         Instantiate the list representation of the Patch layout in index space.
-        
+
         Method ``concat_grid`` uses this structure when combining refined Patches
         into a global grid.
 
@@ -1875,8 +1894,8 @@ class TopologyUtils():
         if self.config in ['LSN', 'USN']:
             self.patch_matrix = [
                 [[None], [None], [None], [None], [None], [None], [None], [None]],
-                [[None], p['IDL'], p['ISB'], p['IST'], p['OST'], p['OSB'], p['ODL'], [None]],
-                [[None], p['IPF'], p['ICB'], p['ICT'], p['OCT'], p['OCB'], p['OPF'], [None]],
+                [[None], p['A2'], p['B2'], p['C2'], p['D2'], p['E2'], p['F2'], [None]],
+                [[None], p['A1'], p['B1'], p['C1'], p['D1'], p['E1'], p['F1'], [None]],
                 [[None], [None], [None], [None], [None], [None], [None], [None]]
             ]
 

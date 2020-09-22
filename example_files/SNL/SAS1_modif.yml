@@ -25,20 +25,16 @@ grid_settings:
   nlevs: 30
   num_xpt: 1
   patch_generation:
-    NE_adjust: 0.0
-    NW_adjust: 0.0
+    xpt1_E_tilt: 0.0
+    xpt1_W_tilt: 0.0
     rmagx_shift: 0.0
-    secondary_NE_adjust: 0.0
-    secondary_NW_adjust: 0.0
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
     strike_geometry: limiter
-    tilt_1: 0.0
-    tilt_2: 0.0
-    use_NE: false
-    use_NW: false
-    use_SE: false
-    use_SW: false
-    use_secondary_NE: false
-    use_secondary_NW: false
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    use_xpt1_E: false
+    use_xpt1_W: false
     zmagx_shift: 0.0
   psi_1: 1.01249105907
   psi_core: 0.904041825299
@@ -61,9 +57,9 @@ integrator_settings:
 patch_data:
   file: ../data/SNL/USN_patches_1598047632.npy
   preferences:
-    new_file: true
+    new_file: False
     new_fname: ../data/SNL/USN_patches_1598047632.npy
-  use_file: True
+  use_file: false
 target_plates:
   plate_E1:
     file: ../data/SNL/SAS1/itp4.txt

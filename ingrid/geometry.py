@@ -820,7 +820,6 @@ class Patch:
             plt.plot(E_vals[0], E_vals[1], '.', color='black')
             print(repr(e))
         if verbose: print(' #check plate_patch')
-        # ACCURACY ON PSI_MIN SIDE OF W IDL LINE ISSUE.
 
         if self.plate_patch:
 
@@ -861,14 +860,14 @@ class Patch:
                 try:
                     plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_north[0], plate_north[1])))]
                 except:
-                    print('NorthIndex: ERROR IN PARAMETERIZATION IN PSI')
+                    if verbose: print('NorthIndex: ERROR IN PARAMETERIZATION IN PSI')
             try:
                 plate_south_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_south[0], plate_south[1])))]
             except ValueError:
                 try:
                     plate_south_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_south[0], plate_south[1])))]
                 except:
-                    print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
+                    if verbose: print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
             if plate_south_index > plate_north_index:
                 plate_north_index, plate_south_index = plate_south_index, plate_north_index
 
@@ -899,7 +898,7 @@ class Patch:
                 _n = splev(_poloidal_f(i / (np_lines - 1)), self.N_spl)
                 self.N_vertices.append(Point((float(_n[0]), float(_n[1]))))
         else:
-            if self.Verbose: print('Find boundary points at face "N" for {}:{}'.format(self.patch_name, self.BoundaryPoints.get('N')))
+            if verbose: print('Find boundary points at face "N" for {}:{}'.format(self.patch_name, self.BoundaryPoints.get('N')))
             self.N_vertices = self.BoundaryPoints.get('N')
 
         if self.BoundaryPoints.get('S') is None:
@@ -928,15 +927,8 @@ class Patch:
         else:
             self.E_vertices = self.BoundaryPoints.get('E')
 
-        # for i in range(nr_lines):
-        #     _e = splev(u[i], self.E_spl)
-
-        #     E_vertices.append(Point((float(_e[0]), float(_e[1]))))
-
-        #     _w = splev(u[i], self.W_spl)
-        #     W_vertices.append(Point((float(_w[0]), float(_w[1]))))
         DetailedVertices = False
-        if  not isinstance(ShowVertices, bool):
+        if not isinstance(ShowVertices, bool):
             if ShowVertices == 'detailed':
                 ShowVertices = True
                 DetailedVertices = True
@@ -970,7 +962,7 @@ class Patch:
         for i in range(len(self.W_vertices) - 2):
             #TODO: parallelize tracing of radial lines (draw_line function must be "externalized" in the scope of the script)
             radial_lines.append(grid.LineTracer.draw_line(self.W_vertices[i + 1], {'line': self.E}, option='theta',
-                direction='cw', show_plot=0, dynamic_step=dynamic_step))
+                direction='cw', show_plot=visual, dynamic_step=dynamic_step, text=verbose))
             temp_vertices.append(radial_lines[-1].p[-1])
             radial_vals = radial_lines[i + 1].fluff(1000)
             Radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s=0)
@@ -1333,7 +1325,7 @@ def CorrectDistortion(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, Reso
             _r = splev(u, spl)
             Pt = Point((_r[0], _r[1]))
             Theta = Line([Pt1, Pt]).GetAngle(Line([Pt1, Pt2]))
-        if True: print('[{}]>>>> u:{};Theta={}'.format(icount, u, Theta))
+        if Verbose: print('[{}]>>>> u:{};Theta={}'.format(icount, u, Theta))
         if visual:
             plt.plot(Pt.x, Pt.y, '.', color=color, markersize=8, marker='s')
     return Pt
@@ -1498,7 +1490,7 @@ def segment_intersect(line1, line2, verbose=False):
 
 def UnfoldLabel(Dic: dict, Name: str) -> str:
     """
-    Unfold Patch label (e.g. "ICT" -> "Inner Core Top")
+    Unfold Patch label (e.g. "C1" -> "Inner Core Top")
 
     Parameters
     ----------

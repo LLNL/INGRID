@@ -1,9 +1,6 @@
-#! my_path = test
-#! =one
-    #!  t =       yg
-
-  #! p=arte r
-# ! t fdaf  = fda a 
+dir_settings:
+  target_plates: ../data/SNL/C-MOD/
+  eqdsk: ../data/SNL/C-MOD/
 DEBUG:
   verbose:
     grid_generation: 1
@@ -14,7 +11,7 @@ DEBUG:
     gridue: 0
     patch_map: 0
     subgrid: 0
-eqdsk: ../data/SNL/C-MOD/neqdsk
+eqdsk: neqdsk
 grid_settings:
   grid_generation:
     distortion_correction:
@@ -28,24 +25,20 @@ grid_settings:
     poloidal_f_default: x, x
     radial_f_default: x, x
   guard_cell_eps: 0.001
-  nlevs: 30
+  nlevs: 100
   num_xpt: 1
   patch_generation:
-    NE_adjust: 0.2
-    NW_adjust: -0.4
-    rmagx_shift: 0.0
-    secondary_NE_adjust: 0.0
-    secondary_NW_adjust: 0.0
+    xpt1_E_tilt: 0.0 # 0.2
+    xpt1_W_tilt: 0.0 # -0.8
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
     strike_geometry: target_plates
-    tilt_1: 0.0
-    tilt_2: -0.5
-    use_NE: true
-    use_NW: true
-    use_SE: false
-    use_SW: false
-    use_secondary_NE: false
-    use_secondary_NW: false
-    zmagx_shift: 0.0
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0 # -0.4
+    use_xpt1_E: false # true
+    use_xpt1_W: false
+    rmagx_shift: 0.0 # -0.1
+    zmagx_shift: 0.0 # -0.2
   psi_1: 1.08
   psi_core: 0.971886263593
   psi_pf_1: 0.96983650612
@@ -64,11 +57,18 @@ integrator_settings:
   max_step: 0.064
   step_ratio: 0.02
   tol: 0.005
+# limiter:
+#   file: ''
+#   use_efit_bounds: true
+#   efit_buffer_r: 0.1
+#   efit_buffer_z: 0.2
+#   rshift: -0.075
 target_plates:
   plate_E1:
-    file: ../data/SNL/C-MOD/cmod_otp.txt
+    file: cmod_otp.txt
     name: plate_E1
-    zshift: 0.0
+    zshift: 0.0 # Z' = Z - zshift
+    rshift: 0.0 # R' = R - rshift
   plate_E2:
     file: ''
     name: plate_E2
@@ -76,7 +76,7 @@ target_plates:
     poloidal_f: x, x
     zshift: 0.0
   plate_W1:
-    file: ../data/SNL/C-MOD/cmod_itp.txt
+    file: cmod_itp.txt
     name: plate_W1
     zshift: 0.0
   plate_W2:

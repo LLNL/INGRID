@@ -103,13 +103,13 @@ class SF165(TopologyUtils):
         except KeyError:
             verbose = False
         try:
-            tilt_1 = self.settings['grid_settings']['patch_generation']['tilt_1']
+            magx_tilt_1 = self.settings['grid_settings']['patch_generation']['magx_tilt_1']
         except KeyError:
-            tilt_1 = 0.0
+            magx_tilt_1 = 0.0
         try:
-            tilt_2 = self.settings['grid_settings']['patch_generation']['tilt_2']
+            magx_tilt_2 = self.settings['grid_settings']['patch_generation']['magx_tilt_2']
         except KeyError:
-            tilt_2 = 0.0
+            magx_tilt_2 = 0.0
 
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         xpt2 = self.LineTracer.NSEW_lookup['xpt2']['coor']
@@ -139,15 +139,13 @@ class SF165(TopologyUtils):
             EastPlate2 = self.PlateData['plate_E2']
 
         # Generate Horizontal Mid-Plane lines
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_1), magx[1] - 1e6 * np.sin(tilt_1))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_1), magx[1] + 1e6 * np.sin(tilt_1))
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(magx_tilt_1), magx[1] - 1e6 * np.sin(magx_tilt_1))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(magx_tilt_1), magx[1] + 1e6 * np.sin(magx_tilt_1))
         midline_1 = Line([LHS_Point, RHS_Point])
-        midline_1.plot()
 
-        LHS_Point = Point(magx[0] - 1e6 * np.cos(tilt_2), magx[1] - 1e6 * np.sin(tilt_2))
-        RHS_Point = Point(magx[0] + 1e6 * np.cos(tilt_2), magx[1] + 1e6 * np.sin(tilt_2))
+        LHS_Point = Point(magx[0] - 1e6 * np.cos(magx_tilt_2), magx[1] - 1e6 * np.sin(magx_tilt_2))
+        RHS_Point = Point(magx[0] + 1e6 * np.cos(magx_tilt_2), magx[1] + 1e6 * np.sin(magx_tilt_2))
         midline_2 = Line([LHS_Point, RHS_Point])
-        # outer_midLine.plot()
 
         # Generate Vertical Mid-Plane line
         Lower_Point = Point(magx[0], magx[1] - 1e6)
@@ -265,32 +263,31 @@ class SF165(TopologyUtils):
         I3_S = self.LineTracer.draw_line(xpt2['SE'], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
         I2_N = I3_S.reverse_copy()
 
-        B3_E = self.LineTracer.draw_line(B3_N.p[-1], {'psi_horizontal': (psi_separatrix_2, tilt_1)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
-
+        B3_E = Line([B3_N.p[-1], B3_S.p[0]])
         C3_W = B3_E.reverse_copy()
 
-        B2_E = self.LineTracer.draw_line(B3_E.p[-1], {'psi_horizontal': (1.0, tilt_1)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        B2_E = Line([B2_N.p[-1], B2_S.p[0]])
         C2_W = B2_E.reverse_copy()
 
-        B1_E = self.LineTracer.draw_line(B2_E.p[-1], {'psi_horizontal': (psi_core, tilt_1)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        B1_E = Line([B1_N.p[-1], B1_S.p[0]])
         C1_W = B1_E.reverse_copy()
 
-        C3_E = self.LineTracer.draw_line(C3_N.p[-1], {'psi_vertical': psi_separatrix_2}, option='r_const', direction='ccw', show_plot=visual, text=verbose)
+        C3_E = Line([C3_N.p[-1], C3_S.p[0]])
         D3_W = C3_E.reverse_copy()
 
-        C2_E = self.LineTracer.draw_line(C2_N.p[-1], {'psi_vertical': 1.0}, option='r_const', direction='ccw', show_plot=visual, text=verbose)
+        C2_E = Line([C2_N.p[-1], C2_S.p[0]])
         D2_W = C2_E.reverse_copy()
 
-        C1_E = self.LineTracer.draw_line(C1_N.p[-1], {'psi_vertical': psi_core}, option='r_const', direction='ccw', show_plot=visual, text=verbose)
+        C1_E = Line([C1_N.p[-1], C1_S.p[0]])
         D1_W = C1_E.reverse_copy()
 
-        D3_E = self.LineTracer.draw_line(D3_N.p[-1], {'psi_horizontal': (psi_separatrix_2, tilt_2)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        D3_E = Line([D3_N.p[-1], D3_S.p[0]])
         E3_W = D3_E.reverse_copy()
 
-        D2_E = self.LineTracer.draw_line(D3_E.p[-1], {'psi_horizontal': (1.0, tilt_2)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        D2_E = Line([D2_N.p[-1], D2_S.p[0]])
         E2_W = D2_E.reverse_copy()
 
-        D1_E = self.LineTracer.draw_line(D2_E.p[-1], {'psi_horizontal': (psi_core, tilt_2)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        D3_E = Line([D1_N.p[-1], D1_S.p[0]])
         E1_W = D1_E.reverse_copy()
 
         A1_W = trim_geometry(WestPlate2, A1_S.p[-1], A1_N.p[0])
@@ -392,6 +389,40 @@ class SF165(TopologyUtils):
 
         self.patches = OrderedDict([(pname, self.patches[pname]) for pname in patches])
 
+    def AdjustGrid(self) -> None:
+        """
+        Adjust the grid so that no holes occur at x-points, and cell grid
+        faces are alligned
+
+        A small epsilon radius is swept out around x-points during Patch
+        line tracing. This simple tidies up a grid.
+
+        Parameters
+        ----------
+        patch : Patch
+            The patch to tidy up (will only adjust if next to x-point).
+        """
+
+        for patch in self.patches.values():
+            # Adjust cell to any adjacent x-point
+            self.AdjustPatch(patch)
+
+            # Adjust cell grid face along vertical plane
+            poloidal_tag, radial_tag = patch.get_tag()
+            if poloidal_tag == 'C':
+                patch.AdjustBorder('E', self.patches['D' + radial_tag])
+
+            # Circular patch configuration requires adjustment of border to close loop.
+            # Convention chosen: 'E' indicates closed loop
+
+            try:
+                if patch.TerminatesLoop:
+                    # Get patch name of adjacent patch for linking boundary points
+                    pname = self.PatchTagMap[self.ConnexionMap.get(patch.get_tag())['E'][0]]
+                    patch.AdjustBorder('E', self.patches[pname])
+            except:
+                pass
+
     def AdjustPatch(self, patch):
         xpt1 = Point(self.LineTracer.NSEW_lookup['xpt1']['coor']['center'])
         xpt2 = Point(self.LineTracer.NSEW_lookup['xpt2']['coor']['center'])
@@ -432,8 +463,8 @@ class SF165(TopologyUtils):
     def GroupPatches(self):
         # p = self.patches
         # self.PatchGroup = {'SOL' : [],
-        # 'CORE' : (p['ICB'], p['ICT'], p['OCT'], p['OCB']),
-        # 'PF' : (p['IPF'], p['OPF'])}
+        # 'CORE' : (p['B1'], p['C1'], p['D1'], p['E1']),
+        # 'PF' : (p['A1'], p['F1'])}
         pass
 
     def set_gridue(self):

@@ -28,20 +28,16 @@ grid_settings:
   nlevs: 30
   num_xpt: 2
   patch_generation:
-    NE_adjust: 0.785398
-    NW_adjust: -0.785398
+    xpt1_E_tilt: 0.785398
+    xpt1_W_tilt: -0.785398
     rmagx_shift: 0.0
-    secondary_NE_adjust: 0.785398
-    secondary_NW_adjust: -0.785398
+    xpt2_E_tilt: 0.785398
+    xpt2_W_tilt: -0.785398
     strike_geometry: limiter
-    tilt_1: 0.0
-    tilt_2: 0.0
-    use_NE: false
-    use_NW: false
-    use_SE: false
-    use_SW: false
-    use_secondary_NE: false
-    use_secondary_NW: false
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    use_xpt1_E: false
+    use_xpt1_W: false
     zmagx_shift: 0.0
   psi_1: 1.07
   psi_2: 0.97

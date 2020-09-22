@@ -1,22 +1,34 @@
 # INGRID
 Interactive Grid Generator for Tokamak Boundary Region
 
-Must have numpy, matplotlib, scipy, f90nml, and any fortran compiler. Gfortran
-was used in the developement of this code.  To compile the fortran
-scripts, call the makefile by typing make into the terminal while in
-the src directory. This will generate the wrappers so the python codes
-can call the fortran modules.
+## Installing the INGRID Conda Environment:
+Dependencies required to run this code are found in the "conda_env.yml" file. The first line of the yml file sets the new environment's name. This is set to _**ingrid**_ by default.
+With the Conda package manager installed on your system, navigate to the cloned Ingrid root directory and run:
+```console
+conda env create -f conda_env.yml
+```
 
-To install f90nml run
-pip install f90nml
-in the terminal window. This is used to read and write fortran namelist files.
+If no edits were made to the provided .yml file, ctivate the newly created Conda environment by running:
+```console
+conda activate ingrid
+```
 
-Running the code:
+Otherwise, run:
+```console
+conda activate MY_ENV_NAME
+```
 
-python
->>> import sys
->>> #-use the path to Ingrid installation:
->>> sys.path.insert(1, '/home/umansky1/Projects/INGRID/INGRID_31jul19/src/')
->>> import Ingrid
->>>Ingrid.set_params()
->>> Ingrid.run()
+## Example cases
+Included in the **Examples** directory are test cases for Ingrid usuage.
+
+### Running via gui
+Navigate into the **Examples** directory. With the __ingrid__ Conda environment activated, run:
+```console
+python GUI_startup.py
+```
+
+### Running via command line
+Navigate into the **Examples** directory. With the __ingrid__ Conda environment activated, run:
+```console
+python CL_startup.py
+```

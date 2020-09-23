@@ -57,7 +57,7 @@ grid_settings:
     rmagx_shift: 0.0
     xpt2_E_tilt: 0.0
     xpt2_W_tilt: 0.0
-    strike_geometry: limiter # refined TCV used target_plates
+    strike_pt_loc: limiter # refined TCV used target_plates
     magx_tilt_1: 0.0 # refined TCV -> 0.1
     magx_tilt_2: 0.0 # refined TCV -> -0.3
     use_xpt1_E: false
@@ -97,21 +97,17 @@ patch_data:
 target_plates:
   plate_E1:
     file: ../data/SF75/TCV/plate_e1.txt
-    name: plate_E1
     rshift: 0.0
     zshift: 0.0
   plate_E2:
     file: ../data/SF75/TCV/plate_e2.txt
-    name: plate_E2
     rshift: 0.0
     zshift: 0.0
   plate_W1:
     file: ../data/SF75/TCV/plate_w1.txt
-    name: plate_W1
     rshift: 0.0
     zshift: 0.0
   plate_W2:
     file: ../data/SF75/TCV/plate_w2.txt
-    name: plate_W2
     rshift: 0.0
     zshift: 0.0

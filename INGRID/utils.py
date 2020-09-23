@@ -171,7 +171,6 @@ class IngridUtils():
             'num_xpt': 1,
             'nlevs': 30,
             'view_mode': 'filled',
-            'full_domain': True,
             'psi_1': 0.0,
             'psi_core': 0.0,
             'psi_pf_1': 0.0,
@@ -200,7 +199,7 @@ class IngridUtils():
                 },
             },
             'patch_generation': {
-                'strike_geometry': 'limiter',
+                'strike_pt_loc': 'limiter',
                 'rmagx_shift': 0.0,
                 'zmagx_shift': 0.0,
                 'magx_tilt_1': 0.0,
@@ -226,28 +225,24 @@ class IngridUtils():
         self.default_target_plate_settings = {
             'plate_E1': {
                 'file': '',
-                'name': '',
                 'rshift': 0.0,
                 'zshift': 0.0
             },
 
             'plate_E2': {
                 'file': '',
-                'name': '',
                 'rshift': 0.0,
                 'zshift': 0.0
             },
 
             'plate_W1': {
                 'file': '',
-                'name': '',
                 'rshift': 0.0,
                 'zshift': 0.0
             },
 
             'plate_W2': {
                 'file': '',
-                'name': '',
                 'rshift': 0.0,
                 'zshift': 0.0
             },
@@ -258,7 +253,6 @@ class IngridUtils():
             'use_efit_bounds': False,
             'efit_buffer_r': 1e-2,
             'efit_buffer_z': 1e-2,
-            'use_default_data': True,
             'rshift': 0.0,
             'zshift': 0.0
         }
@@ -282,7 +276,6 @@ class IngridUtils():
             },
 
             'verbose': {
-                'target_plates': False,
                 'patch_generation': False,
                 'grid_generation': False,
                 'SF_analysis': False
@@ -446,6 +439,7 @@ class IngridUtils():
         for k in self.default_dir_settings.keys():
             path_obj = Path(self.settings['dir_settings'][k])
             if path_obj.is_dir() is False:
+                v = self.settings['dir_settings'][k]
                 raise ValueError(f"# Error processing directory provided for entry '{k}'. Entry '{v}' is not a valid directory.")
 
             if k == 'eqdsk':

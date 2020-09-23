@@ -33,9 +33,7 @@ grid_settings:
     xpt1_E_tilt: 0.0
     xpt1_W_tilt: -0.47
     rmagx_shift: 0.0
-    xpt2_E_tilt: 0.0
-    xpt2_W_tilt: 0.0
-    strike_geometry: target_plates
+    strike_pt_loc: target_plates
     magx_tilt_1: 0.0
     magx_tilt_2: 0.0
     use_xpt1_E: false
@@ -47,11 +45,9 @@ grid_settings:
   psi_pf_2: 0.0
   rmagx: 1.75785604
   rxpt: 1.300094032687
-  rxpt2: 0.0
   view_mode: filled
   zmagx: -0.0292478683
   zxpt: -1.133159375302
-  zxpt2: 0.0
 integrator_settings:
   dt: 0.01
   eps: 5.0e-06
@@ -71,17 +67,7 @@ patch_data:
 target_plates:
   plate_E1:
     file: ../data/SNL/DIII-D/d3d_otp.txt
-    name: plate_E1
-    zshift: 1.6
-  plate_E2:
-    file: null
-    name: null
-    zshift: 0.0
+    zshift: -1.6
   plate_W1:
     file: ../data/SNL/DIII-D/d3d_itp.txt
-    name: plate_W1
-    zshift: 1.6
-  plate_W2:
-    file: null
-    name: null
-    zshift: 0.0
+    zshift: -1.6

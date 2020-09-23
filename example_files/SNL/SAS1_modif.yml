@@ -28,9 +28,7 @@ grid_settings:
     xpt1_E_tilt: 0.0
     xpt1_W_tilt: 0.0
     rmagx_shift: 0.0
-    xpt2_E_tilt: 0.0
-    xpt2_W_tilt: 0.0
-    strike_geometry: limiter
+    strike_pt_loc: limiter
     magx_tilt_1: 0.0
     magx_tilt_2: 0.0
     use_xpt1_E: false
@@ -39,14 +37,11 @@ grid_settings:
   psi_1: 1.01249105907
   psi_core: 0.904041825299
   psi_pf_1: 0.978234882796
-  psi_pf_2: 0.0
   rmagx: 1.74358642
   rxpt: 1.370674632239
-  rxpt2: 0.0
   view_mode: filled
   zmagx: -0.0898046866
   zxpt: 0.998624803572
-  zxpt2: 0.0
 integrator_settings:
   dt: 0.01
   eps: 5.0e-05
@@ -63,19 +58,7 @@ patch_data:
 target_plates:
   plate_E1:
     file: ../data/SNL/SAS1/itp4.txt
-    name: plate_E1
     zshift: 0
-  plate_E2:
-    data: null
-    file: null
-    name: plate_E2
-    zshift: 1.6
   plate_W1:
     file: ../data/SNL/SAS1/SAS_odt.txt
-    name: plate_W1
     zshift: 0
-  plate_W2:
-    data: null
-    file: null
-    name: plate_W2
-    zshift: 1.6

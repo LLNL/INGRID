@@ -31,7 +31,7 @@ grid_settings:
     rmagx_shift: 0.0
     xpt2_E_tilt: 0.0
     xpt2_W_tilt: 0.0
-    strike_geometry: limiter
+    strike_pt_loc: limiter
     magx_tilt_1: 0.0
     magx_tilt_2: 0.0
     use_xpt1_E: false
@@ -70,17 +70,17 @@ patch_data:
 target_plates:
   plate_E1:
     file: ''
-    name: plate_E1
+    
     zshift: 0.0
   plate_E2:
     file: ''
-    name: null
+    
     zshift: 0.0
   plate_W1:
     file: ''
-    name: plate_W1
+    
     zshift: 0.0
   plate_W2:
     file: ''
-    name: null
+    
     zshift: 0.0

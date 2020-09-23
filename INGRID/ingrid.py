@@ -41,7 +41,6 @@ from topologies.sf165 import SF165
 from topologies.udn import UDN
 from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line
-from INGRID.gui.ingrid_gui import IngridGUI
 
 
 def QuickStart() -> None:
@@ -145,7 +144,7 @@ class Ingrid(IngridUtils):
             if messagebox.askyesno('', 'Are you sure you want to quit?'):
                 plt.close('all')
                 self.IngridWindow.destroy()
-
+        from gui.ingrid_gui import IngridGUI
         self.IngridWindow = IngridGUI(IngridSession=self)
         self.IngridWindow.title('INGRID')
         self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
@@ -213,7 +212,7 @@ class Ingrid(IngridUtils):
             print('Patch data-file:')
             print(' # Patch data-file:', self.settings['patch_data']['file'])
 
-        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'limiter':
+        if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'limiter':
             print('Limiter File:')
 
             if self.settings['limiter']['file'] == '' or Path(self.settings['limiter']['file']).is_file() is False:
@@ -238,7 +237,7 @@ class Ingrid(IngridUtils):
         print('Summary:')
         print(' # Number of x-points:', self.settings['grid_settings']['num_xpt'])
         print(' # Use full domain:', self.settings['grid_settings']['full_domain'])
-        print(' # Using strike geometry:', self.settings['grid_settings']['patch_generation']['strike_geometry'])
+        print(' # Using strike geometry:', self.settings['grid_settings']['patch_generation']['strike_pt_loc'])
         print(' # Use patch data-file:', self.settings['patch_data']['use_file'])
         print('')
         self.PrintSummaryInput()
@@ -730,7 +729,7 @@ class Ingrid(IngridUtils):
         Plot all strike geometry to be used for drawing the Patch Map.
 
         Checks the central INGRID ``settings`` attribute for whether
-        ``settings['patch_generation']['strike_geometry']`` is ``True`` or if
+        ``settings['patch_generation']['strike_pt_loc']`` is ``True`` or if
         ``settings['grid_settings']['num_xpt']`` is equal to ``2`` in order
         to determine whether or not to plot the limiter geometry.
 
@@ -748,7 +747,7 @@ class Ingrid(IngridUtils):
         if self.settings['grid_settings']['num_xpt'] == 2:
             self.PlotLimiter(ax=ax)
 
-        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'limiter':
+        if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'limiter':
             self.PlotLimiter(ax=ax)
         else:
             self.PlotTargetPlates(ax=ax)
@@ -783,6 +782,7 @@ class Ingrid(IngridUtils):
         if plate_key in [k for k in self.PlateData.keys()]:
             self.RemovePlotLine(label=plate_key, ax=ax)
             if type(self.PlateData[plate_key]) is Line:
+                print(f"# Plotting plate '{plate_key}'")
                 self.PlateData[plate_key].plot(label=plate_key, color=color)
             else:
                 pass
@@ -1049,7 +1049,7 @@ class Ingrid(IngridUtils):
         #                        bbox_to_anchor=(0.5, -0.25), loc='lower center',
         #                        ncol=len([label for label in lookup.keys()]) // 4)
         self.PlotStrikeGeometry(ax=self.PatchAx)
-        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'target_plates':
+        if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'target_plates':
             self.RemovePlotLine(label='limiter', ax=self.PatchAx)
 
     def PlotSubgrid(self) -> None:
@@ -1228,7 +1228,7 @@ class Ingrid(IngridUtils):
         self.AutoRefineXPoint()
         if topology == 'DNL':
             self.AutoRefineXPoint2()
-        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'limiter':
+        if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'limiter':
             self.SetGeometry({'limiter': self.settings['limiter']})
         self.SetTargetPlates()
         self.SetMagReference()

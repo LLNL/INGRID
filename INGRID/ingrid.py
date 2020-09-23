@@ -235,7 +235,6 @@ class Ingrid(IngridUtils):
         print('')
         print('Summary:')
         print(' # Number of x-points:', self.settings['grid_settings']['num_xpt'])
-        print(' # Use full domain:', self.settings['grid_settings']['full_domain'])
         print(' # Using strike geometry:', self.settings['grid_settings']['patch_generation']['strike_pt_loc'])
         print(' # Use patch data-file:', self.settings['patch_data']['use_file'])
         print('')

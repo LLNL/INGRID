@@ -17,7 +17,6 @@ dir_settings:
   target_plates: .
 eqdsk: /Users/torvaltz/Desktop/INGRID
 grid_settings:
-  full_domain: true
   grid_generation:
     distortion_correction:
       all:

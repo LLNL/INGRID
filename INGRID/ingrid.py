@@ -143,7 +143,7 @@ class Ingrid(IngridUtils):
             if messagebox.askyesno('', 'Are you sure you want to quit?'):
                 plt.close('all')
                 self.IngridWindow.destroy()
-        from gui.ingrid_gui import IngridGUI
+        from INGRID.gui.ingrid_gui import IngridGUI
         self.IngridWindow = IngridGUI(IngridSession=self)
         self.IngridWindow.title('INGRID')
         self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)

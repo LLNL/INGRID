@@ -30,15 +30,14 @@ from omfit_eqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.interpol import Bicubic
 from INGRID.utils import IngridUtils
-from INGRID import topologies
-from topologies.snl import SNL
-from topologies.sf15 import SF15
-from topologies.sf45 import SF45
-from topologies.sf75 import SF75
-from topologies.sf105 import SF105
-from topologies.sf135 import SF135
-from topologies.sf165 import SF165
-from topologies.udn import UDN
+from INGRID.topologies.snl import SNL
+from INGRID.topologies.sf15 import SF15
+from INGRID.topologies.sf45 import SF45
+from INGRID.topologies.sf75 import SF75
+from INGRID.topologies.sf105 import SF105
+from INGRID.topologies.sf135 import SF135
+from INGRID.topologies.sf165 import SF165
+from INGRID.topologies.udn import UDN
 from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line
 

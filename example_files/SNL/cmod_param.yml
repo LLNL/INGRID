@@ -4,7 +4,7 @@ dir_settings:
 DEBUG:
   verbose:
     grid_generation: 1
-    patch_generation: 0
+    patch_generation: 1
     target_plates: 1
   visual:
     find_NSEW: 0
@@ -28,15 +28,15 @@ grid_settings:
   nlevs: 100
   num_xpt: 1
   patch_generation:
-    xpt1_E_tilt: 0.0 # 0.2
-    xpt1_W_tilt: 0.0 # -0.8
+    xpt1_E_tilt: 0.2
+    xpt1_W_tilt: -0.8
     xpt2_E_tilt: 0.0
     xpt2_W_tilt: 0.0
-    strike_geometry: target_plates
+    strike_pt_loc: target_plates
     magx_tilt_1: 0.0
     magx_tilt_2: 0.0 # -0.4
-    use_xpt1_E: false # true
-    use_xpt1_W: false
+    use_xpt1_E: true
+    use_xpt1_W: true
     rmagx_shift: 0.0 # -0.1
     zmagx_shift: 0.0 # -0.2
   psi_1: 1.08
@@ -66,20 +66,8 @@ integrator_settings:
 target_plates:
   plate_E1:
     file: cmod_otp.txt
-    name: plate_E1
-    zshift: 0.0 # Z' = Z - zshift
-    rshift: 0.0 # R' = R - rshift
-  plate_E2:
-    file: ''
-    name: plate_E2
-    np_local: 3
-    poloidal_f: x, x
     zshift: 0.0
+    rshift: 0.0
   plate_W1:
     file: cmod_itp.txt
-    name: plate_W1
-    zshift: 0.0
-  plate_W2:
-    file: ''
-    name: plate_W2
     zshift: 0.0

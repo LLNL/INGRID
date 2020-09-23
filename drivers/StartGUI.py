@@ -1,4 +1,3 @@
-import sys
-import INGRID.ingrid as IG
 
+from INGRID import ingrid as IG
 IG.QuickStart()

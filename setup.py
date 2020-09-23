@@ -52,7 +52,6 @@ setup(
         'omfit-eqdsk',
         'scipy >= 1.3.1',
         'numpy',
-        'yaml',
         'pyyaml',
         'tk',
     ],  # Run "pip freeze > requirements.txt" to get a list

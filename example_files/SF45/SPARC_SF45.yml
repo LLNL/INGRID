@@ -4,7 +4,7 @@
 #       to perform as intended in this smaller geometry.
 dir_settings:
   eqdsk: ../data/SPARC/SPARC_XPTD/
-  target_plates: ../Data/DNL/SPARC/
+  target_plates: ../data/UDN/SPARC/
 eqdsk: V2_FREEGS_geqdsk_LSNX
 grid_settings:
   grid_generation:
@@ -27,15 +27,11 @@ grid_settings:
     rmagx_shift: 0.0
     xpt2_E_tilt: -0.55
     xpt2_W_tilt: 0.55
-    strike_geometry: target_plates  # Using limiter to create patch map
+    strike_pt_loc: target_plates  # Using limiter to create patch map
     magx_tilt_1: 0.0
     magx_tilt_2: 0.0
     use_xpt1_E: false
     use_xpt1_W: false
-    
-    
-    use_xpt2_E: true
-    use_xpt2_W: true
     zmagx_shift: 0.0
   psi_1: 1.002
   psi_2: 1.001
@@ -67,18 +63,18 @@ patch_data:
   use_file: True
 target_plates:  # Loaded but not used with patch data file created
   plate_E1:
-    file: ../Data/DNL/SPARC/divRZv1d_lotp.txt
-    name: plate_E1
+    file: divRZv1d_lotp.txt
+    
     zshift: 0.06183
   plate_E2:
     file: divRZv1d_uitp.txt
-    name: plate_E2
+    
     zshift: 0.0
   plate_W1:
-    file: ../Data/DNL/SPARC/divRZv1d_litp.txt
-    name: plate_W1
+    file: divRZv1d_litp.txt
+    
     zshift: 0.06183
   plate_W2:
-    file: ../Data/DNL/SPARC/divRZv1d_uotp.txt
-    name: plate_W2
+    file: divRZv1d_uotp.txt
+    
     zshift: 0.0

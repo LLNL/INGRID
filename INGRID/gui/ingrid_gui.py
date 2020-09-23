@@ -33,9 +33,6 @@ import yaml
 from INGRID.ingrid import Ingrid
 from time import time
 
-#helv_large = 'Helvetica 13 bold'
-#helv_medium = 'Helvetica 9 bold'
-
 
 class IngridGUI(tk.Tk):
     def __init__(self, master=None, IngridSession=None, *args, **kwargs):
@@ -198,7 +195,14 @@ class FilePicker(tk.Tk):
         IG.AutoRefineXPoint()
         if topology == 'DNL':
             IG.AutoRefineXPoint2()
+
+        if hasattr(IG, 'LimiterData'):
+            IG.LimiterData = None
         IG.SetGeometry({'limiter': IG.settings['limiter']})
+
+        if hasattr(IG, 'PlateData'):
+            IG.PlateData = {k: {} for k in IG.PlateData.keys()}
+
         IG.SetTargetPlates()
         IG.SetMagReference()
         IG.CalcPsiNorm()

@@ -149,7 +149,7 @@ class SNL(TopologyUtils):
         except KeyError:
             magx_tilt_2 = 0.0
 
-        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'limiter':
+        if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'limiter':
             WestPlate = self.parent.LimiterData.copy()
             EastPlate = self.parent.LimiterData.copy()
 

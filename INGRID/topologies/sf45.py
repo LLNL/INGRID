@@ -111,7 +111,7 @@ class SF45(TopologyUtils):
         psi_pf_1 = self.settings['grid_settings']['psi_pf_1']
         psi_pf_2 = self.settings['grid_settings']['psi_pf_2']
 
-        if self.settings['grid_settings']['patch_generation']['strike_geometry'] == 'limiter':
+        if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'limiter':
             WestPlate1 = self.parent.LimiterData.copy()
             WestPlate2 = self.parent.LimiterData.copy()
 

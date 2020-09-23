@@ -12,7 +12,6 @@ DEBUG:
     subgrid: false
 eqdsk: ../data/SF75/g44826.8000_mr4
 grid_settings:
-  full_domain: true
   grid_generation:
     distortion_correction:
       all:

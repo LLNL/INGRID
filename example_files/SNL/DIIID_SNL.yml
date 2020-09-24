@@ -17,8 +17,8 @@ grid_settings:
       #   resolution: 1000
       #   theta_max: 120.0
       #   theta_min: 80.0
-    np_default: 3
-    nr_default: 3
+    np_default: 6
+    nr_default: 6
     poloidal_f_default: x, x
     radial_f_default: x, x
     # poloidal_f_A: x, 1-(1-exp(-(1-x)/0.30))/(1-exp(-1/0.30))

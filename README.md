@@ -1,34 +1,26 @@
 # INGRID
 Interactive Grid Generator for Tokamak Boundary Region
 
-## Installing the INGRID Conda Environment:
-Dependencies required to run this code are found in the "conda_env.yml" file. The first line of the yml file sets the new environment's name. This is set to _**ingrid**_ by default.
-With the Conda package manager installed on your system, navigate to the cloned Ingrid root directory and run:
-```console
-conda env create -f conda_env.yml
-```
 
-If no edits were made to the provided .yml file, ctivate the newly created Conda environment by running:
+## Installing INGRID:
+After cloning the INGRID repo, the user can install INGRID via the ``setup.py`` file. This is done by running: 
 ```console
-conda activate ingrid
-```
-
-Otherwise, run:
-```console
-conda activate MY_ENV_NAME
+python setup.py install
 ```
 
 ## Example cases
-Included in the **Examples** directory are test cases for Ingrid usuage.
+Included in the **example_files** directory are some test cases for Ingrid usuage.
 
-### Running via gui
-Navigate into the **Examples** directory. With the __ingrid__ Conda environment activated, run:
+### Running GUI from drivers
+Navigate into the **drivers** directory. With the __ingrid__ Conda environment activated, run:
 ```console
-python GUI_startup.py
+python StartGUI.py
 ```
+From here a user can select an example case from **example_files** or create a new case by utilizing a template file.
 
-### Running via command line
-Navigate into the **Examples** directory. With the __ingrid__ Conda environment activated, run:
-```console
-python CL_startup.py
+### Running GUI from CL
+Running the gui directly from a python session can be done as follows:
+```python
+from INGRID import ingrid
+ingrid.QuickStart()
 ```

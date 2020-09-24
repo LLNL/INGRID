@@ -49,3 +49,5 @@ dependencies:
     - matplotlib==3.0.3
     - pyparsing==2.4.2
     - python-dateutil==2.8.0
+prefix: /Users/garcia299/anaconda3/envs/py37
+

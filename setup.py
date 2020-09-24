@@ -54,6 +54,7 @@ setup(
         'numpy',
         'pyyaml',
         'tk',
+        'sympy'
     ],  # Run "pip freeze > requirements.txt" to get a list
 )
     #extras_require={  # Optional

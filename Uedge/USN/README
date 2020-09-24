@@ -1,0 +1,11 @@
+DIII-D SAS USN benchmark case
+
+A USN gridue file (from INGRID or UEDGE) is supposed to be in the local directory.
+
+Run it:
+python -i run_usn.py
+
+Plot it:
+mp.plotvar(bbb.te/bbb.ev, title="TCV SF75 benchmark, INGRID grid, Te [eV]", vmin=0.0, vmax=50.)
+mp.plotvar(bbb.ni, title="TCV SF75 benchmark, INGRID grid, Ni [m-3]", vmin=0.0, vmax=7e19)
+mp.plotvar(bbb.up,title="TCV SF75 benchmark, INGRID grid, Vpar [m/s]", vmin=-4e4, vmax=6e4)

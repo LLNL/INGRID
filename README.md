@@ -9,14 +9,14 @@ python setup.py install
 ```
 
 ## Example cases
-Included in the **example_files** directory are some test cases for Ingrid usuage.
+Included in the ``example_files`` directory are some test cases for Ingrid usuage.
 
 ### Running GUI from drivers
-Navigate into the **drivers** directory. With the __ingrid__ Conda environment activated, run:
+Navigate into the ``drivers`` directory.
 ```console
 python StartGUI.py
 ```
-From here a user can select an example case from **example_files** or create a new case by utilizing a template file.
+From here a user can select an example case from ``example_files`` or create a new case by utilizing a template file.
 
 ### Running GUI from CL
 Running the gui directly from a python session can be done as follows:

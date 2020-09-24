@@ -10,7 +10,9 @@ where ``IngridDir`` is the name of your clone destination.
 
 ## Installation prerequisites:
 To run INGRID on your machine, you must have ``anaconda3`` and ``setuptools`` installed
-and upgraded. ***MacOS Mojave users please read on. Otherwise, continue to the next section.***
+and up to date. 
+
+***MacOS Mojave users please read on. Otherwise, continue to the next section.***
 
 MacOS Mojave has issues with certain backend libraries used in INGRID. This has been documented by Apple. To remedy this, a Conda evironment has been created and must be installed by the user. Inside the cloned repo should be the file ``conda_env.yml``. Creating the Conda environment can be done by running:
 ```console

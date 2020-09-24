@@ -27,7 +27,7 @@ When active, the terminal prompt should begin with ``(ingrid)``.
 ## Installing INGRID
 The user can install INGRID via the ``setup.py`` file (***MacOS Mojave users: make sure the ``ingrid`` conda environment is activated***). Installation can be started by running: 
 ```console
-python setup.py install
+python setup.py install --user
 ```
 
 ## Example cases

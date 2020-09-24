@@ -1,47 +1,97 @@
-DEBUG:
-  verbose:
-    grid_generation: 1
-    patch_generation: 1
-    target_plates: 0
-  visual:
-    find_NSEW: 0
-    gridue: 0
-    patch_map: 0
-    subgrid: 0
-eqdsk: ../data/SNL/SAS1/g175816.03000
+# ---------------------------------------------------
+# User data directories
+# ---------------------------------------------------
+dir_settings:
+  eqdsk: ../data/SNL/SAS1/  # dir containing eqdsk
+  limiter: .  # dir containing limiter
+  patch_data: ../data/SNL/  # dir containing patch data
+  target_plates: ../data/SNL/SAS1/ # dir containing target plates
+
+# ---------------------------------------------------
+# eqdsk file name
+# ---------------------------------------------------
+eqdsk: g175816.03000
+
+# ---------------------------------------------------
+# General grid settings
+# ---------------------------------------------------
 grid_settings:
+  # ----------------------------------------------------------------------------
+  # Settings for grid generation (num cells, transforms, distortion_correction)
+  # ----------------------------------------------------------------------------
   grid_generation:
     distortion_correction:
       all:
-        active: false
+        active: true
         resolution: 1000
         theta_max: 120.0
         theta_min: 80.0
-    np_default: 10
-    nr_default: 10
+    np_default: 3
+    nr_default: 2
     poloidal_f_default: x, x
     radial_f_default: x, x
+    # radial_f_1: x, 1-(1-exp(-(1-x)/0.90))/(1-exp(-1/0.90))
+    # radial_f_2: 'x, (1-exp(-(x)/0.50))/(1-exp(-1/0.50))'
+    # radial_f_3: 'x, x**1.4'
+  # ---------------------------------------------------
+  # guard cell size
+  # ---------------------------------------------------
   guard_cell_eps: 0.001
+  # ---------------------------------------------------
+  # num levels in efit plot
+  # ---------------------------------------------------
   nlevs: 30
+  # ---------------------------------------------------
+  # num xpts
+  # ---------------------------------------------------
   num_xpt: 1
+  # ---------------------------------------------------
+  # Settings for patch map
+  # ---------------------------------------------------
   patch_generation:
     xpt1_E_tilt: 0.0
     xpt1_W_tilt: 0.0
     rmagx_shift: 0.0
-    strike_pt_loc: limiter
+    strike_pt_loc: target_plates  # 'limiter' or 'target_plates'
     magx_tilt_1: 0.0
     magx_tilt_2: 0.0
     use_xpt1_E: false
     use_xpt1_W: false
     zmagx_shift: 0.0
+  # ---------------------------------------------------
+  # Psi levels
+  # ---------------------------------------------------
   psi_1: 1.01249105907
   psi_core: 0.904041825299
   psi_pf_1: 0.978234882796
-  rmagx: 1.74358642
+  # ---------------------------------------------------
+  # xpt coordinates
+  # ---------------------------------------------------
   rxpt: 1.370674632239
-  view_mode: filled
-  zmagx: -0.0898046866
   zxpt: 0.998624803572
+  # ---------------------------------------------------
+  # magx coordinates
+  # ---------------------------------------------------
+  rmagx: 1.74358642
+  zmagx: -0.0898046866
+  # ---------------------------------------------------
+  # Filled contours vs contour lines
+  # ---------------------------------------------------
+  view_mode: filled
+
+# ---------------------------------------------------
+# Saved patch settings
+# ---------------------------------------------------
+patch_data:
+  file: USN_patches_1598047632.npy
+  preferences:
+    new_file: False
+    new_fname: USN_patches_1598047632.npy
+  use_file: false
+
+# ---------------------------------------------------
+# Integrator
+# ---------------------------------------------------
 integrator_settings:
   dt: 0.01
   eps: 5.0e-05
@@ -49,16 +99,22 @@ integrator_settings:
   max_step: 0.064
   step_ratio: 0.02
   tol: 0.005
-patch_data:
-  file: ../data/SNL/USN_patches_1598047632.npy
-  preferences:
-    new_file: False
-    new_fname: ../data/SNL/USN_patches_1598047632.npy
-  use_file: false
+
+# ---------------------------------------------------
+# Limiter settings
+# ---------------------------------------------------
+limiter:
+  file: ''
+  rshift: 0.0
+  zshift: 0.0
+
+# ---------------------------------------------------
+# target plate settings
+# ---------------------------------------------------
 target_plates:
   plate_E1:
-    file: ../data/SNL/SAS1/itp4.txt
+    file: itp4.txt
     zshift: 0
   plate_W1:
-    file: ../data/SNL/SAS1/SAS_odt.txt
+    file: SAS_odt.txt
     zshift: 0

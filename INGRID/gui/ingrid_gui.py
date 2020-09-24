@@ -50,7 +50,7 @@ class IngridGUI(tk.Tk):
         else:
             self.Ingrid = IngridSession
 
-        self.NewSettingsPrompt()
+        # self.NewSettingsPrompt()
         self.PopulateGUI()
 
         #automatic loading of input files

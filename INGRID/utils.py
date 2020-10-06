@@ -27,6 +27,7 @@ from collections import OrderedDict
 from omfit_eqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.line_tracing import LineTracing
+from INGRID.DistribFunc import DistribFunc
 from INGRID.geometry import Point, Line, Patch, orientation_between
 import types
 
@@ -449,6 +450,7 @@ class IngridUtils():
 
         rmagx = g['RMAXIS']
         zmagx = g['ZMAXIS']
+
 
         rlimiter = g['RLIM']
         zlimiter = g['ZLIM']
@@ -1038,137 +1040,9 @@ class IngridUtils():
 
         self.config = self.LineTracer.config
 
-    def WriteGridueSNL(self, gridue_settings: dict, fname: str = 'gridue') -> bool:
-        """
-        Write a gridue file for a single-null configuration.
+    
 
-        Parameters
-        ----------
-        gridue_settings : dict
-            A dictionary containing grid data to be written to the gridue file.
-
-        fname : str, optional
-            The file name/path to save the gridue file to.
-            Defaults to 'gridue'.
-
-        Returns
-        -------
-            True if file was written with no errors
-        """
-
-        def format_header(gridue):
-            header_items = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
-            header = ''
-            for item in header_items:
-                header += '{}'.format(gridue[item]).rjust(4)
-
-            header += '\n'
-            return header
-
-        def format_body(data):
-
-            delim_val = 0
-            delim_char = ''
-            body = ''
-
-            for n in range(5):
-                for j in range(len(data[0])):
-                    for i in range(len(data)):
-                        delim_val += 1
-                        val = np.format_float_scientific(data[i][j][n], precision=15, unique=False).rjust(23).replace('e', 'D')
-                        if delim_val == 3:
-                            delim_val = 0
-                            delim_char = '\n'
-                        body += val + delim_char
-                        delim_char = ''
-
-            if delim_val % 3 != 0:
-                body += '\n'
-
-            return body
-
-        f = open(fname, mode='w')
-        f.write(format_header(gridue_settings) + '\n')
-
-        body_items = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
-        for item in body_items:
-            f.write(format_body(gridue_settings[item]) + '\n')
-
-        runidg = 'iogridue'
-        f.write(runidg + '\n')
-
-        f.close()
-
-        return True
-
-    def WriteGridueDNL(self, gridue_settings: dict, fname: str = 'gridue') -> bool:
-        """
-        Write a gridue file for a double-null configuration.
-
-        Parameters
-        ----------
-        gridue_settings : dict
-            A dictionary containing grid data to be written to the gridue file.
-
-        fname : str, optional
-            The file name/path to save the gridue file to.
-            Defaults to 'gridue'.
-
-        Returns
-        -------
-            True if file was written with no errors
-        """
-
-        def format_header(gridue):
-            header_rows = [
-                ['nxm', 'nym'],
-                ['iyseparatrix1', 'iyseparatrix2'],
-                ['ix_plate1', 'ix_cut1', '_FILLER_', 'ix_cut2', 'ix_plate2'],
-                ['iyseparatrix3', 'iyseparatrix4'],
-                ['ix_plate3', 'ix_cut3', '_FILLER_', 'ix_cut4', 'ix_plate4']
-            ]
-
-            header = ''
-            for header_items in header_rows:
-                for item in header_items:
-                    header += '{}'.format(gridue[item]).rjust(4)
-                header += '\n'
-            return header
-
-        def format_body(data):
-
-            delim_val = 0
-            delim_char = ''
-            body = ''
-
-            for n in range(5):
-                for j in range(len(data[0])):
-                    for i in range(len(data)):
-                        delim_val += 1
-                        val = np.format_float_scientific(data[i][j][n], precision=15, unique=False).rjust(23).replace('e', 'D')
-                        if delim_val == 3:
-                            delim_val = 0
-                            delim_char = '\n'
-                        body += val + delim_char
-                        delim_char = ''
-
-            if delim_val % 3 != 0:
-                body += '\n'
-
-            return body
-
-        f = open(fname, mode='w')
-        f.write(format_header(gridue_settings) + '\n')
-
-        body_items = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
-        for item in body_items:
-            f.write(format_body(gridue_settings[item]) + '\n')
-
-        runidg = 'iogridue'
-        f.write(runidg + '\n')
-
-        f.close()
-        return True
+    
 
     def ReconstructPatches(self, fname: str) -> tuple:
         """
@@ -1236,16 +1110,7 @@ class IngridUtils():
         """
         self.CurrentTopology.CheckPatches(verbose=verbose)
 
-    def PrepGridue(self, guard_cell_eps=1e-3) -> None:
-        """
-        Prepare the gridue for writing.
-
-        This method calls topology specific implementations of methods that
-        concatenate the Patch object subgrids into a global grid.
-        """
-        self.CurrentTopology.SetupPatchMatrix()
-        self.CurrentTopology.concat_grid(guard_cell_eps=guard_cell_eps)
-        self.CurrentTopology.set_gridue()
+    
 
     @classmethod
     def _CheckOverlapCells(Grid, Verbose=False):
@@ -1328,6 +1193,7 @@ class TopologyUtils():
         self.PlateData = Ingrid_obj.PlateData
         self.PatchTagMap = self.parent.GetPatchTagMap(config=config)
         self.LineTracer = Ingrid_obj.LineTracer
+        self.OMFIT_psi = Ingrid_obj.OMFIT_psi
         self.PsiUNorm = Ingrid_obj.PsiUNorm
         self.PsiNorm = Ingrid_obj.PsiNorm
         self.CurrentListPatch = {}
@@ -1450,7 +1316,7 @@ class TopologyUtils():
         
         # set radial orientation negative if patch is in PFR
         for name, patch in self.patches.items():
-            if  self.GetPatchLetterNumber(patch.get_tag())[1]=='1':
+            if  patch.plate_patch and self.GetPatchLetterNumber(patch.get_tag())[1]=='1':
                 patch.RadOrientation=-1
             else:
                 patch.RadOrientation=1
@@ -1470,143 +1336,7 @@ class TopologyUtils():
         
                 
         
-    def ImportFunc(self,F:str or types.FunctionType='x,x',**kwargs)->types.FunctionType:
-        
-        def get_lambdafunc( func: str) -> types.FunctionType:
-            """
-            Create a function from a string input.
     
-            Will be used to generate a poloidal or radial transformation
-            function.
-    
-            Parameters
-            ----------
-            func : str
-                An expression to generate a function from.
-    
-            Returns
-            -------
-                A function generated from the str input.
-    
-            Examples
-            --------
-            When calling method ``get_func`` the user must provide a **string**
-            with the following general format:
-    
-            .. math::
-    
-                x, f(x)
-    
-            That is, the dependent variable and expression to evaluate are
-            separated with a comma character.
-    
-            The `Sympy` library supports most expressions that can be generated with
-            Python natively. See the `Sympy` documentation for advanced features.
-    
-            Defining a function representing f(x) = x ^ 2:
-    
-            >>> func = 'x, x ** 2'
-            >>> f = MyTopologyUtils.get_func(func)
-            >>> f(np.array([0, 1, 2, 3]))
-            array([0, 1, 4, 9])
-    
-            Defining a function representing f(x) = exp(x)
-    
-            >>> func = 'x, exp(x)'
-            >>> f = MyTopologyUtils.get_func(func)
-            >>> f(np.array([0, 1, 2, 3]))
-            array([ 1.        ,  2.71828183,  7.3890561 , 20.08553692])
-    
-            """
-    
-            def make_sympy_func(var, expression):
-                import sympy as sp
-                _f = sp.lambdify(var, expression, 'numpy')
-                return _f
-    
-            f_str_raw = func
-    
-            f_str_raw = f_str_raw.replace(' ', '')
-            delim = f_str_raw.index(',')
-    
-            var = f_str_raw[0: delim]
-            expression = f_str_raw[delim + 1:]
-    
-            func = make_sympy_func(var, expression)
-            # TODO: Check Normalization of the function to 1
-            return func
-    
-        def CheckLambdaFunction(expression: str, Verbose: bool = False) -> bool:
-            """
-            Check if a str is in the correct format for method ``get_func``
-    
-            Parameters
-            ----------
-            expression : str
-                Expression to check.
-    
-            Verbose : bool, optional
-                Print full output to terminal. Default to False
-    
-            Returns
-            -------
-                True if expression is valid. False otherwise.
-            """
-            ExpValid = False
-            try:
-                com = 'lambda {}:{}'.format(expression.split(',')[0], expression.split(',')[1])
-                if Verbose:
-                    print(com)
-                eval(com)
-                ExpValid = True
-            except:
-                ExpValid=False
-            return ExpValid
-        
-        
-        if type(F)==str:
-            if F=='exp':
-                if kwargs.get('alpha') is None:
-                    alpha=1
-                else:
-                    alpha=kwargs.get('alpha')
-                def Func(x):
-                    return (1-np.exp(-(x)/alpha))/(1-np.exp(-1/alpha))
-            elif F=='mexp':
-                if kwargs.get('alpha') is None:
-                    alpha=1
-                else:
-                    alpha=kwargs.get('alpha')
-                def Func(x):
-                    return 1-((1-np.exp(-((1-x)/alpha)))/(1-np.exp(-1/alpha)))    
-        
-            elif F=='pow':
-                if kwargs.get('alpha') is None:
-                    alpha=1
-                else:
-                    alpha=kwargs.get('alpha')
-                def Func(x):
-                    return x**alpha
-            elif F=='mpow':
-                if kwargs.get('alpha') is None:
-                    alpha=1
-                else:
-                    alpha=kwargs.get('alpha')
-                def Func(x):
-                    return 1-x**alpha
-            else:
-                if CheckLambdaFunction(F):    
-                    Func=get_lambdafunc(F)
-                else:
-                    raise ValueError('Unable to parse expression entry "{}".'.format(F))
-                    Func=None
-        else:
-            Func=F
-        
-        if not callable(Func):
-            Func=None
-            
-        return Func    
     
     def ResetHeavyAttr(self):
         for p in self.patches.values():
@@ -1638,21 +1368,21 @@ class TopologyUtils():
         p_f = 'poloidal_f_' + poloidal_tag
         r_f = 'radial_f_' + radial_tag
         
-        _poloidal_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get(p_f))
+        _poloidal_f = DistribFunc(self.settings['grid_settings']['grid_generation'].get(p_f))
         if _poloidal_f is None:
-            _poloidal_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get('poloidal_f_default'))
+            _poloidal_f = DistribFunc(self.settings['grid_settings']['grid_generation'].get('poloidal_f_default'))
         if _poloidal_f is None:
-            _poloidal_f = self.ImportFunc('x:x')
+            _poloidal_f = DistribFunc('x:x')
 
     
         (L,N)=self.GetPatchLetterNumber(Patch.get_tag())
         # Adding CORE radial_f support for SNL cases via entry 'radial_f_3'
         if self.config in ['USN', 'LSN'] and N=='1' and Patch.plate_patch:
-            _radial_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get('radial_f_3'))
+            _radial_f = DistribFunc(self.settings['grid_settings']['grid_generation'].get('radial_f_3'))
         else:
-            _radial_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get(r_f))
+            _radial_f = DistribFunc(self.settings['grid_settings']['grid_generation'].get(r_f))
         if _radial_f is None:
-            _radial_f = self.ImportFunc(self.settings['grid_settings']['grid_generation'].get('radial_f_default'))
+            _radial_f = DistribFunc(self.settings['grid_settings']['grid_generation'].get('radial_f_default'))
         if _radial_f is None:
             _radial_f = lambda x: x
             
@@ -2323,4 +2053,14 @@ class TopologyUtils():
     def SetBoundarySplines(self):
         for n,p in self.patches.items():
             p.CreateBoundarySplines(self)
-            
+    
+    def PrepGridue(self, guard_cell_eps=1e-3) -> None:
+        """
+        Prepare the gridue for writing.
+
+        This method calls topology specific implementations of methods that
+        concatenate the Patch object subgrids into a global grid.
+        """
+        self.SetupPatchMatrix()
+        self.concat_grid(guard_cell_eps=guard_cell_eps)
+        self.set_gridue()

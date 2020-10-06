@@ -7,7 +7,7 @@ Created on Thu Sep 17 10:04:20 2020
 """
 import types
 import numpy as np
-def DistribFunc(F:str or types.FunctionType='x,x',**kwargs)->types.FunctionType:
+def DistribFunc(F:dict or str or types.FunctionType='x,x',**kwargs)->types.FunctionType:
         
         def get_lambdafunc( func: str) -> types.FunctionType:
             """
@@ -100,8 +100,9 @@ def DistribFunc(F:str or types.FunctionType='x,x',**kwargs)->types.FunctionType:
                 ExpValid=False
             return ExpValid
         
-        
-        if type(F)==str:
+        if type(F)==dict:
+            Func=DistribFunc(**F)
+        elif type(F)==str:
             if F=='exp':
                 if kwargs.get('alpha') is None:
                     alpha=1
@@ -143,4 +144,4 @@ def DistribFunc(F:str or types.FunctionType='x,x',**kwargs)->types.FunctionType:
         if not callable(Func):
             Func=None
             
-        return Func 
+        return Func    

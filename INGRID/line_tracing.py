@@ -232,7 +232,7 @@ class LineTracing:
         hessian[0, 0] = self.grid.get_psi(rxpt, zxpt, tag='vrr')
         hessian[1, 1] = self.grid.get_psi(rxpt, zxpt, tag='vzz')
         hessian[0, 1] = self.grid.get_psi(rxpt, zxpt, tag='vrz')
-        hessian[1, 1] = self.grid.get_psi(rxpt, zxpt, tag='vrz')
+        hessian[1, 0] = self.grid.get_psi(rxpt, zxpt, tag='vrz')
 
         eigval, eigvect = np.linalg.eig(hessian)
         index = 0 if np.sign(eigval[0]) == -1 else 1

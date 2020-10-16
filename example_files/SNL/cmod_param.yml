@@ -36,7 +36,7 @@ grid_settings:
     magx_tilt_1: 0.0
     magx_tilt_2: 0.0 # -0.4
     use_xpt1_E: true
-    use_xpt1_W: true
+    use_xpt1_W: false
     rmagx_shift: 0.0 # -0.1
     zmagx_shift: 0.0 # -0.2
   psi_1: 1.08

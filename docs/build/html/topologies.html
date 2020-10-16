@@ -1,0 +1,804 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>topologies package &mdash; ingrid  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="utils module" href="utils.html" />
+    <link rel="prev" title="ingrid module" href="ingrid.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ingrid
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">INGRID Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Module Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html">ingrid module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">topologies package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-topologies.sf105">topologies.sf105 module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-topologies.sf135">topologies.sf135 module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-topologies.sf15">topologies.sf15 module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-topologies.sf165">topologies.sf165 module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-topologies.sf45">topologies.sf45 module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-topologies.sf75">topologies.sf75 module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-topologies.snl">topologies.snl module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-topologies.udn">topologies.udn module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-topologies">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html">geometry module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="line_tracing.html">line_tracing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interpol.html">interpol module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ingrid</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">Module Documentation</a> &raquo;</li>
+        
+      <li>topologies package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/topologies.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="topologies-package">
+<h1>topologies package<a class="headerlink" href="#topologies-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-topologies.sf105">
+<span id="topologies-sf105-module"></span><h2>topologies.sf105 module<a class="headerlink" href="#module-topologies.sf105" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">sf105</span></code> module contains <a class="reference internal" href="#topologies.sf105.SF105" title="topologies.sf105.SF105"><code class="xref py py-class docutils literal notranslate"><span class="pre">SF105</span></code></a> for representing a Snowflake-105
+topology/configuration.</p>
+<p>Child of base <a class="reference internal" href="utils.html#utils.TopologyUtils" title="utils.TopologyUtils"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.TopologyUtils</span></code></a>.</p>
+<dl class="py class">
+<dt id="topologies.sf105.SF105">
+<em class="property">class </em><code class="sig-prename descclassname">topologies.sf105.</code><code class="sig-name descname">SF105</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ingrid_obj</span><span class="p">:</span> <span class="n"><a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid">ingrid.Ingrid</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'SF105'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf105.SF105" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">INGRID.utils.TopologyUtils</span></code></p>
+<p>The <cite>SF105</cite> class for handling <cite>Snowflake-105</cite> configurations within a tokamak.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Ingrid_obj</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – Ingrid object the SF105 object is being managed by.</p></li>
+<li><p><strong>config</strong> (<em>str</em><em>, </em><em>optional</em>) – String code representing the configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ConnexionMap</strong> (<em>dict</em>) – A mapping defining dependencies between Patch objects for grid generation.</p></li>
+<li><p><strong>patches</strong> (<em>dict</em>) – The collection of Patch objects representing the topology.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="topologies.sf105.SF105.AdjustGrid">
+<code class="sig-name descname">AdjustGrid</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#topologies.sf105.SF105.AdjustGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust the grid so that no holes occur at x-points, and cell grid
+faces are alligned</p>
+<p>A small epsilon radius is swept out around x-points during Patch
+line tracing. This simple tidies up a grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>patch</strong> (<a class="reference internal" href="geometry.html#geometry.Patch" title="geometry.Patch"><em>Patch</em></a>) – The patch to tidy up (will only adjust if next to x-point).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf105.SF105.AdjustPatch">
+<code class="sig-name descname">AdjustPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf105.SF105.AdjustPatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf105.SF105.GroupPatches">
+<code class="sig-name descname">GroupPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf105.SF105.GroupPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf105.SF105.OrderPatches">
+<code class="sig-name descname">OrderPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf105.SF105.OrderPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf105.SF105.construct_patches">
+<code class="sig-name descname">construct_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf105.SF105.construct_patches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf105.SF105.set_gridue">
+<code class="sig-name descname">set_gridue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf105.SF105.set_gridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares a <code class="docutils literal notranslate"><span class="pre">gridue_settings</span></code> dictionary with required data
+for writing a gridue file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-topologies.sf135">
+<span id="topologies-sf135-module"></span><h2>topologies.sf135 module<a class="headerlink" href="#module-topologies.sf135" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">sf135</span></code> module contains <a class="reference internal" href="#topologies.sf135.SF135" title="topologies.sf135.SF135"><code class="xref py py-class docutils literal notranslate"><span class="pre">SF135</span></code></a> for representing a Snowflake-135
+topology/configuration.</p>
+<p>Child of base <a class="reference internal" href="utils.html#utils.TopologyUtils" title="utils.TopologyUtils"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.TopologyUtils</span></code></a>.</p>
+<dl class="py class">
+<dt id="topologies.sf135.SF135">
+<em class="property">class </em><code class="sig-prename descclassname">topologies.sf135.</code><code class="sig-name descname">SF135</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ingrid_obj</span><span class="p">:</span> <span class="n"><a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid">ingrid.Ingrid</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'SF135'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf135.SF135" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">INGRID.utils.TopologyUtils</span></code></p>
+<p>The <cite>SF135</cite> class for handling <cite>Snowflake-135</cite> configurations within a tokamak.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Ingrid_obj</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – Ingrid object the SF135 object is being managed by.</p></li>
+<li><p><strong>config</strong> (<em>str</em><em>, </em><em>optional</em>) – String code representing the configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ConnexionMap</strong> (<em>dict</em>) – A mapping defining dependencies between Patch objects for grid generation.</p></li>
+<li><p><strong>patches</strong> (<em>dict</em>) – The collection of Patch objects representing the topology.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="topologies.sf135.SF135.AdjustGrid">
+<code class="sig-name descname">AdjustGrid</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#topologies.sf135.SF135.AdjustGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust the grid so that no holes occur at x-points, and cell grid
+faces are alligned</p>
+<p>A small epsilon radius is swept out around x-points during Patch
+line tracing. This simple tidies up a grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>patch</strong> (<a class="reference internal" href="geometry.html#geometry.Patch" title="geometry.Patch"><em>Patch</em></a>) – The patch to tidy up (will only adjust if next to x-point).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf135.SF135.AdjustPatch">
+<code class="sig-name descname">AdjustPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf135.SF135.AdjustPatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf135.SF135.GroupPatches">
+<code class="sig-name descname">GroupPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf135.SF135.GroupPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf135.SF135.OrderPatches">
+<code class="sig-name descname">OrderPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf135.SF135.OrderPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf135.SF135.construct_patches">
+<code class="sig-name descname">construct_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf135.SF135.construct_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draws lines and creates patches for both USN and LSN configurations.</p>
+<dl class="simple">
+<dt>Patch Labeling Key:</dt><dd><p>I: Inner,
+O: Outer,
+DL: Divertor Leg,
+PF: Private Flux,
+T: Top,
+B: Bottom,
+S: Scrape Off Layer,
+C: Core.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf135.SF135.set_gridue">
+<code class="sig-name descname">set_gridue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf135.SF135.set_gridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares a <code class="docutils literal notranslate"><span class="pre">gridue_settings</span></code> dictionary with required data
+for writing a gridue file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-topologies.sf15">
+<span id="topologies-sf15-module"></span><h2>topologies.sf15 module<a class="headerlink" href="#module-topologies.sf15" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">sf15</span></code> module contains <a class="reference internal" href="#topologies.sf15.SF15" title="topologies.sf15.SF15"><code class="xref py py-class docutils literal notranslate"><span class="pre">SF15</span></code></a> for representing a Snowflake-15
+topology/configuration.</p>
+<p>Child of base <a class="reference internal" href="utils.html#utils.TopologyUtils" title="utils.TopologyUtils"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.TopologyUtils</span></code></a>.</p>
+<dl class="py class">
+<dt id="topologies.sf15.SF15">
+<em class="property">class </em><code class="sig-prename descclassname">topologies.sf15.</code><code class="sig-name descname">SF15</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ingrid_obj</span><span class="p">:</span> <span class="n"><a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid">ingrid.Ingrid</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'SF15'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf15.SF15" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">INGRID.utils.TopologyUtils</span></code></p>
+<p>The <cite>SF15</cite> class for handling <cite>Snowflake-15</cite> configurations within a tokamak.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Ingrid_obj</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – Ingrid object the SF15 object is being managed by.</p></li>
+<li><p><strong>config</strong> (<em>str</em><em>, </em><em>optional</em>) – String code representing the configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ConnexionMap</strong> (<em>dict</em>) – A mapping defining dependencies between Patch objects for grid generation.</p></li>
+<li><p><strong>patches</strong> (<em>dict</em>) – The collection of Patch objects representing the topology.</p></li>
+<li><p><strong>ConnexionMap</strong> – A mapping defining dependencies between Patch objects for grid generation.</p></li>
+<li><p><strong>patches</strong> – The collection of Patch objects representing the topology.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="topologies.sf15.SF15.AdjustGrid">
+<code class="sig-name descname">AdjustGrid</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#topologies.sf15.SF15.AdjustGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust the grid so that no holes occur at x-points, and cell grid
+faces are alligned</p>
+<p>A small epsilon radius is swept out around x-points during Patch
+line tracing. This simple tidies up a grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>patch</strong> (<a class="reference internal" href="geometry.html#geometry.Patch" title="geometry.Patch"><em>Patch</em></a>) – The patch to tidy up (will only adjust if next to x-point).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf15.SF15.AdjustPatch">
+<code class="sig-name descname">AdjustPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf15.SF15.AdjustPatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf15.SF15.GroupPatches">
+<code class="sig-name descname">GroupPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf15.SF15.GroupPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf15.SF15.OrderPatches">
+<code class="sig-name descname">OrderPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf15.SF15.OrderPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf15.SF15.construct_patches">
+<code class="sig-name descname">construct_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf15.SF15.construct_patches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf15.SF15.set_gridue">
+<code class="sig-name descname">set_gridue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf15.SF15.set_gridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares a <code class="docutils literal notranslate"><span class="pre">gridue_settings</span></code> dictionary with required data
+for writing a gridue file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-topologies.sf165">
+<span id="topologies-sf165-module"></span><h2>topologies.sf165 module<a class="headerlink" href="#module-topologies.sf165" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">sf165</span></code> module contains <a class="reference internal" href="#topologies.sf165.SF165" title="topologies.sf165.SF165"><code class="xref py py-class docutils literal notranslate"><span class="pre">SF165</span></code></a> for representing a Snowflake-165
+topology/configuration.</p>
+<p>Child of base <a class="reference internal" href="utils.html#utils.TopologyUtils" title="utils.TopologyUtils"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.TopologyUtils</span></code></a>.</p>
+<dl class="py class">
+<dt id="topologies.sf165.SF165">
+<em class="property">class </em><code class="sig-prename descclassname">topologies.sf165.</code><code class="sig-name descname">SF165</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ingrid_obj</span><span class="p">:</span> <span class="n"><a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid">ingrid.Ingrid</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'SF165'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf165.SF165" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">INGRID.utils.TopologyUtils</span></code></p>
+<p>The <cite>SF165</cite> class for handling <cite>Snowflake-165</cite> configurations within a tokamak.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Ingrid_obj</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – Ingrid object the SF165 object is being managed by.</p></li>
+<li><p><strong>config</strong> (<em>str</em><em>, </em><em>optional</em>) – String code representing the configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ConnexionMap</strong> (<em>dict</em>) – A mapping defining dependencies between Patch objects for grid generation.</p></li>
+<li><p><strong>patches</strong> (<em>dict</em>) – The collection of Patch objects representing the topology.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="topologies.sf165.SF165.AdjustGrid">
+<code class="sig-name descname">AdjustGrid</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#topologies.sf165.SF165.AdjustGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust the grid so that no holes occur at x-points, and cell grid
+faces are alligned</p>
+<p>A small epsilon radius is swept out around x-points during Patch
+line tracing. This simple tidies up a grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>patch</strong> (<a class="reference internal" href="geometry.html#geometry.Patch" title="geometry.Patch"><em>Patch</em></a>) – The patch to tidy up (will only adjust if next to x-point).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf165.SF165.AdjustPatch">
+<code class="sig-name descname">AdjustPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf165.SF165.AdjustPatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf165.SF165.GroupPatches">
+<code class="sig-name descname">GroupPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf165.SF165.GroupPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf165.SF165.OrderPatches">
+<code class="sig-name descname">OrderPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf165.SF165.OrderPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf165.SF165.construct_patches">
+<code class="sig-name descname">construct_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf165.SF165.construct_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draws lines and creates patches for both USN and LSN configurations.</p>
+<dl class="simple">
+<dt>Patch Labeling Key:</dt><dd><p>I: Inner,
+O: Outer,
+DL: Divertor Leg,
+PF: Private Flux,
+T: Top,
+B: Bottom,
+S: Scrape Off Layer,
+C: Core.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf165.SF165.set_gridue">
+<code class="sig-name descname">set_gridue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf165.SF165.set_gridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares a <code class="docutils literal notranslate"><span class="pre">gridue_settings</span></code> dictionary with required data
+for writing a gridue file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-topologies.sf45">
+<span id="topologies-sf45-module"></span><h2>topologies.sf45 module<a class="headerlink" href="#module-topologies.sf45" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">sf45</span></code> module contains <a class="reference internal" href="#topologies.sf45.SF45" title="topologies.sf45.SF45"><code class="xref py py-class docutils literal notranslate"><span class="pre">SF45</span></code></a> for representing a Snowflake-45
+topology/configuration.</p>
+<p>Child of base <a class="reference internal" href="utils.html#utils.TopologyUtils" title="utils.TopologyUtils"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.TopologyUtils</span></code></a>.</p>
+<dl class="py class">
+<dt id="topologies.sf45.SF45">
+<em class="property">class </em><code class="sig-prename descclassname">topologies.sf45.</code><code class="sig-name descname">SF45</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ingrid_obj</span><span class="p">:</span> <span class="n"><a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid">ingrid.Ingrid</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'SF45'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf45.SF45" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">INGRID.utils.TopologyUtils</span></code></p>
+<p>The <cite>SF45</cite> class for handling <cite>Snowflake-45</cite> configurations within a tokamak.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Ingrid_obj</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – Ingrid object the SF45 object is being managed by.</p></li>
+<li><p><strong>config</strong> (<em>str</em><em>, </em><em>optional</em>) – String code representing the configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ConnexionMap</strong> (<em>dict</em>) – A mapping defining dependencies between Patch objects for grid generation.</p></li>
+<li><p><strong>patches</strong> (<em>dict</em>) – The collection of Patch objects representing the topology.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="topologies.sf45.SF45.AdjustPatch">
+<code class="sig-name descname">AdjustPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf45.SF45.AdjustPatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf45.SF45.GroupPatches">
+<code class="sig-name descname">GroupPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf45.SF45.GroupPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf45.SF45.OrderPatches">
+<code class="sig-name descname">OrderPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf45.SF45.OrderPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf45.SF45.construct_patches">
+<code class="sig-name descname">construct_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf45.SF45.construct_patches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf45.SF45.set_gridue">
+<code class="sig-name descname">set_gridue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf45.SF45.set_gridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares a <code class="docutils literal notranslate"><span class="pre">gridue_settings</span></code> dictionary with required data
+for writing a gridue file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-topologies.sf75">
+<span id="topologies-sf75-module"></span><h2>topologies.sf75 module<a class="headerlink" href="#module-topologies.sf75" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">sf75</span></code> module contains <a class="reference internal" href="#topologies.sf75.SF75" title="topologies.sf75.SF75"><code class="xref py py-class docutils literal notranslate"><span class="pre">SF75</span></code></a> for representing a Snowflake-75
+topology/configuration.</p>
+<p>Child of base <a class="reference internal" href="utils.html#utils.TopologyUtils" title="utils.TopologyUtils"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.TopologyUtils</span></code></a>.</p>
+<dl class="py class">
+<dt id="topologies.sf75.SF75">
+<em class="property">class </em><code class="sig-prename descclassname">topologies.sf75.</code><code class="sig-name descname">SF75</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ingrid_obj</span><span class="p">:</span> <span class="n"><a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid">ingrid.Ingrid</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'SF75'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf75.SF75" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">INGRID.utils.TopologyUtils</span></code></p>
+<p>The <cite>SF75</cite> class for handling <cite>Snowflake-75</cite> configurations within a tokamak.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Ingrid_obj</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – Ingrid object the SF75 object is being managed by.</p></li>
+<li><p><strong>config</strong> (<em>str</em><em>, </em><em>optional</em>) – String code representing the configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ConnexionMap</strong> (<em>dict</em>) – A mapping defining dependencies between Patch objects for grid generation.</p></li>
+<li><p><strong>patches</strong> (<em>dict</em>) – The collection of Patch objects representing the topology.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="topologies.sf75.SF75.AdjustGrid">
+<code class="sig-name descname">AdjustGrid</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#topologies.sf75.SF75.AdjustGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust the grid so that no holes occur at x-points, and cell grid
+faces are alligned</p>
+<p>A small epsilon radius is swept out around x-points during Patch
+line tracing. This simple tidies up a grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>patch</strong> (<a class="reference internal" href="geometry.html#geometry.Patch" title="geometry.Patch"><em>Patch</em></a>) – The patch to tidy up (will only adjust if next to x-point).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf75.SF75.AdjustPatch">
+<code class="sig-name descname">AdjustPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf75.SF75.AdjustPatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf75.SF75.GroupPatches">
+<code class="sig-name descname">GroupPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf75.SF75.GroupPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf75.SF75.OrderPatches">
+<code class="sig-name descname">OrderPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf75.SF75.OrderPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf75.SF75.construct_patches">
+<code class="sig-name descname">construct_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf75.SF75.construct_patches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.sf75.SF75.set_gridue">
+<code class="sig-name descname">set_gridue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.sf75.SF75.set_gridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares a <code class="docutils literal notranslate"><span class="pre">gridue_settings</span></code> dictionary with required data
+for writing a gridue file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-topologies.snl">
+<span id="topologies-snl-module"></span><h2>topologies.snl module<a class="headerlink" href="#module-topologies.snl" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">snl</span></code> module contains <a class="reference internal" href="#topologies.snl.SNL" title="topologies.snl.SNL"><code class="xref py py-class docutils literal notranslate"><span class="pre">SNL</span></code></a> for representing a single-null
+topology/configuration.</p>
+<p>Child of base <a class="reference internal" href="utils.html#utils.TopologyUtils" title="utils.TopologyUtils"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.TopologyUtils</span></code></a>.</p>
+<dl class="py class">
+<dt id="topologies.snl.SNL">
+<em class="property">class </em><code class="sig-prename descclassname">topologies.snl.</code><code class="sig-name descname">SNL</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ingrid_obj</span><span class="p">:</span> <span class="n"><a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid">ingrid.Ingrid</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.snl.SNL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">INGRID.utils.TopologyUtils</span></code></p>
+<p>The SNL class for handling <cite>Lower Single Null</cite> (LSN) and
+<cite>Upper Single Null</cite> (USN) configurations within a tokamak.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Ingrid_obj</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – Ingrid object the SNL object is being managed by.</p></li>
+<li><p><strong>config</strong> (<em>str</em>) – String code representing the configuration (for SNL it can be ‘LSN’ or ‘USN’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ConnexionMap</strong> (<em>dict</em>) – A mapping defining dependencies between Patch objects for grid generation.</p></li>
+<li><p><strong>patches</strong> (<em>dict</em>) – The collection of Patch objects representing the topology.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="topologies.snl.SNL.AdjustGrid">
+<code class="sig-name descname">AdjustGrid</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#topologies.snl.SNL.AdjustGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust the grid so that no holes occur at x-points, and cell grid
+faces are alligned</p>
+<p>A small epsilon radius is swept out around x-points during Patch
+line tracing. This simple tidies up a grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>patch</strong> (<a class="reference internal" href="geometry.html#geometry.Patch" title="geometry.Patch"><em>Patch</em></a>) – The patch to tidy up (will only adjust if next to x-point).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="topologies.snl.SNL.AdjustPatch">
+<code class="sig-name descname">AdjustPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.snl.SNL.AdjustPatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.snl.SNL.GroupPatches">
+<code class="sig-name descname">GroupPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.snl.SNL.GroupPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.snl.SNL.OrderPatches">
+<code class="sig-name descname">OrderPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.snl.SNL.OrderPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.snl.SNL.construct_patches">
+<code class="sig-name descname">construct_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.snl.SNL.construct_patches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the Patch map with <code class="xref py py-class docutils literal notranslate"><span class="pre">LineTracing</span></code>.</p>
+<p>Patch Labeling Key:</p>
+<ul class="simple">
+<li><p>I: Inner,</p></li>
+<li><p>O: Outer,</p></li>
+<li><p>DL: Divertor Leg,</p></li>
+<li><p>PF: Private Flux,</p></li>
+<li><p>T: Top,</p></li>
+<li><p>B: Bottom,</p></li>
+<li><p>S: Scrape Off Layer,</p></li>
+<li><p>C: Core.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt id="topologies.snl.SNL.set_gridue">
+<code class="sig-name descname">set_gridue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.snl.SNL.set_gridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares a <code class="docutils literal notranslate"><span class="pre">gridue_settings</span></code> dictionary with required data
+for writing a gridue file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-topologies.udn">
+<span id="topologies-udn-module"></span><h2>topologies.udn module<a class="headerlink" href="#module-topologies.udn" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">udn</span></code> module contains <a class="reference internal" href="#topologies.udn.UDN" title="topologies.udn.UDN"><code class="xref py py-class docutils literal notranslate"><span class="pre">UDN</span></code></a> for representing an unbalanced
+double-null topology/configuration.</p>
+<p>Child of base <a class="reference internal" href="utils.html#utils.TopologyUtils" title="utils.TopologyUtils"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.TopologyUtils</span></code></a>.</p>
+<dl class="py class">
+<dt id="topologies.udn.UDN">
+<em class="property">class </em><code class="sig-prename descclassname">topologies.udn.</code><code class="sig-name descname">UDN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ingrid_obj</span><span class="p">:</span> <span class="n"><a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid">ingrid.Ingrid</a></span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#topologies.udn.UDN" title="topologies.udn.UDN">UDN</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.udn.UDN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">INGRID.utils.TopologyUtils</span></code></p>
+<p>The <cite>UDN</cite> class for handling <cite>Unbalanced Double Null</cite> configurations
+within a tokamak.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Ingrid_obj</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – Ingrid object the UDN object is being managed by.</p></li>
+<li><p><strong>config</strong> (<em>str</em><em>, </em><em>optional</em>) – String code representing the configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ConnexionMap</strong> (<em>dict</em>) – A mapping defining dependencies between Patch objects for grid generation.</p></li>
+<li><p><strong>patches</strong> (<em>dict</em>) – The collection of Patch objects representing the topology.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="topologies.udn.UDN.AdjustGrid">
+<code class="sig-name descname">AdjustGrid</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#topologies.udn.UDN.AdjustGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust the grid so that no holes occur at x-points, and cell grid
+faces are alligned</p>
+<p>A small epsilon radius is swept out around x-points during Patch
+line tracing. This simple tidies up a grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>patch</strong> (<a class="reference internal" href="geometry.html#geometry.Patch" title="geometry.Patch"><em>Patch</em></a>) – The patch to tidy up (will only adjust if next to x-point).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="topologies.udn.UDN.AdjustPatch">
+<code class="sig-name descname">AdjustPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#topologies.udn.UDN.AdjustPatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.udn.UDN.GroupPatches">
+<code class="sig-name descname">GroupPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.udn.UDN.GroupPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.udn.UDN.OrderPatches">
+<code class="sig-name descname">OrderPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.udn.UDN.OrderPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.udn.UDN.construct_patches">
+<code class="sig-name descname">construct_patches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#topologies.udn.UDN.construct_patches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="topologies.udn.UDN.set_gridue">
+<code class="sig-name descname">set_gridue</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#topologies.udn.UDN.set_gridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares a <code class="docutils literal notranslate"><span class="pre">gridue_settings</span></code> dictionary with required data
+for writing a gridue file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-topologies">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-topologies" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="utils.html" class="btn btn-neutral float-right" title="utils module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ingrid.html" class="btn btn-neutral float-left" title="ingrid module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Bryan Max Garcia
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

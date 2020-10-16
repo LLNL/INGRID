@@ -138,7 +138,7 @@ class FilePicker(tk.Tk):
         self.ParamFileLabel = tk.Label(self.EntryFrame,
             text=self.ParamFileLabel_String.get())
         self.ParamFileEntry = tk.Entry(self.EntryFrame,
-            text=self.ParamFileEntry_String, width=40,
+            text=self.ParamFileEntry_String, width=50,
             disabledbackground='#f8f8ff', state='disabled')
         self.ParamFileButton = tk.Button(self.EntryFrame,
             text='Select Parameter File', command=self.LoadParameterFile)
@@ -178,7 +178,7 @@ class FilePicker(tk.Tk):
         if fname == '':
             pass
         elif fpath.is_file() and fpath.suffix in ['.yml', '.yaml']:
-            self.ParamFileEntry_String.set(f'Loaded: "../{fpath.name}"')
+            self.ParamFileEntry_String.set(f'"{fpath}"')
             self.ProcessParameterFile(fname)
             self.ReadyIngridData()
         else:

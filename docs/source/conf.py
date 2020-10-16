@@ -54,3 +54,5 @@ napoleon_use_rtype = False
 napoleon_use_ivar = True
 
 autodoc_member_order = 'groupwise'
+
+master_doc = 'index'

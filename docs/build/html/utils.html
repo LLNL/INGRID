@@ -1,0 +1,982 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utils module &mdash; ingrid  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="geometry module" href="geometry.html" />
+    <link rel="prev" title="topologies package" href="topologies.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ingrid
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">INGRID Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Module Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html">ingrid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">topologies package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html">geometry module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="line_tracing.html">line_tracing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interpol.html">interpol module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ingrid</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">Module Documentation</a> &raquo;</li>
+        
+      <li>utils module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/utils.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-utils">
+<span id="utils-module"></span><h1>utils module<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h1>
+<p>Helper classes for the ingrid module and topologies package.</p>
+<p>This module contains classes <cite>IngridUtils</cite> and <cite>TopologyUtils</cite>. These classes
+encapsulate much of the critical methods for handling file I/O, topology analysis,
+generating patch maps, and generating grids.</p>
+<dl class="py class">
+<dt id="utils.IngridUtils">
+<em class="property">class </em><code class="sig-prename descclassname">utils.</code><code class="sig-name descname">IngridUtils</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">{}</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.IngridUtils" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The base class for <a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">ingrid.Ingrid</span></code></a> that handles backend management of key
+Ingrid capabilities. This class can be directly utilized by advanced users
+and developers of the Ingrid code.</p>
+<p>Class <cite>IngridUtils</cite> encapsulates implementation details of file I/O,
+keyword parsing, sorting of geometry, and managing of other helper classes
+such as <a class="reference internal" href="line_tracing.html#line_tracing.LineTracing" title="line_tracing.LineTracing"><code class="xref py py-class docutils literal notranslate"><span class="pre">line_tracing.LineTracing</span></code></a> and <a class="reference internal" href="interpol.html#interpol.EfitData" title="interpol.EfitData"><code class="xref py py-class docutils literal notranslate"><span class="pre">interpol.EfitData</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>settings</strong> (<em>optional</em>) – Dictionary representation of the settings file.
+The dictionary is obtained via a YAML dump while operating in gui
+mode. Providing no dictionary will populate the Ingrid object
+with a default value settings attribute. Any missing entries
+provided by a user will be populated with default values by Ingrid.
+(Refer to the Ingrid “Settings File Format” for a complete descri
+ption of the settings dictionary)</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments for processing of input data.
+(See method ‘ProcessKeywords’ in class ‘IngridUtils’ for a
+list of supported keywords)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>InputFile</strong> (<em>str</em>) – Path to the parameter file.</p></li>
+<li><p><strong>config</strong> (<em>str</em>) – The configuration of the topology.</p></li>
+<li><p><strong>settings</strong> (<em>dict</em>) – Core settings dictionary containing all data used for generating patches
+and grids.</p></li>
+<li><p><strong>settings_lookup</strong> (<em>dict</em>) – Top level entries of the parameter file and convenience attribute for
+later accessing of entries.</p></li>
+<li><p><strong>default_values_lookup</strong> (<em>dict</em>) – General structure of YAML settings file in dictionary form.</p></li>
+<li><p><strong>default_grid_settings</strong> (<em>dict</em>) – Default entries for key <cite>grid_settings</cite> in the YAML settings file.</p></li>
+<li><p><strong>default_integrator_settings</strong> (<em>dict</em>) – Default entries for key <cite>integrator_settings</cite> in the YAML settings file.</p></li>
+<li><p><strong>default_target_plate_settings</strong> (<em>dict</em>) – Default entries for key <cite>target_plates</cite> in the YAML settings file.</p></li>
+<li><p><strong>default_limiter_settings</strong> (<em>dict</em>) – Default entries for key <cite>limiter</cite> in the YAML settings file.</p></li>
+<li><p><strong>default_patch_data_settings</strong> (<em>dict</em>) – Default entries for key <cite>patch_data</cite> in the YAML settings file.</p></li>
+<li><p><strong>default_DEBUG_settings</strong> (<em>dict</em>) – Default entries for key <cite>DEBUG</cite> in the YAML settings file.</p></li>
+<li><p><strong>PlateData</strong> (<em>dict</em>) – Dictionary containing Line objects that correspond to target plates
+loaded by the user.</p></li>
+<li><p><strong>OMFIT_psi</strong> (<em>OMFITgeqdsk</em>) – Instance of class used to interface G files generated by EFIT.</p></li>
+<li><p><strong>PsiUNorm</strong> (<a class="reference internal" href="interpol.html#interpol.EfitData" title="interpol.EfitData"><em>EfitData</em></a>) – <cite>EfitData</cite> class object containing unormalized
+psi data from provided neqdsk file in settings.</p></li>
+<li><p><strong>LimiterData</strong> (<a class="reference internal" href="geometry.html#geometry.Line" title="geometry.Line"><em>Line</em></a>) – Line class object representing tokamak limiter.</p></li>
+<li><p><strong>magx</strong> (<em>tuple</em>) – (R, Z) coordinates of magnetic-axis (float entries).</p></li>
+<li><p><strong>xpt1</strong> (<em>tuple</em>) – (R, Z) coordinates of primary x-point (float entries).</p></li>
+<li><p><strong>xpt2</strong> (<em>tuple</em>) – (R, Z) coordinates of secondary x-point (float entries).</p></li>
+<li><p><strong>LineTracer</strong> (<a class="reference internal" href="line_tracing.html#line_tracing.LineTracing" title="line_tracing.LineTracing"><em>LineTracing</em></a>) – <cite>LineTracing</cite> instance that for topology analysis and poloidal/radial tracing.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="utils.IngridUtils.CheckPatches">
+<code class="sig-name descname">CheckPatches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.CheckPatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that Patch objects adjacent to target plates are monotonic in psi.</p>
+<p>This method is a wrapper for the CheckPatches method specific to the
+current topology being operated on.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag for printing full output to terminal. Defaults to False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.ClassifyTopology">
+<code class="sig-name descname">ClassifyTopology</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">visual</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.ClassifyTopology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the topology that is being operated on.</p>
+<p>Inspects the <code class="docutils literal notranslate"><span class="pre">settings['grid_settings']['num_xpt']</span></code> entry to
+determine which classification scheme to employ.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>visual</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag for activating the analysis of x-points in a visual DEBUG mode.
+Default is False.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If user specifies <code class="docutils literal notranslate"><span class="pre">settings['grid_settings']['num_xpt']</span></code>
+    with value other than 1 (int) or 2 (int).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.FindMagAxis">
+<code class="sig-name descname">FindMagAxis</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">z</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.FindMagAxis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refine the entries and assign to the magnetic-axis in settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>float</em>) – R coordinate of magnetic-axis guess.</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – Z coordinate of magnetic-axis guess.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.FindXPoint">
+<code class="sig-name descname">FindXPoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">z</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.FindXPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refine the entries and assign to the primary x-point in settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>float</em>) – R coordinate of primary x-point guess.</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – Z coordinate of primary x-point guess.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.FindXPoint2">
+<code class="sig-name descname">FindXPoint2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">z</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.FindXPoint2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refine the entries and assign to the secondary x-point in settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>float</em>) – R coordinate of secondary x-point guess.</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – Z coordinate of secondary x-point guess.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.GetPatchTagMap">
+<code class="sig-name descname">GetPatchTagMap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#utils.IngridUtils.GetPatchTagMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Patch-Tag mapping for a particular configuration.</p>
+<p>This mapping is used to identify patch names with a particular
+patch tag code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>str</em>) – The configuration to get the patch tag map for.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A dictionary containing the tag to patch name mappings.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.OMFIT_read_psi">
+<code class="sig-name descname">OMFIT_read_psi</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.OMFIT_read_psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Python class to read the psi data in from an ascii file.</p>
+<p>Saves the boundary information and generates an EfitData instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.OrderLimiter">
+<code class="sig-name descname">OrderLimiter</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.OrderLimiter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures the limiter points are oriented <strong>clockwise</strong> around the
+magnetic axis (per INGRID convention).</p>
+<p>This method requires the limiter geometry to have been defined
+as well as the magnetic axis to be refined.</p>
+<p class="rubric">Notes</p>
+<p>Ordering of limiter is <strong>crucial</strong> when using limiter for
+creating a patch map. This occurs for all cases with two
+x-points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.OrderTargetPlate">
+<code class="sig-name descname">OrderTargetPlate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">plate_key</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.OrderTargetPlate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures the target plate points are oriented <strong>clockwise</strong> around the
+magnetic axis (per INGRID convention).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>plate_key</strong> (<em>str</em>) – The key corresponding to target plate Line object to sort.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Ordering of target plates is <strong>crucial</strong> when using target plates for
+creating a patch map.</p>
+<p>Valid plate keys are as follows:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 72%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Plate</p></td>
+<td><p>Accepted Keys (str)</p></td>
+</tr>
+<tr class="row-even"><td><p>Plate W1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plate_W1</span></code>, <code class="docutils literal notranslate"><span class="pre">W1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Plate E1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plate_E1</span></code>, <code class="docutils literal notranslate"><span class="pre">E1</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Plate W2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plate_W2</span></code>, <code class="docutils literal notranslate"><span class="pre">W2</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Plate E2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plate_E2</span></code>, <code class="docutils literal notranslate"><span class="pre">E2</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.OrderTargetPlates">
+<code class="sig-name descname">OrderTargetPlates</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.OrderTargetPlates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method for ordering target plate Point objects.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.ParseTxtCoordinates">
+<code class="sig-name descname">ParseTxtCoordinates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fpath</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">rshift</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">zshift</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#utils.IngridUtils.ParseTxtCoordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the (R,Z) coordinates from a .txt file.</p>
+<p>Files of types .txt must conform to the following format:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}r_0, z_0\\r_1, z_1\\r_2, z_2\\.....\\r_n, z_n\end{aligned}\end{align} \]</div>
+<p>Put otherwise, r and z values are differentiated by a comma and
+each coordinate must appear on a new line withing the file.</p>
+<p>If a line starts with the character ‘#’, it will be skipped.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fpath</strong> (<em>str</em>) – The path to the text file containing (R, Z) coordinate entries.</p></li>
+<li><p><strong>rshift</strong> (<em>float</em><em>, </em><em>optional</em>) – Applies a translation to the R coordinate of the text file entries.</p></li>
+<li><p><strong>zshift</strong> (<em>float</em><em>, </em><em>optional</em>) – Applies a translation to the Z coordinate of the text file entries.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A 2-tuple (R, Z) with list entries containing R and Z data respectively.</em></p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>IOError</strong> – If error occurs while reading text file.</p></li>
+<li><p><strong>ValueError</strong> – If fpath string provided leads to an invalid file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.PopulateSettings">
+<code class="sig-name descname">PopulateSettings</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.PopulateSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Populate a settings dict with any missing entries that INGRID may need.</p>
+<p>This should be used to screen for any illegal parameter file entries
+and to ensure clean data entry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>settings</strong> (<em>dict</em>) – Dictionary object conforming to structure of <code class="docutils literal notranslate"><span class="pre">settings</span></code> dictionary</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print full output to terminal. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.PrepGridue">
+<code class="sig-name descname">PrepGridue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">guard_cell_eps</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.PrepGridue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the gridue for writing.</p>
+<p>This method calls topology specific implementations of methods that
+concatenate the Patch object subgrids into a global grid.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.PrepLineTracing">
+<code class="sig-name descname">PrepLineTracing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#utils.IngridUtils.PrepLineTracing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the line tracing class for the construction
+of the grid.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.ProcessKeywords">
+<code class="sig-name descname">ProcessKeywords</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.ProcessKeywords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process kwargs and set all file paths accordingly.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.ProcessPaths">
+<code class="sig-name descname">ProcessPaths</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.ProcessPaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update settings by pre-pending path entries to all file entries.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.ReconstructPatches">
+<code class="sig-name descname">ReconstructPatches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#utils.IngridUtils.ReconstructPatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconstruct a Patch objects from a saved file.</p>
+<p>This method takes in an Ingrid formatted .npy file that
+contains the information needed to reconstruct a patch map
+from a past INGRID session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – The file path to the patch data file obtained after a call to
+Ingrid class method SavePatches</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A 3-tuple (str, dict, dict) containing the configuration, x-point NSEW information, and reconstructed Patch objects.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.SetDefaultSettings">
+<code class="sig-name descname">SetDefaultSettings</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.SetDefaultSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set all default values that will populate the <code class="docutils literal notranslate"><span class="pre">settings</span></code> dict.</p>
+<p>This instantiates the following entries within the settings file:</p>
+<ul class="simple">
+<li><p>‘grid_settings’</p></li>
+<li><p>‘integrator_settings’</p></li>
+<li><p>‘target_plates’</p></li>
+<li><p>‘limiter’</p></li>
+<li><p>‘patch_data’</p></li>
+<li><p>‘DEBUG’</p></li>
+</ul>
+<p>Additional entries may be added here as development continues.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.SetLimiter">
+<code class="sig-name descname">SetLimiter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fpath</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">coordinates</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">rshift</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">zshift</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.SetLimiter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate the class Line object that represents the tokamak limiter.</p>
+<p>This method accepts either coordinates or a valid file path to
+coordinate data.</p>
+<p>If <cite>fpath</cite> and <cite>coordinates</cite> are at their default values, then the
+EFIT data will be searched for it’s default limiter values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fpath</strong> (<em>str</em><em>, </em><em>optional</em>) – A file path to a ‘.txt’ or ‘.npy’ file containing (R, Z) data.</p></li>
+<li><p><strong>coordinates</strong> (<em>list</em><em>, </em><em>optional</em>) – A list with two entries containing R and Z entries respectively.</p></li>
+<li><p><strong>rshift</strong> (<em>float</em><em>, </em><em>optional</em>) – Apply a translation to the R coordinate of the limiter entries.</p></li>
+<li><p><strong>zshift</strong> (<em>float</em><em>, </em><em>optional</em>) – Apply a translation to the Z coordinate of the limiter entries.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.SetTargetPlate">
+<code class="sig-name descname">SetTargetPlate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">rshift</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">zshift</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.SetTargetPlate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a target plate Line object.</p>
+<p>This method can initialize target plates:</p>
+<ul class="simple">
+<li><p><cite>plate_W1</cite></p></li>
+<li><p><cite>plate_E1</cite></p></li>
+<li><p><cite>plate_W2</cite></p></li>
+<li><p><cite>plate_E2</cite></p></li>
+</ul>
+<p>with explicit (R, Z) coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>settings</strong> (<em>dict</em>) – Argument dict specifying which plate to define and with what
+(R,Z). See notes for more details.</p></li>
+<li><p><strong>rshift</strong> (<em>float</em><em>, </em><em>optional</em>) – Translate the (R, Z) coordinates by a float value.</p></li>
+<li><p><strong>zshift</strong> (<em>float</em><em>, </em><em>optional</em>) – Translate the (R, Z) coordinates by a float value.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Parameter <code class="docutils literal notranslate"><span class="pre">settings</span></code> is in the following form: <code class="docutils literal notranslate"><span class="pre">{plate_name:</span> <span class="pre">rz_data}</span></code></p>
+<p>where <code class="docutils literal notranslate"><span class="pre">plate_name</span></code> is a valid key string (see table below), and
+<code class="docutils literal notranslate"><span class="pre">rz_data</span></code> is an iterable structure with two iterable entries
+containing R and Z entries (see examples for usage).</p>
+<p>Most users should use the Ingrid class method SetGeometry
+rather than interface directly with the IngridUtils method
+since SetGeometry calls this IngridUtils method after processing
+the user input.</p>
+<p>Valid plate keys are as follows:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 72%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Plate</p></td>
+<td><p>Accepted Keys (str)</p></td>
+</tr>
+<tr class="row-even"><td><p>Plate W1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plate_W1</span></code>, <code class="docutils literal notranslate"><span class="pre">W1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Plate E1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plate_E1</span></code>, <code class="docutils literal notranslate"><span class="pre">E1</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Plate W2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plate_W2</span></code>, <code class="docutils literal notranslate"><span class="pre">W2</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>plate_E2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plate_E2</span></code>, <code class="docutils literal notranslate"><span class="pre">E2</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<p>Defining target plate <cite>plate_W1</cite> with coordinates [(1,2), (2, 3), (3, 4)]</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">MyIG</span> <span class="o">=</span> <span class="n">IngridUtils</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r_entries</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z_entries</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rz_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">r_entries</span><span class="p">,</span> <span class="n">z_entries</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">MyIG</span><span class="o">.</span><span class="n">SetTargetPlate</span><span class="p">({</span><span class="s1">&#39;plate_W1&#39;</span><span class="p">:</span> <span class="n">rz_data</span><span class="p">})</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.WriteGridueDNL">
+<code class="sig-name descname">WriteGridueDNL</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gridue_settings</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">fname</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'gridue'</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#utils.IngridUtils.WriteGridueDNL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a gridue file for a double-null configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gridue_settings</strong> (<em>dict</em>) – A dictionary containing grid data to be written to the gridue file.</p></li>
+<li><p><strong>fname</strong> (<em>str</em><em>, </em><em>optional</em>) – The file name/path to save the gridue file to.
+Defaults to ‘gridue’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>True if file was written with no errors</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.WriteGridueSNL">
+<code class="sig-name descname">WriteGridueSNL</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gridue_settings</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">fname</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'gridue'</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#utils.IngridUtils.WriteGridueSNL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a gridue file for a single-null configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gridue_settings</strong> (<em>dict</em>) – A dictionary containing grid data to be written to the gridue file.</p></li>
+<li><p><strong>fname</strong> (<em>str</em><em>, </em><em>optional</em>) – The file name/path to save the gridue file to.
+Defaults to ‘gridue’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>True if file was written with no errors</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.calc_efit_derivs">
+<code class="sig-name descname">calc_efit_derivs</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.IngridUtils.calc_efit_derivs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the partial derivatives using finite differences
+on the unormalized psi data stored in class attribute <code class="docutils literal notranslate"><span class="pre">PsiUNorm</span></code>.</p>
+<p>Wrapper for the member function in the EfitData class.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.IngridUtils.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#utils.IngridUtils.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the configuration obtained during analysis of x-points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A string identifying the configuration contained within LineTracing attribute <cite>LineTracer</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="utils.TopologyUtils">
+<em class="property">class </em><code class="sig-prename descclassname">utils.</code><code class="sig-name descname">TopologyUtils</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Ingrid_obj</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">config</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.TopologyUtils" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The base class for all INGRID topologies.</p>
+<p>Encapsulates key methods generating patch maps, visualizing data,
+generating grids, and exporting of grids.</p>
+<p>These methods are to be interfaced by the child <a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">ingrid.Ingrid</span></code></a> or
+can be used by advanced users of the code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parent</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – Ingrid object the topology is being managed by.</p></li>
+<li><p><strong>settings</strong> (<em>dict</em>) – Core settings dict of parent.</p></li>
+<li><p><strong>CurrentListPatch</strong> (<em>dict</em>) – Lookup dict of Patches that have been refined (populated during Patch refinement).</p></li>
+<li><p><strong>ConnexionMap</strong> (<em>dict</em>) – A mapping describing how Patch objects are connected to each other (see notes).</p></li>
+<li><p><strong>CorrectDistortion</strong> (<em>dict</em>) – The settings to be used for correcting grid shearing.</p></li>
+<li><p><strong>config</strong> (<em>str</em>) – Configuration of topology.</p></li>
+<li><p><strong>PlateData</strong> (<em>dict</em>) – Parent target plate data dict.</p></li>
+<li><p><strong>PatchTagMap</strong> (<em>dict</em>) – A dictionary containing the tag to patch name mappings for this topology.</p></li>
+<li><p><strong>LineTracer</strong> (<a class="reference internal" href="line_tracing.html#line_tracing.LineTracing" title="line_tracing.LineTracing"><em>LineTracing</em></a>) – Parent LineTracing instance.</p></li>
+<li><p><strong>PsiUNorm</strong> (<a class="reference internal" href="interpol.html#interpol.EfitData" title="interpol.EfitData"><em>EfitData</em></a>) – Parent PsiUNorm instance.</p></li>
+<li><p><strong>PsiNorm</strong> (<a class="reference internal" href="interpol.html#interpol.EfitData" title="interpol.EfitData"><em>EfitData</em></a>) – Parent PsiNorm instance.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="utils.TopologyUtils.CheckFunction">
+<code class="sig-name descname">CheckFunction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expression</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#utils.TopologyUtils.CheckFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a str is in the correct format for method <code class="docutils literal notranslate"><span class="pre">get_func</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expression</strong> (<em>str</em>) – Expression to check.</p></li>
+<li><p><strong>Verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print full output to terminal. Default to False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>True if expression is valid. False otherwise.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.CheckPatches">
+<code class="sig-name descname">CheckPatches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.TopologyUtils.CheckPatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method for calling the Patch class method <code class="docutils literal notranslate"><span class="pre">CheckPatch</span></code>.</p>
+<p>Checks to make sure Patch objects stored in the TopologyUtils <code class="docutils literal notranslate"><span class="pre">patches</span></code>
+dictionary are monotonic in psi along strike geometry (if applicable).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print full output to terminal. Defaults to False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.GetBoundaryPoints">
+<code class="sig-name descname">GetBoundaryPoints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">AdjacentPatchInfo</span><span class="p">:</span> <span class="n">tuple</span></em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#utils.TopologyUtils.GetBoundaryPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the points along a boundary for a particular Patch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>AdjacentPatchInfo</strong> (<em>tuple</em>) – A 2-tuple containing the tag of the Patch to obtain boundary points
+<cite>from</cite> (str value), and a character indicating which boundary to
+access (‘N’, ‘S’, ‘E’, ‘W’).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A list containing the Points along the specified boundary for a Patch.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.GetDistortionCorrectionSettings">
+<code class="sig-name descname">GetDistortionCorrectionSettings</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#utils.TopologyUtils.GetDistortionCorrectionSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get settings associated with the <code class="docutils literal notranslate"><span class="pre">CorrectDistortion</span></code> capability.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary containing <code class="docutils literal notranslate"><span class="pre">CorrectDistortion</span></code> settings.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.GetFunctions">
+<code class="sig-name descname">GetFunctions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Patch</span><span class="p">:</span> <span class="n">INGRID.geometry.Patch</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#utils.TopologyUtils.GetFunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the poloidal and radial transformations for a Patch.</p>
+<p>Poloidal and radial transformations affect more than a single Patch
+in the index space. This method ensures that the same transformations
+are applied to dependent Patches (e.g. radial transformation T is
+applied to all Patch objects in the same radial level).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Patch</strong> (<a class="reference internal" href="geometry.html#geometry.Patch" title="geometry.Patch"><em>Patch</em></a>) – The Patch to get the functions for.</p></li>
+<li><p><strong>Verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print all output to terminal. Default to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>2-tuple containing functions for radial and poloidal direction respectively.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.GetNpoints">
+<code class="sig-name descname">GetNpoints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Patch</span><span class="p">:</span> <span class="n">INGRID.geometry.Patch</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#utils.TopologyUtils.GetNpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of poloidal and radial grid cells to be generated for a Patch.</p>
+<p>Because of index space dependence and formatting, this method ensures adjacent
+patches in the index space are matching in dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Patch</strong> (<a class="reference internal" href="geometry.html#geometry.Patch" title="geometry.Patch"><em>Patch</em></a>) – Patch object to get the np and nr values for.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A 2-tuple containing the number of radial and poloidal cells to generate, respectively.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.OrderPatches">
+<code class="sig-name descname">OrderPatches</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#utils.TopologyUtils.OrderPatches" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.RefreshSettings">
+<code class="sig-name descname">RefreshSettings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#utils.TopologyUtils.RefreshSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.SetPatchBoundaryPoints">
+<code class="sig-name descname">SetPatchBoundaryPoints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Patch</span><span class="p">:</span> <span class="n">INGRID.geometry.Patch</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.TopologyUtils.SetPatchBoundaryPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Patch <code class="docutils literal notranslate"><span class="pre">BoundaryPoints</span></code> dict based off TopologyUtils <code class="docutils literal notranslate"><span class="pre">ConnexionMap</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Patch</strong> (<a class="reference internal" href="geometry.html#geometry.Patch" title="geometry.Patch"><em>Patch</em></a>) – The Patch to set the boundary points for.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Print full output to terminal.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ConnexionMap</span></code> represents the layout of adjacent patches and will
+lookup what is adjacent to the Patch parameter being operated on.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.SetupPatchMatrix">
+<code class="sig-name descname">SetupPatchMatrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#utils.TopologyUtils.SetupPatchMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate the list representation of the Patch layout in index space.</p>
+<p>Method <code class="docutils literal notranslate"><span class="pre">concat_grid</span></code> uses this structure when combining refined Patches
+into a global grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>The ‘PatchMatrix’ list</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.concat_grid">
+<code class="sig-name descname">concat_grid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">guard_cell_eps</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.001</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.TopologyUtils.concat_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenate a refined Patch map into a global grid.</p>
+<p>This method take grid data and represents it into Fortran
+formatted arrays that will be written to gridue.</p>
+<p>Adding of guard cells is done in this method as well.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>guard_cell_eps</strong> (<em>float</em><em>, </em><em>optional</em>) – Determines the size of guard cell padding.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.construct_grid">
+<code class="sig-name descname">construct_grid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">np_cells</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">nr_cells</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ShowVertices</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">RestartScratch</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ListPatches</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'all'</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.TopologyUtils.construct_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a grid by refining a Patch map.</p>
+<p>This method gathers transformation and dimension information to apply
+to each Patch. In addition, this applies any <code class="docutils literal notranslate"><span class="pre">CorrectDistortion</span></code>
+settings the user may want to apply.</p>
+<p><strong>Assumes a Patch map has been generated or that Patches have been
+loaded</strong> (equivalent).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>np_cells</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of poloidal cells to create in the local Patch grid.
+Defaults to 1.</p></li>
+<li><p><strong>nr_cells</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of radial cells to create in the local Patch grid.
+Defaults to 1.</p></li>
+<li><p><strong>Verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print all output to terminal.
+Defaults to False</p></li>
+<li><p><strong>ShowVertices</strong> (<em>bool</em><em>, </em><em>optional</em>) – Emphasize spline vertices on grid figure with bold markers.
+Defaults to False.</p></li>
+<li><p><strong>RestartScratch</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag for repeating the Patch refinement process for an already refined Patch.
+Defaults to False.</p></li>
+<li><p><strong>ListPatches</strong> (<em>str</em><em>, </em><em>optional</em>) – Specify which Patches to generate a grid for (see notes).
+Defaults to ‘all’.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Parameter <code class="docutils literal notranslate"><span class="pre">ListPatches</span></code> can be used to specify which Patches to refine
+into a grid. The default value of <cite>all</cite> instructs TopologyUtils to refine
+the entire Patch map. To specify Patches, the user is to provide a list
+containing <strong>names</strong> of Patches to refine.</p>
+<p>Refining only the outer-most psi boundary (SOL) for a lower single-null
+configuration:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">patch_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;A2&#39;</span><span class="p">,</span> <span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="s1">&#39;C2&#39;</span><span class="p">,</span> <span class="s1">&#39;D2&#39;</span><span class="p">,</span> <span class="s1">&#39;E2&#39;</span><span class="p">,</span> <span class="s1">&#39;F2&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">MyTopologyUtils</span><span class="o">.</span><span class="n">construct_grid</span><span class="p">(</span><span class="n">np_cells</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">nr_cells</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ListPatches</span><span class="o">=</span><span class="n">patch_names</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Refining only the inboard and outboard psi boundary for an unbalanced
+double-null configuration:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">patch_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;A3&#39;</span><span class="p">,</span> <span class="s1">&#39;B3&#39;</span><span class="p">,</span> <span class="s1">&#39;C3&#39;</span><span class="p">,</span> <span class="s1">&#39;D3&#39;</span><span class="p">,</span> <span class="s1">&#39;E3&#39;</span><span class="p">,</span> <span class="s1">&#39;F3&#39;</span><span class="p">,</span> <span class="s1">&#39;G3&#39;</span><span class="p">,</span> <span class="s1">&#39;H3&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">MyTopologyUtils</span><span class="o">.</span><span class="n">construct_grid</span><span class="p">(</span><span class="n">np_cells</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">nr_cells</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ListPatches</span><span class="o">=</span><span class="n">patch_names</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<p>The Patch refinement process is often order-dependent. This is to ensure
+alignment of grid with minimal editing.</p>
+<p>Because of this, parameters such as <code class="docutils literal notranslate"><span class="pre">ListPatches</span></code> is suggested to be used by
+a user or developer who is sure of what they are doing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.get_config">
+<code class="sig-name descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#utils.TopologyUtils.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the configuration string stored in the TopologyUtils class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>A string indicating the topology</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.get_func">
+<code class="sig-name descname">get_func</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">func</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; function<a class="headerlink" href="#utils.TopologyUtils.get_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a function from a string input.</p>
+<p>Will be used to generate a poloidal or radial transformation
+function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>func</strong> (<em>str</em>) – An expression to generate a function from.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A function generated from the str input.</em></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>When calling method <code class="docutils literal notranslate"><span class="pre">get_func</span></code> the user must provide a <strong>string</strong>
+with the following general format:</p>
+<div class="math notranslate nohighlight">
+\[x, f(x)\]</div>
+<p>That is, the dependent variable and expression to evaluate are
+separated with a comma character.</p>
+<p>The <cite>Sympy</cite> library supports most expressions that can be generated with
+Python natively. See the <cite>Sympy</cite> documentation for advanced features.</p>
+<p>Defining a function representing f(x) = x ^ 2:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="s1">&#39;x, x ** 2&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">MyTopologyUtils</span><span class="o">.</span><span class="n">get_func</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
+<span class="go">array([0, 1, 4, 9])</span>
+</pre></div>
+</div>
+<p>Defining a function representing f(x) = exp(x)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="s1">&#39;x, exp(x)&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">MyTopologyUtils</span><span class="o">.</span><span class="n">get_func</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
+<span class="go">array([ 1.        ,  2.71828183,  7.3890561 , 20.08553692])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.grid_diagram">
+<code class="sig-name descname">grid_diagram</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fig</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.TopologyUtils.grid_diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the grid diagram for a given configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fig</strong> (<em>object</em><em>, </em><em>optional</em>) – Matplotlib figure to show the grid diagram on.</p></li>
+<li><p><strong>ax</strong> (<em>object</em><em>, </em><em>optional</em>) – Matplotlib axes to plot the grid diagram on.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="utils.TopologyUtils.patch_diagram">
+<code class="sig-name descname">patch_diagram</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fig</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#utils.TopologyUtils.patch_diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the patch diagram for a given configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fig</strong> (<em>object</em><em>, </em><em>optional</em>) – Matplotlib figure to show the Patch map on.</p></li>
+<li><p><strong>ax</strong> (<em>object</em><em>, </em><em>optional</em>) – Matplotlib axes to plot the Patch map on.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="geometry.html" class="btn btn-neutral float-right" title="geometry module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="topologies.html" class="btn btn-neutral float-left" title="topologies package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Bryan Max Garcia
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

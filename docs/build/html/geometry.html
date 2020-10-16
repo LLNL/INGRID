@@ -1,0 +1,953 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>geometry module &mdash; ingrid  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="line_tracing module" href="line_tracing.html" />
+    <link rel="prev" title="utils module" href="utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ingrid
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">INGRID Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Module Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html">ingrid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">topologies package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">geometry module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="line_tracing.html">line_tracing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interpol.html">interpol module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ingrid</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">Module Documentation</a> &raquo;</li>
+        
+      <li>geometry module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/geometry.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-geometry">
+<span id="geometry-module"></span><h1>geometry module<a class="headerlink" href="#module-geometry" title="Permalink to this headline">¶</a></h1>
+<p>The <cite>geometry</cite> module contains core classes that support the INGRID
+geometrical object hierarchy. This module also contains various helper
+functions that work in tandem with the <cite>LineTracing</cite> class to generate
+Patch maps and grids.</p>
+<dl class="py class">
+<dt id="geometry.Cell">
+<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Cell</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lines</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Define a Cell that resides within a grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>lines</strong> (<em>array-like</em>) – A collection of 4 Line objects that define the borders of a Cell.</p>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>lines</strong> (<em>array-like</em>) – The 4 Lines that create the border of the Cell.</p></li>
+<li><p><strong>vertices</strong> (<em>dict</em>) – A lookup for accessing NW, NE, SE, SW, and CENTER spatial information.</p></li>
+<li><p><strong>p</strong> (<em>list</em>) – A list of Point objects along the North and South border.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>When accessing vertices, we have the following convention:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 70%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Location</p></td>
+<td><p>Accepted Key (str)</p></td>
+</tr>
+<tr class="row-even"><td><p>NW Corner</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NW</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>NE Corner</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>SW Corner</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SW</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>SE Corner</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SE</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Center</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CENTER</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt id="geometry.Cell.as_np">
+<code class="sig-name descname">as_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#geometry.Cell.as_np" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the ndarray representation of a Cell object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>An ndarray representing a cell</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Cell.plot_border">
+<code class="sig-name descname">plot_border</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'red'</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>matplotlib.axes._axes.Axes<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#geometry.Cell.plot_border" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the Cell.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – Color of the Cell border.
+Defaults to ‘red’</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – The Axes instance to plot the Cell to.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Cell.plot_center">
+<code class="sig-name descname">plot_center</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'black'</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>matplotlib.axes._axes.Axes<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#geometry.Cell.plot_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the center of a Cell.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – The color of the marker.
+Defaults to ‘black’</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – The Axes instance to plot the Cell center to.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="geometry.Line">
+<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Define an arbitrary line/curve.</p>
+<p>This is ordered collection of Point objects can later be used to define
+a Patch object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>points</strong> (<em>list</em>) – The Point objects that define the Line.</p>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>p</strong> (<em>list</em>) – The list of Point objects that define this Line.</p></li>
+<li><p><strong>xval</strong> (<em>list</em>) – A list consisting the x-coordinates for each Point.</p></li>
+<li><p><strong>yval</strong> (<em>list</em>) – A list consisting the y-coordinates for each Point.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="geometry.Line.GetAngle">
+<code class="sig-name descname">GetAngle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Line</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line.GetAngle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the angle between two lines in degree (between 0 and 180 degrees)
+:param Line: DESCRIPTION.
+:type Line: TYPE</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.Norm">
+<code class="sig-name descname">Norm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line.Norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return norm of the lines
+:returns: None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.RemoveDuplicatePoints">
+<code class="sig-name descname">RemoveDuplicatePoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line.RemoveDuplicatePoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove any duplicate points from list of points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.as_np">
+<code class="sig-name descname">as_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#geometry.Line.as_np" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the calling Line object represented as an ndarray.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>An ndarray representation of the Line.</em></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Format of ndarray is of shape (2, n), with n being the number of
+Point objects in the Line.</p>
+<p>The first entry of the ndarray is the <code class="docutils literal notranslate"><span class="pre">xval</span></code> attribute.
+The second entry of the ndarray is the <code class="docutils literal notranslate"><span class="pre">yval</span></code> attribute.</p>
+<p>This method is used to encode the <cite>patch_data</cite> file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#geometry.Line" title="geometry.Line">geometry.Line</a><a class="headerlink" href="#geometry.Line.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a copy of this Line object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>A new Line instance.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.fluff">
+<code class="sig-name descname">fluff</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#geometry.Line.fluff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain linspaced copies of the <code class="docutils literal notranslate"><span class="pre">xval</span></code> and <code class="docutils literal notranslate"><span class="pre">yval</span></code> attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of entries to include between <strong>each</strong> segment within the Line.
+Defaults to 100.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print full output to terminal.
+Defaults to False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A 2-tuple consisting of ‘fluffed’ <code class="docutils literal notranslate"><span class="pre">xval</span></code> and <code class="docutils literal notranslate"><span class="pre">yval</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.fluff_copy">
+<code class="sig-name descname">fluff_copy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">5</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#geometry.Line" title="geometry.Line">geometry.Line</a><a class="headerlink" href="#geometry.Line.fluff_copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a ‘fluffed’ copy of this Line.</p>
+<p>Calls the method <code class="docutils literal notranslate"><span class="pre">fluff</span></code> internally.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>num</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of entries to include between <strong>each</strong> segment within the Line copy.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A ‘fluffed’ copy of the calling Line object.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'#1f77b4'</span></em>, <em class="sig-param"><span class="n">label</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>matplotlib.axes._axes.Axes<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">linewidth</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span> &#x2192; matplotlib.axes._axes.Axes<a class="headerlink" href="#geometry.Line.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the Line.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – Defaults to a light blue.</p></li>
+<li><p><strong>label</strong> (<em>str</em><em>, </em><em>optional</em>) – A label to plot with. Defaults to None.</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – The Axes instance to plot the Line to.</p></li>
+<li><p><strong>linewidth</strong> (<em>float</em><em>, </em><em>optional</em>) – The linewidth to plot with.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>The matplotlib.axes.Axes instance plotted on.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.points">
+<code class="sig-name descname">points</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#geometry.Line.points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of all coordinates within the Line object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>A list of tuples representing (x, y) coordinates of the Line.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.print_points">
+<code class="sig-name descname">print_points</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#geometry.Line.print_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints each point in the line to the terminal.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.reverse_copy">
+<code class="sig-name descname">reverse_copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#geometry.Line" title="geometry.Line">geometry.Line</a><a class="headerlink" href="#geometry.Line.reverse_copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a copy of this Line in reversed order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>A new Line instance</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Line.split">
+<code class="sig-name descname">split</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split_point</span></em>, <em class="sig-param"><span class="n">add_split_point</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#geometry.Line.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split a line object into two line objects at a particular point.</p>
+<p>Returns two Line objects Segment A and Segment B (corresponding to both subsets of Points)
+The split_point is always included in Segment B.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>split_point</strong> (<a class="reference internal" href="#geometry.Point" title="geometry.Point"><em>Point</em></a>) – Point that determines splitting location.</p></li>
+<li><p><strong>add_split_point</strong> (<em>bool</em>) – Append the split point to Segment A while still including the
+split point in Segment B.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A tuple with Line objects representing Segment A and Segment B.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="geometry.Patch">
+<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Patch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lines</span><span class="p">:</span> <span class="n">array - like</span></em>, <em class="sig-param"><span class="n">patch_name</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">PatchTagMap</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plate_patch</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plate_location</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'blue'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Define a Patch representing a portion of the tokamak domain.</p>
+<p>Each Patch can be refined into a subgrid that can then create a global grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lines</strong> (<em>array-like</em>) – The four Line objects defining the boundary of this Patch (N, E, S, W).</p></li>
+<li><p><strong>patch_name</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="geometry.Patch.AdjustBorder">
+<code class="sig-name descname">AdjustBorder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">face</span></em>, <em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.AdjustBorder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.CheckPatch">
+<code class="sig-name descname">CheckPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">grid</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.CheckPatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.RemoveDuplicatePoints">
+<code class="sig-name descname">RemoveDuplicatePoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.RemoveDuplicatePoints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.adjust_corner">
+<code class="sig-name descname">adjust_corner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">point</span></em>, <em class="sig-param"><span class="n">corner</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.adjust_corner" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.as_np">
+<code class="sig-name descname">as_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.as_np" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.cell_grid_as_np">
+<code class="sig-name descname">cell_grid_as_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.cell_grid_as_np" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.fill">
+<code class="sig-name descname">fill</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'lightsalmon'</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.fill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shades in the patch with a given color</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – Defaults to a light salmon.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.get_settings">
+<code class="sig-name descname">get_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.get_settings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.get_tag">
+<code class="sig-name descname">get_tag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.get_tag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.make_subgrid">
+<code class="sig-name descname">make_subgrid</code><span class="sig-paren">(</span><em class="sig-param">grid</em>, <em class="sig-param">np_cells=2</em>, <em class="sig-param">nr_cells=2</em>, <em class="sig-param">_poloidal_f=&lt;function Patch.&lt;lambda&gt;&gt;</em>, <em class="sig-param">_radial_f=&lt;function Patch.&lt;lambda&gt;&gt;</em>, <em class="sig-param">verbose=False</em>, <em class="sig-param">visual=False</em>, <em class="sig-param">ShowVertices=False</em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.make_subgrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a refined grid within a patch.
+This ‘refined-grid’ within a Patch is a collection
+of num x num Cell objects</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grid</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – To be used for obtaining Efit data and all
+other class information.</p></li>
+<li><p><strong>num</strong> (<em>int</em><em>, </em><em>optional</em>) – Number to be used to generate num x num
+cells within our Patch.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.plot_border">
+<code class="sig-name descname">plot_border</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'red'</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.plot_border" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw solid borders around the patch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – Defaults to red.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Patch.plot_subgrid">
+<code class="sig-name descname">plot_subgrid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'blue'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.plot_subgrid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="geometry.Point">
+<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Point</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">pts</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Define a Point.</p>
+<p>Can be used to later define Line objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pts</strong> (<em>array-like</em>) – Accepts either two values x, y as floats, or
+a single tuple/list value (x, y).</p>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – x coordinate of the point</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y coordinate of the point</p></li>
+<li><p><strong>coor</strong> (<em>tuple</em>) – x and y coordinates together as a tuple</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="geometry.Point.as_np">
+<code class="sig-name descname">as_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#geometry.Point.as_np" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Point object as a numpy ndarray.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>An ndarray representation of the Point object.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Point.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>matplotlib.axes._axes.Axes<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#geometry.Point.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the Point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – The Axes instance to plot to.
+Default is None and calls function <cite>matplotlib.pyplot.gca</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Point.psi">
+<code class="sig-name descname">psi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">grid</span><span class="p">:</span> <span class="n">EfitData</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'v'</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#geometry.Point.psi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the psi value of this Point from an EfitData instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grid</strong> (<a class="reference internal" href="interpol.html#interpol.EfitData" title="interpol.EfitData"><em>EfitData</em></a>) – The grid upon which the value of psi is to be calculated on.</p></li>
+<li><p><strong>tag</strong> (<em>str</em><em>, </em><em>optional</em>) – Char to specify the type of psi derivative.
+Defaults ‘v’ (no derivative).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>The psi value at the Point.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="geometry.Vector">
+<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Vector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xy</span><span class="p">:</span> <span class="n">array - like</span></em>, <em class="sig-param"><span class="n">origin</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Defines a vector from a nontrivial origin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xy</strong> (<em>array-like</em>) – Location of the vector. It if of the form (x, y).</p></li>
+<li><p><strong>origin</strong> (<em>array-like</em>) – Location of the origin. This is to adjust for not being at the
+origin of the axes. Of the form (x, y).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – x-coordinate</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y-coordinate</p></li>
+<li><p><strong>xorigin</strong> (<em>float</em>) – x-coordinate of vector origin</p></li>
+<li><p><strong>yorigin</strong> (<em>float</em>) – y-coordinate of vector origin</p></li>
+<li><p><strong>xnorm</strong> (<em>float</em>) – x relative to origin</p></li>
+<li><p><strong>ynorm</strong> (<em>float</em>) – y relative to origin</p></li>
+<li><p><strong>quadrant</strong> (<em>int</em>) – Quadrant vector resides in</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="geometry.Vector.arr">
+<code class="sig-name descname">arr</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#geometry.Vector.arr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the vector object as an array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>The vector as an numpy ndarray.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geometry.Vector.mag">
+<code class="sig-name descname">mag</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#geometry.Vector.mag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the L2 norm of the vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>Vector norm.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.CorrectDistortion">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">CorrectDistortion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">u</span></em>, <em class="sig-param"><span class="n">Pt</span></em>, <em class="sig-param"><span class="n">Pt1</span></em>, <em class="sig-param"><span class="n">Pt2</span></em>, <em class="sig-param"><span class="n">spl</span></em>, <em class="sig-param"><span class="n">ThetaMin</span></em>, <em class="sig-param"><span class="n">ThetaMax</span></em>, <em class="sig-param"><span class="n">umin</span></em>, <em class="sig-param"><span class="n">umax</span></em>, <em class="sig-param"><span class="n">Resolution</span></em>, <em class="sig-param"><span class="n">visual</span></em>, <em class="sig-param"><span class="n">Tag</span></em>, <em class="sig-param"><span class="n">MinTol</span><span class="o">=</span><span class="default_value">1.02</span></em>, <em class="sig-param"><span class="n">MaxTol</span><span class="o">=</span><span class="default_value">0.98</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.CorrectDistortion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="geometry.UnfoldLabel">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">UnfoldLabel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Dic</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">Name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#geometry.UnfoldLabel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unfold Patch label (e.g. “C1” -&gt; “Inner Core Top”)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Dic</strong> (<em>dict</em>) – Dictionnary containing description of acronym characters</p></li>
+<li><p><strong>Name</strong> (<em>str</em>) – patch label</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>str</em> – Unfolded patch label.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.angle_between">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">angle_between</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">u</span></em>, <em class="sig-param"><span class="n">v</span></em>, <em class="sig-param"><span class="n">origin</span></em>, <em class="sig-param"><span class="n">relative</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.angle_between" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute angle in radians between vectors u and v</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.calc_mid_point">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">calc_mid_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">v1</span></em>, <em class="sig-param"><span class="n">v2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.calc_mid_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the bisection of two vectors of equal length,
+and returns the point on the circle at that angle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v1</strong> (<a class="reference internal" href="#geometry.Vector" title="geometry.Vector"><em>geometry.Vector</em></a>) – v1 must be furthest right in a counter clockwise direction.</p></li>
+<li><p><strong>v2</strong> (<a class="reference internal" href="#geometry.Vector" title="geometry.Vector"><em>geometry.Vector</em></a>) – Vector on the left.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>tuple</em> – The point at the bisection of two vectors.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.find_split_index">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">find_split_index</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split_point</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#geometry.Point" title="geometry.Point">geometry.Point</a></span></em>, <em class="sig-param"><span class="n">line</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#geometry.Line" title="geometry.Line">geometry.Line</a></span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#geometry.find_split_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine which index a Point would best split a Line.</p>
+<p>This method is useful for modifying Line objects during line tracing
+(searching for intersection of two line objects and trimming excess)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>split_point</strong> (<a class="reference internal" href="#geometry.Point" title="geometry.Point"><em>Point</em></a>) – The candidate Point to find the split index with respect to.</p></li>
+<li><p><strong>line</strong> (<a class="reference internal" href="#geometry.Line" title="geometry.Line"><em>Line</em></a>) – The Line to search for a split index within.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A 2-tuple containing the split-index and a boolean flag indicating</em> – whether the split_point was contained within the Line</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Should no appropriate split index be found, the method will return a
+None value in place of an integer index.</p>
+<p>The second entry of the tuple return value would be a value of True if
+the <cite>split_point</cite> parameter was used to define the <cite>line</cite> parameter.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.intersect">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">intersect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">line1</span></em>, <em class="sig-param"><span class="n">line2</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.intersect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the intersection of two line segments</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>line1</strong> (<em>array-like</em>) – </p></li>
+<li><p><strong>line2</strong> (<em>array-like</em>) – Both lines of the form A = ((x, y), (x, y)).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>tuple</em> – Coordinates of the intersection.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.is_between">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">is_between</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">end_u</span><span class="p">:</span> <span class="n">array - like</span></em>, <em class="sig-param"><span class="n">split_v</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#geometry.is_between" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="geometry.limiter_split">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">limiter_split</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start</span></em>, <em class="sig-param"><span class="n">end</span></em>, <em class="sig-param"><span class="n">limiter</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.limiter_split" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="geometry.non_decreasing">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">non_decreasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#geometry.non_decreasing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if non-decreasing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>L</strong> (<em>array-like</em>) – Values to test.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>True if non-decreasing and False otherwise</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.non_increasing">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">non_increasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#geometry.non_increasing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if non-increasing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>L</strong> (<em>array-like</em>) – Values to test.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>True if non-increasing and False otherwise</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.orientation_between">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">orientation_between</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">u</span></em>, <em class="sig-param"><span class="n">v</span></em>, <em class="sig-param"><span class="n">origin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.orientation_between" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute angle in radians between vectors u and v</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.reorder_limiter">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">reorder_limiter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_start</span></em>, <em class="sig-param"><span class="n">limiter</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.reorder_limiter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="geometry.rotate">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">rotate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vec</span></em>, <em class="sig-param"><span class="n">theta</span></em>, <em class="sig-param"><span class="n">origin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.rotate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="geometry.rotmatrix">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">rotmatrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">theta</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#geometry.rotmatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a rotation matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>theta</strong> (<em>float</em>) – Angle in radians.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>An ndarray with shape (2, 2) representing a 2D rotation matrix.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.segment_intersect">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">segment_intersect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">line1</span></em>, <em class="sig-param"><span class="n">line2</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.segment_intersect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the intersection of two FINITE line segments.
+:param line1:
+:type line1: array-like
+:param line2: Both lines of the form line1 = (P1, P2), line2 = (P3, P4)
+:type line2: array-like</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><em>bool, tuple</em> – True/False of whether the segments intersect
+Coordinates of the intersection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.strictly_decreasing">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">strictly_decreasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#geometry.strictly_decreasing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if strictly decreasing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>L</strong> (<em>array-like</em>) – Values to test.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>True if strictly decreasing and False otherwise</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.strictly_increasing">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">strictly_increasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#geometry.strictly_increasing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if strictly increasing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>L</strong> (<em>array-like</em>) – Values to test.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>True if strictly increasing and False otherwise</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.test2points">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">test2points</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p1</span></em>, <em class="sig-param"><span class="n">p2</span></em>, <em class="sig-param"><span class="n">line</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.test2points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if two points are on opposite sides of a given line.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p1</strong> (<em>tuple</em>) – First point, (x, y)</p></li>
+<li><p><strong>p2</strong> (<em>tuple</em>) – Second point, (x, y)</p></li>
+<li><p><strong>line</strong> (<em>array-like</em>) – The line is comprised of two points ((x, y), (x, y)).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>tuple</em> – Returns two numbers, if the signs are different
+the points are on opposite sides of the line.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.trim_geometry">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">trim_geometry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">geoline</span></em>, <em class="sig-param"><span class="n">start</span></em>, <em class="sig-param"><span class="n">end</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.trim_geometry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="geometry.unit_vector">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">unit_vector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">v</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.unit_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns unit vector</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.which_increasing">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">which_increasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#geometry.which_increasing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine increasing values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>L</strong> (<em>array-like</em>) – Values to test.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A list of 2-tuples containing index and increasing element</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="geometry.which_non_increasing">
+<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">which_non_increasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#geometry.which_non_increasing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine non-increasing values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>L</strong> (<em>array-like</em>) – Values to test.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><em>A list of 2-tuples containing index and non-increasing element.</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="line_tracing.html" class="btn btn-neutral float-right" title="line_tracing module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="utils.html" class="btn btn-neutral float-left" title="utils module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Bryan Max Garcia
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

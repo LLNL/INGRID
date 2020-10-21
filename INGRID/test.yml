@@ -1,0 +1,169 @@
+DEBUG:
+  verbose:
+    grid_generation: 0
+    patch_generation: 1
+    target_plates: 0
+  visual:
+    find_NSEW: 0
+    gridue: 0
+    patch_map: 0
+    subgrid: 0
+eqdsk: /home/jguterl/Dropbox/python/Grids/neqdsk
+grid_settings:
+  full_domain: true
+  grid_generation:
+    distortion_correction:
+      A:
+        active: true
+        max_span: 0.2
+        min_tol: 1.05
+        resolution: 1000
+        theta_max: 120
+        theta_min: 70
+        visual: false
+      B:
+        active: true
+        max_span: 1
+        max_tol: 0.95
+        min_tol: 1.05
+        resolution: 1000
+        theta_max: 120
+        theta_min: 70
+        verbose: true
+        visual: true
+      E:
+        active: true
+        max_span: 1.2
+        max_tol: 0.99
+        min_tol: 1.01
+        resolution: 2000
+        theta_max: 120
+        theta_min: 70
+        verbose: true
+        visual: true
+      all:
+        active: true
+        max_span: 0.8
+        min_tol: 1.05
+        resolution: 1000
+        theta_max: 120
+        theta_min: 70
+        visual: false
+    np_A: 19
+    np_B: 10
+    np_C: 5
+    np_D: 5
+    np_E: 10
+    np_F: 19
+    np_default: 3
+    nr_1: 10
+    nr_2: 26
+    nr_default: 3
+    poloidal_f_A: !!python/name:INGRID.DistribFunc.Func ''
+    poloidal_f_B: !!python/name:INGRID.DistribFunc.Func ''
+    poloidal_f_E: !!python/name:INGRID.DistribFunc.Func ''
+    poloidal_f_F: !!python/name:INGRID.DistribFunc.Func ''
+    poloidal_f_default: x, x
+    radial_f_1: !!python/name:INGRID.DistribFunc.Func ''
+    radial_f_2:
+      F: exp
+      alpha: 0.5
+    radial_f_3: !!python/name:INGRID.DistribFunc.Func ''
+    radial_f_default: x, x
+  guard_cell_eps: 0.001
+  nlevs: 30
+  num_xpt: 1
+  patch_generation:
+    NE_adjust: 0.0
+    NW_adjust: 0.0
+    rmagx_shift: 0.0
+    secondary_NE_adjust: 0.0
+    secondary_NW_adjust: 0.0
+    strike_geometry: limiter
+    tilt_1: 0.0
+    tilt_2: 0.0
+    use_NE: false
+    use_NW: false
+    use_SE: false
+    use_SW: false
+    use_secondary_NE: false
+    use_secondary_NW: false
+    zmagx_shift: 0.0
+  psi_1: 1.12
+  psi_2: 0.0
+  psi_core: 0.97
+  psi_pf_1: 0.99
+  psi_pf_2: 0.0
+  rmagx: !!python/object/apply:numpy.core.multiarray.scalar
+  - &id001 !!python/object/apply:numpy.dtype
+    args:
+    - f8
+    - false
+    - true
+    state: !!python/tuple
+    - 3
+    - <
+    - null
+    - null
+    - null
+    - -1
+    - -1
+    - 0
+  - !!binary |
+    3W6gq5so/D8=
+  rxpt: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    SKeGWoc59j8=
+  rxpt2: 0.0
+  view_mode: filled
+  zmagx: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    hukwOUTCqj8=
+  zxpt: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    ey0nOL7R8b8=
+  zxpt2: 0.0
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-06
+  first_step: 5.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+limiter:
+  efit_bounds_buffer: 0.01
+  file: ''
+  rshift: 0.0
+  use_default_data: true
+  use_efit_bounds: false
+  zshift: 0.0
+patch_data:
+  file: ../data/SNL/DIII-D/LSN_patches_1597099640.npy
+  preferences:
+    new_file: true
+    new_fname: ../data/SNL/DIII-D/LSN_patches_1597099640.npy
+  use_file: false
+target_plates:
+  plate_E1:
+    file: /home/jguterl/Dropbox/python/Grids/d3d_otp.txt
+    name: plate_E1
+    rshift: 0.0
+    zshift: 0
+  plate_E2:
+    file: null
+    name: null
+    rshift: 0.0
+    zshift: 0.0
+  plate_W1:
+    file: /home/jguterl/Dropbox/python/Grids/d3d_itp.txt
+    name: plate_W1
+    rshift: 0.0
+    zshift: 0
+  plate_W2:
+    file: null
+    name: null
+    rshift: 0.0
+    zshift: 0.0

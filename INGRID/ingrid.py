@@ -189,6 +189,45 @@ class Ingrid(IngridUtils):
             yml.dump(self.settings, f)
 
         return fpath
+    
+    
+    def StoreSettings(self, fname: str = '', settings: dict = {}) -> 'Path':
+        """
+        Save a new settings .yml file.
+
+        Parameters
+        ----------
+        fname : optional
+            Name of new settings '.yml' file.
+            If default value of '', then Ingrid will generate
+            a '.yml' file named 'INGRID_Session' appended with
+            a timestamp.
+
+        settings : optional
+            Ingrid settings dictionary to dump into
+            the '.yml' file. Defaults to empty dict which produces a
+            template settings file.
+
+        Returns
+        -------
+            A Path instance representing the saved YAML file.
+        """
+
+        if fname == '':
+            fname = 'INGRID_Session' + str(int(time())) + '.yml'
+
+        fpath = Path(fname)
+
+        if fpath.suffix == '':
+            fname += '.yml'
+        elif fpath.suffix != '.yml':
+            fname = fname[:-4] + '.yml'
+
+        with open(fname, 'w') as f:
+            yml.dump(self.settings, f)
+
+        return fpath
+
 
     def PrintSummaryInput(self) -> None:
         """
@@ -1344,7 +1383,7 @@ class Ingrid(IngridUtils):
         """
         self.CurrentTopology.construct_grid( ShowVertices=ShowVertices,**kwargs)
 
-    def ExportGridue(self, fname: str = 'gridue') -> None:
+    def ExportGridue(self, fname: str = 'gridue',**kwargs) -> None:
         """
         Export a gridue file for the created grid.
 
@@ -1354,12 +1393,9 @@ class Ingrid(IngridUtils):
             Name of gridue file to save.
 
         """
-        if type(self.CurrentTopology) in [SNL]:
-            if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
-                print(f"# Successfully saved gridue file as '{fname}'")
-        elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:
-            if self.WriteGridueDNL(self.CurrentTopology.gridue_settings, fname):
-                print(f"# Successfully saved gridue file as '{fname}'")
+        self.CurrentTopology.PrepGridue(**kwargs)
+        self.CurrentTopology.WriteGridue(fname,**kwargs)
+        print(f"# Successfully saved gridue file as '{fname}'")
 
     @staticmethod
     def ImportGridue(self, fname: str = 'gridue') -> dict:

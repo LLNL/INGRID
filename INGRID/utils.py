@@ -616,7 +616,7 @@ class IngridUtils():
         elif coordinates != []:
             RLIM, ZLIM = coordinates
             self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = [r - rshift for r in RLIM], [z - zshift for z in ZLIM]
-
+            print('>>> here:',self.OMFIT_psi['RLIM'])
         if len(RLIM) == 0 or len(ZLIM) == 0:
             use_efit_bounds = True
 
@@ -635,7 +635,7 @@ class IngridUtils():
                 ZLIM.append(z)
 
             self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'] = np.array(RLIM) - rshift, np.array(ZLIM) - zshift
-
+        
         self.LimiterData = Line([Point(p) for p in zip(self.OMFIT_psi['RLIM'], self.OMFIT_psi['ZLIM'])])
 
     def SetTargetPlate(self, settings: dict, rshift: float = 0.0, zshift: float = 0.0) -> None:

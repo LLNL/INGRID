@@ -618,10 +618,78 @@ class UDN(TopologyUtils):
                     b[i][j][k] = _b
 
         self.gridue_settings = {
-            'nxm': nxm, 'nym': nym, 'iyseparatrix1': iyseparatrix1, 'iyseparatrix2': iyseparatrix2,
+            'nxm': nxm, 'nym': nym, 'iyseparatrix1': iyseparatrix1, 'iyseparatrix2': iyseparatrix2,'simagxs':self.OMFIT_psi['SIMAG'] ,'sibdrys':self.OMFIT_psi['SIBRY'],
             'ix_plate1': ix_plate1, 'ix_cut1': ix_cut1, 'ix_cut2': ix_cut2, 'ix_plate2': ix_plate2, 'iyseparatrix3': iyseparatrix3,
             'iyseparatrix4': iyseparatrix4, 'ix_plate3': ix_plate3, 'ix_cut3': ix_cut3, 'ix_cut4': ix_cut4, 'ix_plate4': ix_plate4,
             'rm': self.rm, 'zm': self.zm, 'psi': psi, 'br': br, 'bz': bz, 'bpol': bpol, 'bphi': bphi, 'b': b, '_FILLER_': -1
         }
+    
+    
+    def WriteGridue(self, gridue_settings: dict, fname: str = 'gridue',**kwargs) -> bool:
+        """
+        Write a gridue file for a double-null configuration.
 
-        return self.gridue_settings
+        Parameters
+        ----------
+        gridue_settings : dict
+            A dictionary containing grid data to be written to the gridue file.
+
+        fname : str, optional
+            The file name/path to save the gridue file to.
+            Defaults to 'gridue'.
+
+        Returns
+        -------
+            True if file was written with no errors
+        """
+
+        def format_header(gridue):
+            header_rows = [
+                ['nxm', 'nym'],
+                ['iyseparatrix1', 'iyseparatrix2'],
+                ['ix_plate1', 'ix_cut1', '_FILLER_', 'ix_cut2', 'ix_plate2'],
+                ['iyseparatrix3', 'iyseparatrix4'],
+                ['ix_plate3', 'ix_cut3', '_FILLER_', 'ix_cut4', 'ix_plate4']
+            ]
+
+            header = ''
+            for header_items in header_rows:
+                for item in header_items:
+                    header += '{}'.format(gridue[item]).rjust(4)
+                header += '\n'
+            return header
+
+        def format_body(data):
+
+            delim_val = 0
+            delim_char = ''
+            body = ''
+
+            for n in range(5):
+                for j in range(len(data[0])):
+                    for i in range(len(data)):
+                        delim_val += 1
+                        val = np.format_float_scientific(data[i][j][n], precision=15, unique=False).rjust(23).replace('e', 'D')
+                        if delim_val == 3:
+                            delim_val = 0
+                            delim_char = '\n'
+                        body += val + delim_char
+                        delim_char = ''
+
+            if delim_val % 3 != 0:
+                body += '\n'
+
+            return body
+
+        f = open(fname, mode='w')
+        f.write(format_header(gridue_settings) + '\n')
+
+        body_items = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
+        for item in body_items:
+            f.write(format_body(gridue_settings[item]) + '\n')
+
+        runidg = 'iogridue'
+        f.write(runidg + '\n')
+
+        f.close()
+        return True

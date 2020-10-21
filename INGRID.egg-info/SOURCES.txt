@@ -1,5 +1,6 @@
 README.md
 setup.py
+INGRID/DistribFunc.py
 INGRID/ImportEqFiles.py
 INGRID/__init__.py
 INGRID/geometry.py

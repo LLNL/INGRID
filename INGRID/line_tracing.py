@@ -847,7 +847,6 @@ class LineTracing:
 
         if Verbose:
             print('Drew for {} seconds\n'.format(end - start))
-        print('')
         return Line(line)
 
     def PsiCostFunc(self, xy):

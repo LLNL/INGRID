@@ -17,18 +17,17 @@ except:
     pass
 import matplotlib.pyplot as plt
 import pathlib
-import inspect
-from scipy.optimize import root, minimize
+
 
 import yaml as yml
 import os
 from pathlib import Path
 from time import time
-from collections import OrderedDict
 
-from omfit_eqdsk import OMFITgeqdsk
+
+from INGRID.DistribFunc import *
 from INGRID.interpol import EfitData
-from INGRID.interpol import Bicubic
+
 from INGRID.utils import IngridUtils
 from INGRID.topologies.snl import SNL
 from INGRID.topologies.sf15 import SF15
@@ -38,8 +37,10 @@ from INGRID.topologies.sf105 import SF105
 from INGRID.topologies.sf135 import SF135
 from INGRID.topologies.sf165 import SF165
 from INGRID.topologies.udn import UDN
-from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line
+import types
+
+
 
 
 def QuickStart() -> None:
@@ -193,6 +194,45 @@ class Ingrid(IngridUtils):
             yml.dump(self.settings, f)
 
         return fpath
+    
+    
+    def StoreSettings(self, fname: str = '', settings: dict = {}) -> 'Path':
+        """
+        Save a new settings .yml file.
+
+        Parameters
+        ----------
+        fname : optional
+            Name of new settings '.yml' file.
+            If default value of '', then Ingrid will generate
+            a '.yml' file named 'INGRID_Session' appended with
+            a timestamp.
+
+        settings : optional
+            Ingrid settings dictionary to dump into
+            the '.yml' file. Defaults to empty dict which produces a
+            template settings file.
+
+        Returns
+        -------
+            A Path instance representing the saved YAML file.
+        """
+
+        if fname == '':
+            fname = 'INGRID_Session' + str(int(time())) + '.yml'
+
+        fpath = Path(fname)
+
+        if fpath.suffix == '':
+            fname += '.yml'
+        elif fpath.suffix != '.yml':
+            fname = fname[:-4] + '.yml'
+
+        with open(fname, 'w') as f:
+            yml.dump(self.settings, f)
+
+        return fpath
+
 
     def PrintSummaryInput(self) -> None:
         """
@@ -778,9 +818,8 @@ class Ingrid(IngridUtils):
             ax = plt.gca()
 
         if plate_key in [k for k in self.PlateData.keys()]:
-            self.RemovePlotLine(label=plate_key, ax=ax)
             if type(self.PlateData[plate_key]) is Line:
-                print(f"# Plotting plate '{plate_key}'")
+                self.RemovePlotLine(label=plate_key, ax=ax)
                 self.PlateData[plate_key].plot(label=plate_key, color=color)
             else:
                 pass
@@ -1050,7 +1089,7 @@ class Ingrid(IngridUtils):
         if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'target_plates':
             self.RemovePlotLine(label='limiter', ax=self.PatchAx)
 
-    def PlotSubgrid(self) -> None:
+    def PlotSubgrid(self,NewFig=False,**kwargs) -> None:
         """
         Plot the grid that was generated with method 'CreateSubgrid'.
         """
@@ -1058,9 +1097,13 @@ class Ingrid(IngridUtils):
             plt.close(self._SubgridFig)
         except:
             pass
-        self._SubgridFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Grid', figsize=(6, 10))
-        self._SubgridAx = self._SubgridFig.add_subplot(111)
-        self.CurrentTopology.grid_diagram(fig=self._SubgridFig, ax=self._SubgridAx)
+        if NewFig:
+            self._SubgridFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Grid', figsize=(6, 10))
+            self._SubgridAx = self._SubgridFig.add_subplot(111)
+        else:
+            self._SubgridFig = plt.gcf()
+            self._SubgridAx = plt.gca()
+        self.CurrentTopology.grid_diagram(fig=self._SubgridFig, ax=self._SubgridAx,**kwargs)
 
     def AutoRefineMagAxis(self) -> None:
         """
@@ -1268,11 +1311,12 @@ class Ingrid(IngridUtils):
         self.OrderTargetPlates()
         self.PrepLineTracing()
         self.CurrentTopology.construct_patches()
-        self.CurrentTopology.GroupPatches()
+        self.CurrentTopology.GroupPatches() 
         self.CheckPatches()
-
-        if self.settings['patch_data']['preferences']['new_file']:
-            self.SavePatches(self.settings['patch_data']['preferences']['new_fname'])
+        self.CurrentTopology.SetBoundarySplines()
+        #not practical in a workflow
+        #if self.settings['patch_data']['preferences']['new_file']:
+        #   self.SavePatches(self.settings['patch_data']['preferences']['new_fname'])
 
     def SavePatches(self, fname: str = '') -> None:
         """
@@ -1299,6 +1343,35 @@ class Ingrid(IngridUtils):
             tail = '.npy'
         print(f"# Saved patch data for file {Path(fname).name + tail}")
 
+        
+    def SuperSavePatches(self, fname: str = '') -> None:
+        """
+        Save patches as '.npy' file for later reconstruction in Ingrid.
+
+        This file contains the information required to reconstruct patches
+        at a later time and bypass the line_tracing.
+
+        Parameters
+        ----------
+        fname : str, optional
+            Name of file/location for patch data.
+        """
+        if fname in ['', None]:
+            fname = self.CurrentTopology.config + '_patches_' + str(int(time()))
+        self.CurrentTopology.ResetHeavyAttr()
+        
+        Data={'patches':self.CurrentTopology.patches,
+              'config':self.CurrentTopology.config,
+              'xpt_data':self.CurrentTopology.LineTracer.NSEW_lookup
+              }
+        np.save(fname, Data)
+        
+        if Path(fname).suffix == '.npy':
+            tail = ''
+        else:
+            tail = '.npy'
+        print(f"# Saved patch data for file {Path(fname).name + tail}")
+
     def LoadPatches(self, fname: str = '') -> None:
         """
         Load patches stored in an Ingrid generated '.npy' file.
@@ -1318,7 +1391,7 @@ class Ingrid(IngridUtils):
         if fname.strip() == '':  # Check if settings contains patch data.
             fname = self.settings['patch_data']['file']
         config, xpt_data, patches = self.ReconstructPatches(fname)
-        self.PopulateSettings(Ingrid.ReadYamlFile(self.InputFile))
+        #self.PopulateSettings(Ingrid.ReadYamlFile(self.InputFile))
         self.StartSetup()
         self.LineTracer.NSEW_lookup = xpt_data
         self.SetTopology(config)
@@ -1326,8 +1399,37 @@ class Ingrid(IngridUtils):
         self.CurrentTopology.OrderPatches()
         self.CurrentTopology.SetupPatchMatrix()
         self.CheckPatches()
+        
+    def SuperLoadPatches(self, fname: str = '') -> None:
+        """
+        Load patches stored in an Ingrid generated '.npy' file.
 
-    def CreateSubgrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
+        Parameters
+        ----------
+        fname : str, optional
+            Path to patch data.
+                If no fname is provided to method 'LoadPatches', Ingrid code will check the settings
+                'dict' for a file under entry ``settings['patch_data']['file']``
+
+        """
+
+        if type(fname) is not str:
+            raise ValueError('# User did not provide a string to patch data.')
+
+        if fname.strip() == '':  # Check if settings contains patch data.
+            fname = self.settings['patch_data']['file']
+        Data=np.load(fname,allow_pickle=True).tolist()
+        #config, xpt_data, patches = self.ReconstructPatches(fname)
+        #self.PopulateSettings(Ingrid.ReadYamlFile(self.InputFile))
+        self.StartSetup()
+        self.LineTracer.NSEW_lookup = Data['xpt_data']
+        self.SetTopology(Data['config'])
+        self.CurrentTopology.patches = Data['patches']
+        self.CurrentTopology.OrderPatches()
+        self.CurrentTopology.SetupPatchMatrix()
+        self.CheckPatches()
+
+    def CreateSubgrid(self, NewFig: bool = True, ShowVertices: bool = False,**kwargs) -> None:
         """
         Refine a generated patch map into a grid for exporting.
 
@@ -1350,9 +1452,9 @@ class Ingrid(IngridUtils):
             the particular patch.
 
         """
-        self.CurrentTopology.construct_grid()
+        self.CurrentTopology.construct_grid( ShowVertices=ShowVertices,**kwargs)
 
-    def ExportGridue(self, fname: str = 'gridue') -> None:
+    def ExportGridue(self, fname: str = 'gridue',**kwargs) -> None:
         """
         Export a gridue file for the created grid.
 
@@ -1362,12 +1464,9 @@ class Ingrid(IngridUtils):
             Name of gridue file to save.
 
         """
-        if type(self.CurrentTopology) in [SNL]:
-            if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
-                print(f"# Successfully saved gridue file as '{fname}'")
-        elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:
-            if self.WriteGridueDNL(self.CurrentTopology.gridue_settings, fname):
-                print(f"# Successfully saved gridue file as '{fname}'")
+        self.CurrentTopology.PrepGridue(**kwargs)
+        self.CurrentTopology.WriteGridue(fname,**kwargs)
+        print(f"# Successfully saved gridue file as '{fname}'")
 
     @staticmethod
     def ImportGridue(self, fname: str = 'gridue') -> dict:

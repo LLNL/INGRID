@@ -390,7 +390,7 @@ class LineTracing:
                     option='rho', direction='ccw', show_plot=visual, text=verbose)
 
                 if self.line_group_intersect == limiter.points():
-                    self.flip_NSEW_lookup()
+                    self.flip_NSEW_lookup(xpt_ID)
                     xpt2 = self.NSEW_lookup['xpt2']['coor']
                     self.RegionLineCut = self.draw_line(xpt2['N'], {'line_group': [xptSW_limiter, xptSE_limiter, limiter]},
                         option='rho', direction='ccw', show_plot=visual, text=verbose)

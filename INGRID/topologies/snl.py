@@ -358,7 +358,7 @@ class SNL(TopologyUtils):
         ixrb = len(self.rm) - 2
         ixpt1 = self.patches['A2'].npol - 1
         ixpt2 = ixrb - self.patches['F2'].npol + 1
-        iyseparatrix1 = self.patches['A2'].nrad - 1
+        iyseparatrix1 = self.patches['A1'].nrad - 1
         nxm = len(self.rm) - 2
         nym = len(self.rm[0]) - 2
 

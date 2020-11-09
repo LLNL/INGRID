@@ -9,6 +9,10 @@ bbb.mhdgeo=1 #-toroidal MHD equilibrium
 com.geometry="snowflake75"
 com.nxpt=2 #-how many X-points in the domain
 
+#-non-orthogonal grid settings
+isnonog=1
+methg=66
+
 bbb.gallot("Xpoint_indices",0)
 grd.readgrid("gridue",com.runid)
 

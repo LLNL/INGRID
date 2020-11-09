@@ -1,0 +1,466 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Example: single-null configuration (further exploration) &mdash; ingrid  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Module Documentation" href="modules.html" />
+    <link rel="prev" title="Example: single-null configuration (introduction)" href="snl_example_1.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ingrid
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">INGRID Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="getting_started.html">Getting Started</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Downloading and installing INGRID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="launching_ingrid.html">Launching the INGRID GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_file_introduction.html">The INGRID parameter file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="snl_example_1.html">Example: single-null configuration (introduction)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Example: single-null configuration (further exploration)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#loading-our-example">Loading our example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#standard-snl-primary-x-point-line-tracing-pattern">Standard SNL primary x-point line tracing pattern</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#overriding-snl-primary-x-point-line-tracing-pattern">Overriding SNL primary x-point line tracing pattern</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other-settings-for-patch-map-modification">Other settings for Patch map modification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#background-knowledge-for-poloidal-and-radial-grid-transformations">Background knowledge for poloidal and radial grid transformations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#applying-poloidal-and-radial-grid-transformations">Applying poloidal and radial grid transformations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reducing-cell-shearing-via-distortion-correction">Reducing cell shearing via <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adjusting-guard-cell-size">Adjusting guard cell size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Module Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ingrid</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="getting_started.html">Getting Started</a> &raquo;</li>
+        
+      <li>Example: single-null configuration (further exploration)</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/snl_example_2.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="example-single-null-configuration-further-exploration">
+<h1>Example: single-null configuration (further exploration)<a class="headerlink" href="#example-single-null-configuration-further-exploration" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This tutorial assumes the reader has already explored the <a class="reference external" href="snl_example_1">introductory SNL tutorial</a>.</p>
+</div>
+<p>Some cases <strong>require</strong> enabling of certain attributes in the parameter file in order to successfully produce a grid.</p>
+<p>Here we will detail said cases, and also dig deeper into INGRID’s capabilities for generating a grid. This tutorial will:</p>
+<ul class="simple">
+<li><p>Detail when adjustment to line-tracing algorithm is required by user</p></li>
+<li><p>Illustrate how to make adjustments to a generated <code class="docutils literal notranslate"><span class="pre">Patch</span></code> map</p></li>
+<li><p>Illustrate how to apply poloidal/radial transformations for non-uniform grid spacing</p></li>
+<li><p>Demonstrate how to reduce cell-shearing (increase orthoganality) of a grid via <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code></p></li>
+</ul>
+<div class="section" id="loading-our-example">
+<h2>Loading our example<a class="headerlink" href="#loading-our-example" title="Permalink to this headline">¶</a></h2>
+<p>The parameter file <code class="docutils literal notranslate"><span class="pre">cmod_param.yml</span></code> we will use in this tutorial is located in <code class="docutils literal notranslate"><span class="pre">example_files/SNL</span></code>.</p>
+<p>Loading the parameter file in the GUI and viewing the data should show the following.</p>
+<img alt="_images/cmod_example_full_view.png" src="_images/cmod_example_full_view.png" />
+<p>Immediately we see that there is a line segment originating from the primary x-point and extending to the EFIT domain boundary.</p>
+<p>This is an indicator that INGRID will be overriding the default line tracing behavior from the primary x-point. As for why and how we
+activate this capability will be detailed in the next section.</p>
+</div>
+<div class="section" id="standard-snl-primary-x-point-line-tracing-pattern">
+<h2>Standard SNL primary x-point line tracing pattern<a class="headerlink" href="#standard-snl-primary-x-point-line-tracing-pattern" title="Permalink to this headline">¶</a></h2>
+<p>INGRID utilizes specific line tracing procedures for each supported topology. Below is a cartoon of line tracing directions from the primary x-point.</p>
+<img alt="_images/snl_line_trace_directions.png" src="_images/snl_line_trace_directions.png" />
+<p>Tracing in direction <strong>N, S, E, W</strong> are orthogonal to flux surfaces.</p>
+<p>Note that line tracing from the <strong>W</strong> and <strong>E</strong> directions terminate upon intersection with the psi-max surface. Upon intersection with the psi-max surface, line tracing continues
+along the poloidal line and searches for intersection with a target plate.</p>
+<p><em>In this particular example case we are exploring, intersection with the psi-max surface occurs past the target plate, thus causing line tracing to fail.</em></p>
+<p>We see this in the cartoon below when modifying the target plate geometry.</p>
+<img alt="_images/snl_line_trace_issue.png" src="_images/snl_line_trace_issue.png" />
+<p>Although this can indeed be remedied by modifying the target plate geometry or adjusting psi-max surfaces, INGRID allows the user to override the default orthogonal line tracing so that
+line tracing can continue without error. This remedy is illustrated below.</p>
+<img alt="_images/snl_line_trace_resolution.png" src="_images/snl_line_trace_resolution.png" />
+</div>
+<div class="section" id="overriding-snl-primary-x-point-line-tracing-pattern">
+<h2>Overriding SNL primary x-point line tracing pattern<a class="headerlink" href="#overriding-snl-primary-x-point-line-tracing-pattern" title="Permalink to this headline">¶</a></h2>
+<p>We can override the default orthogonal line tracing for both <strong>E</strong> and <strong>W</strong> directions with the entries <code class="docutils literal notranslate"><span class="pre">use_xpt1_E</span></code> and <code class="docutils literal notranslate"><span class="pre">use_xpt1_W</span></code> that reside within <code class="docutils literal notranslate"><span class="pre">patch_generation</span></code>.
+This can be seen below.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
+    <span class="c1">#...</span>
+    <span class="c1"># other settings</span>
+    <span class="c1">#...</span>
+    <span class="nt">patch_generation</span><span class="p">:</span>
+        <span class="nt">use_xpt1_E</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+        <span class="nt">use_xpt1_W</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
+</pre></div>
+</div>
+<p>Upon activating either entry and reloading the view into the parameter file, we will see line segment that extends from the primary x-point. This segment is a marker indicating the new line tracing direction.</p>
+<p>By default, no rotation is applied to the line tracing direction. We can adjust the direction with the entries <code class="docutils literal notranslate"><span class="pre">xpt1_E_tilt</span></code> and <code class="docutils literal notranslate"><span class="pre">xpt1_W_tilt</span></code>. We see this below.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
+    <span class="c1">#...</span>
+    <span class="c1"># other settings</span>
+    <span class="c1">#...</span>
+    <span class="nt">patch_generation</span><span class="p">:</span>
+        <span class="nt">use_xpt1_E</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+        <span class="nt">use_xpt1_W</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
+        <span class="nt">xpt1_E_tilt</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.2</span>  <span class="c1"># radian value for rotation</span>
+        <span class="nt">xpt1_W_tilt</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">-0.8</span>  <span class="c1"># radian value for rotation</span>
+</pre></div>
+</div>
+<p>The user now has the tools to remedy the above situation. We can see in this case that <code class="docutils literal notranslate"><span class="pre">xpt1_E_tilt:</span> <span class="pre">0.2</span></code> provides enough clearance such that intersection with the target plate will occur.</p>
+<img alt="_images/cmod_example_zoomed_view.png" src="_images/cmod_example_zoomed_view.png" />
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>When it is not immediately obvious from the loaded EFIT data that orthogonal line tracing will intersect psi-max past the target plate, the user can change the visualization of the INGRID data from</p>
+</div>
+<p>filled contours to unfilled. We do this by changing <code class="docutils literal notranslate"><span class="pre">view_mode:</span> <span class="pre">filled</span></code> to <code class="docutils literal notranslate"><span class="pre">view_mode:</span> <span class="pre">lines</span></code>. We can control the number of contour lines plotted by modifying the <code class="docutils literal notranslate"><span class="pre">nlevs</span></code> entry as well. This can help
+with visually imagining where orthogonal line tracing will terminate.</p>
+</div>
+<div class="section" id="other-settings-for-patch-map-modification">
+<h2>Other settings for Patch map modification<a class="headerlink" href="#other-settings-for-patch-map-modification" title="Permalink to this headline">¶</a></h2>
+<p>Overriding orthogonal line tracing from the primary x-point is just one modification that can be made to influence a final Patch map.</p>
+<p>SNL line tracing for certain patches in the core will define boundaries based off intersection with the <strong>horizontal</strong> and <strong>vertical</strong> lines that intersect the
+magnetic axis (midplane).</p>
+<p>One such modification is applying an RZ translation to the magnetic-axis coordinate used to generate said Patch boundaries.</p>
+<p>This can be controlled in the parameter file by editing entries <code class="docutils literal notranslate"><span class="pre">rmagx_shift</span></code> and <code class="docutils literal notranslate"><span class="pre">zmagx_shift</span></code> under <code class="docutils literal notranslate"><span class="pre">patch_generation</span></code> in <code class="docutils literal notranslate"><span class="pre">grid_settings</span></code>.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
+    <span class="nt">patch_generation</span><span class="p">:</span>
+        <span class="nt">rmagx_shift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.0</span>  <span class="c1"># Translate R coordinate</span>
+        <span class="nt">zmagx_shift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.0</span>  <span class="c1"># Translate Z coordinate</span>
+</pre></div>
+</div>
+<p>Saving the parameter file and reloading the view into the data will reflect the changes. The Patch map generated with the translations above can be seen below.</p>
+<img alt="_images/cmod_patch_shift.png" src="_images/cmod_patch_shift.png" />
+<p>In a similar manner to adjusting the angle of line tracing in the <code class="docutils literal notranslate"><span class="pre">E</span></code> and <code class="docutils literal notranslate"><span class="pre">W</span></code> directions from the primary x-point, we can adjust the line
+segments extending from the magnetic-axis. These line segments define the east faces of patches <code class="docutils literal notranslate"><span class="pre">B1</span></code> and <code class="docutils literal notranslate"><span class="pre">B2</span></code>,
+as well as the west faces of patches <code class="docutils literal notranslate"><span class="pre">E1</span></code> and <code class="docutils literal notranslate"><span class="pre">E2</span></code>.</p>
+<p>The tilt of the inner-midplane and outer-midplane can be controlled with entries <code class="docutils literal notranslate"><span class="pre">magx_tilt_1</span></code> and <code class="docutils literal notranslate"><span class="pre">magx_tilt_2</span></code> respectively. These entries are contained within <code class="docutils literal notranslate"><span class="pre">patch_generation</span></code> in <code class="docutils literal notranslate"><span class="pre">grid_settings</span></code>.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
+    <span class="nt">patch_generation</span><span class="p">:</span>
+        <span class="nt">magx_tilt_1</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.0</span>  <span class="c1"># inner-midplane rotation (in radians)</span>
+        <span class="nt">magx_tilt_2</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.0</span>  <span class="c1"># outer-midplane rotation (in radians)</span>
+</pre></div>
+</div>
+<p>Saving the parameter file and reloading the view into the data will reflect the changes. The Patch map generated with the only the tilt values entered above can be seen below.</p>
+<img alt="_images/cmod_patch_tilt.png" src="_images/cmod_patch_tilt.png" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Midplane tilt entries are in radians and follow the standard counter-clockwise rotation direction.</p>
+</div>
+<p>Combining both together yields the following Patch map.</p>
+<img alt="_images/cmod_patch_shift_tilt.png" src="_images/cmod_patch_shift_tilt.png" />
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Applying these Patch modifications appropriately can allow one to increase cell density near primary x-point without modifying np/nr values</p>
+</div>
+<p>On the left is the grid with no Patch map modifications for reference.</p>
+<img alt="_images/cmod_magx_transform_comparison.png" src="_images/cmod_magx_transform_comparison.png" />
+</div>
+<div class="section" id="background-knowledge-for-poloidal-and-radial-grid-transformations">
+<h2>Background knowledge for poloidal and radial grid transformations<a class="headerlink" href="#background-knowledge-for-poloidal-and-radial-grid-transformations" title="Permalink to this headline">¶</a></h2>
+<p>INGRID allows the user to provided poloidal and radial grid distribution functions for generating non-uniform grids.</p>
+<p>Before detailing how to invoke these features, some background on the Patch object itself.</p>
+<p>Each Patch boundary is defined by 4 lines that we refer to as  <strong>N</strong>, <strong>E</strong>, <strong>S</strong>, <strong>W</strong>. This allows for us to maintain a clockwise orientation on the boundary of a Patch. Below is a cartoon illustrating the idea.</p>
+<img alt="_images/Patch_NSEW.png" src="_images/Patch_NSEW.png" />
+<p>The <strong>N</strong> boundary (seen in dark blue) for Patch A2 begins at the max-psi strike-point on the target plate west of the primary x-point (inner target plate for SNL case), and terminates at the B2 interface. The <strong>S</strong> boundary (seen in magenta) for Patch A2 is oriented in the opposite direction and terminates upon intersection with the target plate.</p>
+<p>The <strong>E</strong> and <strong>W</strong> boundaries (seen in dark green and cyan, respectively) are defined in the radial direction relative to the <strong>N</strong> and <strong>S</strong> boundaries.</p>
+<p>Note that this convention holds throughout the entire Patch map. We can see this by noticing that upon reaching Patch <code class="docutils literal notranslate"><span class="pre">F2</span></code>, the <strong>E</strong> boundary is now defined by a portion of the (LSN outer) target plate.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>INGRID chooses to parameterize the **N</strong> face in length with parameter <span class="math notranslate nohighlight">\(s \in [0, 1]\)</span> for poloidal distribution functions. Similarly, INGRID chooses to parameterize the <strong>W</strong> face in increasing psi with parameter <span class="math notranslate nohighlight">\(s \in [0, 1]\)</span> for radial distribution functions. **</p>
+</div>
+<p>Now we discuss how the user specifies poloidal and radial grid transformations within the parameter file.</p>
+<p><strong>INGRID parses a string from the user in the form ``x, f(x)`` where :math:`x` indicates the dependent variable and :math:`f(x)` is mathematical expression representing the distribution.</strong>
+Within the parameter file, we have seen the string <code class="docutils literal notranslate"><span class="pre">x,</span> <span class="pre">x</span></code> utilized for entries <code class="docutils literal notranslate"><span class="pre">radial_f_default</span></code> and <code class="docutils literal notranslate"><span class="pre">poloidal_f_default</span></code>. INGRID interprets this as applying a uniform distribution of
+vertices for defining the grid (consistent with what we have seen).</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Due to the parameterization <span class="math notranslate nohighlight">\(s \in [0,1]\)</span>, defining <span class="math notranslate nohighlight">\(f(x)\)</span> such that <span class="math notranslate nohighlight">\(f: [0, 1] \to [0, 1]\)</span> is important. Apply appropriate normalization operations when utilizing non-trivial functions (see example below).</p>
+</div>
+<p>INGRID utilizes <a class="reference external" href="https://www.sympy.org/en/index.html">SymPy</a> for generating a function from the user provided string. Standard Python arithmetic operations are supported (<code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">**</span></code>, …), as well as common
+mathematical functions such as <code class="docutils literal notranslate"><span class="pre">exp</span></code> and <code class="docutils literal notranslate"><span class="pre">log</span></code>.</p>
+</div>
+<div class="section" id="applying-poloidal-and-radial-grid-transformations">
+<h2>Applying poloidal and radial grid transformations<a class="headerlink" href="#applying-poloidal-and-radial-grid-transformations" title="Permalink to this headline">¶</a></h2>
+<p>In general, we adopt a notation similar to specifying np/nr cells. Below is a snippet of a YAML file with default poloidal and radial transformation values.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
+    <span class="nt">grid_generation</span><span class="p">:</span>
+
+        <span class="c1"># ...</span>
+        <span class="c1"># Other grid_generation settings</span>
+        <span class="c1"># ...</span>
+
+        <span class="nt">poloidal_f_default</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x, x</span>  <span class="c1"># Global uniform poloidal</span>
+        <span class="nt">radial_f_default</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x, x</span>    <span class="c1"># Global uniform radial</span>
+</pre></div>
+</div>
+<p>Much like <code class="docutils literal notranslate"><span class="pre">np_default</span></code> and <code class="docutils literal notranslate"><span class="pre">nr_default</span></code>, entries <code class="docutils literal notranslate"><span class="pre">poloidal_f_default</span></code> and <code class="docutils literal notranslate"><span class="pre">radial_f_default</span></code> apply to poloidal “columns” and radial “rows” in index space, respectively.
+The <code class="docutils literal notranslate"><span class="pre">default</span></code> appended to <code class="docutils literal notranslate"><span class="pre">poloidal_f_</span></code> and <code class="docutils literal notranslate"><span class="pre">radial_f_</span></code> tells INGRID to apply the corresponding transformation globally.</p>
+<p>Poloidal transformations can be specified with the same convention as specifying poloidal cells (<code class="docutils literal notranslate"><span class="pre">poloidal_f_A</span></code>, <code class="docutils literal notranslate"><span class="pre">poloidal_f_B</span></code>, …, <code class="docutils literal notranslate"><span class="pre">poloidal_f_F</span></code>).</p>
+<p>Radial transformations follow the same convention (<code class="docutils literal notranslate"><span class="pre">radial_f_1</span></code>, <code class="docutils literal notranslate"><span class="pre">radial_f_2</span></code>), but also have an additional <code class="docutils literal notranslate"><span class="pre">radial_f_3</span></code> specifically for the inner-core region.</p>
+<p>The following applies an exponential-like distribution (between 0 and 1) for the SOL, PF, and CORE. These transformations will generate grid cells that hug the primary separatrix slightly more than usual.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
+    <span class="nt">grid_generation</span><span class="p">:</span>
+
+        <span class="c1"># ...</span>
+        <span class="c1"># Other grid_generation settings</span>
+        <span class="c1"># ...</span>
+
+        <span class="nt">poloidal_f_default</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x, x</span>  <span class="c1"># Global uniform poloidal</span>
+        <span class="nt">radial_f_default</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x, x</span>    <span class="c1"># Global uniform radial</span>
+        <span class="nt">radial_f_1</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x, 1-(1-exp(-(1-x)/0.4))/(1-exp(-1/0.4))</span>
+        <span class="nt">radial_f_2</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x, (1-exp(-(x)/0.8))/(1-exp(-1/0.8))</span>
+        <span class="nt">radial_f_2</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x, (1-exp(-(x)/0.8))/(1-exp(-1/0.8))</span>
+</pre></div>
+</div>
+<p>The resulting grid with transformations can be seen on the left, and the original grid with no transformations can be seen on the right.</p>
+<img alt="_images/cmod_grid_transform_compare.png" src="_images/cmod_grid_transform_compare.png" />
+</div>
+<div class="section" id="reducing-cell-shearing-via-distortion-correction">
+<h2>Reducing cell shearing via <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code><a class="headerlink" href="#reducing-cell-shearing-via-distortion-correction" title="Permalink to this headline">¶</a></h2>
+<p>INGRID does not enforce an orthogonality condition when generating a grid. INGRID allows the user to impose angle constraints on cells within a generated grid
+in order to increase orthogonality. We do this via the <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code> feature.</p>
+<p>Below is an example of cell shearing and the motivation for INGRID’s <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code>.</p>
+<p>This <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code> tool allows the user to specify angle constraints <code class="docutils literal notranslate"><span class="pre">theta_min</span></code> and <code class="docutils literal notranslate"><span class="pre">theta_max</span></code> in order to mitigate cell shearing.
+INGRID will shift the cell vertex by increments of 1 / <code class="docutils literal notranslate"><span class="pre">resolution</span></code> until the resultant angle is within the user constraints.</p>
+<p>If the constraint cannot be satisfied (vertex leaves the Patch), INGRID will backtrack until the vertex is within the Patch bounds.</p>
+<p>Below is a snippet of the parameter file format showing <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code> applied globally.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
+    <span class="nt">grid_generation</span><span class="p">:</span>
+        <span class="nt">distortion_correction</span><span class="p">:</span>
+
+            <span class="c1"># Global settings</span>
+            <span class="nt">all</span><span class="p">:</span>
+                <span class="nt">active</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">True</span>  <span class="c1"># toggle distortion_correction</span>
+                <span class="nt">resolution</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>  <span class="c1"># 1 / resolution step-size for shifting vertex</span>
+                <span class="nt">theta_max</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">120.0</span>  <span class="c1"># angle constraint</span>
+                <span class="nt">theta_min</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80.0</span>   <span class="c1"># angle constraint</span>
+
+            <span class="c1"># Patch specific settings can be provided in addition to global settings</span>
+            <span class="c1"># (similar to how we specify np/nr for Patches on top of default np/nr)</span>
+
+            <span class="c1"># Example: Specify distortion_correction for Patch A1</span>
+
+            <span class="c1"># A1:  # &lt;-- (Patch name here can be changed)</span>
+            <span class="c1">#    active: false  # toggle distortion_correction</span>
+            <span class="c1">#    resolution: 1000  # 1 / resolution step-size for shifting vertex</span>
+            <span class="c1">#    theta_max: 120.0  # angle constraint</span>
+            <span class="c1">#    theta_min: 80.0   # angle constraint</span>
+
+        <span class="nt">np_default</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+        <span class="nt">nr_default</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+        <span class="nt">poloidal_f_default</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x, x</span>
+        <span class="nt">radial_f_default</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">x, x</span>
+</pre></div>
+</div>
+<p>Below is a side-by-side comparison of <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code> toggled on and off respectively.</p>
+<img alt="_images/cmod_final_dc_on_off.png" src="_images/cmod_final_dc_on_off.png" />
+<p>We can see that the radial lines are indeed more orthogonal to the poloidal contours. Although only a mild effect in this case, we
+have seen that <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code> can significantly reduce shearing and generate tidier grids in others (example SF cases seen below).</p>
+<p>This feature (in addition to those detailed above) is just another tool at a user’s disposal that need not be utilized in every case.</p>
+</div>
+<div class="section" id="adjusting-guard-cell-size">
+<h2>Adjusting guard cell size<a class="headerlink" href="#adjusting-guard-cell-size" title="Permalink to this headline">¶</a></h2>
+<p>Guard cell size for a generated grid can be specified within the parameter file by editing entry <code class="docutils literal notranslate"><span class="pre">guard_cell_eps</span></code> within <code class="docutils literal notranslate"><span class="pre">grid_settings</span></code>. That is:</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="c1"># ---------------------------------------------------</span>
+<span class="c1"># General grid settings</span>
+<span class="c1"># ---------------------------------------------------</span>
+<span class="nt">grid_settings</span><span class="p">:</span>
+    <span class="c1"># ...</span>
+    <span class="c1"># ... Other grid_settings entries</span>
+    <span class="c1"># ...</span>
+    <span class="nt">guard_cell_eps</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.00001</span>  <span class="c1"># Size of guard cells.</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Specification of guard cell size must be done prior to initiating grid generation (clicking <code class="docutils literal notranslate"><span class="pre">Create</span> <span class="pre">Grid</span></code>).</p>
+</div>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>In this tutorial, we encountered a situation where parameter file modification is required for INGRID to successfully generate a Patch map.
+This was resolved by modifying the line tracing procedure in order to accomodate the provided geometry.</p>
+<p>We also saw how the modification of the line tracing procedure falls into the over-arching category of INGRID tools that allow the user to
+customize a Patch map.</p>
+<p>Finally, we dove deeper into grid customization capabilities such as applying <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code>, poloidal and radial transformations,
+and specifying guard cell size.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules.html" class="btn btn-neutral float-right" title="Module Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="snl_example_1.html" class="btn btn-neutral float-left" title="Example: single-null configuration (introduction)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Bryan Max Garcia
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -15,9 +15,10 @@ try:
 except:
     pass
 import matplotlib.pyplot as plt
-import pathlib
 import inspect
-from scipy.optimize import root, minimize
+from scipy.optimize import root
+
+
 
 import yaml as yml
 import os
@@ -28,8 +29,9 @@ from collections import OrderedDict
 from omfit_eqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.line_tracing import LineTracing
-from INGRID.geometry import Point, Line, Patch, segment_intersect, orientation_between
-
+from INGRID.DistribFunc import DistribFunc
+from INGRID.geometry import Point, Line, Patch, orientation_between
+import types
 
 class IngridUtils():
     """
@@ -1070,137 +1072,9 @@ class IngridUtils():
 
         self.config = self.LineTracer.config
 
-    def WriteGridueSNL(self, gridue_settings: dict, fname: str = 'gridue') -> bool:
-        """
-        Write a gridue file for a single-null configuration.
+    
 
-        Parameters
-        ----------
-        gridue_settings : dict
-            A dictionary containing grid data to be written to the gridue file.
-
-        fname : str, optional
-            The file name/path to save the gridue file to.
-            Defaults to 'gridue'.
-
-        Returns
-        -------
-            True if file was written with no errors
-        """
-
-        def format_header(gridue):
-            header_items = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
-            header = ''
-            for item in header_items:
-                header += '{}'.format(gridue[item]).rjust(4)
-
-            header += '\n'
-            return header
-
-        def format_body(data):
-
-            delim_val = 0
-            delim_char = ''
-            body = ''
-
-            for n in range(5):
-                for j in range(len(data[0])):
-                    for i in range(len(data)):
-                        delim_val += 1
-                        val = np.format_float_scientific(data[i][j][n], precision=15, unique=False).rjust(23).replace('e', 'D')
-                        if delim_val == 3:
-                            delim_val = 0
-                            delim_char = '\n'
-                        body += val + delim_char
-                        delim_char = ''
-
-            if delim_val % 3 != 0:
-                body += '\n'
-
-            return body
-
-        f = open(fname, mode='w')
-        f.write(format_header(gridue_settings) + '\n')
-
-        body_items = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
-        for item in body_items:
-            f.write(format_body(gridue_settings[item]) + '\n')
-
-        runidg = 'iogridue'
-        f.write(runidg + '\n')
-
-        f.close()
-
-        return True
-
-    def WriteGridueDNL(self, gridue_settings: dict, fname: str = 'gridue') -> bool:
-        """
-        Write a gridue file for a double-null configuration.
-
-        Parameters
-        ----------
-        gridue_settings : dict
-            A dictionary containing grid data to be written to the gridue file.
-
-        fname : str, optional
-            The file name/path to save the gridue file to.
-            Defaults to 'gridue'.
-
-        Returns
-        -------
-            True if file was written with no errors
-        """
-
-        def format_header(gridue):
-            header_rows = [
-                ['nxm', 'nym'],
-                ['iyseparatrix1', 'iyseparatrix2'],
-                ['ix_plate1', 'ix_cut1', '_FILLER_', 'ix_cut2', 'ix_plate2'],
-                ['iyseparatrix3', 'iyseparatrix4'],
-                ['ix_plate3', 'ix_cut3', '_FILLER_', 'ix_cut4', 'ix_plate4']
-            ]
-
-            header = ''
-            for header_items in header_rows:
-                for item in header_items:
-                    header += '{}'.format(gridue[item]).rjust(4)
-                header += '\n'
-            return header
-
-        def format_body(data):
-
-            delim_val = 0
-            delim_char = ''
-            body = ''
-
-            for n in range(5):
-                for j in range(len(data[0])):
-                    for i in range(len(data)):
-                        delim_val += 1
-                        val = np.format_float_scientific(data[i][j][n], precision=15, unique=False).rjust(23).replace('e', 'D')
-                        if delim_val == 3:
-                            delim_val = 0
-                            delim_char = '\n'
-                        body += val + delim_char
-                        delim_char = ''
-
-            if delim_val % 3 != 0:
-                body += '\n'
-
-            return body
-
-        f = open(fname, mode='w')
-        f.write(format_header(gridue_settings) + '\n')
-
-        body_items = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
-        for item in body_items:
-            f.write(format_body(gridue_settings[item]) + '\n')
-
-        runidg = 'iogridue'
-        f.write(runidg + '\n')
-
-        f.close()
-        return True
+    
 
     def ReconstructPatches(self, fname: str) -> tuple:
         """
@@ -1227,7 +1101,7 @@ class IngridUtils():
         patches = {}
 
         for raw_patch in data[2:]:
-            patch_data, cell_data, patch_settings = raw_patch
+            patch_data, cell_data, patch_settings,Vertices,cell_grid = raw_patch
             NR = patch_data[0]
             NZ = patch_data[1]
             ER = patch_data[2]
@@ -1246,7 +1120,8 @@ class IngridUtils():
                           plate_patch=patch_settings['plate_patch'],
                           plate_location=patch_settings['plate_location'],
                           PatchTagMap=patch_settings['PatchTagMap'])
-
+            patch.SetVertices(Vertices)
+            patch.cell_grid=cell_grid
             patches[patch.patch_name] = patch
 
         patches = OrderedDict([(k, v) for k, v in patches.items()])
@@ -1267,16 +1142,16 @@ class IngridUtils():
         """
         self.CurrentTopology.CheckPatches(verbose=verbose)
 
-    def PrepGridue(self, guard_cell_eps=1e-3) -> None:
-        """
-        Prepare the gridue for writing.
+    # def PrepGridue(self, guard_cell_eps=1e-3) -> None:
+    #     """
+    #     Prepare the gridue for writing.
 
-        This method calls topology specific implementations of methods that
-        concatenate the Patch object subgrids into a global grid.
-        """
-        self.CurrentTopology.SetupPatchMatrix()
-        self.CurrentTopology.concat_grid(guard_cell_eps=guard_cell_eps)
-        self.CurrentTopology.set_gridue()
+    #     This method calls topology specific implementations of methods that
+    #     concatenate the Patch object subgrids into a global grid.
+    #     """
+    #     self.CurrentTopology.SetupPatchMatrix()
+    #     self.CurrentTopology.concat_grid(guard_cell_eps=guard_cell_eps)
+    #     self.CurrentTopology.set_gridue()
 
     @classmethod
     def _CheckOverlapCells(Grid, Verbose=False):
@@ -1359,6 +1234,7 @@ class TopologyUtils():
         self.PlateData = Ingrid_obj.PlateData
         self.PatchTagMap = self.parent.GetPatchTagMap(config=config)
         self.LineTracer = Ingrid_obj.LineTracer
+        self.OMFIT_psi = Ingrid_obj.OMFIT_psi
         self.PsiUNorm = Ingrid_obj.PsiUNorm
         self.PsiNorm = Ingrid_obj.PsiNorm
         self.CurrentListPatch = {}
@@ -1404,6 +1280,7 @@ class TopologyUtils():
         for i, patch in enumerate(self.patches.values()):
             patch.plot_border(color='black', ax=a)
             patch.fill(colors[patch.get_tag()[0]], ax=a, alpha=alpha[patch.get_tag()[-1]])
+            patch.alpha=alpha[patch.get_tag()[-1]]
             patch.color = colors[patch.get_tag()[0]]
         handles, labels = a.get_legend_handles_labels()
         lookup = {label: handle for label, handle in zip(labels, handles)}
@@ -1412,7 +1289,7 @@ class TopologyUtils():
                  ncol=1)
         f.show()
 
-    def grid_diagram(self, fig: object = None, ax: object = None) -> None:
+    def grid_diagram(self, fig: object = None, ax: object = None,color=None,**kwargs) -> None:
         """
         Generates the grid diagram for a given configuration.
 
@@ -1441,7 +1318,8 @@ class TopologyUtils():
         ax.set_title(f'{self.config} Subgrid')
 
         for patch in self.patches.values():
-            patch.plot_subgrid(ax=ax)
+            #patch.plot_subgrid(ax=ax)
+            patch.PlotSubGrid(ax=ax,color=color)
             print(f'# Plotting subgrid {patch.patch_name}')
 
         fig.show()
@@ -1480,96 +1358,37 @@ class TopologyUtils():
         """
         return self.config
 
-    def get_func(self, func: str) -> 'function':
-        """
-        Create a function from a string input.
-
-        Will be used to generate a poloidal or radial transformation
-        function.
-
-        Parameters
-        ----------
-        func : str
-            An expression to generate a function from.
-
-        Returns
-        -------
-            A function generated from the str input.
-
-        Examples
-        --------
-        When calling method ``get_func`` the user must provide a **string**
-        with the following general format:
-
-        .. math::
-
-            x, f(x)
-
-        That is, the dependent variable and expression to evaluate are
-        separated with a comma character.
-
-        The `Sympy` library supports most expressions that can be generated with
-        Python natively. See the `Sympy` documentation for advanced features.
-
-        Defining a function representing f(x) = x ^ 2:
-
-        >>> func = 'x, x ** 2'
-        >>> f = MyTopologyUtils.get_func(func)
-        >>> f(np.array([0, 1, 2, 3]))
-        array([0, 1, 4, 9])
-
-        Defining a function representing f(x) = exp(x)
-
-        >>> func = 'x, exp(x)'
-        >>> f = MyTopologyUtils.get_func(func)
-        >>> f(np.array([0, 1, 2, 3]))
-        array([ 1.        ,  2.71828183,  7.3890561 , 20.08553692])
-
-        """
-
-        def make_sympy_func(var, expression):
-            import sympy as sp
-            _f = sp.lambdify(var, expression, 'numpy')
-            return _f
-
-        f_str_raw = func
-
-        f_str_raw = f_str_raw.replace(' ', '')
-        delim = f_str_raw.index(',')
-
-        var = f_str_raw[0: delim]
-        expression = f_str_raw[delim + 1:]
-
-        func = make_sympy_func(var, expression)
-        # TODO: Check Normalization of the function to 1
-        return func
-
-    def CheckFunction(self, expression: str, Verbose: bool = False) -> bool:
-        """
-        Check if a str is in the correct format for method ``get_func``
-
-        Parameters
-        ----------
-        expression : str
-            Expression to check.
-
-        Verbose : bool, optional
-            Print full output to terminal. Default to False
-
-        Returns
-        -------
-            True if expression is valid. False otherwise.
-        """
-        ExpValid = False
-        try:
-            com = 'lambda {}:{}'.format(expression.split(',')[0], expression.split(',')[1])
-            if Verbose:
-                print(com)
-            eval(com)
-            ExpValid = True
-        except:
-            raise ValueError('Unable to parse expression entry "{}".'.format(expression))
-        return ExpValid
+    
+    def SetPatchesOrientation(self):
+        
+        
+        # set radial orientation negative if patch is in PFR
+        for name, patch in self.patches.items():
+            if  patch.plate_patch and self.GetPatchLetterNumber(patch.get_tag())[1]=='1':
+                patch.RadOrientation=-1
+            else:
+                patch.RadOrientation=1
+        
+        #set poloidal orientation negative if patches in high field side region (must be checked for other config)
+        Letters=list(dict.fromkeys([L for L,N in  self.GetPatchLetterNumber(self.GetListAllPatches())]))
+        Nhalf=int(len(Letters)/2)
+        ListLFS=Letters[0:Nhalf]
+        for name, patch in self.patches.items():
+            if self.GetPatchLetterNumber(patch.get_tag())[0] in ListLFS:
+                patch.PolOrientation=-1
+            else:
+                patch.PolOrientation=1
+        
+        
+        
+        
+                
+        
+    
+    
+    def ResetHeavyAttr(self):
+        for p in self.patches.values():
+            p.ResetSplines()
 
     def GetFunctions(self, Patch: Patch, Verbose: bool = False) -> tuple:
         """
@@ -1592,49 +1411,43 @@ class TopologyUtils():
         -------
             2-tuple containing functions for radial and poloidal direction respectively.
         """
-
+        
         poloidal_tag, radial_tag = Patch.get_tag()
         p_f = 'poloidal_f_' + poloidal_tag
         r_f = 'radial_f_' + radial_tag
+        
+        _poloidal_f = DistribFunc(self.settings['grid_settings']['grid_generation'].get(p_f))
+        if _poloidal_f is None:
+            _poloidal_f = DistribFunc(self.settings['grid_settings']['grid_generation'].get('poloidal_f_default'))
+        if _poloidal_f is None:
+            _poloidal_f = DistribFunc('x:x')
 
-        try:
-            _poloidal_f = self.settings['grid_settings']['grid_generation'][p_f]
-            valid_function = self.CheckFunction(_poloidal_f, Verbose)
-            if valid_function:
-                _poloidal_f = self.get_func(_poloidal_f)
-            else:
-                raise ValueError('# Invalid function entry. Applying default poloidal function.')
-        except:
-            _poloidal_f = self.settings['grid_settings']['grid_generation']['poloidal_f_default']
-            valid_function = self.CheckFunction(_poloidal_f, Verbose)
-            if valid_function:
-                _poloidal_f = self.get_func(_poloidal_f)
-            else:
-                _poloidal_f = lambda x: x
-
-        try:
-
-            # Adding CORE radial_f support for SNL cases via entry 'radial_f_3'
-            if self.config in ['USN', 'LSN'] \
-                and self.settings['grid_settings']['grid_generation'].get('radial_f_3') is not None \
-                    and poloidal_tag + radial_tag in ['B1', 'C1', 'D1', 'E1']:
-                _radial_f = self.settings['grid_settings']['grid_generation']['radial_f_3']
-            else:
-                _radial_f = self.settings['grid_settings']['grid_generation'][r_f]
-            valid_function = self.CheckFunction(_radial_f, Verbose)
-            if valid_function:
-                _radial_f = self.get_func(_radial_f)
-            else:
-                raise ValueError('# Invalid function entry. Applying default radial function.')
-        except:
-            _radial_f = self.settings['grid_settings']['grid_generation']['radial_f_default']
-            valid_function = self.CheckFunction(_radial_f, Verbose)
-            if valid_function:
-                _radial_f = self.get_func(_radial_f)
-            else:
-                _radial_f = lambda x: x
-
-        return (_radial_f, _poloidal_f)
+    
+        (L,N)=self.GetPatchLetterNumber(Patch.get_tag())
+        # Adding CORE radial_f support for SNL cases via entry 'radial_f_3'
+        if self.config in ['USN', 'LSN'] and N=='1' and Patch.plate_patch:
+            _radial_f = DistribFunc(self.settings['grid_settings']['grid_generation'].get('radial_f_3'))
+        else:
+            _radial_f = DistribFunc(self.settings['grid_settings']['grid_generation'].get(r_f))
+        if _radial_f is None:
+            _radial_f = DistribFunc(self.settings['grid_settings']['grid_generation'].get('radial_f_default'))
+        if _radial_f is None:
+            _radial_f = lambda x: x
+            
+        if hasattr(Patch,'RadOrientation') and Patch.RadOrientation==-1:
+            _radial_f_=lambda x:1-_radial_f(1-x)
+        else:
+            _radial_f_=_radial_f
+        if hasattr(Patch,'PolOrientation') and Patch.PolOrientation==-1:
+            _poloidal_f_=lambda x:1-_poloidal_f(1-x)
+        else:
+            _poloidal_f_=_poloidal_f
+            
+            
+        
+        return (_radial_f_, _poloidal_f_)
+    
+    
 
     def GetNpoints(self, Patch: Patch) -> tuple:
         """
@@ -1680,15 +1493,32 @@ class TopologyUtils():
             A dictionary containing ``CorrectDistortion`` settings.
         """
         if self.settings['grid_settings']['grid_generation'].get('distortion_correction') is not None:
-            CD = self.settings['grid_settings']['grid_generation']['distortion_correction']
+            self.distortion_correction = self.settings['grid_settings']['grid_generation']['distortion_correction']
         else:
-            CD = {}
+            self.distortion_correction = {}
 
-        self.distortion_correction = CD
-        return CD
+        if hasattr(self,'patches'):
+            for name, patch in self.patches.items():
+                (L,N)=self.GetPatchLetterNumber(patch.get_tag())
+                if self.distortion_correction.get(name) is not None:
+                    patch.distortion_correction = self.distortion_correction.get(name)
+                elif self.distortion_correction.get(patch.get_tag()) is not None:
+                    patch.distortion_correction = self.distortion_correction.get(patch.get_tag())
+                elif self.distortion_correction.get(N) is not None:
+                    patch.distortion_correction = self.distortion_correction.get(N)
+                elif self.distortion_correction.get(L) is not None:
+                    patch.distortion_correction = self.distortion_correction.get(L)    
+                elif self.distortion_correction.get('all') is not None:
+                    patch.distortion_correction = self.distortion_correction.get('all')
+                else:
+                    patch.distortion_correction = {'active': False}
+        
 
+    def GetListAllPatches(self):
+        return [v.get_tag() for k,v in self.patches.items()]
+    
     def construct_grid(self, np_cells: int = 1, nr_cells: int = 1, Verbose: bool = False,
-                       ShowVertices: bool = False, RestartScratch: bool = False, ListPatches: str = 'all') -> None:
+                       ShowVertices: bool = False, RestartScratch: bool = False, ListPatches: str = 'all',Visual=True) -> None:
         """
         Construct a grid by refining a Patch map.
 
@@ -1756,45 +1586,100 @@ class TopologyUtils():
             visual = self.settings['DEBUG']['visual']['subgrid']
         except:
             visual = False
+        if Visual:
+            visual=True
         try:
             verbose = self.settings['DEBUG']['verbose']['grid_generation']
         except:
             verbose = False
 
-        verbose = Verbose or verbose
-
+        if Verbose:
+            verbose=True
+        ListAllPatches=self.GetListAllPatches()
+        print('>>> Existing Patches :',ListAllPatches)
+        ListPatches=self.ProcessListPatches(ListPatches)
+        print('>>> Generating grids for patches:',ListPatches)
+        self.SetPatchesOrientation()
         self.GetDistortionCorrectionSettings()
-
-        print('>>> Patches:', [k for k in self.patches.keys()])
+        
+        
         if RestartScratch:
             self.CurrentListPatch = {}
 
         for name, patch in self.patches.items():
-
-            if self.distortion_correction.get(name) is not None:
-                patch.distortion_correction = self.distortion_correction.get(name)
-            elif self.distortion_correction.get(patch.get_tag()) is not None:
-                patch.distortion_correction = self.distortion_correction.get(patch.get_tag())
-            elif self.distortion_correction.get('all') is not None:
-                patch.distortion_correction = self.distortion_correction.get('all')
-            else:
-                patch.distortion_correction = {'Active': False}
-            if (ListPatches == 'all' and patch not in self.CurrentListPatch) or (ListPatches != 'all' and name in ListPatches):
-                self.SetPatchBoundaryPoints(patch, verbose)
+            self.SetPatchBoundaryPoints(patch)
+            
+        for name, patch in self.patches.items():
+            if (ListPatches == 'all' and patch not in self.CurrentListPatch) or (ListPatches != 'all' and patch.get_tag() in ListPatches):
+                self.SetPatchBoundaryPoints(patch)
                 (nr_cells, np_cells) = self.GetNpoints(patch)
                 (_radial_f, _poloidal_f) = self.GetFunctions(patch)
-                print(f'>>> Making subgrid in patch {name}:')
-                print(f'    np = {np_cells}, nr = {nr_cells}')
-                print(f'    fp = {inspect.getsource(_poloidal_f)}')
-                print(f'    fr = {inspect.getsource(_radial_f)}', end='')
+                print('>>> Making subgrid in patch:{} with np={},nr={},fp={},fr={}'.format(patch.get_tag(), np_cells, nr_cells, inspect.getsource(_poloidal_f), inspect.getsource(_radial_f)))
                 patch.RemoveDuplicatePoints()
                 patch.make_subgrid(self, np_cells, nr_cells, _poloidal_f=_poloidal_f, _radial_f=_radial_f, verbose=verbose, visual=visual, ShowVertices=ShowVertices)
 
+                
                 self.CurrentListPatch[name] = patch
-                print(f'    {name} subgrid complete.\n\n')
+                
         self.AdjustGrid()
+    
+    @staticmethod
+    def GetPatchLetterNumber(PatchName:str or str)->tuple:
+        
+        if type(PatchName)==str:
+            if len(PatchName)<1 or len(PatchName)>2:
+                raise IOError('PatchName must be a string of one or two characters')
+            L=''
+            N=None
+            
+            for C in PatchName:
+                if C.isnumeric():
+                    N=C
+                elif C.isalpha():
+                    L=C
+                else:
+                    raise IOError('PatchName must be a string of one or two characters with one letter max and one digit max')
+            return (L,N) 
+        
+        elif type(PatchName)==list:
+            Out=[]
+            for P in PatchName:
+                Out.append(TopologyUtils.GetPatchLetterNumber(P))
+            return Out
+        else:
+            raise ValueError('PatchName must be a list of a str')
+        
+    def ProcessListPatches(self,ListPatches:list or str):
+        if type(ListPatches)==str:
+            ListPatches=[ListPatches]
+        OrderedList=self.GetListAllPatches()
+  
+        Numbers=list(dict.fromkeys([N for L,N in  self.GetPatchLetterNumber(OrderedList) if N is not None]))
+        Letters=list(dict.fromkeys([L for L,N in  self.GetPatchLetterNumber(OrderedList) if L!='']))
+        if self.Verbose:
+            print('Numbers:',Numbers)
+            print('Letters:',Letters)
+        if 'all' in ListPatches:
+            return OrderedList
+        else:
+            
+            OutList=ListPatches.copy()
+            for P in ListPatches:
+                (L,N)=self.GetPatchLetterNumber(P)
+                if L=='' and N is None:
+                    raise ValueError('Incorrect patch name pattern:{}'.format(P))
+                elif N is None:   
+                    OutList.remove(P)
+                    OutList.extend([L+Num for Num in Numbers])
+                elif L=='':
+                    OutList.remove(P)
+                    OutList.extend([Let+N for Let in Letters])
+            # now let order them 
+            OutList=[P for P in OrderedList if P in list(dict.fromkeys(OutList))]
+            return OutList
+        
 
-    def SetPatchBoundaryPoints(self, Patch: Patch, verbose: bool = False) -> None:
+    def SetPatchBoundaryPoints(self, Patch: Patch) -> None:
         """
         Set the Patch ``BoundaryPoints`` dict based off TopologyUtils ``ConnexionMap``.
 
@@ -1802,8 +1687,6 @@ class TopologyUtils():
         ----------
         Patch : Patch
             The Patch to set the boundary points for.
-        verbose: bool
-            Print full output to terminal.
 
         Notes
         -----
@@ -1812,12 +1695,12 @@ class TopologyUtils():
         """
         Patch.TerminatesLoop = False
         if self.ConnexionMap.get(Patch.get_tag()) is not None:
-            if verbose:
+            if self.Verbose:
                 print('Find connexion map for patch {}'.format(Patch.patch_name))
             for v in self.ConnexionMap.get(Patch.get_tag()).items():
                 Boundary, AdjacentPatch = v
                 Patch.BoundaryPoints[Boundary] = self.GetBoundaryPoints(AdjacentPatch)
-                if verbose:
+                if self.Verbose:
                     print('Find Boundaries points for {}'.format(Patch.patch_name))
             if self.ConnexionMap.get(Patch.get_tag()).get('E') is not None:
                 Patch.TerminatesLoop = True
@@ -2189,3 +2072,18 @@ class TopologyUtils():
 
             if debug:
                 self._animate_grid()
+                
+    def SetBoundarySplines(self):
+        for n,p in self.patches.items():
+            p.CreateBoundarySplines(self)
+    
+    def PrepGridue(self, guard_cell_eps=1e-3,**kwargs) -> None:
+        """
+        Prepare the gridue for writing.
+
+        This method calls topology specific implementations of methods that
+        concatenate the Patch object subgrids into a global grid.
+        """
+        self.SetupPatchMatrix()
+        self.concat_grid(guard_cell_eps=guard_cell_eps)
+        self.set_gridue()

@@ -504,6 +504,19 @@ class Cell:
                 [self.vertices['SW'].y, self.vertices['NW'].y],
                 linewidth=1, color=color, label='cell')
 
+    def CollectBorder(self):
+        return np.array([(self.vertices[P].x, self.vertices[P].y) for P in ['NE','NW','SW','SE','NE']])
+
+    def CollectEdges(self):
+        Line1=[(self.vertices['NW'].x, self.vertices['NW'].y),(self.vertices['NE'].x, self.vertices['NE'].y)]
+        Line2=[(self.vertices['NE'].x, self.vertices['NE'].y),(self.vertices['SE'].x, self.vertices['SE'].y)]
+        Line3=[(self.vertices['SE'].x, self.vertices['SE'].y),(self.vertices['SW'].x, self.vertices['SW'].y)]
+        Line4=[(self.vertices['SW'].x, self.vertices['SW'].y),(self.vertices['NW'].x, self.vertices['NW'].y)]
+        return [Line1,Line2,Line3,Line4]
+    
+    
+
+        
     def plot_center(self, color='black', ax: 'matplotlib.axes.Axes' = None) -> None:
         """
         Plot the center of a Cell.
@@ -565,8 +578,16 @@ class Patch:
         self.E = lines[1]
         self.S = lines[2]
         self.W = lines[3]
+        self.E_vertices=[]
+        self.W_vertices=[]
+        self.N_vertices=[]
+        self.S_vertices=[]
         self.BoundaryPoints = {}
-
+        self.N_spl=None
+        self.E_spl=None
+        self.W_spl=None
+        self.N_spl=None
+        self.radial_spl=[]
         # This is the border for the fill function
         # It need to only include N and S lines
         self.RemoveDuplicatePoints()
@@ -576,7 +597,10 @@ class Patch:
         self.plate_location = plate_location
         self.patch_name = patch_name
         self.color = color
+        self.alpha=1
         self.Verbose = True
+        self.RadOrientation=1
+        self.PolOrientation=1
 
         # TODO: Populate these attributes when generating subgrid.
         #       Currently this is being done in the concat_grid method.
@@ -595,10 +619,17 @@ class Patch:
             'S': 'SOL',
             'C': 'Core'
         }
-
-        self.ax = None
         self.cell_grid = None
-
+    def ResetSplines(self):
+        self.radial_spl=[]
+        
+    def GetVertices(self):
+        return [getattr(self,'{}_vertices'.format(O)) for O in ['N','S','E','W']]
+    
+    def SetVertices(self,VerticesList):
+        for V,O in zip(VerticesList,['N','S','E','W']):
+            setattr(self,'{}_vertices'.format(O),V)
+            
     def plot_border(self, color='red', ax=None):
         """
         Draw solid borders around the patch.
@@ -625,7 +656,8 @@ class Patch:
         x = np.array([p.x for p in self.p])
         y = np.array([p.y for p in self.p])
         arr = np.column_stack((x, y))
-        patch = Polygon(arr, fill=True, closed=True, color=color, label=self.get_tag(), alpha=alpha)
+        PatchLabel = self.patch_name + ' (' + UnfoldLabel(self.PatchLabelDoc, self.patch_name) + ')'
+        patch = Polygon(arr, fill=True, closed=True, color=color, label=PatchLabel, alpha=alpha)
         _ax = plt.gca() if ax is None else ax
         _ax.add_patch(patch)
         _ax.plot()
@@ -636,8 +668,71 @@ class Patch:
         for row in self.cell_grid:
             for cell in row:
                 cell.plot_border(color=color, ax=ax)
-        plt.pause(0.1)
+        #plt.pause(0.1)
+        
+    def PlotSubGrid(self,ax=None,color=None):
+        if ax is None:
+            ax = plt.gca()
+        ListBorder=[]
+        ListEdges=[]
+        DataEdges=[]
+        
+        for row in self.cell_grid:
+            for cell in row:
+                Border=cell.CollectBorder()
+                
+                p=matplotlib.patches.Polygon(Border,edgecolor=color,fill=False)
+                ListBorder.append(p)
+                Edges=cell.CollectEdges()
+                ListEdges.extend(Edges)
+                for E in Edges:
+                    DataEdges.append(GetLength(E))
+                  
 
+        #Collection border of cell
+        C=matplotlib.collections.PatchCollection(ListBorder)
+        C.set_picker(True)
+        C.set_facecolor('')
+        if color is None:
+            C.set_edgecolor(self.color)
+        else:
+            C.set_edgecolor(color)
+        #ax.add_collection(C) 
+        
+        #Collection edges of cells
+        CE=matplotlib.collections.LineCollection(ListEdges,array=np.array(range(0,len(ListEdges))))
+        CE.set_picker(1)
+        ax.add_collection(CE) 
+        if color is None:
+            CE.set_color(self.color)
+            CE.set_edgecolors(self.color)
+            CE.set_facecolors(self.color)
+        else:
+            CE.set_color(color)
+            CE.set_edgecolors(color)
+            CE.set_facecolors(color)
+            
+        CE.set_alpha(self.alpha)
+        
+            
+        def onpick(evt):           
+            if evt.artist==CE:
+                annot.set_visible(False)
+                annot.xy = (evt.mouseevent.xdata, evt.mouseevent.ydata)
+                annot.set_text('length={:.2e} m'.format(DataEdges[evt.artist.get_array()[evt.ind[0]]]))
+                annot.set_visible(True)
+            if evt.mouseevent.button == 3:
+                annot.set_visible(False)  
+            ax.figure.canvas.draw_idle()                 
+        annot = ax.annotate("", xy=(0,0), xytext=(-20,20),textcoords="offset points",
+                                bbox=dict(boxstyle="round", fc="w"),
+                                arrowprops=dict(arrowstyle="->"))
+        annot.set_visible(False)
+        ax.figure.canvas.mpl_connect('pick_event', onpick)
+        
+                             
+        ax.autoscale_view()
+                
     def RemoveDuplicatePoints(self):
         for line in [self.N, self.E, self.S, self.W]:
             line.RemoveDuplicatePoints()
@@ -711,9 +806,131 @@ class Patch:
             patch_data.append(Z)
         patch_data = np.array(patch_data)
         cell_data = self.cell_grid_as_np()
+        cell_grid = self.cell_grid
         patch_settings = self.get_settings()
-        return np.array([patch_data, cell_data, patch_settings])
+        return np.array([patch_data, cell_data, patch_settings,self.GetVertices(),cell_grid])
+    
+    
+    def CreateBoundarySplines(self,grid):
+        # Create B-Splines along the North and South boundaries.
+        if self.Verbose: print(' # Create B-Splines along the North and South boundaries.')
+        N_vals = self.N.fluff()
+        self.N_spl, uN = splprep([N_vals[0], N_vals[1]], s=0)
+        # Reverse the orientation of the South line to line up with the North.
 
+        S_vals = self.S.reverse_copy().fluff()
+        self.S_spl, uS = splprep([S_vals[0], S_vals[1]], s=0)
+        if self.Verbose: print(' # Create B-Splines along West boundaries.')
+        # Create B-Splines along the East and West boundaries.
+        # Parameterize EW splines in Psi
+        try:
+            #Cannot fluff with too many points
+            n = 500 if len(self.W.p) < 50 else 100
+           # W_vals = self.W.reverse_copy().fluff(num = n)
+            W_vals = self.W.reverse_copy().fluff(n, verbose=self.Verbose)
+            Psi = self.psi_parameterize(grid, W_vals[0], W_vals[1])
+            self.W_spl, uW = splprep([W_vals[0], W_vals[1]], u=Psi, s=10)
+        except Exception as e:
+            exc_type, exc_obj, tb = sys.exc_info()
+            f = tb.tb_frame
+            lineno = tb.tb_lineno
+            filename = f.f_code.co_filename
+            linecache.checkcache(filename)
+            line = linecache.getline(filename, lineno, f.f_globals)
+            print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
+
+        if self.Verbose: print(' # Create B-Splines along the East boundaries.')
+        try:
+            n = 500 if len(self.E.p) < 50 else 100
+            E_vals = self.E.fluff(num=n)
+            self.E_spl, uE = splprep([E_vals[0], E_vals[1]], u=self.psi_parameterize(grid, E_vals[0], E_vals[1]), s=10)
+        except Exception as e:
+            print(' Number of points on the boundary:', len(self.E.p))
+            plt.plot(E_vals[0], E_vals[1], '.', color='black')
+            print(repr(e))
+        if self.Verbose: print(' #check plate_patch')
+        # ACCURACY ON PSI_MIN SIDE OF W IDL LINE ISSUE.
+
+        if self.plate_patch:
+
+            def f(u, *args):
+                _y = splev(u, args[0])
+                return grid.PsiNorm.get_psi(args[1], args[2]) - grid.PsiNorm.get_psi(_y[0], _y[1])
+
+            def find_nearest(array, value):
+                array = np.asarray(array)
+                idx = (np.abs(array - value)).argmin()
+                return array[idx]
+
+            if self.plate_location == 'W':
+                _u = uW
+                U_vals = W_vals
+                U_spl = self.W_spl
+                plate_north = [N_vals[0][0], N_vals[1][0]]
+                plate_south = [S_vals[0][0], S_vals[1][0]]
+            elif self.plate_location == 'E':
+                _u = uE
+                U_vals = E_vals
+                U_spl = self.E_spl
+                plate_north = [N_vals[0][-1], N_vals[1][-1]]
+                plate_south = [S_vals[0][-1], S_vals[1][-1]]
+
+            if self.Verbose:
+                print('=' * 80 + '\n')
+                print('Parameterization of Target Plate in PSI:')
+                print(_u)
+                print('=' * 80 + '\n')
+
+            lookup = {}
+            for i in range(len(_u)):
+                lookup[_u[i]] = i
+            try:
+                plate_north_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_north[0], plate_north[1])))]
+            except ValueError:
+                try:
+                    plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_north[0], plate_north[1])))]
+                except:
+                    print('NorthIndex: ERROR IN PARAMETERIZATION IN PSI')
+            try:
+                plate_south_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_south[0], plate_south[1])))]
+            except ValueError:
+                try:
+                    plate_south_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_south[0], plate_south[1])))]
+                except:
+                    print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
+            if plate_south_index > plate_north_index:
+                plate_north_index, plate_south_index = plate_south_index, plate_north_index
+
+            U_vals = [U_vals[0][plate_south_index:plate_north_index + 1], U_vals[1][plate_south_index:plate_north_index + 1]]
+            U_spl, _u = splprep([U_vals[0], U_vals[1]], u=self.psi_parameterize(grid, U_vals[0], U_vals[1]), s=0)
+
+            if self.plate_location == 'W':
+                W_vals = U_vals
+                self.W_spl = U_spl
+                uW = _u
+            elif self.plate_location == 'E':
+                E_vals = U_vals
+                self.E_spl = U_spl
+                uE = _u
+                
+                
+    @staticmethod
+    def psi_parameterize(grid, r, z):
+            """
+            Helper function to be used to generate a
+            list of values to parameterize a spline
+            in Psi. Returns a list to be used for splprep only
+            """
+            vmax = grid.PsiNorm.get_psi(r[-1], z[-1])
+            vmin = grid.PsiNorm.get_psi(r[0], z[0])
+
+            vparameterization = np.empty(0)
+            for i in range(len(r)):
+                vcurr = grid.PsiNorm.get_psi(r[i], z[i])
+                vparameterization = np.append(vparameterization, abs((vcurr - vmin) / (vmax - vmin)))
+
+            return vparameterization
+        
     def make_subgrid(self, grid, np_cells=2, nr_cells=2, _poloidal_f=lambda x: x, _radial_f=lambda x: x, verbose=False, visual=False, ShowVertices=False):
         """
         Generate a refined grid within a patch.
@@ -730,21 +947,7 @@ class Patch:
                 cells within our Patch.
         """
 
-        def psi_parameterize(grid, r, z):
-            """
-            Helper function to be used to generate a
-            list of values to parameterize a spline
-            in Psi. Returns a list to be used for splprep only
-            """
-            vmax = grid.PsiNorm.get_psi(r[-1], z[-1])
-            vmin = grid.PsiNorm.get_psi(r[0], z[0])
-
-            vparameterization = np.empty(0)
-            for i in range(len(r)):
-                vcurr = grid.PsiNorm.get_psi(r[i], z[i])
-                vparameterization = np.append(vparameterization, abs((vcurr - vmin) / (vmax - vmin)))
-
-            return vparameterization
+        
 
         def psi_test(leg, grid):
             """
@@ -782,109 +985,13 @@ class Patch:
             print(nr_cells)
         np_lines = np_cells + 1
         nr_lines = nr_cells + 1
-        if verbose: print(' # Create B-Splines along the North and South boundaries.')
-        # Create B-Splines along the North and South boundaries.
-        N_vals = self.N.fluff()
-
-        self.N_spl, uN = splprep([N_vals[0], N_vals[1]], s=0)
-        # Reverse the orientation of the South line to line up with the North.
-
-        S_vals = self.S.reverse_copy().fluff()
-        self.S_spl, uS = splprep([S_vals[0], S_vals[1]], s=0)
-        if verbose: print(' # Create B-Splines along West boundaries.')
-        # Create B-Splines along the East and West boundaries.
-        # Parameterize EW splines in Psi
-        try:
-            #Cannot fluff with too many points
-            n = 500 if len(self.W.p) < 50 else 100
-           # W_vals = self.W.reverse_copy().fluff(num = n)
-            W_vals = self.W.reverse_copy().fluff(n, verbose=verbose)
-            Psi = psi_parameterize(grid, W_vals[0], W_vals[1])
-            self.W_spl, uW = splprep([W_vals[0], W_vals[1]], u=Psi, s=10)
-        except Exception as e:
-            exc_type, exc_obj, tb = sys.exc_info()
-            f = tb.tb_frame
-            lineno = tb.tb_lineno
-            filename = f.f_code.co_filename
-            linecache.checkcache(filename)
-            line = linecache.getline(filename, lineno, f.f_globals)
-            print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
-
-        if verbose: print(' # Create B-Splines along the East boundaries.')
-        try:
-            n = 500 if len(self.E.p) < 50 else 100
-            E_vals = self.E.fluff(num=n)
-            self.E_spl, uE = splprep([E_vals[0], E_vals[1]], u=psi_parameterize(grid, E_vals[0], E_vals[1]), s=10)
-        except Exception as e:
-            print(' Number of points on the boundary:', len(self.E.p))
-            plt.plot(E_vals[0], E_vals[1], '.', color='black')
-            print(repr(e))
-        if verbose: print(' #check plate_patch')
-
-        if self.plate_patch:
-
-            def f(u, *args):
-                _y = splev(u, args[0])
-                return grid.PsiNorm.get_psi(args[1], args[2]) - grid.PsiNorm.get_psi(_y[0], _y[1])
-
-            def find_nearest(array, value):
-                array = np.asarray(array)
-                idx = (np.abs(array - value)).argmin()
-                return array[idx]
-
-            if self.plate_location == 'W':
-                _u = uW
-                U_vals = W_vals
-                U_spl = self.W_spl
-                plate_north = [N_vals[0][0], N_vals[1][0]]
-                plate_south = [S_vals[0][0], S_vals[1][0]]
-            elif self.plate_location == 'E':
-                _u = uE
-                U_vals = E_vals
-                U_spl = self.E_spl
-                plate_north = [N_vals[0][-1], N_vals[1][-1]]
-                plate_south = [S_vals[0][-1], S_vals[1][-1]]
-
-            if verbose:
-                print('=' * 80 + '\n')
-                print('Parameterization of Target Plate in PSI:')
-                print(_u)
-                print('=' * 80 + '\n')
-
-            lookup = {}
-            for i in range(len(_u)):
-                lookup[_u[i]] = i
-            try:
-                plate_north_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_north[0], plate_north[1])))]
-            except ValueError:
-                try:
-                    plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_north[0], plate_north[1])))]
-                except:
-                    if verbose: print('NorthIndex: ERROR IN PARAMETERIZATION IN PSI')
-            try:
-                plate_south_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_south[0], plate_south[1])))]
-            except ValueError:
-                try:
-                    plate_south_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_south[0], plate_south[1])))]
-                except:
-                    if verbose: print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
-            if plate_south_index > plate_north_index:
-                plate_north_index, plate_south_index = plate_south_index, plate_north_index
-
-            U_vals = [U_vals[0][plate_south_index:plate_north_index + 1], U_vals[1][plate_south_index:plate_north_index + 1]]
-            U_spl, _u = splprep([U_vals[0], U_vals[1]], u=psi_parameterize(grid, U_vals[0], U_vals[1]), s=0)
-
-            if self.plate_location == 'W':
-                W_vals = U_vals
-                self.W_spl = U_spl
-                uW = _u
-            elif self.plate_location == 'E':
-                E_vals = U_vals
-                self.E_spl = U_spl
-                uE = _u
+        
+        #self.CreatBoundarySpleen()
 
         # Generate our sub-grid anchor points along the North
         # and South boundaries of our patch.
+        self.W_vertices_old=self.W_vertices
+        
         self.N_vertices = []
         self.S_vertices = []
         self.E_vertices = []
@@ -898,7 +1005,7 @@ class Patch:
                 _n = splev(_poloidal_f(i / (np_lines - 1)), self.N_spl)
                 self.N_vertices.append(Point((float(_n[0]), float(_n[1]))))
         else:
-            if verbose: print('Find boundary points at face "N" for {}:{}'.format(self.patch_name, self.BoundaryPoints.get('N')))
+            if self.Verbose: print('Find boundary points at face "N" for {}:{}'.format(self.patch_name, self.BoundaryPoints.get('N')))
             self.N_vertices = self.BoundaryPoints.get('N')
 
         if self.BoundaryPoints.get('S') is None:
@@ -911,15 +1018,15 @@ class Patch:
         u = [_radial_f(i / (nr_lines - 1)) for i in range(nr_lines)]
 
         Npts = 1000
-        xy = splev(np.linspace(0, 1, Npts), self.E_spl)
-
+        #xy = splev(np.linspace(0, 1, Npts), self.E_spl)
+        
         if self.BoundaryPoints.get('W') is None:
             for i in range(nr_lines):
                 _w = splev(u[i], self.W_spl)
                 self.W_vertices.append(Point((float(_w[0]), float(_w[1]))))
         else:
             self.W_vertices = self.BoundaryPoints.get('W')
-
+        
         if self.BoundaryPoints.get('E') is None:
             for i in range(nr_lines):
                 _e = splev(u[i], self.E_spl)
@@ -943,11 +1050,11 @@ class Patch:
 
             else:
                 color = self.color
-                ms = 6
-                markers = ['o', 'X', 's', 'D']
+                ms = 10
+                markers = ['o', 'P', 's', 'D']
             for vertices, mark in zip([self.W_vertices, self.E_vertices, self.N_vertices, self.S_vertices], markers):
                 for p in vertices:
-                    plt.plot(p.x, p.y, '.', color=color, markersize=ms, marker=mark, markeredgecolor='black')
+                    plt.plot(p.x, p.y, '.', color=color, markersize=ms, marker=mark, markeredgecolor=color)
         # Radial lines of Psi surfaces. Ordered with increasing magnitude, starting with
         # the South boundary of the current Patch, and ending with the North boundary of
         # this current Patch. These will serve as delimiters when constructing cells.
@@ -956,32 +1063,38 @@ class Patch:
         dynamic_step = set_dynamic_step()
         if verbose: print('# Interpolate radial lines between North and South patch boundaries..')
         # Interpolate radial lines between North and South patch boundaries.
+        if hasattr(self,'radial_spl'):
+            self.radial_spl_old=self.radial_spl
+        else:
+            self.radial_spl_old=[]
         self.radial_spl = []
         temp_vertices = []
         temp_vertices.append(self.N.p[-1])
         for i in range(len(self.W_vertices) - 2):
             #TODO: parallelize tracing of radial lines (draw_line function must be "externalized" in the scope of the script)
+            # if (len(self.W_vertices)!=len(self.W_vertices_old) or self.W_vertices[i+1]!=self.W_vertices_old[i+1]) or len(self.radial_spl_old)!=len(self.W_vertices)-2:
+    
             radial_lines.append(grid.LineTracer.draw_line(self.W_vertices[i + 1], {'line': self.E}, option='theta',
-                direction='cw', show_plot=visual, dynamic_step=dynamic_step, text=verbose))
+                direction='cw', show_plot=0, dynamic_step=dynamic_step))
             temp_vertices.append(radial_lines[-1].p[-1])
             radial_vals = radial_lines[i + 1].fluff(1000)
             Radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s=0)
             self.radial_spl.append(Radial_spl)
+            # else:
+            #     self.radial_spl.append(self.radial_spl_old[i])
+                
             vertex_list = []
             for j in range(np_lines):
                 u = _poloidal_f(j / (np_lines - 1))
                 _r = splev(u, self.radial_spl[i])
                 Pt = Point((float(_r[0]), float(_r[1])))
                 if self.distortion_correction['active'] and j > 0 and j < np_lines - 1:
-                    Res = self.distortion_correction['resolution']
-                    ThetaMin = self.distortion_correction['theta_min']
-                    ThetaMax = self.distortion_correction['theta_max']
                     umin = _poloidal_f((j - 1) / (np_lines - 1))
                     umax = _poloidal_f((j + 1) / (np_lines - 1))
                     Pt1 = radial_vertices[i][j]
                     Pt2 = radial_vertices[i][j - 1]
                     Tag = '---- Correcting points: {},{}'.format(i, j)
-                    Pt = CorrectDistortion(u, Pt, Pt1, Pt2, self.radial_spl[i], ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
+                    Pt = CorrectDistortion(u, Pt, Pt1, Pt2, self.radial_spl[i],umin,umax,Tag,**self.distortion_correction)
 
                 vertex_list.append(Pt)
                 if visual:
@@ -998,15 +1111,12 @@ class Patch:
             for j in range(1, np_lines - 1):
                 u = _poloidal_f(j / (np_lines - 1))
                 Pt = self.S_vertices[j]
-                Res = self.distortion_correction['resolution']
-                ThetaMin = self.distortion_correction['theta_min']
-                ThetaMax = self.distortion_correction['theta_max']
                 umin = _poloidal_f((j - 1) / (np_lines - 1))
                 umax = _poloidal_f((j + 1) / (np_lines - 1))
                 Pt1 = radial_vertices[-1][j]
                 Pt2 = radial_vertices[-1][j - 1]
                 Tag = '---- Correcting south boundary points:{}'.format(j)
-                self.S_vertices[j] = CorrectDistortion(u, Pt, Pt1, Pt2, self.S_spl, ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
+                self.S_vertices[j] = CorrectDistortion(u, Pt, Pt1, Pt2, self.S_spl, umin, umax,  Tag,**self.distortion_correction)
         radial_vertices.append(self.S_vertices)
         if verbose: print('# Create Cells: South boundary -> North Boundary')
         # Create Cells: South boundary -> North Boundary
@@ -1298,34 +1408,36 @@ def trim_geometry(geoline, start, end):
     return trim
 
 
-def CorrectDistortion(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, Resolution, visual, Tag, MinTol=1.02, MaxTol=0.98, Verbose=False):
-    MaxIter = Resolution * 10
-    dumax = (umax - u) / Resolution
-    dumin = (u - umin) / Resolution
+def CorrectDistortion(u, Pt, Pt1, Pt2, spl, umin, umax , Tag, theta_min=60, theta_max=120,resolution=1000,min_tol=1.05, max_tol=0.95, zero_span=0.90,max_span=1.0,verbose=False,visual=False,**kwargs):
+    MaxIter = resolution * 10
+    dumax = (umax - u) / resolution
+    dumin = (u - umin) / resolution
     Theta = Line([Pt1, Pt]).GetAngle(Line([Pt1, Pt2]))
-    if Verbose: print(f'Current theta value: {Theta}')
-    if Theta < ThetaMin or Theta > ThetaMax:
-        if Verbose: print('{}: u={};Theta={};ThetaMin={};ThetaMax={}'.format(Tag, u, Theta, ThetaMin, ThetaMax))
+    if verbose: print(f'Current theta value: {Theta}')
+    if Theta < theta_min or Theta > theta_max:
+        if verbose: print('{}: u={};Theta={};ThetaMin={};ThetaMax={}'.format(Tag, u, Theta, theta_min, theta_max))
         if visual:
                 plt.plot(Pt.x, Pt.y, '.', color='red', markersize=8, marker='o')
                 plt.show()
                 plt.draw()
         icount = 0
         color = 'purple'
-        while Theta < ThetaMin or Theta > ThetaMax:
+        u0=u
+
+        while Theta < theta_min or Theta > theta_max:
             icount += 1
-            if Theta < ThetaMin:
+            if Theta < theta_min:
                u = u + dumax
-            elif Theta > ThetaMax:
+            elif Theta > theta_max:
                u = u - dumin
-            if (u > umax * MaxTol or u < umin * MinTol) or icount >= MaxIter:
-               if Verbose: print('[{}]>>>> umax={} umin={};u:{};Theta={}'.format(icount, umax, umin, u, Theta))
+            if (u-u0) > (umax* max_tol-u0)*max_span or (u-u0) < (umin * min_tol-u0)*max_span or icount >= MaxIter or (abs(umin)<1e-12 and u<u0*zero_span):
+               if verbose: print('[{}]>>>> umax={} umin={};u:{};Theta={}'.format(icount, umax, umin, u, Theta))
                color = 'gray'
                break
             _r = splev(u, spl)
             Pt = Point((_r[0], _r[1]))
             Theta = Line([Pt1, Pt]).GetAngle(Line([Pt1, Pt2]))
-        if Verbose: print('[{}]>>>> u:{};Theta={}'.format(icount, u, Theta))
+        if verbose: print('[{}]>>>> u:{};Theta={}'.format(icount, u, Theta))
         if visual:
             plt.plot(Pt.x, Pt.y, '.', color=color, markersize=8, marker='s')
     return Pt
@@ -1490,7 +1602,7 @@ def segment_intersect(line1, line2, verbose=False):
 
 def UnfoldLabel(Dic: dict, Name: str) -> str:
     """
-    Unfold Patch label (e.g. "C1" -> "Inner Core Top")
+    Unfold Patch label (e.g. "ICT" -> "Inner Core Top")
 
     Parameters
     ----------
@@ -1515,3 +1627,6 @@ def UnfoldLabel(Dic: dict, Name: str) -> str:
         return ''.join(Output)
     else:
         return ''
+    
+def GetLength(E):
+    return np.sqrt((E[1][0]-E[0][0])**2+(E[1][1]-E[1][1])**2)

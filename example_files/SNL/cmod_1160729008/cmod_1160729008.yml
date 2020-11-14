@@ -1,0 +1,102 @@
+dir_settings:
+  target_plates: .
+  eqdsk: .
+DEBUG:
+  verbose:
+    grid_generation: 1
+    patch_generation: 1
+    target_plates: 1
+  visual:
+    find_NSEW: 0
+    gridue: 0
+    patch_map: 0
+    subgrid: 0
+eqdsk: neqdsk
+grid_settings:
+  grid_generation:
+    distortion_correction:
+      all:
+        active: false
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 100.0
+      B1:
+        active: true
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+      B2:
+        active: true
+        resolution: 1000
+        theta_max: 50.0
+        theta_min: 30.0
+      E1:
+        active: true
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+      E2:
+        active: true
+        resolution: 1000
+        theta_max: 150.0
+        theta_min: 130.0
+    np_default: 8
+    nr_default: 9
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+    poloidal_f_A: 'x,x**2'
+    poloidal_f_F: 'x,x**0.7'
+    #poloidal_f_B: 'x,x**2'
+    #poloidal_f_E: 'x,x**0.7'
+    #radial_f_1: 'x,x**1.2'
+    #radial_f_2: 'x,x**0.4'
+    radial_f_1: 'x,1-(1-exp(-(1-x)/0.90))/(1-exp(-1/0.90))'
+    radial_f_2: 'x,(1-exp(-(x)/0.50))/(1-exp(-1/0.50))'
+    # radial_f_3: 'x, x**1.4'
+  guard_cell_eps: 0.001
+  nlevs: 100
+  num_xpt: 1
+  patch_generation:
+    xpt1_E_tilt: 0.2
+    xpt1_W_tilt: -0.8
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
+    strike_pt_loc: target_plates
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0 # -0.4
+    use_xpt1_E: true
+    use_xpt1_W: true
+    rmagx_shift: 0.0 # -0.1
+    zmagx_shift: 0.0 # -0.2
+  psi_1: 1.065
+  psi_core: 0.92
+  psi_pf_1: 0.985
+  psi_pf_2: 0.0
+  rmagx: 0.687514234
+  rxpt: 0.56172937
+  rxpt2: 0.0
+  view_mode: filled
+  zmagx: -0.00165359764
+  zxpt: -0.400839744
+  zxpt2: 0.0
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-05
+  first_step: 1.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+# limiter:
+#   file: ''
+#   use_efit_bounds: true
+#   efit_buffer_r: 0.1
+#   efit_buffer_z: 0.2
+#   rshift: -0.075
+target_plates:
+  plate_E1:
+    file: plate2.txt
+    zshift: 0.0
+    rshift: 0.0
+  plate_W1:
+    file: plate1.txt
+    zshift: 0.0

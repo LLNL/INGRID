@@ -1,0 +1,29 @@
+Note that the paths in the input file are set for running it from the local directory.
+
+Run it like this:
+python
+from INGRID import ingrid as IG
+IG.QuickStart()
+
+
+
+
+For running the UEDGE case on the new grid, do:
+python -i run_lsn.py
+
+mt.uestep(1e-2, reset=True)
+mt.uestep(1e0, reset=True)
+mp.plotvar(bbb.te/bbb.ev, title="INGRID grid, Te [eV]", vmin=0.0, vmax=50.)
+
+
+Note that the package uedge_mvu is used for running the time step and for plotting.
+To use package uedge_mvu, do this:
+
+##-Check out from github: 
+git clone https://github.com/umansky/uedge_mvu
+
+##-Install: Set up uedge_mvu as a package by running the following command inside the directory containing
+setup.py:
+pip install --editable . --user
+
+

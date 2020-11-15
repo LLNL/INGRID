@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Example: Two x-points in domain (SF75 example) &mdash; ingrid  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Module Documentation" href="modules.html" />
+    <link rel="prev" title="Example: single-null configuration (further exploration)" href="snl_example_2.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ingrid
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">INGRID Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="getting_started.html">Getting Started</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Downloading and installing INGRID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="launching_ingrid.html">Launching the INGRID GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_file_introduction.html">The INGRID parameter file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="snl_example_1.html">Example: single-null configuration (introduction)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="snl_example_2.html">Example: single-null configuration (further exploration)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Example: Two x-points in domain (SF75 example)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#loading-our-example">Loading our example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-sf75-line-tracing-pattern-x-point-directions-and-psi-labels">The SF75 line-tracing pattern, x-point directions, and psi labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#activating-the-limiter-for-patch-generation">Activating the limiter for Patch generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ingrid-identification-of-configuration">INGRID identification of configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-target-plates-for-generating-a-patch-map">Using target-plates for generating a Patch map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-the-patch-map-and-grid">Creating the Patch map and grid</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Module Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ingrid</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="getting_started.html">Getting Started</a> &raquo;</li>
+        
+      <li>Example: Two x-points in domain (SF75 example)</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/SF75_example.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="example-two-x-points-in-domain-sf75-example">
+<h1>Example: Two x-points in domain (SF75 example)<a class="headerlink" href="#example-two-x-points-in-domain-sf75-example" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This tutorial assumes the reader has already read both the <a class="reference external" href="snl_example_1">introductory SNL tutorial</a> and the <a class="reference external" href="snl_example_2">further exploration SNL tutorial</a>.</p>
+</div>
+<p>Here we will demonstrate how to generate a grid when there are two x-points in the domain. In particular, we will generate a grid for a snowflake-75 (SF75) configuration.</p>
+<p>Because INGRID internally handles the identification and classification of magnetic topology, the general steps detailed here for generating a grid apply to <strong>all</strong> the other configurations with two x-points in the domain.
+The user will only need to refer to provided diagrams of a configuration’s Patch map, x-point NSEW directions, and psi labels for a specific configuration.</p>
+<div class="section" id="loading-our-example">
+<h2>Loading our example<a class="headerlink" href="#loading-our-example" title="Permalink to this headline">¶</a></h2>
+<p>The parameter file <code class="docutils literal notranslate"><span class="pre">SF75.yml</span></code> we will use in this tutorial is located in <code class="docutils literal notranslate"><span class="pre">example_files/SF75</span></code>.</p>
+<p>A key difference inside the parameter file is that now the entry <code class="docutils literal notranslate"><span class="pre">num_xpt</span></code> has an associated value of <code class="docutils literal notranslate"><span class="pre">2</span></code>. This <strong>activates</strong> INGRID’s topology classification when two x-points are present in the domain. With this,
+INGRID now expects more parameter file entries from the user. These include:</p>
+<ul class="simple">
+<li><p>Approximate R coordinate of secondary x-point <code class="docutils literal notranslate"><span class="pre">rxpt2</span></code></p></li>
+<li><p>Approximate Z coordinate of secondary x-point <code class="docutils literal notranslate"><span class="pre">zxpt2</span></code></p></li>
+<li><p>Additional psi entries <code class="docutils literal notranslate"><span class="pre">psi_2</span></code> and <code class="docutils literal notranslate"><span class="pre">psi_pf_2</span></code></p></li>
+<li><p>Limiter data (or usage of EFIT domain bounds to act as a psuedo-limiter)</p></li>
+<li><p>Two additional target plates (when <code class="docutils literal notranslate"><span class="pre">strike_pt_loc</span></code> has an associated value of <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">plates</span></code>)</p></li>
+</ul>
+<p>Loading the parameter file in the GUI and viewing the data should show the following.</p>
+<img alt="_images/SF75_EFIT_view.png" src="_images/SF75_EFIT_view.png" />
+<p>We can immediately see the presence of a secondary x-point, it’s corresponding separatrix, a rectangular (psuedo) limiter and additionaly psi lines that we will use to generate a Patch map.</p>
+<p>Before generating a Patch map, we discuss the SF75 layout.</p>
+</div>
+<div class="section" id="the-sf75-line-tracing-pattern-x-point-directions-and-psi-labels">
+<h2>The SF75 line-tracing pattern, x-point directions, and psi labels<a class="headerlink" href="#the-sf75-line-tracing-pattern-x-point-directions-and-psi-labels" title="Permalink to this headline">¶</a></h2>
+<p>The figure below shows a Patch map for general SF75 configuration.</p>
+<img alt="_images/SF75_general_patch_map.png" src="_images/SF75_general_patch_map.png" />
+<p>The user should reference the above figure when prepping the parameter file for generating a Patch map by verifying target plates are in valid locations relative to x-points and psi-boundaries.</p>
+<p>First, note the target plate naming convention <code class="docutils literal notranslate"><span class="pre">plate_W1</span></code>, <code class="docutils literal notranslate"><span class="pre">plate_E1</span></code>, <code class="docutils literal notranslate"><span class="pre">plate_W2</span></code>, and <code class="docutils literal notranslate"><span class="pre">plate_E2</span></code>. Again, by removing notions of “inner” and “outer” plates in the <code class="docutils literal notranslate"><span class="pre">SNL</span></code> case, we see that we now have a general naming convention that can be applied to all configurations with two x-points in the domain.</p>
+<p>This naming convention is defined by the NSEW directions for both the primary x-point (<code class="docutils literal notranslate"><span class="pre">xpt1</span></code>) and secondary x-point (<code class="docutils literal notranslate"><span class="pre">xpt2</span></code>). Below we can see two figures that illustrate the NSEW directions for <code class="docutils literal notranslate"><span class="pre">xpt1</span></code> and <code class="docutils literal notranslate"><span class="pre">xpt2</span></code>, respectively.</p>
+<img alt="_images/SF75_xpt1_NSEW.png" src="_images/SF75_xpt1_NSEW.png" />
+<img alt="_images/SF75_xpt2_NSEW.png" src="_images/SF75_xpt2_NSEW.png" />
+<p>Finally, we illustrate the psi-labels associated with the psi-boundaries of the SF75 configuration.</p>
+<img alt="_images/SF75_psi_bounds.png" src="_images/SF75_psi_bounds.png" />
+<p>The above shows we now have parameter file entries <code class="docutils literal notranslate"><span class="pre">psi_2</span></code> and <code class="docutils literal notranslate"><span class="pre">psi_pf_2</span></code> to assign values to.</p>
+<p>We will see in other configurations (e.g. <code class="docutils literal notranslate"><span class="pre">UDN</span></code>, <code class="docutils literal notranslate"><span class="pre">SF45</span></code>, etc) that the location of the psi labels <strong>will</strong> vary. Because the location of psi boundaries vary with each configuration, the user must carefully note which psi boundaries they are dealing with.</p>
+<p>In general, <code class="docutils literal notranslate"><span class="pre">psi_1</span></code> will correspond to psi-max, <code class="docutils literal notranslate"><span class="pre">psi_core</span></code> remains set to the core psi value, <code class="docutils literal notranslate"><span class="pre">psi_pf_1</span></code> will correspond to the psi-surface we intersect by tracing <code class="docutils literal notranslate"><span class="pre">S</span></code> of <code class="docutils literal notranslate"><span class="pre">xpt1</span></code>, and <code class="docutils literal notranslate"><span class="pre">psi_pf_2</span></code> will correspond to the psi-surface we intersect by tracing <code class="docutils literal notranslate"><span class="pre">S</span></code> of <code class="docutils literal notranslate"><span class="pre">xpt2</span></code>. Typically, the <code class="docutils literal notranslate"><span class="pre">psi_2</span></code> psi-boundary and strike-point locations for the psi-entries listed above often vary.</p>
+</div>
+<div class="section" id="activating-the-limiter-for-patch-generation">
+<h2>Activating the limiter for Patch generation<a class="headerlink" href="#activating-the-limiter-for-patch-generation" title="Permalink to this headline">¶</a></h2>
+<p>Understanding INGRID limiter usage is an essential part of generating a Patch map for cases with two x-points in the domain.</p>
+<p>INGRID does not require the use of target plates for generating a Patch map if the user opts for using a limiter.</p>
+<p>This is controlled within the parameter file with <code class="docutils literal notranslate"><span class="pre">strike_pt_loc</span></code> within the <code class="docutils literal notranslate"><span class="pre">patch_generation</span></code> block. We see this below.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
+
+  <span class="c1"># ...</span>
+  <span class="c1"># other settings</span>
+  <span class="c1"># ...</span>
+
+  <span class="nt">patch_generation</span><span class="p">:</span>
+    <span class="c1"># ...</span>
+    <span class="c1"># other settings</span>
+    <span class="c1"># ...</span>
+
+    <span class="c1"># strike_pt_loc takes the values of &#39;limiter&#39; or &#39;target_plates&#39;</span>
+    <span class="nt">strike_pt_loc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">limiter</span>  <span class="c1"># generates a Patch map with a limiter rather than target plates</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">strike_pt_loc</span></code> is set to a value of <code class="docutils literal notranslate"><span class="pre">limiter</span></code>, INGRID will utilize all geometry data provided in the parameter file block labeled <code class="docutils literal notranslate"><span class="pre">limiter</span></code>.</p>
+<p>We can see the <code class="docutils literal notranslate"><span class="pre">limiter</span></code> settings in <code class="docutils literal notranslate"><span class="pre">SF75.yml</span></code> below.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
+
+  <span class="c1"># ...</span>
+  <span class="c1"># other settings</span>
+  <span class="c1"># ...</span>
+
+  <span class="nt">patch_generation</span><span class="p">:</span>
+    <span class="c1"># ...</span>
+    <span class="c1"># other settings</span>
+    <span class="c1"># ...</span>
+
+    <span class="c1"># strike_pt_loc takes the values of &#39;limiter&#39; or &#39;target_plates&#39;</span>
+    <span class="nt">strike_pt_loc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">limiter</span>  <span class="c1"># generates a Patch map with a limiter rather than target plates</span>
+
+<span class="c1"># Specifications for using a limiter</span>
+<span class="nt">limiter</span><span class="p">:</span>
+
+  <span class="nt">file</span><span class="p">:</span> <span class="s">&#39;&#39;</span>  <span class="c1"># File name of .txt file with coordinates specifying limiter geometry.</span>
+
+  <span class="nt">use_efit_bounds</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>  <span class="c1"># Use the EFIT domain boundary as a limiter</span>
+
+  <span class="c1"># Coordinates: [(rmin, zmin), (rmax, zmin), (rmax, zmax), (rmin, zmax), (rmin, zmin)]</span>
+
+  <span class="nt">zshift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.0</span>  <span class="c1"># Shift the limiter geometry in the z-direction</span>
+  <span class="nt">rshift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.0</span>  <span class="c1"># Shift the limiter geometry in the z-direction</span>
+
+  <span class="c1"># Adjust shape of EFIT domain boundary psuedo-limiter in r coordinate</span>
+  <span class="nt">efit_buffer_r</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.2</span>  <span class="c1"># Default value: 1.0e-2</span>
+
+  <span class="c1"># Coordinates: [(rmin + efit_buffer_r, zmin), (rmax - efit_buffer_r, zmin),</span>
+  <span class="c1">#               (rmax - efit_buffer_r, zmax), (rmin + efit_buffer_r, zmax), (rmin + efit_buffer_r, zmin)]</span>
+
+  <span class="c1"># Adjust shape of EFIT domain boundary psuedo-limiter in z coordinate</span>
+  <span class="nt">efit_buffer_z</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.05</span>  <span class="c1"># Default value: 1.0e-2</span>
+
+  <span class="c1"># Coordinates: [(rmin, zmin + efit_buffer_z), (rmax, zmin + efit_buffer_z),</span>
+  <span class="c1">#               (rmax, zmax - efit_buffer_z), (rmin, zmax - efit_buffer_z), (rmin, zmin + efit_buffer_z)]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>INGRID will utilize the default limiter data provided within the <code class="docutils literal notranslate"><span class="pre">eqdsk</span></code> file if no file is provided and <code class="docutils literal notranslate"><span class="pre">use_efit_bounds</span></code> is set to <code class="docutils literal notranslate"><span class="pre">False</span></code>. If no limiter data is available in the <code class="docutils literal notranslate"><span class="pre">eqdsk</span></code> file, INGRID will set <code class="docutils literal notranslate"><span class="pre">use_efit_bounds</span></code> to
+<code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</div>
+<p>Below are figures illustrating possible edits to the parameter-file <code class="docutils literal notranslate"><span class="pre">limiter</span></code> block entry (we will <strong>not</strong> be using these values for the remainder of the tutorial).</p>
+<p>First, setting <code class="docutils literal notranslate"><span class="pre">use_efit_bounds</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> (default <code class="docutils literal notranslate"><span class="pre">eqdsk</span></code> limiter data)</p>
+<img alt="_images/SF75_EFIT_view_default_limiter.png" src="_images/SF75_EFIT_view_default_limiter.png" />
+<p>Next, setting <code class="docutils literal notranslate"><span class="pre">use_efit_bounds</span></code> back to <code class="docutils literal notranslate"><span class="pre">True</span></code>, but setting both <code class="docutils literal notranslate"><span class="pre">efit_buffer_r</span></code> and <code class="docutils literal notranslate"><span class="pre">efit_buffer_z</span></code> back to their <strong>default</strong> values of <code class="docutils literal notranslate"><span class="pre">1.0e-2</span></code>.</p>
+<img alt="_images/SF75_EFIT_view_default_efit_bounds.png" src="_images/SF75_EFIT_view_default_efit_bounds.png" />
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When setting <code class="docutils literal notranslate"><span class="pre">use_efit_bounds</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>, the user must provide a non-zero value for values <code class="docutils literal notranslate"><span class="pre">efit_buffer_r</span></code> and <code class="docutils literal notranslate"><span class="pre">efit_buffer_z</span></code>.</p>
+</div>
+</div>
+<div class="section" id="ingrid-identification-of-configuration">
+<h2>INGRID identification of configuration<a class="headerlink" href="#ingrid-identification-of-configuration" title="Permalink to this headline">¶</a></h2>
+<p>As mentioned in the previous section, understanding INGRID limiter usage is an essential part of generating a Patch map for cases with two x-points in the domain.</p>
+<p>This is because INGRID identifies a configuration by decomposing subset of the domain contained within the limiter into three distinct regions: core, private-flux, and separatrix exterior.</p>
+<p>We see this below with the core shaded in magenta, private-flux shaded in blue, and separatrix exterior with no filled shading.</p>
+<img alt="_images/SF75_domain_decomposition_2.png" src="_images/SF75_domain_decomposition_2.png" />
+<p>To emphasize the dependence on the limiter for decomposition, we also illustrate with setting both <code class="docutils literal notranslate"><span class="pre">efit_buffer_r</span></code> and <code class="docutils literal notranslate"><span class="pre">efit_buffer_z</span></code> back to their <strong>default</strong> values of <code class="docutils literal notranslate"><span class="pre">1.0e-2</span></code>.</p>
+<img alt="_images/SF75_domain_decomposition_1.png" src="_images/SF75_domain_decomposition_1.png" />
+<p><strong>It is up to the user to ensure the following is satisfied for successful identification of magnetic topology:</strong></p>
+<ul class="simple">
+<li><p>The provided limiter forms a closed loop (note EFIT bounds do this by default and is therefore a useful tool for classification)</p></li>
+<li><p>The Magnetic-axis is contained within the closed limiter geometry</p></li>
+<li><p>The primary x-point is contained within the closed limiter geometry</p></li>
+<li><p>The primary separatrix “legs” intersect the limiter walls and form a closed region</p></li>
+<li><p>The secondary x-point is contained within the closed limiter geometry</p></li>
+</ul>
+<p>We can indeed see that our parameter file has been preset to satisfy all of the above.</p>
+<img alt="_images/SF75_EFIT_view.png" src="_images/SF75_EFIT_view.png" />
+</div>
+<div class="section" id="using-target-plates-for-generating-a-patch-map">
+<h2>Using target-plates for generating a Patch map<a class="headerlink" href="#using-target-plates-for-generating-a-patch-map" title="Permalink to this headline">¶</a></h2>
+<p>The user can opt for using target-plates rather than a limiter for generating a Patch map for cases with two x-points in the domain. Setting the entry <code class="docutils literal notranslate"><span class="pre">strike_pt_loc</span></code> to <code class="docutils literal notranslate"><span class="pre">target_plates</span></code> tells INGRID to generate the Patch map
+using geometry provided in the parameter file block <code class="docutils literal notranslate"><span class="pre">target_plates</span></code>. We see this snippet below.</p>
+<div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
+
+  <span class="c1"># ...</span>
+  <span class="c1"># other settings</span>
+  <span class="c1"># ...</span>
+
+  <span class="nt">patch_generation</span><span class="p">:</span>
+    <span class="c1"># ...</span>
+    <span class="c1"># other settings</span>
+    <span class="c1"># ...</span>
+
+    <span class="c1"># strike_pt_loc takes the values of &#39;limiter&#39; or &#39;target_plates&#39;</span>
+    <span class="nt">strike_pt_loc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">target_plates</span>  <span class="c1"># generates a Patch map with a target_plates rather than limiter block</span>
+
+<span class="c1"># Specifications for using target plates</span>
+<span class="nt">target_plates</span><span class="p">:</span>
+
+  <span class="c1"># Target plate E of xpt1</span>
+  <span class="nt">plate_E1</span><span class="p">:</span>
+    <span class="nt">file</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">../data/SF75/plate_E1.txt</span>
+    <span class="nt">rshift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1.0</span>
+    <span class="nt">zshift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.28</span>
+
+  <span class="c1"># Target plate E of xpt2</span>
+  <span class="nt">plate_E2</span><span class="p">:</span>
+    <span class="nt">file</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">../data/SF75/plate_E2.txt</span>
+    <span class="nt">rshift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.45</span>
+    <span class="nt">zshift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.00</span>
+
+  <span class="c1"># Target plate W of xpt1</span>
+  <span class="nt">plate_W1</span><span class="p">:</span>
+    <span class="nt">file</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">../data/SF75/plate_W1.txt</span>
+    <span class="nt">rshift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">-0.2</span>
+    <span class="nt">zshift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.2</span>
+
+  <span class="c1"># Target plate W of xpt2</span>
+  <span class="nt">plate_W2</span><span class="p">:</span>
+    <span class="nt">file</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">../data/SF75/plate_W2.txt</span>
+    <span class="nt">zshift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.0</span>
+    <span class="nt">rshift</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.00</span>
+</pre></div>
+</div>
+<p>The user can refer to the diagrams earlier in the tutorial to see where the target plates above should reside in the domain.</p>
+<p>By making the above edits, we then refresh our view of the data to obtain the following plot.</p>
+<img alt="_images/SF75_EFIT_view_target_plates.png" src="_images/SF75_EFIT_view_target_plates.png" />
+<p>Indeed, we see there are now four target plates in the EFIT domain.</p>
+<dl class="simple">
+<dt>..note:: <strong>The presence of the limiter in the figure is not a bug.</strong> Regardless of whether we decide to utilize the limiter or target plates for generating a Patch map, INGRID still relies on the limiter to classify the magnetic topology.</dt><dd><p>This is why the user must be comfortable with limiter controls.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="creating-the-patch-map-and-grid">
+<h2>Creating the Patch map and grid<a class="headerlink" href="#creating-the-patch-map-and-grid" title="Permalink to this headline">¶</a></h2>
+<p>The majority of the effort for generating a Patch map goes into the preparation of the EFIT data. We indeed saw this in the previous sections. From here, we carry out the usual process of generating a Patch map that we saw in the SNL case.</p>
+<p>All of the Patch map edit capabilities that we performed on the <code class="docutils literal notranslate"><span class="pre">SNL</span></code> cases are also available for all other cases with no further explanation.</p>
+<p>We proceed with Patch map generation and obtain the following Patch map when keeping <code class="docutils literal notranslate"><span class="pre">strike_pt_loc</span></code> set with a value of <code class="docutils literal notranslate"><span class="pre">target_plates</span></code>.</p>
+<img alt="_images/SF75_patch_map_target_plates.png" src="_images/SF75_patch_map_target_plates.png" />
+<p>If we had kept <code class="docutils literal notranslate"><span class="pre">strike_pt_loc</span></code> set to <code class="docutils literal notranslate"><span class="pre">limiter</span></code>, we would obtain the Patch map below.</p>
+<img alt="_images/SF75_patch_map_EFIT.png" src="_images/SF75_patch_map_EFIT.png" />
+<p>All grid generating instructions detailed in the <code class="docutils literal notranslate"><span class="pre">SNL</span></code> case also apply to the <code class="docutils literal notranslate"><span class="pre">SF</span></code> cases. The only difference is the addition of an additional control <code class="docutils literal notranslate"><span class="pre">nr_3</span></code> that controls the Patch objects with name ending with <code class="docutils literal notranslate"><span class="pre">3</span></code>.</p>
+<p>Using <code class="docutils literal notranslate"><span class="pre">np_default</span></code> and <code class="docutils literal notranslate"><span class="pre">nr_default</span></code> with values of <code class="docutils literal notranslate"><span class="pre">3</span></code> produces the following grid when using target plates.</p>
+<img alt="_images/SF75_grid_2.png" src="_images/SF75_grid_2.png" />
+<p>Using <code class="docutils literal notranslate"><span class="pre">np_default</span></code> and <code class="docutils literal notranslate"><span class="pre">nr_default</span></code> with values of <code class="docutils literal notranslate"><span class="pre">3</span></code> produces the following grid when using the limiter.</p>
+<img alt="_images/SF75_grid_1.png" src="_images/SF75_grid_1.png" />
+<p>All other grid generation customization tools such as <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code>, <code class="docutils literal notranslate"><span class="pre">poloidal_f_A</span></code> - <code class="docutils literal notranslate"><span class="pre">poloidal_f_I</span></code>, and <code class="docutils literal notranslate"><span class="pre">radial_f_1</span></code> - <code class="docutils literal notranslate"><span class="pre">radial_f_3</span></code> are utilized in the same ways we saw in the earlier <code class="docutils literal notranslate"><span class="pre">SNL</span></code> cases.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules.html" class="btn btn-neutral float-right" title="Module Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="snl_example_2.html" class="btn btn-neutral float-left" title="Example: single-null configuration (further exploration)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Bryan Max Garcia
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

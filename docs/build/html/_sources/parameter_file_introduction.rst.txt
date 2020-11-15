@@ -179,7 +179,7 @@ A user can provide a string that indicates the path to certain data. This is use
       patch_data: ../data/SNL/DIII-D/  # dir containing patch data
       target_plates: ../data/SNL/DIII-D/ # dir containing target plates
 
-.. note:: INGRID supports both absolute and relative paths.
+.. note:: INGRID supports both absolute paths and paths relative to where INGRID has been launched.
 
 If ``dir_settings`` is missing any entries, INGRID will (internally) set the missing values to a default value of ``'.'`` (current working directory). This holds even if ``dir_settings`` is omitted from the parameter file.
 
@@ -197,7 +197,7 @@ The user provides the actual EQDSK file name separate from the ``dir_settings`` 
     # ---------------------------------------------------
     eqdsk: neqdsk
 
-.. note:: In this example, INGRID searches for the file ``neqdsk`` within the (relative) directory ``../data/SNL/DIII-D/`` since ``dir_settings['eqdsk']`` was set to ``../data/SNL/DIII-D/`` (see above).
+.. note:: In this example, INGRID searches for the file ``neqdsk`` within the directory ``../data/SNL/DIII-D/`` (relative to the launch point) since ``dir_settings['eqdsk']`` was set to ``../data/SNL/DIII-D/`` (see above).
 
 Defining target plates
 =======================

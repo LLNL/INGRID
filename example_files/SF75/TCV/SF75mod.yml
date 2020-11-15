@@ -84,14 +84,14 @@ integrator_settings:
   tol: 0.005
 limiter:
   file: ''
-  use_efit_bounds: True # using for classification example
+  use_efit_bounds: false # using for classification example
   zshift: 0.0 # 0.35
   # efit_buffer_r: 0.1
   # efit_buffer_z: 0.4
 patch_data:
   file: ../data/SF75/TCV/SF75_patches_data.npy
   preferences:
-    new_file: True
+    new_file: false
     new_fname: ../data/SF75/TCV/SF75_patches_data.npy
   use_file: False
 target_plates:

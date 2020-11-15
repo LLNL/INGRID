@@ -25,7 +25,7 @@ Now navigate into directory ``SNL`` and select the file ``DIIID_SNL.yml``. The G
 
 .. image:: figures/ingrid_gui_snl_loaded.png
 
-INGRID has now processed the selected parameter-file. Some (of many) actions taken automatically by INGRID include:
+INGRID has now processed the selected parameter-file. Some (of many) actions executed automatically by INGRID include:
 
 * Processing of paths to data (``EFIT``, geometry, patch-data, etc.)
 * Loading of ``EFIT`` data

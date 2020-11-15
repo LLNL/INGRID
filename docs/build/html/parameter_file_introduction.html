@@ -98,6 +98,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="snl_example_1.html">Example: single-null configuration (introduction)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="snl_example_2.html">Example: single-null configuration (further exploration)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SF75_example.html">Example: Two x-points in domain (SF75 example)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Module Documentation</a></li>
@@ -337,7 +338,7 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>INGRID supports both absolute and relative paths.</p>
+<p>INGRID supports both absolute paths and paths relative to where INGRID has been launched.</p>
 </div>
 <p>If <code class="docutils literal notranslate"><span class="pre">dir_settings</span></code> is missing any entries, INGRID will (internally) set the missing values to a default value of <code class="docutils literal notranslate"><span class="pre">'.'</span></code> (current working directory). This holds even if <code class="docutils literal notranslate"><span class="pre">dir_settings</span></code> is omitted from the parameter file.</p>
 <div class="admonition note">
@@ -356,7 +357,7 @@
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>In this example, INGRID searches for the file <code class="docutils literal notranslate"><span class="pre">neqdsk</span></code> within the (relative) directory <code class="docutils literal notranslate"><span class="pre">../data/SNL/DIII-D/</span></code> since <code class="docutils literal notranslate"><span class="pre">dir_settings['eqdsk']</span></code> was set to <code class="docutils literal notranslate"><span class="pre">../data/SNL/DIII-D/</span></code> (see above).</p>
+<p>In this example, INGRID searches for the file <code class="docutils literal notranslate"><span class="pre">neqdsk</span></code> within the directory <code class="docutils literal notranslate"><span class="pre">../data/SNL/DIII-D/</span></code> (relative to the launch point) since <code class="docutils literal notranslate"><span class="pre">dir_settings['eqdsk']</span></code> was set to <code class="docutils literal notranslate"><span class="pre">../data/SNL/DIII-D/</span></code> (see above).</p>
 </div>
 </div>
 <div class="section" id="defining-target-plates">

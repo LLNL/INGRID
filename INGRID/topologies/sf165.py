@@ -287,7 +287,7 @@ class SF165(TopologyUtils):
         D2_E = Line([D2_N.p[-1], D2_S.p[0]])
         E2_W = D2_E.reverse_copy()
 
-        D3_E = Line([D1_N.p[-1], D1_S.p[0]])
+        D1_E = Line([D1_N.p[-1], D1_S.p[0]])
         E1_W = D1_E.reverse_copy()
 
         A1_W = trim_geometry(WestPlate2, A1_S.p[-1], A1_N.p[0])

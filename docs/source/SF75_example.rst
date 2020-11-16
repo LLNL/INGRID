@@ -229,7 +229,7 @@ By making the above edits, we then refresh our view of the data to obtain the fo
 
 Indeed, we see there are now four target plates in the EFIT domain.
 
-..note:: **The presence of the limiter in the figure is not a bug.** Regardless of whether we decide to utilize the limiter or target plates for generating a Patch map, INGRID still relies on the limiter to classify the magnetic topology.
+.. note:: **The presence of the limiter in the figure is not a bug.** Regardless of whether we decide to utilize the limiter or target plates for generating a Patch map, INGRID still relies on the limiter to classify the magnetic topology.
   This is why the user must be comfortable with limiter controls.
 
 Creating the Patch map and grid

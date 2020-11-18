@@ -1370,7 +1370,7 @@ class Ingrid(IngridUtils):
                 print(f"# Successfully saved gridue file as '{fname}'")
 
     @staticmethod
-    def ImportGridue(self, fname: str = 'gridue') -> dict:
+    def ImportGridue(fname: str = 'gridue') -> dict:
         """
         Import UEDGE grid file as dictionary.
 
@@ -1430,7 +1430,7 @@ class Ingrid(IngridUtils):
             print(repr(e))
 
     @staticmethod
-    def Plotgridue(GridueParams: dict, edgecolor='black', ax: object = None):
+    def PlotGridue(GridueParams: dict, edgecolor='black', ax: object = None):
         """
         Plot UEDGE grid from 'dict' obtained from method 'ImportGridue'
 
@@ -1452,17 +1452,17 @@ class Ingrid(IngridUtils):
         Nx = len(r)
         Ny = len(r[0])
         patches = []
+        plt.figure(figsize=(6, 10))
         if ax is None:
             ax = plt.gca()
         idx = [np.array([1, 2, 4, 3, 1])]
         for i in range(Nx):
             for j in range(Ny):
-                p = matplotlib.patches.Polygon(np.concatenate((r[i][j][idx], z[i][j][idx])).reshape(2, 5).T, closed=True, fill=False, edgecolor=edgecolor)
-                if not Fill:
-                    ax.add_patch(p)  # draw the contours
-                else:
-                    patches.append(p)
-
+                p = matplotlib.patches.Polygon(np.concatenate((r[i][j][idx], z[i][j][idx])).reshape(2, 5).T, fill=False, closed=True, edgecolor=edgecolor)
+                ax.add_patch(p)  # draw the contours
+        ax.set_aspect('equal', adjustable='box')
+        ax.set_xlabel('R')
+        ax.set_ylabel('Z')
         plt.ylim(z.min(), z.max())
         plt.xlim(r.min(), r.max())
         plt.show()

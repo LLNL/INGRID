@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Sep 14 09:03:11 2020
-@author: jguterl
+@author: jguterl, bgarcia
 """
 
 # Always prefer setuptools over distutils
@@ -20,10 +20,9 @@ long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 setup(
     name='INGRID',
-    #version='1.0.0',
     version_format='{tag}',
     setup_requires=['setuptools-git-version'],
-    description='Grid generator',
+    description='Tokamak edge plasma grid generator',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='http://github.com/LLNL/Ingrid',
@@ -31,7 +30,7 @@ setup(
 
     # This should be a valid email address corresponding to the author listed
     # above.
-    author_email='umansky1@llnl.gov',  
+    author_email='umansky1@llnl.gov' 'bgarci26@ucsc.edu',  
     classifiers=[
         'Development Status :: 4 - Beta',
         #'Intended Audience :: Any UEDGE users',
@@ -55,14 +54,6 @@ setup(
         'pyyaml',
         'tk',
         'sympy'
-    ],  # Run "pip freeze > requirements.txt" to get a list
+    ]
 )
-    #extras_require={  # Optional
-    #    'dev': ['check-manifest'],
-    #    'test': ['coverage'],
-    #},
 
-    #package_data={  # Optional
-    #    'sample': ['package_data.dat'],
-    #},
-    #data_files=[('my_data', ['data/data_file'])],  # Optional

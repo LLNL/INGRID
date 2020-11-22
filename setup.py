@@ -30,7 +30,7 @@ setup(
 
     # This should be a valid email address corresponding to the author listed
     # above.
-    author_email='umansky1@llnl.gov' 'bgarci26@ucsc.edu',  
+    author_email='bgarci26@ucsc.edu, umansky1@llnl.gov',
     classifiers=[
         'Development Status :: 4 - Beta',
         #'Intended Audience :: Any UEDGE users',

@@ -1,0 +1,22 @@
+For INGRID grid generation:
+
+python
+from INGRID import ingrid as IG
+IG.QuickStart()
+
+
+For running the UEDGE case:
+
+##Run it:
+python -i run_sf75.py
+
+mt.tstep(1e-2)
+mt.tstep(1e-1)
+mt.tstep(1e0)
+bbb.dtreal=1e20; bbb.exmain()
+
+
+##Plot it:
+mp.plotvar(bbb.te/bbb.ev, title="TCV SF75 benchmark, INGRID grid, Te [eV]", vmin=0.0, vmax=50.)
+mp.plotvar(bbb.ni, title="TCV SF75 benchmark, INGRID grid, Ni [m-3]", vmin=0.0, vmax=7e19)
+mp.plotvar(bbb.up,title="TCV SF75 benchmark, INGRID grid, Vpar [m/s]", vmin=-4e4, vmax=6e4)

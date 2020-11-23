@@ -2,6 +2,7 @@ from uedge import *
 from uedge.hdf5 import *
 import uedge_mvu.plot as mp
 import uedge_mvu.utils as mu
+import uedge_mvu.tstep as mt
 
 
 bbb.gengrid=0 #-don't generate grid
@@ -10,8 +11,8 @@ com.geometry="snowflake75"
 com.nxpt=2 #-how many X-points in the domain
 
 #-non-orthogonal grid settings
-isnonog=1
-methg=66
+com.isnonog=1
+bbb.methg=66
 
 bbb.gallot("Xpoint_indices",0)
 grd.readgrid("gridue",com.runid)

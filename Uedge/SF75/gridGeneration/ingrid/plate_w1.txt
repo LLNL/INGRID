@@ -1,7 +1,0 @@
-# target plate defined by two points 
-# left point
-#0.59, -0.15
-0.64, -0.04
-# right point
-#0.64, -0.04
-0.59, -0.15

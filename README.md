@@ -1,5 +1,13 @@
 # INGRID
-Interactive Grid Generator for Tokamak Boundary Region
+Interactive Grid Generator for Tokamak Boundary Region. 
+
+INGRID (**IN**teractive **GRID**) is a Python based tokamak edge plasma grid generator capable of automatic generation of grids for magnetic-topologies with up to two x-points anywhere in the domain.
+
+Developed at Lawrence Livermore National Laboratory by Bryan Garcia (UCSC), Jerome Guterl (GA), Joey Watkins (BYU), and Maxim Umansky (LLNL).
+
+Maintained by Bryan Garcia and Maxim Umansky.
+
+Our Read The Docs can be found [here](https://ingrid.readthedocs.io/en/latest/).
 
 ## Obtaining INGRID:
 Clone the INGRID repo with the command:

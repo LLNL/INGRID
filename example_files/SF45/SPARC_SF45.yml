@@ -60,21 +60,17 @@ patch_data:
   preferences:
     new_file: true
     new_fname: ../data/SPARC/SF45_patches_1597952184.npy
-  use_file: True
+  use_file: false
 target_plates:  # Loaded but not used with patch data file created
   plate_E1:
     file: divRZv1d_lotp.txt
-    
-    zshift: 0.06183
+    zshift: -0.06183
   plate_E2:
-    file: divRZv1d_uitp.txt
-    
-    zshift: 0.0
+    file: divRZv1d_lotp.txt
+    zshift: -0.06183
   plate_W1:
     file: divRZv1d_litp.txt
-    
-    zshift: 0.06183
+    zshift: -0.06183
   plate_W2:
-    file: divRZv1d_uotp.txt
-    
-    zshift: 0.0
+    file: divRZv1d_lotp.txt
+    zshift: -0.06183

@@ -84,7 +84,7 @@ patch_data:
   preferences:
     new_file: true
     new_fname: LSN_patches_1597099640.npy
-  use_file: true
+  use_file: false
 
 # ---------------------------------------------------
 # Integrator

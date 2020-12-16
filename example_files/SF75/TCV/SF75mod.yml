@@ -91,9 +91,9 @@ limiter:
 patch_data:
   file: ../data/SF75/TCV/SF75_patches_data.npy
   preferences:
-    new_file: false
+    new_file: true
     new_fname: ../data/SF75/TCV/SF75_patches_data.npy
-  use_file: False
+  use_file: true
 target_plates:
   plate_E1:
     file: ../data/SF75/TCV/plate_e1.txt

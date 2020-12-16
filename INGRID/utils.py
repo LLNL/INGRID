@@ -981,6 +981,41 @@ class IngridUtils():
     def _find_psi_lines(self, tk_controller=None):
         self._psi_finder = RootFinder(self.PsiNorm, mode='psi_finder', controller=tk_controller)
 
+    def GetMagxData(self) -> tuple:
+        """
+        Return the magnetic-axis (r,z) coordinates and associated
+        un-normalized psi value.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+            A 3-tuple of r-z coordinates and scalar psi value
+        """
+        return (self.magx[0], self.magx[1], self.PsiUNorm.get_psi(self.magx[0], self.magx[1]))
+
+    def GetXptData(self) -> dict:
+        """
+        Return all x-point (r,z) coordinates and associated
+        un-normalized psi values.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+            A dict containing an (r, z, psi) entry for each x-point
+        """
+        xpt_info = {}
+        if hasattr(self, 'xpt1'):
+            xpt_info['xpt1'] = (self.xpt1[0], self.xpt1[1],
+                                self.PsiUNorm.get_psi(self.xpt1[0], self.xpt1[1]))
+        if hasattr(self, 'xpt2'):
+            xpt_info['xpt2'] = (self.xpt2[0], self.xpt2[1],
+                                self.PsiUNorm.get_psi(self.xpt2[0], self.xpt2[1]))
+        return xpt_info
+
     def PrepLineTracing(self):
         """
         Initializes the line tracing class for the construction
@@ -1202,7 +1237,7 @@ class IngridUtils():
         f.close()
         return True
 
-    def ReconstructPatches(self, fname: str) -> tuple:
+    def ReconstructPatches(self, raw_patch_list: list) -> dict:
         """
         Reconstruct a Patch objects from a saved file.
 
@@ -1218,15 +1253,11 @@ class IngridUtils():
 
         Returns
         -------
-            A 3-tuple (str, dict, dict) containing the configuration, x-point NSEW information, and reconstructed Patch objects.
+            A dict of reconstructed Patch objects.
         """
-        data = np.load(fname, allow_pickle=True)
-        config = data[0]
-        xpt_data = data[1]
-
         patches = {}
 
-        for raw_patch in data[2:]:
+        for raw_patch in raw_patch_list:
             patch_data, cell_data, patch_settings = raw_patch
             NR = patch_data[0]
             NZ = patch_data[1]
@@ -1251,7 +1282,7 @@ class IngridUtils():
 
         patches = OrderedDict([(k, v) for k, v in patches.items()])
 
-        return config, xpt_data, patches
+        return patches
 
     def CheckPatches(self, verbose: bool = False) -> None:
         """

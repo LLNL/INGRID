@@ -70,9 +70,9 @@ limiter:
 patch_data:
   file: ../data/NEQDSK_maxim/SF165_patches_1597686386.npy
   preferences:
-    new_file: false
+    new_file: true
     new_fname: ../data/NEQDSK_maxim/SF165_patches_1597686386.npy
-  use_file: true
+  use_file: false
 target_plates:
   plate_E1:
     file: ''

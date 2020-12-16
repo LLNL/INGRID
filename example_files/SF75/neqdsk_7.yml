@@ -58,15 +58,15 @@ integrator_settings:
   tol: 0.005
 limiter:
   file: ''
-  rshift: -0.145
+  rshift: 0.145
   use_efit_bounds: false
-  zshift: 0.4
+  zshift: -0.4
 patch_data:
   file: ../data/NEQDSK_maxim/SF75_patches_1597275269.npy
   preferences:
-    new_file: false
+    new_file: true
     new_fname: ../data/NEQDSK_maxim/SF75_patches_1597275269.npy
-  use_file: true
+  use_file: false
 target_plates:
   plate_E1:
     file: ''

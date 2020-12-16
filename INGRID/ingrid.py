@@ -1289,10 +1289,16 @@ class Ingrid(IngridUtils):
         if fname in ['', None]:
             fname = self.CurrentTopology.config + '_patches_' + str(int(time()))
 
-        patch_data = [patch.as_np() for patch in self.CurrentTopology.patches.values()]
-        patch_data.insert(0, self.CurrentTopology.config)
-        patch_data.insert(1, self.CurrentTopology.LineTracer.NSEW_lookup)
-        np.save(fname, np.array(patch_data))
+        data = {}
+        data['patch_data'] = [patch.as_np() for patch in self.CurrentTopology.patches.values()]
+        data['topo_data'] = {}
+        data['topo_data']['config'] = self.CurrentTopology.config
+        data['topo_data']['magx'] = self.GetMagxData()
+        for k, v in self.GetXptData().items():
+            data['topo_data'][k] = v
+        data['NSEW_data'] = self.CurrentTopology.LineTracer.NSEW_lookup
+
+        np.save(fname, np.array([data]))
         if Path(fname).suffix == '.npy':
             tail = ''
         else:
@@ -1317,15 +1323,17 @@ class Ingrid(IngridUtils):
 
         if fname.strip() == '':  # Check if settings contains patch data.
             fname = self.settings['patch_data']['file']
-        config, xpt_data, patches = self.ReconstructPatches(fname)
-        self.PopulateSettings(Ingrid.ReadYamlFile(self.InputFile))
-        self.StartSetup()
-        self.LineTracer.NSEW_lookup = xpt_data
-        self.SetTopology(config)
-        self.CurrentTopology.patches = patches
-        self.CurrentTopology.OrderPatches()
-        self.CurrentTopology.SetupPatchMatrix()
-        self.CheckPatches()
+        data = np.load(fname, allow_pickle=True)[0]  # np.array containing dict
+
+        if type(data) is dict:
+            self.PopulateSettings(Ingrid.ReadYamlFile(self.InputFile))
+            self.StartSetup()
+            self.LineTracer.NSEW_lookup = data['NSEW_data']
+            self.SetTopology(data['topo_data']['config'])
+            self.CurrentTopology.patches = self.ReconstructPatches(data['patch_data'])
+            self.CurrentTopology.OrderPatches()
+            self.CurrentTopology.SetupPatchMatrix()
+            self.CheckPatches()
 
     def CreateSubgrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
         """

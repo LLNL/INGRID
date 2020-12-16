@@ -85,7 +85,7 @@ grid_settings:
 patch_data:
   file: USN_patches_1598047632.npy
   preferences:
-    new_file: False
+    new_file: true
     new_fname: USN_patches_1598047632.npy
   use_file: false
 

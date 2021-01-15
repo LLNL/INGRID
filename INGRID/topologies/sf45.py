@@ -80,6 +80,40 @@ class SF45(TopologyUtils):
             'I3': {'W': ('H3', 'E')},
         }
 
+    def AdjustGrid(self) -> None:
+        """
+        Adjust the grid so that no holes occur at x-points, and cell grid
+        faces are alligned
+
+        A small epsilon radius is swept out around x-points during Patch
+        line tracing. This simple tidies up a grid.
+
+        Parameters
+        ----------
+        patch : Patch
+            The patch to tidy up (will only adjust if next to x-point).
+        """
+
+        for patch in self.patches.values():
+            # Adjust cell to any adjacent x-point
+            self.AdjustPatch(patch)
+
+            # Adjust cell grid face along vertical plane
+            poloidal_tag, radial_tag = patch.get_tag()
+            if poloidal_tag == 'C':
+                patch.AdjustBorder('E', self.patches['D' + radial_tag])
+
+            # Circular patch configuration requires adjustment of border to close loop.
+            # Convention chosen: 'E' indicates closed loop
+
+            try:
+                if patch.TerminatesLoop:
+                    # Get patch name of adjacent patch for linking boundary points
+                    pname = self.PatchTagMap[self.ConnexionMap.get(patch.get_tag())['E'][0]]
+                    patch.AdjustBorder('E', self.patches[pname])
+            except:
+                pass
+
     def construct_patches(self):
 
         try:

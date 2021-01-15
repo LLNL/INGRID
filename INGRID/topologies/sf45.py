@@ -277,7 +277,7 @@ class SF45(TopologyUtils):
         H3_E = self.LineTracer.draw_line(xpt2['W'], {'psi': psi_2}, option='rho', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         I3_W = H3_E.reverse_copy()
 
-        H3_N = self.LineTracer.draw_line(H3_E.p[0], {'line': EastPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+        H3_N = self.LineTracer.draw_line(H3_E.p[0], {'line': WestPlate2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
 
         I3_N = self.LineTracer.draw_line(H3_E.p[0], {'line': EastPlate1}, option='theta', direction='cw', show_plot=visual, text=verbose)
 

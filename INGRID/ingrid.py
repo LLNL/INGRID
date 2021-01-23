@@ -859,9 +859,9 @@ class Ingrid(IngridUtils):
 
         handles, labels = self.PsiNorm.ax.get_legend_handles_labels()
         lookup = {label: handle for label, handle in zip(labels, handles)}
-        self.PsiNorm.ax.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
-                               bbox_to_anchor=(0.5, -0.25), loc='lower center',
-                               ncol=len([label for label in lookup.keys()]) // 4)
+        self.PsiNorm.fig.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
+                               bbox_to_anchor=(0.5, 1), loc='upper center',
+                               ncol=len([label for label in lookup.keys()]) // 3)
 
     def PlotPsiNormMagReference(self, ax: object = None) -> None:
         """
@@ -1120,7 +1120,7 @@ class Ingrid(IngridUtils):
         self.PsiNorm.set_v(psinorm)
         self.PsiNorm.Calculate_PDeriv()
 
-        self._PsiNormFig = plt.figure('INGRID: ' + self.PsiNorm.name, figsize=(6, 10))
+        self._PsiNormFig = plt.figure('INGRID: ' + self.PsiNorm.name, figsize=(8, 10))
         self.PsiNormAx = self._PsiNormFig.add_subplot(111)
 
     def AnalyzeTopology(self) -> None:

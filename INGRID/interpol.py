@@ -7,6 +7,7 @@ related computations.
 from __future__ import division, print_function, absolute_import
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.ndimage import zoom
 
 
 def Bicubic(f, fx: 'array-like', fy: 'array-like', fxy: 'array-like', x0: float, y0: float, derivs: str = '') -> float:
@@ -463,7 +464,8 @@ class EfitData:
         level = float(level)
         self.ax.contour(self.r, self.z, self.v, level, colors=color)
 
-    def PlotLevel(self: object, level: float = 1.0, color: str = 'red', label: str = '', linestyles: str = 'solid') -> None:
+    def PlotLevel(self: object, level: float = 1.0, color: str = 'red', label: str = '', linestyles: str = 'solid',
+                  refined: bool = True, refine_factor: int = 10) -> None:
         """
         Plot a psi level and provide it a label.
 
@@ -481,16 +483,31 @@ class EfitData:
             Label to associate with the psi level
         linestyles : str, optional
             Line style to pass to matplotlib contour function
+        refined : bool, optional
+            Plot level with hi-resolution cubic spline representation
+        refine_factor: int, optional
+            Refinement factor for to be passed to SciPy zoom method
         """
+
+        data = self.v
+        rgrid = self.r
+        zgrid = self.z
+
+        if refined is True:
+            data = zoom(input=self.v, zoom=refine_factor)
+            rgrid, zgrid = np.meshgrid(np.linspace(self.rmin, self.rmax, data.shape[0]),
+                                       np.linspace(self.zmin, self.zmax, data.shape[1]),
+                                       indexing='ij')
         try:
             self.psi_levels[label].collections[0].remove()
-            self.psi_levels[label] = plt.contour(self.r, self.z, self.v, [float(level)], colors=color, label=label, linestyles=linestyles)
+            self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(level)], colors=color, label=label, linestyles=linestyles)
             self.psi_levels[label].collections[0].set_label(label)
         except:
-            self.psi_levels[label] = plt.contour(self.r, self.z, self.v, [float(level)], colors=color, label=label, linestyles=linestyles)
+            self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(level)], colors=color, label=label, linestyles=linestyles)
             self.psi_levels[label].collections[0].set_label(label)
 
-    def plot_data(self, nlevs=30, interactive=True, fig=None, ax=None, view_mode='filled'):
+    def plot_data(self: object, nlevs: int = 30, interactive: bool = True, fig: object = None,
+                  ax: object = None, view_mode: str = 'filled', refined: bool = True, refine_factor: int = 10):
         """ generates the plot that we will be able to manipulate
         using the root finder
 
@@ -498,18 +515,41 @@ class EfitData:
         ----------
         nlev : int, optional
             number of levels we want to be plotted
+        interactive : bool, optional
+            Set matplotlib interactive mode on or off
+        fig : object, optional
+            Matplotlib figure handle
+        ax : object, optional
+            Matplotlib axes handle
+        view_mode : str, optional
+            Represent EFIT data with standard contour lines or filled contour lines.
+            String value of ``filled" enables filled contours, whereas ``lines"
+            omits filling of contours.
+        refined : bool, optional
+            Plot level with hi-resolution cubic spline representation
+        refine_factor: int, optional
+            Refinement factor for to be passed to SciPy zoom method
         """
-        lev = (self.v.min() + (self.v.max()
-                - self.v.min()) * np.arange(nlevs) / (nlevs - 1))
-        self.fig = fig if fig is not None else plt.figure('INGRID: ' + self.name, figsize=(6, 10))
-        self.fig.subplots_adjust(bottom=0.2)
+        lev = self.v.min() + (self.v.max() - self.v.min()) * np.arange(nlevs) / (nlevs - 1)
+        self.fig = fig if fig is not None else plt.figure('INGRID: ' + self.name, figsize=(8, 10))
+        self.fig.subplots_adjust(bottom=0.075)
         self.ax = ax if ax is not None else self.fig.add_subplot(111)
+
+        data = self.v
+        rgrid = self.r
+        zgrid = self.z
+
+        if refined is True:
+            data = zoom(input=self.v, zoom=refine_factor)
+            rgrid, zgrid = np.meshgrid(np.linspace(self.rmin, self.rmax, data.shape[0]),
+                                       np.linspace(self.zmin, self.zmax, data.shape[1]),
+                                       indexing='ij')
         if view_mode == 'lines':
-            self.ax.contour(self.r, self.z, self.v, lev, cmap='gist_gray')
+            self.ax.contour(rgrid, zgrid, data, lev, cmap='gist_gray')
         elif view_mode == 'filled':
-            self.ax.contourf(self.r, self.z, self.v, lev, cmap='gist_gray')
+            self.ax.contourf(rgrid, zgrid, data, lev, cmap='gist_gray')
         self.ax.set_aspect('equal', adjustable='box')
-        self.ax.set_title(f'{self.name}')
+        #self.ax.set_title(f'{self.name}')
         self.ax.set_xlabel('R')
         self.ax.set_ylabel('Z')
         self.ax.set_xlim(self.rmin, self.rmax)

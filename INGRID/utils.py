@@ -500,6 +500,7 @@ class IngridUtils():
                                  rmagx, zmagx,
                                  name='Efit Data', parent=self)
         self.PsiUNorm.set_v(psi)
+        # self.PsiUNorm.upscale_psi(self.PsiUNorm.nr * 5, self.PsiUNorm.nz * 5)
 
         if self.settings['grid_settings']['rmagx'] is None or self.settings['grid_settings']['zmagx'] is None:
             self.settings['grid_settings']['rmagx'], self.settings['grid_settings']['zmagx'] = (self.PsiUNorm.rmagx, self.PsiUNorm.zmagx)

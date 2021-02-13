@@ -859,6 +859,10 @@ class Ingrid(IngridUtils):
 
         handles, labels = self.PsiNorm.ax.get_legend_handles_labels()
         lookup = {label: handle for label, handle in zip(labels, handles)}
+        try:
+            self.PsiNorm.fig.legends[0].remove()
+        except:
+            pass
         self.PsiNorm.fig.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
                                bbox_to_anchor=(0.5, 1), loc='upper center',
                                ncol=len([label for label in lookup.keys()]) // 3)
@@ -1029,6 +1033,67 @@ class Ingrid(IngridUtils):
             except:
                 pass
             xpt1_midline_ref_W.plot(color='lightpink', label='xpt1_ref_E')
+
+    def PlotEastWestXpt2Ref(self, ax: object = None) -> None:
+        """
+        Plot midplane line through magnetic axis with any applied
+        transformations specified in settings.
+
+        This method can be used to inspect the effects of 'magx_tilt_1',
+        'magx_tilt_2', 'rmagx_shift', and 'zmagx_shift'.
+        """
+        try:
+            magx_tilt_1 = self.settings['grid_settings']['patch_generation']['xpt2_W_tilt']
+        except KeyError:
+            magx_tilt_1 = 0.0
+        try:
+            magx_tilt_2 = self.settings['grid_settings']['patch_generation']['xpt2_E_tilt']
+        except KeyError:
+            magx_tilt_2 = 0.0
+
+        if ax is None:
+            ax = plt.gca()
+
+        try:
+            [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt2_ref_E']
+        except:
+            pass
+        try:
+            [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt2_ref_W']
+        except:
+            pass
+
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_W'] is True:
+            R = self.settings['grid_settings']['rxpt2']
+            Z = self.settings['grid_settings']['zxpt2']
+            xpt2 = Point(np.array([R, Z]))
+
+        # Generate Horizontal Mid-Plane lines
+            LHS_Point = Point(xpt2.x - 1e6 * np.cos(magx_tilt_1), xpt2.y - 1e6 * np.sin(magx_tilt_1))
+            RHS_Point = Point(xpt2.x, xpt2.y)
+            xpt2_midline_ref_E = Line([LHS_Point, RHS_Point])
+
+            try:
+                [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt2_ref_W']
+            except:
+                pass
+            xpt2_midline_ref_E.plot(color='darkkhaki', label='xpt2_ref_W')
+
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_E'] is True:
+            R = self.settings['grid_settings']['rxpt2']
+            Z = self.settings['grid_settings']['zxpt2']
+            xpt2 = Point(np.array([R, Z]))
+
+        # Generate Horizontal Mid-Plane lines
+            LHS_Point = Point(xpt2.x, xpt2.y)
+            RHS_Point = Point(xpt2.x + 1e6 * np.cos(magx_tilt_2), xpt2.y + 1e6 * np.sin(magx_tilt_2))
+            xpt2_midline_ref_W = Line([LHS_Point, RHS_Point])
+
+            try:
+                [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt2_ref_E']
+            except:
+                pass
+            xpt2_midline_ref_W.plot(color='lightpink', label='xpt2_ref_E')
 
     def PlotPatches(self) -> None:
         """
@@ -1245,6 +1310,8 @@ class Ingrid(IngridUtils):
         self.PlotStrikeGeometry(ax=self.PsiNormAx)
         self.PlotMidplane(ax=self.PsiNormAx)
         self.PlotEastWestXpt1Ref(ax=self.PsiNormAx)
+        if self.settings['grid_settings']['num_xpt'] == 2:
+            self.PlotEastWestXpt2Ref(ax=self.PsiNormAx)
         self.PlotPsiNormBounds()
         self.PrintSummaryParams()
 

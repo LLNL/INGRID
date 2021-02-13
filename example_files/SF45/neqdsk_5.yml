@@ -21,11 +21,17 @@ grid_settings:
   nlevs: 30
   num_xpt: 2
   patch_generation:
-    xpt1_E_tilt: 0.0
+    xpt1_E_tilt: 0.8
     xpt1_W_tilt: 0.0
+    xpt2_E_tilt: 1.2
+    xpt2_W_tilt: 1.8
     rmagx_shift: 0.0
     strike_pt_loc: limiter
     strike_geomety: target_plates
+    use_xpt1_E: true
+    use_xpt1_W: true
+    use_xpt2_E: true
+    use_xpt2_W: true
     magx_tilt_1: 0.0
     magx_tilt_2: 0.0
     zmagx_shift: 0.0
@@ -58,7 +64,7 @@ patch_data:
   preferences:
     new_file: true
     new_fname: ../data/NEQDSK_maxim/SF45_patches_1597425973.npy
-  use_file: true
+  use_file: false
 target_plates:
   plate_E1:
     file: ''

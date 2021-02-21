@@ -25,7 +25,7 @@ from pathlib import Path
 from time import time
 from collections import OrderedDict
 
-from omfit_eqdsk import OMFITgeqdsk
+from OMFITgeqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line, Patch, segment_intersect, orientation_between

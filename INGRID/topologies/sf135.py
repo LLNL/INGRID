@@ -184,6 +184,7 @@ class SF135(TopologyUtils):
 
         # Save some key-strokes...
         d = self.LineTracer.draw_line
+        pg = self.settings['grid_settings']['patch_generation']
 
         E1_S = d(F1_S.p[-1], {'line': topLine}, option='theta', direction='ccw', show_plot=visual, text=verbose)
 
@@ -216,16 +217,26 @@ class SF135(TopologyUtils):
         F2_N__G2_N = d(E2_N.p[-1], {'line': EastPlate1}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
 
-        G2_W = d(xpt1['E'], {'line': F2_N__G2_N}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
+        if pg['use_xpt1_E']:
+            tilt = pg['xpt1_E_tilt']
+            G2_W = d(xpt1['E'], {'line': (F2_N__G2_N, tilt)}, option='z_const', direction='cw',
+                show_plot=visual, text=verbose)
+        else:
+            G2_W = d(xpt1['E'], {'line': F2_N__G2_N}, option='rho', direction='ccw',
+                show_plot=visual, text=verbose)
         F2_E = G2_W.reverse_copy()
 
         F2_N, G2_N = F2_N__G2_N.split(G2_W.p[-1], add_split_point=True)
 
         F3_S, G3_S = F2_N.reverse_copy(), G2_N.reverse_copy()
 
-        C2_W = d(xpt1['W'], {'line': B2_N__C2_N}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
+        if pg['use_xpt1_W']:
+            tilt = pg['xpt1_W_tilt']
+            C2_W = d(xpt1['W'], {'line': (B2_N__C2_N, tilt)}, option='z_const', direction='ccw',
+                show_plot=visual, text=verbose)
+        else:
+            C2_W = d(xpt1['W'], {'line': B2_N__C2_N}, option='rho', direction='ccw',
+                show_plot=visual, text=verbose)
         B2_E = C2_W.reverse_copy()
 
         B2_N, C2_N = B2_N__C2_N.split(C2_W.p[-1], add_split_point=True)
@@ -248,8 +259,13 @@ class SF135(TopologyUtils):
             show_plot=visual, text=verbose)
         H2_N = H3_S.reverse_copy()
 
-        I3_W = d(xpt2['E'], {'psi': psi_2}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
+        if pg['use_xpt2_E']:
+            tilt = pg['xpt2_E_tilt']
+            I3_W = d(xpt2['E'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='cw',
+                show_plot=visual, text=verbose)
+        else:
+            I3_W = d(xpt2['E'], {'psi': psi_2}, option='rho', direction='ccw',
+                show_plot=visual, text=verbose)
         H3_E = I3_W.reverse_copy()
 
         H3_N = d(H3_E.p[0], {'line': WestPlate1}, option='theta', direction='ccw',
@@ -284,8 +300,13 @@ class SF135(TopologyUtils):
             show_plot=visual, text=verbose)
         A2_N = A3_S.reverse_copy()
 
-        B3_W = d(xpt2['W'], {'psi': psi_1}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
+        if pg['use_xpt2_W']:
+            tilt = pg['xpt2_W_tilt']
+            B3_W = d(xpt2['W'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='ccw',
+                show_plot=visual, text=verbose)
+        else:
+            B3_W = d(xpt2['W'], {'psi': psi_1}, option='rho', direction='ccw',
+                show_plot=visual, text=verbose)
         A3_E = B3_W.reverse_copy()
 
         A3_N = d(A3_E.p[0], {'line': WestPlate2}, option='theta', direction='ccw',
@@ -294,8 +315,13 @@ class SF135(TopologyUtils):
         B3_N__C3_N = d(B3_W.p[-1], {'line': midline_1}, option='theta', direction='cw',
             show_plot=visual, text=verbose)
 
-        C3_W = d(B2_N.p[-1], {'line': B3_N__C3_N}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
+        if pg['use_xpt1_W']:
+            tilt = pg['xpt1_W_tilt']
+            C3_W = d(B2_N.p[-1], {'line': (B3_N__C3_N, tilt)}, option='z_const', direction='ccw',
+                show_plot=visual, text=verbose)
+        else:
+            C3_W = d(B2_N.p[-1], {'line': B3_N__C3_N}, option='rho', direction='ccw',
+                show_plot=visual, text=verbose)
         B3_E = C3_W.reverse_copy()
 
         B3_N, C3_N = B3_N__C3_N.split(C3_W.p[-1], add_split_point=True)
@@ -306,8 +332,13 @@ class SF135(TopologyUtils):
 
         F3_N__G3_N = d(E3_N.p[-1], {'line': EastPlate1}, option='theta', direction='cw')
 
-        G3_W = d(G2_W.p[-1], {'line': F3_N__G3_N}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
+        if pg['use_xpt1_E']:
+            tilt = pg['xpt1_E_tilt']
+            G3_W = d(G2_W.p[-1], {'line': (F3_N__G3_N, tilt)}, option='z_const', direction='cw',
+                show_plot=visual, text=verbose)
+        else:
+            G3_W = d(G2_W.p[-1], {'line': F3_N__G3_N}, option='rho', direction='ccw',
+                show_plot=visual, text=verbose)
         F3_E = G3_W.reverse_copy()
 
         F3_N, G3_N = F3_N__G3_N.split(G3_W.p[-1], add_split_point=True)

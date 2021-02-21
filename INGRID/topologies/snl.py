@@ -195,14 +195,14 @@ class SNL(TopologyUtils):
         # Drawing Lower-SNL region
         if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
-            d = 'ccw' if self.config == 'LSN' else 'cw'
+            d = 'ccw'
             xptW_psiMax = self.LineTracer.draw_line(xpt['W'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction=d, show_plot=visual, text=verbose)
         else:
             xptW_psiMax = self.LineTracer.draw_line(xpt['W'], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
 
         if self.settings['grid_settings']['patch_generation']['use_xpt1_E']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt1_E_tilt']
-            d = 'cw' if self.config == 'LSN' else 'ccw'
+            d = 'cw'
             xptE_psiMax = self.LineTracer.draw_line(xpt['E'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction=d, show_plot=visual, text=verbose)
         else:
             xptE_psiMax = self.LineTracer.draw_line(xpt['E'], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose)

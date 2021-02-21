@@ -49,14 +49,14 @@ grid_settings:
   # Settings for patch map
   # ---------------------------------------------------
   patch_generation:
-    xpt1_E_tilt: 0.0
-    xpt1_W_tilt: 0.0
+    xpt1_E_tilt: 3.14
+    xpt1_W_tilt: 3.14
     rmagx_shift: 0.0
     strike_pt_loc: target_plates  # 'limiter' or 'target_plates'
     magx_tilt_1: 0.0
     magx_tilt_2: 0.0
-    use_xpt1_E: false
-    use_xpt1_W: false
+    use_xpt1_E: true
+    use_xpt1_W: true
     zmagx_shift: 0.0
   # ---------------------------------------------------
   # Psi levels
@@ -85,7 +85,7 @@ grid_settings:
 patch_data:
   file: USN_patches_1598047632.npy
   preferences:
-    new_file: true
+    new_file: false
     new_fname: USN_patches_1598047632.npy
   use_file: false
 

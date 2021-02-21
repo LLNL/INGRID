@@ -198,12 +198,20 @@ class SF105(TopologyUtils):
         E1_S = self.LineTracer.draw_line(F1_S.p[-1], {'line': topLine}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
-        B3_E = self.LineTracer.draw_line(xpt1['W'], {'psi': psi_1}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose).reverse_copy()
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
+            B3_E = self.LineTracer.draw_line(xpt1['W'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+        else:
+            B3_E = self.LineTracer.draw_line(xpt1['W'], {'psi': psi_1}, option='rho', direction='ccw',
+                show_plot=visual, text=verbose).reverse_copy()
         C3_W = B3_E.reverse_copy()
 
-        F3_E = self.LineTracer.draw_line(xpt1['E'], {'psi': psi_1}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose).reverse_copy()
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_E']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_E_tilt']
+            F3_E = self.LineTracer.draw_line(xpt1['E'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+        else:
+            F3_E = self.LineTracer.draw_line(xpt1['E'], {'psi': psi_1}, option='rho', direction='ccw',
+                show_plot=visual, text=verbose).reverse_copy()
         G3_W = F3_E.reverse_copy()
 
         C3_N = self.LineTracer.draw_line(C3_W.p[-1], {'line': midline_1}, option='theta', direction='cw',
@@ -268,8 +276,13 @@ class SF105(TopologyUtils):
         B1_S__H1_S = self.LineTracer.draw_line(B1_E.p[-1], {'line': EastPlate2}, option='theta', direction='ccw',
             show_plot=visual, text=verbose)
 
-        H1_E = self.LineTracer.draw_line(xpt2['E'], {'line': B1_S__H1_S}, option='rho', direction='cw',
-            show_plot=visual, text=verbose)
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_E']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt2_E_tilt']
+            H1_E = self.LineTracer.draw_line(xpt2['E'], {'line': (B1_S__H1_S, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        else:
+            H1_E = self.LineTracer.draw_line(xpt2['E'], {'line': B1_S__H1_S}, option='rho', direction='cw',
+                show_plot=visual, text=verbose)
+
         B1_W = H1_E.reverse_copy()
 
         B1_S, H1_S = B1_S__H1_S.split(H1_E.p[-1], add_split_point=True)
@@ -280,8 +293,12 @@ class SF105(TopologyUtils):
         H3_E, H2_E = H3_E__H2_E.split(H3_E__H2_E.p[len(H3_E__H2_E.p) // 2], add_split_point=True)
         I3_W, I2_W = H3_E.reverse_copy(), H2_E.reverse_copy()
 
-        A1_E = self.LineTracer.draw_line(xpt2['W'], {'psi': psi_2}, option='rho', direction='cw',
-            show_plot=visual, text=verbose)
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_W']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt2_W_tilt']
+            A1_E = self.LineTracer.draw_line(xpt2['W'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        else:
+            A1_E = self.LineTracer.draw_line(xpt2['W'], {'psi': psi_2}, option='rho', direction='cw',
+                show_plot=visual, text=verbose)
         I1_W = A1_E.reverse_copy()
 
         A1_S = self.LineTracer.draw_line(A1_E.p[-1], {'line': WestPlate1}, option='theta', direction='ccw',

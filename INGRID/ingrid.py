@@ -1199,9 +1199,10 @@ class Ingrid(IngridUtils):
             visual = False
 
         self.PrepLineTracing()
-        self.OrderLimiter()
-        self.OrderTargetPlates()
         self.ClassifyTopology(visual=visual)
+
+        if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'target_plates':
+            self.OrderTargetPlates()
 
         print('')
         print('# Identified {} configuration.'.format(self.config))

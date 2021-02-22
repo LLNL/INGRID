@@ -28,7 +28,7 @@ from collections import OrderedDict
 from OMFITgeqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.line_tracing import LineTracing
-from INGRID.geometry import Point, Line, Patch, segment_intersect, orientation_between
+from INGRID.geometry import Point, Line, Patch, segment_intersect, orientation_between, limiter_split
 
 
 class IngridUtils():
@@ -841,7 +841,7 @@ class IngridUtils():
             if type(self.PlateData[k]) == Line:
                 self.OrderTargetPlate(k)
 
-    def OrderLimiter(self) -> None:
+    def OrderLimiter2(self) -> None:
         """
         Ensures the limiter points are oriented **clockwise** around the
         magnetic axis (per INGRID convention).
@@ -911,6 +911,46 @@ class IngridUtils():
                 ordered = True
 
         if ordered is False:
+            self.LimiterData = self.LimiterData.reverse_copy()
+
+
+    def OrderLimiter(self) -> None:
+        """
+        Ensures the limiter points are oriented **clockwise** around the
+        magnetic axis (per INGRID convention).
+
+        This method requires the limiter geometry to have been defined
+        as well as the magnetic axis to be refined.
+
+        Parameters
+        ----------
+
+        Notes
+        -----
+        Ordering of limiter is **crucial** when using limiter for
+        creating a patch map. This occurs for all cases with two
+        x-points.
+        """
+        from matplotlib.patches import Polygon
+
+        limiter = self.LimiterData.fluff_copy(100)
+        xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
+        magx = np.array([self.settings['grid_settings']['rmagx'], self.settings['grid_settings']['zmagx']])
+
+        clockwise_loop = False
+
+        W_leg = self.LineTracer.draw_line(xpt1['SW'], {'line': limiter}, option='theta', direction='ccw')
+        E_leg = self.LineTracer.draw_line(xpt1['SE'], {'line': limiter}, option='theta', direction='cw').reverse_copy()
+
+        test_boundary = (limiter_split(W_leg.p[-1], E_leg.p[0], limiter).split(W_leg.p[-1])[1]).split(E_leg.p[0], add_split_point=True)[0].p
+        test_boundary = Line((W_leg.p + test_boundary + E_leg.p))
+        limiter_polygon = Polygon(np.column_stack(test_boundary.points()).T, closed=True, color='red', label='test_boundary')
+
+        if (limiter_polygon.get_path().contains_point(magx)) is True:
+            clockwise_loop = True
+
+        # Limiter segment between 
+        if clockwise_loop is False:
             self.LimiterData = self.LimiterData.reverse_copy()
 
     def FindMagAxis(self, r: float, z: float) -> None:
@@ -1084,10 +1124,11 @@ class IngridUtils():
         print("# Begin classification....")
         print('')
 
-        if self.settings['grid_settings']['num_xpt'] == 1:
-            self.LineTracer.SNL_find_NSEW(self.xpt1, self.magx, visual)
 
-        elif self.settings['grid_settings']['num_xpt'] == 2:
+        # Always analyze primary xpt
+        self.LineTracer.SNL_find_NSEW(self.xpt1, self.magx, visual)
+
+        if self.settings['grid_settings']['num_xpt'] == 2:
             # Check if limiter contains magx, xpt1,and xpt2
             from matplotlib.patches import Polygon
             limiter = Polygon(np.column_stack(self.LimiterData.points()).T, fill=True, closed=True, color='red', label='Limiter')
@@ -1100,6 +1141,8 @@ class IngridUtils():
             if (limiter.get_path().contains_point(self.xpt2)) is False:
                 missing_items.insert(0, 'xpt2')
             if len(missing_items) == 0:
+                # Clockwise Limiter essential for algorithm
+                self.OrderLimiter()
                 self.LineTracer.DNL_find_NSEW(self.xpt1, self.xpt2, self.magx, visual)
             else:
                 raise ValueError(f"# Topological item(s) {missing_items} not contained in the limiter geometry provided. Check coordinates provided are correct and/or edit the limiter geometry.")

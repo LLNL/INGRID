@@ -25,7 +25,7 @@ from pathlib import Path
 from time import time
 from collections import OrderedDict
 
-from omfit_eqdsk import OMFITgeqdsk
+from INGRID.OMFITgeqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line, Patch, segment_intersect, orientation_between
@@ -206,6 +206,8 @@ class IngridUtils():
                 'magx_tilt_2': 0.0,
                 'use_xpt1_W': False,
                 'use_xpt1_E': False,
+                'use_xpt2_W': False,
+                'use_xpt2_E': False,
                 'xpt1_W_tilt': -0.785398,  # All values of pi / 4 radians.
                 'xpt1_E_tilt': 0.785398,
                 'xpt2_W_tilt': -0.785398,

@@ -28,15 +28,17 @@ grid_settings:
   num_xpt: 2
   patch_generation:
     xpt1_E_tilt: 0.0
-    xpt1_W_tilt: 0.0
+    xpt1_W_tilt: 0.25
     rmagx_shift: 0.0
-    xpt2_E_tilt: 0.0
-    xpt2_W_tilt: 0.0
+    xpt2_E_tilt: -2.0
+    xpt2_W_tilt: -2.0
     strike_pt_loc: limiter
     magx_tilt_1: 0.0
     magx_tilt_2: 0.0
-    use_xpt1_E: false
-    use_xpt1_W: false
+    use_xpt1_E: true
+    use_xpt1_W: true
+    use_xpt2_E: true
+    use_xpt2_W: true
     zmagx_shift: 0.0
   psi_1: 1.28
   psi_2: 1.28

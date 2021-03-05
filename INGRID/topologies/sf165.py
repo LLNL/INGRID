@@ -183,8 +183,17 @@ class SF165(TopologyUtils):
 
         B1_S, H1_S = B1_S__H1_S.split(H1_E.p[-1], add_split_point=True)
 
-        F2_W__F3_W = self.LineTracer.draw_line(xpt1['E'], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
-        B3_W = self.LineTracer.draw_line(xpt2['W'], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_E']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_E_tilt']
+            F2_W__F3_W = self.LineTracer.draw_line(xpt1['E'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        else:
+            F2_W__F3_W = self.LineTracer.draw_line(xpt1['E'], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_W']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt2_W_tilt']
+            B3_W = self.LineTracer.draw_line(xpt2['W'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        else:
+            B3_W = self.LineTracer.draw_line(xpt2['W'], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
         A3_E = B3_W.reverse_copy()
 
         A3_N = self.LineTracer.draw_line(B3_W.p[-1], {'line': WestPlate2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
@@ -227,20 +236,32 @@ class SF165(TopologyUtils):
 
         H3_S__G3_S = self.LineTracer.draw_line(xpt2['NE'], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose)
 
-        H2_W = self.LineTracer.draw_line(xpt1['W'], {'line': H3_S__G3_S}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
+            H2_W = self.LineTracer.draw_line(xpt1['W'], {'line': (H3_S__G3_S, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        else:
+            H2_W = self.LineTracer.draw_line(xpt1['W'], {'line': H3_S__G3_S}, option='rho', direction='ccw', show_plot=visual, text=verbose)
         G2_E = H2_W.reverse_copy()
 
         H3_S, G3_S = H3_S__G3_S.split(H2_W.p[-1], add_split_point=True)
         H2_N, G2_N = H3_S.reverse_copy(), G3_S.reverse_copy()
 
-        I3_W = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_2}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_E']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt2_E_tilt']
+            I3_W = self.LineTracer.draw_line(xpt2['E'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        else:
+            I3_W = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_2}, option='rho', direction='ccw', show_plot=visual, text=verbose)
         H3_E = I3_W.reverse_copy()
 
         I3_N = self.LineTracer.draw_line(I3_W.p[-1], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose)
 
         G3_N__H3_N = self.LineTracer.draw_line(I3_W.p[-1], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
 
-        H3_W = self.LineTracer.draw_line(G2_N.p[-1], {'line': G3_N__H3_N}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
+            H3_W = self.LineTracer.draw_line(G2_N.p[-1], {'line': (G3_N__H3_N, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        else:
+            H3_W = self.LineTracer.draw_line(G2_N.p[-1], {'line': G3_N__H3_N}, option='rho', direction='ccw', show_plot=visual, text=verbose)
         G3_E = H3_W.reverse_copy()
 
         G3_N, H3_N = G3_N__H3_N.split(H3_W.p[-1], add_split_point=True)

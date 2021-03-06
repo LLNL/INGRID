@@ -32,8 +32,11 @@ from INGRID.interpol import Bicubic
 from INGRID.utils import IngridUtils
 from INGRID.topologies.snl import SNL
 from INGRID.topologies.sf15 import SF15
+from INGRID.topologies.sf15h import SF15H
 from INGRID.topologies.sf45 import SF45
+from INGRID.topologies.sf45h import SF45H
 from INGRID.topologies.sf75 import SF75
+from INGRID.topologies.sf75h import SF75H
 from INGRID.topologies.sf105 import SF105
 from INGRID.topologies.sf135 import SF135
 from INGRID.topologies.sf165 import SF165
@@ -1208,6 +1211,13 @@ class Ingrid(IngridUtils):
         print('# Identified {} configuration.'.format(self.config))
         print('')
 
+
+        if self.settings['grid_settings']['patch_generation']['half_domain'] == True:
+            self.config = self.config + 'H'
+            print('')
+            print('# Half-domain mode enabled. Constructing {} configuration.'.format(self.config))
+            print('')
+
         self.SetTopology(self.config)
 
     def SetTopology(self, topology: str) -> None:
@@ -1259,6 +1269,15 @@ class Ingrid(IngridUtils):
 
         elif topology == 'SF165':
             ingrid_topology = SF165(self, topology)
+
+        elif topology == 'SF15H':
+            ingrid_topology = SF15H(self, topology)
+
+        elif topology == 'SF45H':
+            ingrid_topology = SF45H(self, topology)
+
+        elif topology == 'SF75H':
+            ingrid_topology = SF75H(self, topology)
 
         else:
             raise ValueError(f"# Invalid entry: no Ingrid topology {topology} exists.")
@@ -1332,6 +1351,8 @@ class Ingrid(IngridUtils):
         with a value of 'True'.
 
         """
+        import pdb
+        pdb.set_trace()
         self.OrderLimiter()
         self.OrderTargetPlates()
         self.PrepLineTracing()

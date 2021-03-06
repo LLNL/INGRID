@@ -199,6 +199,7 @@ class IngridUtils():
                 },
             },
             'patch_generation': {
+                'half_domain': True,
                 'strike_pt_loc': 'limiter',
                 'rmagx_shift': 0.0,
                 'zmagx_shift': 0.0,
@@ -933,7 +934,7 @@ class IngridUtils():
         """
         from matplotlib.patches import Polygon
 
-        limiter = self.LimiterData.fluff_copy(100)
+        limiter = self.LimiterData.fluff_copy(5)
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         magx = np.array([self.settings['grid_settings']['rmagx'], self.settings['grid_settings']['zmagx']])
 
@@ -951,7 +952,7 @@ class IngridUtils():
 
         # Limiter segment between 
         if clockwise_loop is False:
-            self.LimiterData = self.LimiterData.reverse_copy()
+            self.LimiterData.p = self.LimiterData.p[::-1]
 
     def FindMagAxis(self, r: float, z: float) -> None:
         """
@@ -1941,6 +1942,8 @@ class TopologyUtils():
         verbose : bool, optional
             Print full output to terminal. Defaults to False.
         """
+        import pdb
+        pdb.set_trace()
         for name, patch in self.patches.items():
             if patch.plate_patch:
                 print(' # Checking patch: ', name)

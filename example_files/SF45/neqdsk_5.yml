@@ -32,9 +32,9 @@ grid_settings:
     use_xpt1_W: true
     use_xpt2_E: true
     use_xpt2_W: true
-    magx_tilt_1: 0.0
-    magx_tilt_2: 0.0
-    zmagx_shift: 0.0
+    magx_tilt_1: 0.7
+    magx_tilt_2: 0.7
+    zmagx_shift: -0.15
   psi_1: 1.2
   psi_2: 1.2
   psi_core: 0.89

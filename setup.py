@@ -20,6 +20,7 @@ long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 setup(
     name='INGRID',
+    version_format='{tag}',
     setup_requires=['setuptools-git-version'],
     description='Tokamak edge plasma grid generator',
     long_description=long_description,
@@ -47,6 +48,7 @@ setup(
     python_requires='>=3.5, <4',
     install_requires=[
         'm2r2',
+        'omfit-eqdsk',
         'scipy >= 1.3.1',
         'numpy',
         'pyyaml',

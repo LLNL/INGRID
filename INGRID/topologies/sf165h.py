@@ -1,5 +1,5 @@
 """
-The ``sf165`` module contains :class:`SF165` for representing a Snowflake-165
+The ``sf165h`` module contains :class:`SF165H` for representing a Snowflake-165
 topology/configuration.
 
 Child of base :class:`utils.TopologyUtils`.
@@ -18,14 +18,14 @@ from INGRID.geometry import Point, Line, Patch, trim_geometry
 from collections import OrderedDict
 
 
-class SF165(TopologyUtils):
+class SF165H(TopologyUtils):
     """
-    The `SF165` class for handling `Snowflake-165` configurations within a tokamak.
+    The `SF165H` class for handling `Snowflake-165` configurations within a tokamak.
 
     Parameters
     ----------
     Ingrid_obj : Ingrid
-        Ingrid object the SF165 object is being managed by.
+        Ingrid object the SF165H object is being managed by.
 
     config : str, optional
         String code representing the configuration.
@@ -38,7 +38,7 @@ class SF165(TopologyUtils):
     patches : dict
         The collection of Patch objects representing the topology.
     """
-    def __init__(self, Ingrid_obj: 'ingrid.Ingrid', config: str = 'SF165'):
+    def __init__(self, Ingrid_obj: 'ingrid.Ingrid', config: str = 'SF165H'):
         TopologyUtils.__init__(self, Ingrid_obj, config)
 
         self.ConnexionMap = {
@@ -46,37 +46,29 @@ class SF165(TopologyUtils):
             'A2': {'N': ('A3', 'S')},
             'A3': None,
 
-            'B1': {'N': ('B2', 'S'), 'W': ('H1', 'E')},
-            'B2': {'N': ('B3', 'S'), 'W': ('H2', 'E')},
+            'B1': {'N': ('B2', 'S'), 'W': ('F1', 'E')},
+            'B2': {'N': ('B3', 'S'), 'W': ('F2', 'E')},
             'B3': {'W': ('A3', 'E')},
 
-            'C1': {'N': ('C2', 'S'), 'W': ('B1', 'E')},
-            'C2': {'N': ('C3', 'S'), 'W': ('B2', 'E')},
-            'C3': {'W': ('B3', 'E')},
+            'C1': {'N': ('C2', 'S'), 'E': ('F1', 'W')},
+            'C2': {'N': ('C3', 'S')},
+            'C3': None,
 
-            'D1': {'N': ('D2', 'S'), 'W': ('C1', 'E')},
+            'D1': {'N': ('D2', 'S'), 'W': ('E1', 'E')},
             'D2': {'N': ('D3', 'S'), 'W': ('C2', 'E')},
             'D3': {'W': ('C3', 'E')},
 
-            'E1': {'N': ('E2', 'S'), 'W': ('D1', 'E'), 'E': ('H1', 'W')},
-            'E2': {'N': ('E3', 'S'), 'W': ('D2', 'E')},
-            'E3': {'W': ('D3', 'E')},
+            'E1': {'N': ('E2', 'S')},
+            'E2': {'N': ('E3', 'S')},
+            'E3': None,
 
-            'F1': {'N': ('F2', 'S'), 'W': ('G1', 'E')},
+            'F1': {'N': ('F2', 'S')},
             'F2': {'N': ('F3', 'S'), 'W': ('E2', 'E')},
             'F3': {'W': ('E3', 'E')},
 
-            'G1': {'N': ('G2', 'S')},
-            'G2': {'N': ('G3', 'S')},
-            'G3': None,
-
-            'H1': {'N': ('H2', 'S')},
-            'H2': {'N': ('H3', 'S'), 'W': ('G2', 'E')},
-            'H3': {'W': ('G3', 'E')},
-
-            'I1': {'N': ('I2', 'S'), 'W': ('A1', 'E')},
-            'I2': {'N': ('I3', 'S'), 'W': ('A2', 'E')},
-            'I3': {'W': ('H3', 'E')}
+            'G1': {'N': ('G2', 'S'), 'W': ('A1', 'E')},
+            'G2': {'N': ('G3', 'S'), 'W': ('A2', 'E')},
+            'G3': {'W': ('F3', 'E')}
         }
         self.gridue_settings = None
 
@@ -136,8 +128,8 @@ class SF165(TopologyUtils):
             WestPlate1 = self.PlateData['plate_W1']
             WestPlate2 = self.PlateData['plate_W2']
 
-            EastPlate1 = self.PlateData['plate_E1']
-            EastPlate2 = self.PlateData['plate_E2']
+            EastPlate1 = self.PlateData['plate_C1']
+            EastPlate2 = self.PlateData['plate_C2']
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(magx_tilt_1), magx[1] - 1e6 * np.sin(magx_tilt_1))
@@ -148,47 +140,36 @@ class SF165(TopologyUtils):
         RHS_Point = Point(magx[0] + 1e6 * np.cos(magx_tilt_2), magx[1] + 1e6 * np.sin(magx_tilt_2))
         midline_2 = Line([LHS_Point, RHS_Point])
 
-        # Generate Vertical Mid-Plane line
-        Lower_Point = Point(magx[0], magx[1] - 1e6)
-        Upper_Point = Point(magx[0], magx[1] + 1e6)
-        topLine = Line([Lower_Point, Upper_Point])
+        C1_E = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core}, option='rho', direction='cw', show_plot=visual, text=verbose)
+        F1_W = C1_E.reverse_copy()
 
-        E1_E = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core}, option='rho', direction='cw', show_plot=visual, text=verbose)
-        H1_W = E1_E.reverse_copy()
+        C1_S = self.LineTracer.draw_line(C1_E.p[-1], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
 
-        E1_S = self.LineTracer.draw_line(E1_E.p[-1], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
-        D1_S = self.LineTracer.draw_line(E1_S.p[-1], {'line': topLine}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+        B1_S__F1_S = self.LineTracer.draw_line(C1_E.p[-1], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
 
-        B1_S__H1_S = self.LineTracer.draw_line(E1_E.p[-1], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
-        C1_S = self.LineTracer.draw_line(B1_S__H1_S.p[0], {'line': topLine}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+        F1_N__B1_N = self.LineTracer.draw_line(xpt1['NW'], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose)
 
-        H1_N__B1_N = self.LineTracer.draw_line(xpt1['NW'], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        C2_S = self.LineTracer.draw_line(xpt1['NE'], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+        C1_N = C2_S.reverse_copy()
 
-        C1_N = self.LineTracer.draw_line(H1_N__B1_N.p[-1], {'line': topLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
-        C2_S = C1_N.reverse_copy()
+        F2_E = self.LineTracer.draw_line(xpt2['N'], {'line': F1_N__B1_N}, option='rho', direction='cw', show_plot=visual, text=verbose)
+        B2_W = F2_E.reverse_copy()
 
-        E2_S = self.LineTracer.draw_line(xpt1['NE'], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
-        E1_N = E2_S.reverse_copy()
+        F1_N, B1_N = F1_N__B1_N.split(F2_E.p[-1], add_split_point=True)
+        F2_S, B2_S = F1_N.reverse_copy(), B1_N.reverse_copy()
 
-        D2_S = self.LineTracer.draw_line(E2_S.p[-1], {'line': topLine}, option='theta', direction='ccw', show_plot=visual, text=verbose)
-        D1_N = D2_S.reverse_copy()
+        F1_E = self.LineTracer.draw_line(F2_E.p[-1], {'line': B1_S__F1_S}, option='rho', direction='cw', show_plot=visual, text=verbose)
+        B1_W = F1_E.reverse_copy()
 
-        H2_E = self.LineTracer.draw_line(xpt2['N'], {'line': H1_N__B1_N}, option='rho', direction='cw', show_plot=visual, text=verbose)
-        B2_W = H2_E.reverse_copy()
-
-        H1_N, B1_N = H1_N__B1_N.split(H2_E.p[-1], add_split_point=True)
-        H2_S, B2_S = H1_N.reverse_copy(), B1_N.reverse_copy()
-
-        H1_E = self.LineTracer.draw_line(H2_E.p[-1], {'line': B1_S__H1_S}, option='rho', direction='cw', show_plot=visual, text=verbose)
-        B1_W = H1_E.reverse_copy()
-
-        B1_S, H1_S = B1_S__H1_S.split(H1_E.p[-1], add_split_point=True)
+        B1_S, F1_S = B1_S__F1_S.split(F1_E.p[-1], add_split_point=True)
 
         if self.settings['grid_settings']['patch_generation']['use_xpt1_E']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt1_E_tilt']
-            F2_W__F3_W = self.LineTracer.draw_line(xpt1['E'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+            D2_W = self.LineTracer.draw_line(xpt1['E'], {'psi_horizontal': (psi_separatrix_2, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+            D3_W = self.LineTracer.draw_line(D2_W.p[-1], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
         else:
-            F2_W__F3_W = self.LineTracer.draw_line(xpt1['E'], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+            D2_W = self.LineTracer.draw_line(xpt1['E'], {'psi': psi_separatrix_2}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+            D3_W = self.LineTracer.draw_line(D2_W.p[-1], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
 
         if self.settings['grid_settings']['patch_generation']['use_xpt2_W']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt2_W_tilt']
@@ -199,134 +180,106 @@ class SF165(TopologyUtils):
 
         A3_N = self.LineTracer.draw_line(B3_W.p[-1], {'line': WestPlate2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         B3_N = self.LineTracer.draw_line(A3_N.p[-1], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose)
-        C3_N = self.LineTracer.draw_line(B3_N.p[-1], {'line': topLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
 
-        F3_N = self.LineTracer.draw_line(F2_W__F3_W.p[-1], {'line': EastPlate1}, option='theta', direction='cw', show_plot=visual, text=verbose)
-        E3_N = self.LineTracer.draw_line(F3_N.p[0], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
-        D3_N = self.LineTracer.draw_line(E3_N.p[0], {'line': topLine}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+        D3_N = self.LineTracer.draw_line(D3_W.p[-1], {'line': EastPlate1}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        C3_N = self.LineTracer.draw_line(D3_N.p[0], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
 
         B2_N = self.LineTracer.draw_line(xpt2['NW'], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose)
         B3_S = B2_N.reverse_copy()
 
-        C2_N = self.LineTracer.draw_line(B2_N.p[-1], {'line': topLine}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        C2_E, C3_E = D2_W.reverse_copy(), D3_W.reverse_copy()
+
+        C2_N = self.LineTracer.draw_line(D2_W.p[-1], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         C3_S = C2_N.reverse_copy()
 
-        D2_N = self.LineTracer.draw_line(C2_N.p[-1], {'line': midline_2}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        D2_N = self.LineTracer.draw_line(C2_N.p[-1], {'line': EastPlate1}, option='theta', direction='cw', show_plot=visual, text=verbose)
         D3_S = D2_N.reverse_copy()
 
-        E2_N = self.LineTracer.draw_line(D2_N.p[-1], {'line': F2_W__F3_W}, option='theta', direction='cw', show_plot=visual, text=verbose)
-        E3_S = E2_N.reverse_copy()
+        D1_N = self.LineTracer.draw_line(xpt1['SE'], {'line': EastPlate1}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        D2_S = D1_N.reverse_copy()
 
-        F2_W, F3_W = F2_W__F3_W.split(E2_N.p[-1], add_split_point=True)
-        E2_E, E3_E = F2_W.reverse_copy(), F3_W.reverse_copy()
+        E1_E = self.LineTracer.draw_line(xpt1['S'], {'psi': psi_pf_1}, option='rho', direction='cw', show_plot=visual, text=verbose)
+        D1_W = E1_E.reverse_copy()
 
-        F2_N = self.LineTracer.draw_line(E2_N.p[-1], {'line': EastPlate1}, option='theta', direction='cw', show_plot=visual, text=verbose)
-        F3_S = F2_N.reverse_copy()
+        E1_S = self.LineTracer.draw_line(E1_E.p[-1], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+        D1_S = self.LineTracer.draw_line(E1_E.p[-1], {'line': EastPlate1}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
 
-        F1_N = self.LineTracer.draw_line(xpt1['SE'], {'line': EastPlate1}, option='theta', direction='cw', show_plot=visual, text=verbose)
-        F2_S = F1_N.reverse_copy()
+        E2_S = self.LineTracer.draw_line(xpt1['SW'], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+        E1_N = E2_S.reverse_copy()
 
-        G1_E = self.LineTracer.draw_line(xpt1['S'], {'psi': psi_pf_1}, option='rho', direction='cw', show_plot=visual, text=verbose)
-        F1_W = G1_E.reverse_copy()
-
-        G1_S = self.LineTracer.draw_line(G1_E.p[-1], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose)
-        F1_S = self.LineTracer.draw_line(G1_E.p[-1], {'line': EastPlate1}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
-
-        G2_S = self.LineTracer.draw_line(xpt1['SW'], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose)
-        G1_N = G2_S.reverse_copy()
-
-        H3_S__G3_S = self.LineTracer.draw_line(xpt2['NE'], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+        F3_S__E3_S = self.LineTracer.draw_line(xpt2['NE'], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose)
 
         if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
-            H2_W = self.LineTracer.draw_line(xpt1['W'], {'line': (H3_S__G3_S, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+            F2_W = self.LineTracer.draw_line(xpt1['W'], {'line': (F3_S__E3_S, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
         else:
-            H2_W = self.LineTracer.draw_line(xpt1['W'], {'line': H3_S__G3_S}, option='rho', direction='ccw', show_plot=visual, text=verbose)
-        G2_E = H2_W.reverse_copy()
+            F2_W = self.LineTracer.draw_line(xpt1['W'], {'line': F3_S__E3_S}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+        E2_E = F2_W.reverse_copy()
 
-        H3_S, G3_S = H3_S__G3_S.split(H2_W.p[-1], add_split_point=True)
-        H2_N, G2_N = H3_S.reverse_copy(), G3_S.reverse_copy()
+        F3_S, E3_S = F3_S__E3_S.split(F2_W.p[-1], add_split_point=True)
+        F2_N, E2_N = F3_S.reverse_copy(), E3_S.reverse_copy()
 
         if self.settings['grid_settings']['patch_generation']['use_xpt2_E']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt2_E_tilt']
-            I3_W = self.LineTracer.draw_line(xpt2['E'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+            G3_W = self.LineTracer.draw_line(xpt2['E'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
         else:
-            I3_W = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_2}, option='rho', direction='ccw', show_plot=visual, text=verbose)
-        H3_E = I3_W.reverse_copy()
+            G3_W = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_2}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+        F3_E = G3_W.reverse_copy()
 
-        I3_N = self.LineTracer.draw_line(I3_W.p[-1], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        G3_N = self.LineTracer.draw_line(G3_W.p[-1], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose)
 
-        G3_N__H3_N = self.LineTracer.draw_line(I3_W.p[-1], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+        E3_N__F3_N = self.LineTracer.draw_line(G3_W.p[-1], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
 
         if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
-            H3_W = self.LineTracer.draw_line(G2_N.p[-1], {'line': (G3_N__H3_N, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+            F3_W = self.LineTracer.draw_line(E2_N.p[-1], {'line': (E3_N__F3_N, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
         else:
-            H3_W = self.LineTracer.draw_line(G2_N.p[-1], {'line': G3_N__H3_N}, option='rho', direction='ccw', show_plot=visual, text=verbose)
-        G3_E = H3_W.reverse_copy()
+            F3_W = self.LineTracer.draw_line(E2_N.p[-1], {'line': E3_N__F3_N}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+        E3_E = F3_W.reverse_copy()
 
-        G3_N, H3_N = G3_N__H3_N.split(H3_W.p[-1], add_split_point=True)
+        E3_N, F3_N = E3_N__F3_N.split(F3_W.p[-1], add_split_point=True)
 
         A2_E__A1_E = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_2}, option='rho', direction='cw', show_plot=visual, text=verbose)
         A2_E, A1_E = A2_E__A1_E.split(A2_E__A1_E.p[len(A2_E__A1_E.p) // 2], add_split_point=True)
-        I2_W, I1_W = A2_E.reverse_copy(), A1_E.reverse_copy()
+        G2_W, G1_W = A2_E.reverse_copy(), A1_E.reverse_copy()
 
         A1_S = self.LineTracer.draw_line(A1_E.p[-1], {'line': WestPlate2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
-        I1_S = self.LineTracer.draw_line(A1_E.p[-1], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+        G1_S = self.LineTracer.draw_line(A1_E.p[-1], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
 
         A2_S = self.LineTracer.draw_line(A2_E.p[-1], {'line': WestPlate2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
         A1_N = A2_S.reverse_copy()
-        I2_S = self.LineTracer.draw_line(A2_E.p[-1], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
-        I1_N = I2_S.reverse_copy()
+        G2_S = self.LineTracer.draw_line(A2_E.p[-1], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+        G1_N = G2_S.reverse_copy()
 
         A3_S = self.LineTracer.draw_line(xpt2['SW'], {'line': WestPlate2}, option='theta', direction='ccw', show_plot=visual, text=verbose)
         A2_N = A3_S.reverse_copy()
 
-        I3_S = self.LineTracer.draw_line(xpt2['SE'], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
-        I2_N = I3_S.reverse_copy()
+        G3_S = self.LineTracer.draw_line(xpt2['SE'], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+        G2_N = G3_S.reverse_copy()
 
         B3_E = Line([B3_N.p[-1], B3_S.p[0]])
-        C3_W = B3_E.reverse_copy()
-
         B2_E = Line([B2_N.p[-1], B2_S.p[0]])
-        C2_W = B2_E.reverse_copy()
-
         B1_E = Line([B1_N.p[-1], B1_S.p[0]])
-        C1_W = B1_E.reverse_copy()
 
-        C3_E = Line([C3_N.p[-1], C3_S.p[0]])
-        D3_W = C3_E.reverse_copy()
-
-        C2_E = Line([C2_N.p[-1], C2_S.p[0]])
-        D2_W = C2_E.reverse_copy()
-
-        C1_E = Line([C1_N.p[-1], C1_S.p[0]])
-        D1_W = C1_E.reverse_copy()
-
-        D3_E = Line([D3_N.p[-1], D3_S.p[0]])
-        E3_W = D3_E.reverse_copy()
-
-        D2_E = Line([D2_N.p[-1], D2_S.p[0]])
-        E2_W = D2_E.reverse_copy()
-
-        D1_E = Line([D1_N.p[-1], D1_S.p[0]])
-        E1_W = D1_E.reverse_copy()
+        C3_W = Line([C3_S.p[-1], C3_N.p[0]])
+        C2_W = Line([C2_S.p[-1], C2_N.p[0]])
+        C1_W = Line([C1_S.p[-1], C1_N.p[0]])
 
         A1_W = trim_geometry(WestPlate2, A1_S.p[-1], A1_N.p[0])
         A2_W = trim_geometry(WestPlate2, A2_S.p[-1], A2_N.p[0])
         A3_W = trim_geometry(WestPlate2, A3_S.p[-1], A3_N.p[0])
 
-        F1_E = trim_geometry(EastPlate1, F1_N.p[-1], F1_S.p[0])
-        F2_E = trim_geometry(EastPlate1, F2_N.p[-1], F2_S.p[0])
-        F3_E = trim_geometry(EastPlate1, F3_N.p[-1], F3_S.p[0])
+        D1_E = trim_geometry(EastPlate1, D1_N.p[-1], D1_S.p[0])
+        D2_E = trim_geometry(EastPlate1, D2_N.p[-1], D2_S.p[0])
+        D3_E = trim_geometry(EastPlate1, D3_N.p[-1], D3_S.p[0])
 
-        I1_E = trim_geometry(EastPlate2, I1_N.p[-1], I1_S.p[0])
-        I2_E = trim_geometry(EastPlate2, I2_N.p[-1], I2_S.p[0])
-        I3_E = trim_geometry(EastPlate2, I3_N.p[-1], I3_S.p[0])
+        G1_E = trim_geometry(EastPlate2, G1_N.p[-1], G1_S.p[0])
+        G2_E = trim_geometry(EastPlate2, G2_N.p[-1], G2_S.p[0])
+        G3_E = trim_geometry(EastPlate2, G3_N.p[-1], G3_S.p[0])
 
-        G1_W = trim_geometry(WestPlate1, G1_S.p[-1], G1_N.p[0])
-        G2_W = trim_geometry(WestPlate1, G2_S.p[-1], G2_N.p[0])
-        G3_W = trim_geometry(WestPlate1, G3_S.p[-1], G3_N.p[0])
+        E1_W = trim_geometry(WestPlate1, E1_S.p[-1], E1_N.p[0])
+        E2_W = trim_geometry(WestPlate1, E2_S.p[-1], E2_N.p[0])
+        E3_W = trim_geometry(WestPlate1, E3_S.p[-1], E3_N.p[0])
 
         # ============== Patch A1 ==============
         A1 = Patch([A1_N, A1_E, A1_S, A1_W], patch_name='A1', plate_patch=True, plate_location='W')
@@ -350,66 +303,45 @@ class SF165(TopologyUtils):
         C3 = Patch([C3_N, C3_E, C3_S, C3_W], patch_name='C3')
 
         # ============== Patch D1 ==============
-        D1 = Patch([D1_N, D1_E, D1_S, D1_W], patch_name='D1')
+        D1 = Patch([D1_N, D1_E, D1_S, D1_W], patch_name='D1', plate_patch=True, plate_location='E')
         # ============== Patch D2 ==============
-        D2 = Patch([D2_N, D2_E, D2_S, D2_W], patch_name='D2')
+        D2 = Patch([D2_N, D2_E, D2_S, D2_W], patch_name='D2', plate_patch=True, plate_location='E')
         # ============== Patch D3 ==============
-        D3 = Patch([D3_N, D3_E, D3_S, D3_W], patch_name='D3')
+        D3 = Patch([D3_N, D3_E, D3_S, D3_W], patch_name='D3', plate_patch=True, plate_location='E')
 
         # ============== Patch E1 ==============
-        E1 = Patch([E1_N, E1_E, E1_S, E1_W], patch_name='E1')
+        E1 = Patch([E1_N, E1_E, E1_S, E1_W], patch_name='E1', plate_patch=True, plate_location='W')
         # ============== Patch E2 ==============
-        E2 = Patch([E2_N, E2_E, E2_S, E2_W], patch_name='E2')
+        E2 = Patch([E2_N, E2_E, E2_S, E2_W], patch_name='E2', plate_patch=True, plate_location='W')
         # ============== Patch E3 ==============
-        E3 = Patch([E3_N, E3_E, E3_S, E3_W], patch_name='E3')
+        E3 = Patch([E3_N, E3_E, E3_S, E3_W], patch_name='E3', plate_patch=True, plate_location='W')
 
         # ============== Patch F1 ==============
-        F1 = Patch([F1_N, F1_E, F1_S, F1_W], patch_name='F1', plate_patch=True, plate_location='E')
+        F1 = Patch([F1_N, F1_E, F1_S, F1_W], patch_name='F1')
         # ============== Patch F2 ==============
-        F2 = Patch([F2_N, F2_E, F2_S, F2_W], patch_name='F2', plate_patch=True, plate_location='E')
+        F2 = Patch([F2_N, F2_E, F2_S, F2_W], patch_name='F2')
         # ============== Patch F3 ==============
-        F3 = Patch([F3_N, F3_E, F3_S, F3_W], patch_name='F3', plate_patch=True, plate_location='E')
+        F3 = Patch([F3_N, F3_E, F3_S, F3_W], patch_name='F3')
 
         # ============== Patch G1 ==============
-        G1 = Patch([G1_N, G1_E, G1_S, G1_W], patch_name='G1', plate_patch=True, plate_location='W')
+        G1 = Patch([G1_N, G1_E, G1_S, G1_W], patch_name='G1', plate_patch=True, plate_location='E')
         # ============== Patch G2 ==============
-        G2 = Patch([G2_N, G2_E, G2_S, G2_W], patch_name='G2', plate_patch=True, plate_location='W')
+        G2 = Patch([G2_N, G2_E, G2_S, G2_W], patch_name='G2', plate_patch=True, plate_location='E')
         # ============== Patch G3 ==============
-        G3 = Patch([G3_N, G3_E, G3_S, G3_W], patch_name='G3', plate_patch=True, plate_location='W')
+        G3 = Patch([G3_N, G3_E, G3_S, G3_W], patch_name='G3', plate_patch=True, plate_location='E')
 
-        # ============== Patch H1 ==============
-        H1 = Patch([H1_N, H1_E, H1_S, H1_W], patch_name='H1')
-        # ============== Patch H2 ==============
-        H2 = Patch([H2_N, H2_E, H2_S, H2_W], patch_name='H2')
-        # ============== Patch H3 ==============
-        H3 = Patch([H3_N, H3_E, H3_S, H3_W], patch_name='H3')
-
-        # ============== Patch I1 ==============
-        I1 = Patch([I1_N, I1_E, I1_S, I1_W], patch_name='I1', plate_patch=True, plate_location='E')
-        # ============== Patch I2 ==============
-        I2 = Patch([I2_N, I2_E, I2_S, I2_W], patch_name='I2', plate_patch=True, plate_location='E')
-        # ============== Patch I3 ==============
-        I3 = Patch([I3_N, I3_E, I3_S, I3_W], patch_name='I3', plate_patch=True, plate_location='E')
-
-        patches = [A3, A2, A1, B3, B2, B1, C3, C2, C1, D3, D2, D1, E3, E2, E1,
-                   F3, F2, F1, G3, G2, G1, H3, H2, H1, I3, I2, I1]
+        patches = [A3, B3, C3, D3, E3, F3, G3,
+                   A2, G2, E2, F2, B2, C2, D2,
+                   A1, G1, E1, D1, F1, B1, C1]
 
         self.patches = {}
         for patch in patches:
             patch.parent = self
             patch.PatchTagMap = self.PatchTagMap
             self.patches[patch.patch_name] = patch
-        self.OrderPatches()
 
     def OrderPatches(self):
-
-        patches = [
-            'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3',
-            'A2', 'I2', 'G2', 'H2', 'B2', 'C2', 'D2', 'E2', 'F2',
-            'A1', 'I1', 'G1', 'F1', 'H1', 'B1', 'C1', 'D1', 'E1'
-        ]
-
-        self.patches = OrderedDict([(pname, self.patches[pname]) for pname in patches])
+        pass
 
     def AdjustGrid(self) -> None:
         """
@@ -429,22 +361,6 @@ class SF165(TopologyUtils):
             # Adjust cell to any adjacent x-point
             self.AdjustPatch(patch)
 
-            # Adjust cell grid face along vertical plane
-            poloidal_tag, radial_tag = patch.get_tag()
-            if poloidal_tag == 'C':
-                patch.AdjustBorder('E', self.patches['D' + radial_tag])
-
-            # Circular patch configuration requires adjustment of border to close loop.
-            # Convention chosen: 'E' indicates closed loop
-
-            try:
-                if patch.TerminatesLoop:
-                    # Get patch name of adjacent patch for linking boundary points
-                    pname = self.PatchTagMap[self.ConnexionMap.get(patch.get_tag())['E'][0]]
-                    patch.AdjustBorder('E', self.patches[pname])
-            except:
-                pass
-
     def AdjustPatch(self, patch):
         xpt1 = Point(self.LineTracer.NSEW_lookup['xpt1']['coor']['center'])
         xpt2 = Point(self.LineTracer.NSEW_lookup['xpt2']['coor']['center'])
@@ -458,28 +374,28 @@ class SF165(TopologyUtils):
             patch.adjust_corner(xpt2, 'SW')
         elif tag == 'B2':
             patch.adjust_corner(xpt2, 'NW')
-        elif tag == 'E2':
+        elif tag == 'C2':
             patch.adjust_corner(xpt1, 'SE')
+        elif tag == 'C1':
+            patch.adjust_corner(xpt1, 'NE')
+        elif tag == 'D2':
+            patch.adjust_corner(xpt1, 'SW')
+        elif tag == 'D1':
+            patch.adjust_corner(xpt1, 'NW')
         elif tag == 'E1':
             patch.adjust_corner(xpt1, 'NE')
-        elif tag == 'F2':
-            patch.adjust_corner(xpt1, 'SW')
+        elif tag == 'E2':
+            patch.adjust_corner(xpt1, 'SE')
         elif tag == 'F1':
             patch.adjust_corner(xpt1, 'NW')
-        elif tag == 'G1':
-            patch.adjust_corner(xpt1, 'NE')
-        elif tag == 'G2':
-            patch.adjust_corner(xpt1, 'SE')
-        elif tag == 'H1':
-            patch.adjust_corner(xpt1, 'NW')
-        elif tag == 'H2':
+        elif tag == 'F2':
             patch.adjust_corner(xpt1, 'SW')
             patch.adjust_corner(xpt2, 'NE')
-        elif tag == 'H3':
+        elif tag == 'F3':
             patch.adjust_corner(xpt2, 'SE')
-        elif tag == 'I3':
+        elif tag == 'G3':
             patch.adjust_corner(xpt2, 'SW')
-        elif tag == 'I2':
+        elif tag == 'G2':
             patch.adjust_corner(xpt2, 'NW')
 
     def GroupPatches(self):

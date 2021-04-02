@@ -336,7 +336,7 @@ class LineTracing:
             WestPlate = self.grid.parent.PlateData['plate_W1']
             EastPlate = self.grid.parent.PlateData['plate_E1']
 
-            limiter = self.grid.parent.LimiterData
+            limiter = self.grid.parent.LimiterData.copy()
 
             xpt1 = self.NSEW_lookup['xpt1']['coor']
             magx = np.array([self.grid.parent.settings['grid_settings']['rmagx'], self.grid.parent.settings['grid_settings']['zmagx']])
@@ -499,7 +499,7 @@ class LineTracing:
         self.map_xpt(xpt2, magx, xpt_ID='xpt2')
 
     def draw_line(self, rz_start, rz_end=None, color='purple',
-                  option=None, direction=None, show_plot=False, text=False, dynamic_step=None, debug=False, Verbose=False):
+                  option=None, direction=None, show_plot=False, text=False, dynamic_step=None, debug=False, Verbose=True):
         """
         Uses scipy.integrate.solve_ivp to trace poloidal or radial
         lines. Uses the LSODA method to solve the differential
@@ -808,7 +808,7 @@ class LineTracing:
         if dynamic_step:
             dt = np.amin([self.dt, dynamic_step])
             if dt < self.dt:
-                if Verbose: print('Using dynamic_step value!\n')
+                if Verbose: print('Using dynamic_step value...\n')
         else:
             dt = self.dt
 

@@ -38,8 +38,11 @@ from INGRID.topologies.sf45h import SF45H
 from INGRID.topologies.sf75 import SF75
 from INGRID.topologies.sf75h import SF75H
 from INGRID.topologies.sf105 import SF105
+from INGRID.topologies.sf105h import SF105H
 from INGRID.topologies.sf135 import SF135
+from INGRID.topologies.sf135h import SF135H
 from INGRID.topologies.sf165 import SF165
+from INGRID.topologies.sf165h import SF165H
 from INGRID.topologies.udn import UDN
 from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line
@@ -1279,6 +1282,15 @@ class Ingrid(IngridUtils):
         elif topology == 'SF75H':
             ingrid_topology = SF75H(self, topology)
 
+        elif topology == 'SF105H':
+            ingrid_topology = SF105H(self, topology)
+
+        elif topology == 'SF135H':
+            ingrid_topology = SF135H(self, topology)
+
+        elif topology == 'SF165H':
+            ingrid_topology = SF165H(self, topology)
+
         else:
             raise ValueError(f"# Invalid entry: no Ingrid topology {topology} exists.")
 
@@ -1351,8 +1363,6 @@ class Ingrid(IngridUtils):
         with a value of 'True'.
 
         """
-        import pdb
-        pdb.set_trace()
         self.OrderLimiter()
         self.OrderTargetPlates()
         self.PrepLineTracing()
@@ -1415,7 +1425,8 @@ class Ingrid(IngridUtils):
         data = np.load(fname, allow_pickle=True)[0]  # np.array containing dict
 
         if type(data) is dict:
-            self.PopulateSettings(Ingrid.ReadYamlFile(self.InputFile))
+            if self.InputFile is not None:
+                self.PopulateSettings(Ingrid.ReadYamlFile(self.InputFile))
             self.StartSetup()
             self.LineTracer.NSEW_lookup = data['NSEW_data']
             self.SetTopology(data['topo_data']['config'])
@@ -1449,6 +1460,17 @@ class Ingrid(IngridUtils):
         """
         self.CurrentTopology.construct_grid()
 
+    def PrepGridue(self, guard_cell_eps=1e-3) -> None:
+        """
+        Prepare the gridue for writing.
+
+        This method calls topology specific implementations of methods that
+        concatenate the Patch object subgrids into a global grid.
+        """
+        self.CurrentTopology.SetupPatchMatrix()
+        self.CurrentTopology.concat_grid(guard_cell_eps=guard_cell_eps)
+        self.CurrentTopology.set_gridue()
+
     def ExportGridue(self, fname: str = 'gridue') -> None:
         """
         Export a gridue file for the created grid.
@@ -1459,6 +1481,10 @@ class Ingrid(IngridUtils):
             Name of gridue file to save.
 
         """
+
+        if self.CurrentTopology.gridue_settings is None:
+            self.CurrentTopology.set_gridue()
+
         if type(self.CurrentTopology) in [SNL]:
             if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")

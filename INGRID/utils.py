@@ -28,7 +28,7 @@ from collections import OrderedDict
 from OMFITgeqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.line_tracing import LineTracing
-from INGRID.geometry import Point, Line, Patch, segment_intersect, orientation_between, limiter_split
+from INGRID.geometry import Point, Line, Patch, segment_intersect, orientation_between, limiter_split, find_split_index
 
 
 class IngridUtils():
@@ -943,8 +943,23 @@ class IngridUtils():
         W_leg = self.LineTracer.draw_line(xpt1['SW'], {'line': limiter}, option='theta', direction='ccw')
         E_leg = self.LineTracer.draw_line(xpt1['SE'], {'line': limiter}, option='theta', direction='cw').reverse_copy()
 
-        test_boundary = (limiter_split(W_leg.p[-1], E_leg.p[0], limiter).split(W_leg.p[-1])[1]).split(E_leg.p[0], add_split_point=True)[0].p
-        test_boundary = Line((W_leg.p + test_boundary + E_leg.p))
+        start = W_leg.p[-1]
+        end = E_leg.p[0]
+
+        # Start insertion point between sind and sind + 1
+        sind, sls = find_split_index(start, limiter)
+
+        # End insertion point between eind and eind + 1
+        eind, sls = find_split_index(end, limiter)
+
+        if (sind + 1 <= eind):
+            # sind < start < sind + 1. eind + 1 includes eind index.
+            segment = limiter.p[sind + 1:eind + 1]
+        else:
+            segment = limiter.p[sind + 1:] + limiter.p[:eind + 1]
+
+        test_boundary = W_leg.p + segment + E_leg.p
+        test_boundary = Line(test_boundary)
         limiter_polygon = Polygon(np.column_stack(test_boundary.points()).T, closed=True, color='red', label='test_boundary')
 
         if (limiter_polygon.get_path().contains_point(magx)) is True:
@@ -952,7 +967,7 @@ class IngridUtils():
 
         # Limiter segment between 
         if clockwise_loop is False:
-            self.LimiterData.p = self.LimiterData.p[::-1]
+            self.LimiterData = self.LimiterData.reverse_copy()
 
     def FindMagAxis(self, r: float, z: float) -> None:
         """
@@ -1344,17 +1359,6 @@ class IngridUtils():
             Flag for printing full output to terminal. Defaults to False.
         """
         self.CurrentTopology.CheckPatches(verbose=verbose)
-
-    def PrepGridue(self, guard_cell_eps=1e-3) -> None:
-        """
-        Prepare the gridue for writing.
-
-        This method calls topology specific implementations of methods that
-        concatenate the Patch object subgrids into a global grid.
-        """
-        self.CurrentTopology.SetupPatchMatrix()
-        self.CurrentTopology.concat_grid(guard_cell_eps=guard_cell_eps)
-        self.CurrentTopology.set_gridue()
 
     @classmethod
     def _CheckOverlapCells(Grid, Verbose=False):
@@ -1942,8 +1946,6 @@ class TopologyUtils():
         verbose : bool, optional
             Print full output to terminal. Defaults to False.
         """
-        import pdb
-        pdb.set_trace()
         for name, patch in self.patches.items():
             if patch.plate_patch:
                 print(' # Checking patch: ', name)

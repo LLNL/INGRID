@@ -75,6 +75,7 @@ class UDN(TopologyUtils):
             'H2': {'N': ('H3', 'S'), 'W': ('G2', 'E')},
             'H3': {'W': ('G3', 'E')}
         }
+        self.gridue_settings = None
 
     def construct_patches(self):
         """

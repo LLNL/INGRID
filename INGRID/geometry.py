@@ -1286,7 +1286,7 @@ def limiter_split(start, end, limiter):
     start_index, sls = find_split_index(start, limiter)
     end_index, sls = find_split_index(end, limiter)
     if end_index <= start_index:
-        limiter.p = limiter.p[start_index:] + limiter.p[:start_index + 1]
+        limiter.p = limiter.p[start_index:] + limiter.p[:start_index+1]
     return limiter
 
 

@@ -79,6 +79,7 @@ class SF15H(TopologyUtils):
             'G3': {'W': ('F3', 'E')},
 
         }
+        self.gridue_settings = None
 
     def AdjustGrid(self) -> None:
         """

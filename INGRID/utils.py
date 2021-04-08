@@ -199,6 +199,8 @@ class IngridUtils():
                 },
             },
             'patch_generation': {
+                'core_split_point_ratio': 0.5,
+                'pf_split_point_ratio': 0.5,
                 'strike_pt_loc': 'limiter',
                 'rmagx_shift': 0.0,
                 'zmagx_shift': 0.0,

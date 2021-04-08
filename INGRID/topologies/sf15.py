@@ -142,7 +142,7 @@ class SF15(TopologyUtils):
         except KeyError:
             magx_tilt_2 = 0.0
         try:
-            pf_split_point_ratio = 1 - self.settings['grid_settings']['patch_generation']['pf_split_point_ratio']
+            pf_split_point_ratio = self.settings['grid_settings']['patch_generation']['pf_split_point_ratio']
         except KeyError:
             pf_split_point_ratio = 0.5
 

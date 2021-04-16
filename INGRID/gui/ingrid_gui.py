@@ -166,7 +166,12 @@ class FilePicker(tk.Tk):
         self.ExportGridueButton.grid(row=0, column=4, padx=10, pady=10, sticky='nsew')
         self.QuitButton.grid(row=0, column=5, padx=10, pady=10, sticky='nsew')
 
+    def NewCase(self):
+        self.controller.NewIG()
+        self.Ingrid = self.controller.Ingrid
+
     def ProcessParameterFile(self, fname):
+        self.NewCase()
         self.Ingrid.InputFile = fname
         self.Ingrid.PopulateSettings(Ingrid.ReadYamlFile(fname))
         self.ParamFileMtime = getmtime(fname)
@@ -195,6 +200,8 @@ class FilePicker(tk.Tk):
         IG.AnalyzeTopology()
 
         if IG.settings['grid_settings']['num_xpt'] == 2:
+            import pdb
+            pdb.set_trace()
             IG.PlotTopologyAnalysis()
 
     def CreatePatches(self):

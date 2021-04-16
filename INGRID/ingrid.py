@@ -691,12 +691,12 @@ class Ingrid(IngridUtils):
         else:
             raise ValueError(f"# LoadGeometryData input must be of type dict with format {{GEO_KEY : FNAME}}")
 
-    def ClearLegend(self) -> None:
+    def ClearLegend(self, ax) -> None:
         """
         Safely remove the legend form the normalized psi data.
         """
-        if self.PsiNorm.ax.get_legend() is not None:
-            [line.remove() for line in self.PsiNorm.ax.get_legend().get_lines()]
+        if ax.get_legend() is not None:
+            [line.remove() for line in ax.get_legend().get_lines()]
 
     def RemovePlotLine(self, label: str, ax: object = None) -> None:
         if ax is None:
@@ -1309,6 +1309,14 @@ class Ingrid(IngridUtils):
         This method plots normalized psi data, psi boundaries, strike geometry,
         and midplane lines through the magnetic axis.
         """
+        try:
+            ax = plt.figure('INGRID: Normalized Efit Data').axes[0]
+            self.ClearLegend(ax=ax)
+            self.RemovePlotPatch(ax=ax, label='Core')
+            self.RemovePlotPatch(ax=ax, label='PF_1')
+            self.RemovePlotLine(ax=ax, label='RegionLineCut')
+        except:
+            pass
         self.PlotPsiNorm(view_mode=view_mode)
         self.PlotPsiNormMagReference()
         self.PlotStrikeGeometry(ax=self.PsiNormAx)

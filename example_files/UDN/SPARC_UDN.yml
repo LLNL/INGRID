@@ -76,7 +76,7 @@ target_plates:
   plate_E1:
     file: divRZv1d_lotp.txt
     
-    rshift: 0.09
+    rshift: -0.09
     zshift: 0.0
   plate_E2:
     file: divRZv1d_uitp.txt
@@ -85,7 +85,7 @@ target_plates:
   plate_W1:
     file: divRZv1d_litp.txt
     
-    rshift: 0.09
+    rshift: -0.09
     zshift: 0.0
   plate_W2:
     file: divRZv1d_uotp.txt

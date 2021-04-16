@@ -630,9 +630,12 @@ class Patch:
         _ax.add_patch(patch)
         _ax.plot()
 
-    def plot_subgrid(self, ax=None, color='blue'):
+    def plot_subgrid(self, fig=None, ax=None, color='blue'):
+        if fig is None:
+            fig = plt.gcf()
         if ax is None:
             ax = plt.gca()
+        plt.figure(fig.number)
         for row in self.cell_grid:
             for cell in row:
                 cell.plot_border(color=color, ax=ax)

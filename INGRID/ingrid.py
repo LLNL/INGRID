@@ -1106,18 +1106,13 @@ class Ingrid(IngridUtils):
         self._PatchFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Patches', figsize=(6, 10))
         self.PatchAx = self._PatchFig.add_subplot(111)
         self.CurrentTopology.patch_diagram(fig=self._PatchFig, ax=self.PatchAx)
-        # handles, labels = self.PatchAx.get_legend_handles_labels()
-        # lookup = {label: handle for label, handle in zip(labels, handles)}
-        # self.PatchAx.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
-        #                        bbox_to_anchor=(0.5, -0.25), loc='lower center',
-        #                        ncol=len([label for label in lookup.keys()]) // 4)
         self.PlotStrikeGeometry(ax=self.PatchAx)
         if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'target_plates':
             self.RemovePlotLine(label='limiter', ax=self.PatchAx)
 
-    def PlotSubgrid(self) -> None:
+    def PlotGrid(self) -> None:
         """
-        Plot the grid that was generated with method 'CreateSubgrid'.
+        Plot the grid that was generated with method 'ConstructGrid'.
         """
         try:
             plt.close(self._SubgridFig)
@@ -1126,6 +1121,12 @@ class Ingrid(IngridUtils):
         self._SubgridFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Grid', figsize=(6, 10))
         self._SubgridAx = self._SubgridFig.add_subplot(111)
         self.CurrentTopology.grid_diagram(fig=self._SubgridFig, ax=self._SubgridAx)
+
+    def PlotSubgrid(self) -> None:
+        """
+        Alias for method `PlotGrid`. See `PlotGrid` for documentation.
+        """
+        self.PlotGrid()
 
     def AutoRefineMagAxis(self) -> None:
         """
@@ -1291,8 +1292,11 @@ class Ingrid(IngridUtils):
         self.AutoRefineXPoint()
         if topology == 'DNL':
             self.AutoRefineXPoint2()
-        if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'limiter':
-            self.SetGeometry({'limiter': self.settings['limiter']})
+        if hasattr(self, 'LimiterData'):
+            self.LimiterData = None
+        self.SetGeometry({'limiter': self.settings['limiter']})
+        if hasattr(self, 'PlateData'):
+            self.PlateData = {k: {} for k in self.PlateData.keys()}
         self.SetTargetPlates()
         self.SetMagReference()
         self.CalcPsiNorm()
@@ -1340,6 +1344,14 @@ class Ingrid(IngridUtils):
 
         if self.settings['patch_data']['preferences']['new_file']:
             self.SavePatches(self.settings['patch_data']['preferences']['new_fname'])
+
+    def CreatePatches(self) -> None:
+        """
+        An alias for `ConstructPatches`. See `ConstructPatches`
+        for more details.
+
+        """
+        self.ConstructPatches()
 
     def SavePatches(self, fname: str = '') -> None:
         """
@@ -1402,7 +1414,7 @@ class Ingrid(IngridUtils):
             self.CurrentTopology.SetupPatchMatrix()
             self.CheckPatches()
 
-    def CreateSubgrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
+    def ConstructGrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
         """
         Refine a generated patch map into a grid for exporting.
 
@@ -1427,7 +1439,14 @@ class Ingrid(IngridUtils):
         """
         self.CurrentTopology.construct_grid()
 
-    def ExportGridue(self, fname: str = 'gridue') -> None:
+    def CreateSubgrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
+        """
+        Alias for `ConstructGrid`. See `ConstructGrid` for documentation.
+
+        """
+        self.ConstructGrid(NewFig, ShowVertices)
+
+    def ExportGridue(self, fname: str = 'gridue', guard_cell_eps=1e-3) -> None:
         """
         Export a gridue file for the created grid.
 
@@ -1437,6 +1456,8 @@ class Ingrid(IngridUtils):
             Name of gridue file to save.
 
         """
+        self.PrepGridue(guard_cell_eps=guard_cell_eps)
+
         if type(self.CurrentTopology) in [SNL]:
             if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")

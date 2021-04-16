@@ -187,29 +187,7 @@ class FilePicker(tk.Tk):
     def ReadyIngridData(self):
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
-        IG = self.Ingrid
-        topology = 'SNL' if IG.settings['grid_settings']['num_xpt'] == 1 else 'DNL'
-        IG.OMFIT_read_psi()
-        IG.calc_efit_derivs()
-        IG.AutoRefineMagAxis()
-        IG.AutoRefineXPoint()
-        if topology == 'DNL':
-            IG.AutoRefineXPoint2()
-
-        if hasattr(IG, 'LimiterData'):
-            IG.LimiterData = None
-        IG.SetGeometry({'limiter': IG.settings['limiter']})
-
-        if hasattr(IG, 'PlateData'):
-            IG.PlateData = {k: {} for k in IG.PlateData.keys()}
-
-        IG.SetTargetPlates()
-        IG.SetMagReference()
-        IG.CalcPsiNorm()
-
-    def PreviewIngridData(self):
-        IG = self.Ingrid
-        IG.ShowSetup(view_mode=IG.settings['grid_settings']['view_mode'])
+        self.Ingrid.StartSetup()
 
     def AnalyzeTopology(self):
         IG = self.Ingrid
@@ -221,20 +199,20 @@ class FilePicker(tk.Tk):
 
     def CreatePatches(self):
         IG = self.Ingrid
+        patch_data_available = False
+
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
             IG.RefreshSettings()
 
-        patch_data_available = False
-
         try:
-            if IG.settings['patch_data']['use_file']:
+            if IG.settings['patch_data']['use_file'] is True:
                 if Path(IG.settings['patch_data']['file']).is_file():
                     patch_data_available = True
         except:
             pass
 
-        if patch_data_available:
+        if patch_data_available is True:
             IG.LoadPatches()
         else:
             self.AnalyzeTopology()
@@ -247,9 +225,8 @@ class FilePicker(tk.Tk):
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
             IG.RefreshSettings()
-        IG.CreateSubgrid()
-        IG.PlotSubgrid()
-        IG.PrepGridue(guard_cell_eps=IG.settings['grid_settings']['guard_cell_eps'])
+        IG.ConstructGrid()
+        IG.PlotGrid()
 
     def ExportGridue(self):
         IG = self.Ingrid
@@ -258,8 +235,9 @@ class FilePicker(tk.Tk):
             IG.ExportGridue(fname)
 
     def ViewData(self):
+        IG = self.Ingrid
         self.ReadyIngridData()
-        self.PreviewIngridData()
+        IG.ShowSetup(view_mode=IG.settings['grid_settings']['view_mode'])
 
     def Quit(self):
         self.controller.Exit()

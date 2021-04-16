@@ -101,10 +101,12 @@ class SF105(TopologyUtils):
             magx_tilt_2 = 0.0
         try:
             core_split_point_ratio = self.settings['grid_settings']['patch_generation']['core_split_point_ratio']
+            core_split_point_ratio = min(0.95, core_split_point_ratio) if core_split_point_ratio > 0 else max(0.05, core_split_point_ratio)
         except KeyError:
             core_split_point_ratio = 0.5
         try:
             pf_split_point_ratio = self.settings['grid_settings']['patch_generation']['pf_split_point_ratio']
+            pf_split_point_ratio = min(0.95, pf_split_point_ratio) if pf_split_point_ratio > 0 else max(0.05, pf_split_point_ratio)
         except KeyError:
             pf_split_point_ratio = 0.5
 

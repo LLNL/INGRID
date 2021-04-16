@@ -49,7 +49,7 @@ session.PlotSubgrid()
 
 # Prepare gridue file and export (optional).
 # session.PrepGridue()
-# session.ExportGridue(fname='example_gridue_1')
+session.ExportGridue(fname='example_gridue_1')
 
 """
 ==================================================================

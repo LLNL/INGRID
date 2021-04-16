@@ -1467,6 +1467,7 @@ class TopologyUtils():
         if ax is None:
             ax = fig.gca()
 
+        plt.figure(fig.number)
         fig.subplots_adjust(bottom=0.2)
         ax.set_xlim(self.PsiUNorm.rmin, self.PsiUNorm.rmax)
         ax.set_ylim(self.PsiUNorm.zmin, self.PsiUNorm.zmax)
@@ -1477,7 +1478,7 @@ class TopologyUtils():
         ax.set_title(f'{self.config} Subgrid')
 
         for patch in self.patches.values():
-            patch.plot_subgrid(ax=ax)
+            patch.plot_subgrid(fig=fig, ax=ax)
             print(f'# Plotting subgrid {patch.patch_name}')
 
         fig.show()

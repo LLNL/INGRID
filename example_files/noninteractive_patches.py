@@ -78,14 +78,10 @@ session.settings['grid_settings']['psi_1'] = grid_settings['psi_1']
 session.settings['grid_settings']['psi_pf_1'] = grid_settings['psi_pf_1']
 session.settings['grid_settings']['psi_core'] = grid_settings['psi_core']
 
-import pdb
-pdb.set_trace()
-
 session.PopulateSettings(session.settings)
 
 # Loads EFIT, refines xpts and magx, calcs derivatives...
 session.StartSetup()
-session.SetGeometry({'limiter': session.settings['limiter']})
 session.ShowSetup()
 
 session.AnalyzeTopology()

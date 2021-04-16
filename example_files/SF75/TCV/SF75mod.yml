@@ -52,6 +52,8 @@ grid_settings:
   nlevs: 30
   num_xpt: 2
   patch_generation:
+    core_split_point_ratio: 0.15
+    pf_split_point_ratio: 0.85
     xpt1_E_tilt: 0.0
     xpt1_W_tilt: 0.0
     rmagx_shift: 0.0
@@ -93,7 +95,7 @@ patch_data:
   preferences:
     new_file: true
     new_fname: ../data/SF75/TCV/SF75_patches_data.npy
-  use_file: true
+  use_file: false
 target_plates:
   plate_E1:
     file: ../data/SF75/TCV/plate_e1.txt

@@ -25,7 +25,7 @@ from pathlib import Path
 from time import time
 from collections import OrderedDict
 
-from OMFITgeqdsk import OMFITgeqdsk
+from INGRID.OMFITgeqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line, Patch, segment_intersect, orientation_between, limiter_split, find_split_index
@@ -200,6 +200,8 @@ class IngridUtils():
             },
             'patch_generation': {
                 'half_domain': True,
+                'core_split_point_ratio': 0.5,
+                'pf_split_point_ratio': 0.5,
                 'strike_pt_loc': 'limiter',
                 'rmagx_shift': 0.0,
                 'zmagx_shift': 0.0,
@@ -1513,6 +1515,7 @@ class TopologyUtils():
         if ax is None:
             ax = fig.gca()
 
+        plt.figure(fig.number)
         fig.subplots_adjust(bottom=0.2)
         ax.set_xlim(self.PsiUNorm.rmin, self.PsiUNorm.rmax)
         ax.set_ylim(self.PsiUNorm.zmin, self.PsiUNorm.zmax)
@@ -1523,7 +1526,7 @@ class TopologyUtils():
         ax.set_title(f'{self.config} Subgrid')
 
         for patch in self.patches.values():
-            patch.plot_subgrid(ax=ax)
+            patch.plot_subgrid(fig=fig, ax=ax)
             print(f'# Plotting subgrid {patch.patch_name}')
 
         fig.show()

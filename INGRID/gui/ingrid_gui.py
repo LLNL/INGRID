@@ -200,8 +200,6 @@ class FilePicker(tk.Tk):
         IG.AnalyzeTopology()
 
         if IG.settings['grid_settings']['num_xpt'] == 2:
-            import pdb
-            pdb.set_trace()
             IG.PlotTopologyAnalysis()
 
     def CreatePatches(self):

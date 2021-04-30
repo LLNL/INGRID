@@ -31,6 +31,7 @@ from INGRID.interpol import EfitData
 from INGRID.interpol import Bicubic
 from INGRID.utils import IngridUtils
 from INGRID.topologies.snl import SNL
+from INGRID.topologies.snlh import SNLH
 from INGRID.topologies.sf15 import SF15
 from INGRID.topologies.sf15h import SF15H
 from INGRID.topologies.sf45 import SF45
@@ -1252,6 +1253,9 @@ class Ingrid(IngridUtils):
         """
         if topology in ['LSN', 'USN']:
             ingrid_topology = SNL(self, topology)
+        
+        elif topology in ['LSNH', 'USNH']:
+            ingrid_topology = SNLH(self, topology)
 
         elif topology == 'UDN':
             ingrid_topology = UDN(self, topology)
@@ -1499,7 +1503,7 @@ class Ingrid(IngridUtils):
         """
         self.PrepGridue(guard_cell_eps=guard_cell_eps)
 
-        if type(self.CurrentTopology) in [SNL]:
+        if type(self.CurrentTopology) in [SNL, SNLH]:
             if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")
         elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:

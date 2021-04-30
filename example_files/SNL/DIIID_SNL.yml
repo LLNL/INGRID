@@ -52,6 +52,7 @@ grid_settings:
   # ---------------------------------------------------
   num_xpt: 1
   patch_generation:
+    half_domain: True
     strike_pt_loc: target_plates # 'limiter' or 'target_plates'
     rmagx_shift: 0.0
     zmagx_shift: 0.0

@@ -26,6 +26,7 @@ grid_settings:
   nlevs: 30
   num_xpt: 2
   patch_generation:
+    half_domain: False
     xpt1_E_tilt: 0.0
     xpt1_W_tilt: 0.0
     rmagx_shift: 0.0

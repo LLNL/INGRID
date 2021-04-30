@@ -48,7 +48,7 @@ setup(
     python_requires='>=3.5, <4',
     install_requires=[
         'm2r2',
-        'omfit-eqdsk',
+        # 'omfit-eqdsk',
         'scipy >= 1.3.1',
         'numpy',
         'pyyaml',

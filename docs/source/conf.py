@@ -14,6 +14,7 @@ import os
 import sys
 print(os.getcwd())
 sys.path.insert(0, os.path.abspath('../..'))
+autodoc_mock_imports = ['numpy']
 
 # -- Project information -----------------------------------------------------
 project = 'ingrid'

@@ -13,8 +13,7 @@
 import os
 import sys
 print(os.getcwd())
-sys.path.insert(0, os.path.abspath('/Users/torvaltz/Desktop/INGRID'))
-
+sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 project = 'ingrid'

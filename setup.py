@@ -52,6 +52,7 @@ setup(
         'scipy >= 1.3.1',
         'numpy',
         'pyyaml',
+        'matplotlib',
         'tk',
         'sympy'
     ]

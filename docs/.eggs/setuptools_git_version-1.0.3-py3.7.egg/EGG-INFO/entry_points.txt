@@ -1,4 +1,0 @@
-
-        [distutils.setup_keywords]
-        version_format = setuptools_git_version:validate_version_format
-    

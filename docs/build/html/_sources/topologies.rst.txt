@@ -83,5 +83,3 @@ supported grid topologies.
    :members:
    :undoc-members:
    :show-inheritance:
-
-----

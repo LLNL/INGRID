@@ -1,4 +1,4 @@
-``utils``
+utils
 =========
 
 .. automodule:: INGRID.utils

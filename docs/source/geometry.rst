@@ -1,4 +1,4 @@
-``geometry``
+geometry
 ============
 
 .. automodule:: INGRID.geometry

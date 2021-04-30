@@ -17,7 +17,7 @@ We recommend new users launch INGRID in this way since the ``example_files`` we 
 
 To launch via the driver script, navigate into the cloned repository that we used to install INGRID. From here, navigate into the directory ``drivers`` and run the command:
 ::
-    python StartGUI.py
+	python StartGUI.py
 
 The INGRID GUI should now be visible, and ready for use.
 

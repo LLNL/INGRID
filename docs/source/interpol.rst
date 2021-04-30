@@ -1,4 +1,4 @@
-``interpol``
+interpol
 ============
 
 .. automodule:: INGRID.interpol

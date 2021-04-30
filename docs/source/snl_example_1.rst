@@ -107,9 +107,9 @@ Here we have:
 
 .. note:: Remember to set the directory to search for a ``Patch`` data *file* by modifying ``patch_data`` under entry ``dir_settings``
 
-Because the parameter file is populated with the above settings, we see that after creation of a ``Patch`` map the terminal prompts the user with a message stating:
-::
-    # Saved patch data for file LSN_patches_1597099640.npy
+Because the parameter file is populated with the above settings, we see that after creation of a ``Patch`` map the terminal prompts the user with a message stating::
+
+  # Saved patch data for file LSN_patches_1597099640.npy
 
 The user is encouraged to try this feature out. To do so, first change the ``use_file`` entry within ``patch_data`` to a value of ``True`` and save the file. Now, close the ``Patch`` map window, and click ``Create Patches`` again. The ``Patch`` map should now be restored back to the state it was at.
 

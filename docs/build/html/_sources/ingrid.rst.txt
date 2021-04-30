@@ -1,4 +1,4 @@
-``ingrid``
+ingrid
 ==========
 
 .. automodule:: INGRID.ingrid

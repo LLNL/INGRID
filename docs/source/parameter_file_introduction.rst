@@ -217,7 +217,7 @@ All target plate settings are under the global INGRID parameter file entry ``tar
         file: d3d_itp.txt
         zshift: -1.6
 
-INGRID adopts a N-S-E-W compass direction notation in order to help generalize and simplify grid generation. It is important for a user to eventually learn these conventions. A detailed discussion of INGRID's naming conventions can be found `here <ingrid_notation>`_.
+INGRID adopts a N-S-E-W compass direction notation in order to help generalize and simplify grid generation. It is important for a user to eventually learn these conventions. A detailed discussion of INGRID's naming conventions can be found `here <ingrid_notation>`__.
 
 For now (in the case of a lower single-null configuration), note that entries ``plate_E1`` and ``plate_W1`` correspond to the `outer` and `inner` target plates, respectively. Each plate entry recognizes sub-entries ``file`` (file name to load), ``zshift`` (z-translation) and ``rshift`` (r-translation, not utilized and internal to INGRID defaults to ``0.0``). 
 

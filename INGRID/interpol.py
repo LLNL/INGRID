@@ -525,7 +525,7 @@ class EfitData:
             Matplotlib axes handle
         view_mode : str, optional
             Represent EFIT data with standard contour lines or filled contour lines.
-            String value of ``filled" enables filled contours, whereas ``lines"
+            String value of 'filled' enables filled contours, whereas 'lines'
             omits filling of contours.
         refined : bool, optional
             Plot level with hi-resolution cubic spline representation

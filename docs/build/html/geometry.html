@@ -5,10 +5,11 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1b1.dev: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>geometry module &mdash; ingrid  documentation</title>
+  <title>geometry &mdash; ingrid  documentation</title>
   
 
   
@@ -24,8 +25,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -36,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="line_tracing module" href="line_tracing.html" />
-    <link rel="prev" title="utils module" href="utils.html" /> 
+    <link rel="next" title="line\_tracing" href="line_tracing.html" />
+    <link rel="prev" title="utils" href="utils.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,12 +85,12 @@
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">INGRID Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">Module Documentation</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html">ingrid module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="topologies.html">topologies package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html">utils module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">geometry module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="line_tracing.html">line_tracing module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interpol.html">interpol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html"><code class="docutils literal notranslate"><span class="pre">ingrid</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><code class="docutils literal notranslate"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">geometry</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="line_tracing.html"><code class="docutils literal notranslate"><span class="pre">line\_tracing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="interpol.html"><code class="docutils literal notranslate"><span class="pre">interpol</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -141,7 +140,7 @@
         
           <li><a href="modules.html">Module Documentation</a> &raquo;</li>
         
-      <li>geometry module</li>
+      <li><code class="docutils literal notranslate"><span class="pre">geometry</span></code></li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -160,15 +159,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-geometry">
-<span id="geometry-module"></span><h1>geometry module<a class="headerlink" href="#module-geometry" title="Permalink to this headline">¶</a></h1>
+  <section id="module-INGRID.geometry">
+<span id="geometry"></span><h1><code class="docutils literal notranslate"><span class="pre">geometry</span></code><a class="headerlink" href="#module-INGRID.geometry" title="Permalink to this headline">¶</a></h1>
 <p>The <cite>geometry</cite> module contains core classes that support the INGRID
 geometrical object hierarchy. This module also contains various helper
 functions that work in tandem with the <cite>LineTracing</cite> class to generate
 Patch maps and grids.</p>
 <dl class="py class">
-<dt id="geometry.Cell">
-<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Cell</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lines</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Cell" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Cell">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">Cell</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lines</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Cell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Define a Cell that resides within a grid.</p>
 <dl class="field-list simple">
@@ -212,8 +211,8 @@ Patch maps and grids.</p>
 </tbody>
 </table>
 <dl class="py method">
-<dt id="geometry.Cell.as_np">
-<code class="sig-name descname">as_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#geometry.Cell.as_np" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Cell.as_np">
+<code class="sig-name descname"><span class="pre">as_np</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#INGRID.geometry.Cell.as_np" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the ndarray representation of a Cell object</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -223,8 +222,8 @@ Patch maps and grids.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Cell.plot_border">
-<code class="sig-name descname">plot_border</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'red'</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>matplotlib.axes._axes.Axes<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#geometry.Cell.plot_border" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Cell.plot_border">
+<code class="sig-name descname"><span class="pre">plot_border</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'red'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">matplotlib.axes._axes.Axes</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.geometry.Cell.plot_border" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the Cell.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -238,8 +237,8 @@ Defaults to ‘red’</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Cell.plot_center">
-<code class="sig-name descname">plot_center</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'black'</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>matplotlib.axes._axes.Axes<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#geometry.Cell.plot_center" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Cell.plot_center">
+<code class="sig-name descname"><span class="pre">plot_center</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">matplotlib.axes._axes.Axes</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.geometry.Cell.plot_center" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the center of a Cell.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -255,8 +254,8 @@ Defaults to ‘black’</p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt id="geometry.Line">
-<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">Line</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Line" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Define an arbitrary line/curve.</p>
 <p>This is ordered collection of Point objects can later be used to define
@@ -274,8 +273,8 @@ a Patch object.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="geometry.Line.GetAngle">
-<code class="sig-name descname">GetAngle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Line</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line.GetAngle" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.GetAngle">
+<code class="sig-name descname"><span class="pre">GetAngle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Line</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Line.GetAngle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the angle between two lines in degree (between 0 and 180 degrees)
 :param Line: DESCRIPTION.
 :type Line: TYPE</p>
@@ -287,21 +286,21 @@ a Patch object.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.Norm">
-<code class="sig-name descname">Norm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line.Norm" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.Norm">
+<code class="sig-name descname"><span class="pre">Norm</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Line.Norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return norm of the lines
 :returns: None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.RemoveDuplicatePoints">
-<code class="sig-name descname">RemoveDuplicatePoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Line.RemoveDuplicatePoints" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.RemoveDuplicatePoints">
+<code class="sig-name descname"><span class="pre">RemoveDuplicatePoints</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Line.RemoveDuplicatePoints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove any duplicate points from list of points</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.as_np">
-<code class="sig-name descname">as_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#geometry.Line.as_np" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.as_np">
+<code class="sig-name descname"><span class="pre">as_np</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#INGRID.geometry.Line.as_np" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the calling Line object represented as an ndarray.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -317,8 +316,8 @@ The second entry of the ndarray is the <code class="docutils literal notranslate
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.copy">
-<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#geometry.Line" title="geometry.Line">geometry.Line</a><a class="headerlink" href="#geometry.Line.copy" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.copy">
+<code class="sig-name descname"><span class="pre">copy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#INGRID.geometry.Line" title="INGRID.geometry.Line"><span class="pre">INGRID.geometry.Line</span></a><a class="headerlink" href="#INGRID.geometry.Line.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a copy of this Line object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -328,8 +327,8 @@ The second entry of the ndarray is the <code class="docutils literal notranslate
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.fluff">
-<code class="sig-name descname">fluff</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#geometry.Line.fluff" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.fluff">
+<code class="sig-name descname"><span class="pre">fluff</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">tuple</span><a class="headerlink" href="#INGRID.geometry.Line.fluff" title="Permalink to this definition">¶</a></dt>
 <dd><p>Obtain linspaced copies of the <code class="docutils literal notranslate"><span class="pre">xval</span></code> and <code class="docutils literal notranslate"><span class="pre">yval</span></code> attributes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -347,8 +346,8 @@ Defaults to False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.fluff_copy">
-<code class="sig-name descname">fluff_copy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">5</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#geometry.Line" title="geometry.Line">geometry.Line</a><a class="headerlink" href="#geometry.Line.fluff_copy" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.fluff_copy">
+<code class="sig-name descname"><span class="pre">fluff_copy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#INGRID.geometry.Line" title="INGRID.geometry.Line"><span class="pre">INGRID.geometry.Line</span></a><a class="headerlink" href="#INGRID.geometry.Line.fluff_copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a ‘fluffed’ copy of this Line.</p>
 <p>Calls the method <code class="docutils literal notranslate"><span class="pre">fluff</span></code> internally.</p>
 <dl class="field-list simple">
@@ -362,8 +361,8 @@ Defaults to False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'#1f77b4'</span></em>, <em class="sig-param"><span class="n">label</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>matplotlib.axes._axes.Axes<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">linewidth</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span> &#x2192; matplotlib.axes._axes.Axes<a class="headerlink" href="#geometry.Line.plot" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.plot">
+<code class="sig-name descname"><span class="pre">plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'#1f77b4'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">matplotlib.axes._axes.Axes</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">matplotlib.axes._axes.Axes</span><a class="headerlink" href="#INGRID.geometry.Line.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the Line.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -381,8 +380,8 @@ Defaults to False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.points">
-<code class="sig-name descname">points</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#geometry.Line.points" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.points">
+<code class="sig-name descname"><span class="pre">points</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#INGRID.geometry.Line.points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of all coordinates within the Line object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -392,14 +391,14 @@ Defaults to False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.print_points">
-<code class="sig-name descname">print_points</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#geometry.Line.print_points" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.print_points">
+<code class="sig-name descname"><span class="pre">print_points</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.geometry.Line.print_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints each point in the line to the terminal.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.reverse_copy">
-<code class="sig-name descname">reverse_copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#geometry.Line" title="geometry.Line">geometry.Line</a><a class="headerlink" href="#geometry.Line.reverse_copy" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.reverse_copy">
+<code class="sig-name descname"><span class="pre">reverse_copy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#INGRID.geometry.Line" title="INGRID.geometry.Line"><span class="pre">INGRID.geometry.Line</span></a><a class="headerlink" href="#INGRID.geometry.Line.reverse_copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a copy of this Line in reversed order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -409,15 +408,15 @@ Defaults to False</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Line.split">
-<code class="sig-name descname">split</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split_point</span></em>, <em class="sig-param"><span class="n">add_split_point</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#geometry.Line.split" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Line.split">
+<code class="sig-name descname"><span class="pre">split</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split_point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_split_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">tuple</span><a class="headerlink" href="#INGRID.geometry.Line.split" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split a line object into two line objects at a particular point.</p>
 <p>Returns two Line objects Segment A and Segment B (corresponding to both subsets of Points)
 The split_point is always included in Segment B.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>split_point</strong> (<a class="reference internal" href="#geometry.Point" title="geometry.Point"><em>Point</em></a>) – Point that determines splitting location.</p></li>
+<li><p><strong>split_point</strong> (<a class="reference internal" href="#INGRID.geometry.Point" title="INGRID.geometry.Point"><em>Point</em></a>) – Point that determines splitting location.</p></li>
 <li><p><strong>add_split_point</strong> (<em>bool</em>) – Append the split point to Segment A while still including the
 split point in Segment B.</p></li>
 </ul>
@@ -431,8 +430,8 @@ split point in Segment B.</p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt id="geometry.Patch">
-<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Patch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lines</span><span class="p">:</span> <span class="n">array - like</span></em>, <em class="sig-param"><span class="n">patch_name</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">PatchTagMap</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plate_patch</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plate_location</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'blue'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">Patch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lines</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PatchTagMap</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plate_patch</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plate_location</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'blue'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Define a Patch representing a portion of the tokamak domain.</p>
 <p>Each Patch can be refined into a subgrid that can then create a global grid.</p>
@@ -445,38 +444,38 @@ split point in Segment B.</p></li>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="geometry.Patch.AdjustBorder">
-<code class="sig-name descname">AdjustBorder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">face</span></em>, <em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.AdjustBorder" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.AdjustBorder">
+<code class="sig-name descname"><span class="pre">AdjustBorder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">face</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.AdjustBorder" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.CheckPatch">
-<code class="sig-name descname">CheckPatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">grid</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.CheckPatch" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.CheckPatch">
+<code class="sig-name descname"><span class="pre">CheckPatch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.CheckPatch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.RemoveDuplicatePoints">
-<code class="sig-name descname">RemoveDuplicatePoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.RemoveDuplicatePoints" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.RemoveDuplicatePoints">
+<code class="sig-name descname"><span class="pre">RemoveDuplicatePoints</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.RemoveDuplicatePoints" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.adjust_corner">
-<code class="sig-name descname">adjust_corner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">point</span></em>, <em class="sig-param"><span class="n">corner</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.adjust_corner" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.adjust_corner">
+<code class="sig-name descname"><span class="pre">adjust_corner</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corner</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.adjust_corner" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.as_np">
-<code class="sig-name descname">as_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.as_np" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.as_np">
+<code class="sig-name descname"><span class="pre">as_np</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.as_np" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.cell_grid_as_np">
-<code class="sig-name descname">cell_grid_as_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.cell_grid_as_np" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.cell_grid_as_np">
+<code class="sig-name descname"><span class="pre">cell_grid_as_np</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.cell_grid_as_np" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.fill">
-<code class="sig-name descname">fill</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'lightsalmon'</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.fill" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.fill">
+<code class="sig-name descname"><span class="pre">fill</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lightsalmon'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.fill" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shades in the patch with a given color</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -486,25 +485,25 @@ split point in Segment B.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.get_settings">
-<code class="sig-name descname">get_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.get_settings" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.get_settings">
+<code class="sig-name descname"><span class="pre">get_settings</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.get_settings" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.get_tag">
-<code class="sig-name descname">get_tag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.get_tag" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.get_tag">
+<code class="sig-name descname"><span class="pre">get_tag</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.get_tag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.make_subgrid">
-<code class="sig-name descname">make_subgrid</code><span class="sig-paren">(</span><em class="sig-param">grid</em>, <em class="sig-param">np_cells=2</em>, <em class="sig-param">nr_cells=2</em>, <em class="sig-param">_poloidal_f=&lt;function Patch.&lt;lambda&gt;&gt;</em>, <em class="sig-param">_radial_f=&lt;function Patch.&lt;lambda&gt;&gt;</em>, <em class="sig-param">verbose=False</em>, <em class="sig-param">visual=False</em>, <em class="sig-param">ShowVertices=False</em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.make_subgrid" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.make_subgrid">
+<code class="sig-name descname"><span class="pre">make_subgrid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">grid</span></em>, <em class="sig-param"><span class="pre">np_cells=2</span></em>, <em class="sig-param"><span class="pre">nr_cells=2</span></em>, <em class="sig-param"><span class="pre">_poloidal_f=&lt;function</span> <span class="pre">Patch.&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">_radial_f=&lt;function</span> <span class="pre">Patch.&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">verbose=False</span></em>, <em class="sig-param"><span class="pre">visual=False</span></em>, <em class="sig-param"><span class="pre">ShowVertices=False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.make_subgrid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a refined grid within a patch.
 This ‘refined-grid’ within a Patch is a collection
 of num x num Cell objects</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>grid</strong> (<a class="reference internal" href="ingrid.html#ingrid.Ingrid" title="ingrid.Ingrid"><em>Ingrid</em></a>) – To be used for obtaining Efit data and all
+<li><p><strong>grid</strong> (<a class="reference internal" href="ingrid.html#INGRID.ingrid.Ingrid" title="INGRID.ingrid.Ingrid"><em>Ingrid</em></a>) – To be used for obtaining Efit data and all
 other class information.</p></li>
 <li><p><strong>num</strong> (<em>int</em><em>, </em><em>optional</em>) – Number to be used to generate num x num
 cells within our Patch.</p></li>
@@ -514,8 +513,8 @@ cells within our Patch.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.plot_border">
-<code class="sig-name descname">plot_border</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'red'</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.plot_border" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.plot_border">
+<code class="sig-name descname"><span class="pre">plot_border</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'red'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.plot_border" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw solid borders around the patch.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -525,15 +524,15 @@ cells within our Patch.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Patch.plot_subgrid">
-<code class="sig-name descname">plot_subgrid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'blue'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Patch.plot_subgrid" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Patch.plot_subgrid">
+<code class="sig-name descname"><span class="pre">plot_subgrid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'blue'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Patch.plot_subgrid" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="geometry.Point">
-<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Point</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">pts</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Point" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Point">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">Point</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">pts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Point" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Define a Point.</p>
 <p>Can be used to later define Line objects.</p>
@@ -551,8 +550,8 @@ a single tuple/list value (x, y).</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="geometry.Point.as_np">
-<code class="sig-name descname">as_np</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#geometry.Point.as_np" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Point.as_np">
+<code class="sig-name descname"><span class="pre">as_np</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#INGRID.geometry.Point.as_np" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the Point object as a numpy ndarray.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -562,8 +561,8 @@ a single tuple/list value (x, y).</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Point.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>matplotlib.axes._axes.Axes<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#geometry.Point.plot" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Point.plot">
+<code class="sig-name descname"><span class="pre">plot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">matplotlib.axes._axes.Axes</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.geometry.Point.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the Point.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -574,13 +573,13 @@ Default is None and calls function <cite>matplotlib.pyplot.gca</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Point.psi">
-<code class="sig-name descname">psi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">grid</span><span class="p">:</span> <span class="n">EfitData</span></em>, <em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'v'</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#geometry.Point.psi" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Point.psi">
+<code class="sig-name descname"><span class="pre">psi</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">EfitData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'v'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#INGRID.geometry.Point.psi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the psi value of this Point from an EfitData instance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>grid</strong> (<a class="reference internal" href="interpol.html#interpol.EfitData" title="interpol.EfitData"><em>EfitData</em></a>) – The grid upon which the value of psi is to be calculated on.</p></li>
+<li><p><strong>grid</strong> (<a class="reference internal" href="interpol.html#INGRID.interpol.EfitData" title="INGRID.interpol.EfitData"><em>EfitData</em></a>) – The grid upon which the value of psi is to be calculated on.</p></li>
 <li><p><strong>tag</strong> (<em>str</em><em>, </em><em>optional</em>) – Char to specify the type of psi derivative.
 Defaults ‘v’ (no derivative).</p></li>
 </ul>
@@ -594,8 +593,8 @@ Defaults ‘v’ (no derivative).</p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt id="geometry.Vector">
-<em class="property">class </em><code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">Vector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xy</span><span class="p">:</span> <span class="n">array - like</span></em>, <em class="sig-param"><span class="n">origin</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.Vector" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Vector">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">Vector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.Vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Defines a vector from a nontrivial origin.</p>
 <dl class="field-list simple">
@@ -619,8 +618,8 @@ origin of the axes. Of the form (x, y).</p></li>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="geometry.Vector.arr">
-<code class="sig-name descname">arr</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#geometry.Vector.arr" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Vector.arr">
+<code class="sig-name descname"><span class="pre">arr</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#INGRID.geometry.Vector.arr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the vector object as an array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -630,8 +629,8 @@ origin of the axes. Of the form (x, y).</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geometry.Vector.mag">
-<code class="sig-name descname">mag</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#geometry.Vector.mag" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.Vector.mag">
+<code class="sig-name descname"><span class="pre">mag</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#INGRID.geometry.Vector.mag" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the L2 norm of the vector.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -643,13 +642,13 @@ origin of the axes. Of the form (x, y).</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.CorrectDistortion">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">CorrectDistortion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">u</span></em>, <em class="sig-param"><span class="n">Pt</span></em>, <em class="sig-param"><span class="n">Pt1</span></em>, <em class="sig-param"><span class="n">Pt2</span></em>, <em class="sig-param"><span class="n">spl</span></em>, <em class="sig-param"><span class="n">ThetaMin</span></em>, <em class="sig-param"><span class="n">ThetaMax</span></em>, <em class="sig-param"><span class="n">umin</span></em>, <em class="sig-param"><span class="n">umax</span></em>, <em class="sig-param"><span class="n">Resolution</span></em>, <em class="sig-param"><span class="n">visual</span></em>, <em class="sig-param"><span class="n">Tag</span></em>, <em class="sig-param"><span class="n">MinTol</span><span class="o">=</span><span class="default_value">1.02</span></em>, <em class="sig-param"><span class="n">MaxTol</span><span class="o">=</span><span class="default_value">0.98</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.CorrectDistortion" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.CorrectDistortion">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">CorrectDistortion</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pt1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Pt2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ThetaMin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ThetaMax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">umin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">umax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MinTol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MaxTol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.98</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.CorrectDistortion" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="geometry.UnfoldLabel">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">UnfoldLabel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Dic</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">Name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#geometry.UnfoldLabel" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.UnfoldLabel">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">UnfoldLabel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Dic</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">str</span><a class="headerlink" href="#INGRID.geometry.UnfoldLabel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unfold Patch label (e.g. “C1” -&gt; “Inner Core Top”)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -665,21 +664,21 @@ origin of the axes. Of the form (x, y).</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.angle_between">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">angle_between</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">u</span></em>, <em class="sig-param"><span class="n">v</span></em>, <em class="sig-param"><span class="n">origin</span></em>, <em class="sig-param"><span class="n">relative</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.angle_between" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.angle_between">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">angle_between</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.angle_between" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute angle in radians between vectors u and v</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.calc_mid_point">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">calc_mid_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">v1</span></em>, <em class="sig-param"><span class="n">v2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.calc_mid_point" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.calc_mid_point">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">calc_mid_point</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.calc_mid_point" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the bisection of two vectors of equal length,
 and returns the point on the circle at that angle.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>v1</strong> (<a class="reference internal" href="#geometry.Vector" title="geometry.Vector"><em>geometry.Vector</em></a>) – v1 must be furthest right in a counter clockwise direction.</p></li>
-<li><p><strong>v2</strong> (<a class="reference internal" href="#geometry.Vector" title="geometry.Vector"><em>geometry.Vector</em></a>) – Vector on the left.</p></li>
+<li><p><strong>v1</strong> (<a class="reference internal" href="#INGRID.geometry.Vector" title="INGRID.geometry.Vector"><em>geometry.Vector</em></a>) – v1 must be furthest right in a counter clockwise direction.</p></li>
+<li><p><strong>v2</strong> (<a class="reference internal" href="#INGRID.geometry.Vector" title="INGRID.geometry.Vector"><em>geometry.Vector</em></a>) – Vector on the left.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -689,16 +688,16 @@ and returns the point on the circle at that angle.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.find_split_index">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">find_split_index</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">split_point</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#geometry.Point" title="geometry.Point">geometry.Point</a></span></em>, <em class="sig-param"><span class="n">line</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#geometry.Line" title="geometry.Line">geometry.Line</a></span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#geometry.find_split_index" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.find_split_index">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">find_split_index</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split_point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#INGRID.geometry.Point" title="INGRID.geometry.Point"><span class="pre">INGRID.geometry.Point</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#INGRID.geometry.Line" title="INGRID.geometry.Line"><span class="pre">INGRID.geometry.Line</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">tuple</span><a class="headerlink" href="#INGRID.geometry.find_split_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine which index a Point would best split a Line.</p>
 <p>This method is useful for modifying Line objects during line tracing
 (searching for intersection of two line objects and trimming excess)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>split_point</strong> (<a class="reference internal" href="#geometry.Point" title="geometry.Point"><em>Point</em></a>) – The candidate Point to find the split index with respect to.</p></li>
-<li><p><strong>line</strong> (<a class="reference internal" href="#geometry.Line" title="geometry.Line"><em>Line</em></a>) – The Line to search for a split index within.</p></li>
+<li><p><strong>split_point</strong> (<a class="reference internal" href="#INGRID.geometry.Point" title="INGRID.geometry.Point"><em>Point</em></a>) – The candidate Point to find the split index with respect to.</p></li>
+<li><p><strong>line</strong> (<a class="reference internal" href="#INGRID.geometry.Line" title="INGRID.geometry.Line"><em>Line</em></a>) – The Line to search for a split index within.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -713,8 +712,8 @@ the <cite>split_point</cite> parameter was used to define the <cite>line</cite> 
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.intersect">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">intersect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">line1</span></em>, <em class="sig-param"><span class="n">line2</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.intersect" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.intersect">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">intersect</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.intersect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds the intersection of two line segments</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -730,18 +729,18 @@ the <cite>split_point</cite> parameter was used to define the <cite>line</cite> 
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.is_between">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">is_between</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">end_u</span><span class="p">:</span> <span class="n">array - like</span></em>, <em class="sig-param"><span class="n">split_v</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#geometry.is_between" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.is_between">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">is_between</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">end_u</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_v</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#INGRID.geometry.is_between" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="geometry.limiter_split">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">limiter_split</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start</span></em>, <em class="sig-param"><span class="n">end</span></em>, <em class="sig-param"><span class="n">limiter</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.limiter_split" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.limiter_split">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">limiter_split</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limiter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.limiter_split" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="geometry.non_decreasing">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">non_decreasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#geometry.non_decreasing" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.non_decreasing">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">non_decreasing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#INGRID.geometry.non_decreasing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine if non-decreasing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -754,8 +753,8 @@ the <cite>split_point</cite> parameter was used to define the <cite>line</cite> 
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.non_increasing">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">non_increasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#geometry.non_increasing" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.non_increasing">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">non_increasing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#INGRID.geometry.non_increasing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine if non-increasing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -768,24 +767,24 @@ the <cite>split_point</cite> parameter was used to define the <cite>line</cite> 
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.orientation_between">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">orientation_between</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">u</span></em>, <em class="sig-param"><span class="n">v</span></em>, <em class="sig-param"><span class="n">origin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.orientation_between" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.orientation_between">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">orientation_between</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.orientation_between" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute angle in radians between vectors u and v</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.reorder_limiter">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">reorder_limiter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">new_start</span></em>, <em class="sig-param"><span class="n">limiter</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.reorder_limiter" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.reorder_limiter">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">reorder_limiter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limiter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.reorder_limiter" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="geometry.rotate">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">rotate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vec</span></em>, <em class="sig-param"><span class="n">theta</span></em>, <em class="sig-param"><span class="n">origin</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.rotate" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.rotate">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">rotate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.rotate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="geometry.rotmatrix">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">rotmatrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">theta</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#geometry.rotmatrix" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.rotmatrix">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">rotmatrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#INGRID.geometry.rotmatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a rotation matrix</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -798,8 +797,8 @@ the <cite>split_point</cite> parameter was used to define the <cite>line</cite> 
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.segment_intersect">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">segment_intersect</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">line1</span></em>, <em class="sig-param"><span class="n">line2</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.segment_intersect" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.segment_intersect">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">segment_intersect</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.segment_intersect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds the intersection of two FINITE line segments.
 :param line1:
 :type line1: array-like
@@ -814,8 +813,8 @@ Coordinates of the intersection</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.strictly_decreasing">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">strictly_decreasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#geometry.strictly_decreasing" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.strictly_decreasing">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">strictly_decreasing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#INGRID.geometry.strictly_decreasing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine if strictly decreasing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -828,8 +827,8 @@ Coordinates of the intersection</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.strictly_increasing">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">strictly_increasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#geometry.strictly_increasing" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.strictly_increasing">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">strictly_increasing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#INGRID.geometry.strictly_increasing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine if strictly increasing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -842,8 +841,8 @@ Coordinates of the intersection</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.test2points">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">test2points</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p1</span></em>, <em class="sig-param"><span class="n">p2</span></em>, <em class="sig-param"><span class="n">line</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.test2points" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.test2points">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">test2points</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.test2points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if two points are on opposite sides of a given line.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -861,19 +860,19 @@ the points are on opposite sides of the line.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.trim_geometry">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">trim_geometry</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">geoline</span></em>, <em class="sig-param"><span class="n">start</span></em>, <em class="sig-param"><span class="n">end</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.trim_geometry" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.trim_geometry">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">trim_geometry</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geoline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.trim_geometry" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="geometry.unit_vector">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">unit_vector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">v</span></em><span class="sig-paren">)</span><a class="headerlink" href="#geometry.unit_vector" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.unit_vector">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">unit_vector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.geometry.unit_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns unit vector</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.which_increasing">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">which_increasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#geometry.which_increasing" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.which_increasing">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">which_increasing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#INGRID.geometry.which_increasing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine increasing values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -886,8 +885,8 @@ the points are on opposite sides of the line.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="geometry.which_non_increasing">
-<code class="sig-prename descclassname">geometry.</code><code class="sig-name descname">which_non_increasing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">array - like</span></em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#geometry.which_non_increasing" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.geometry.which_non_increasing">
+<code class="sig-prename descclassname"><span class="pre">INGRID.geometry.</span></code><code class="sig-name descname"><span class="pre">which_non_increasing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="headerlink" href="#INGRID.geometry.which_non_increasing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine non-increasing values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -899,7 +898,7 @@ the points are on opposite sides of the line.</p>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>
@@ -909,10 +908,10 @@ the points are on opposite sides of the line.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="line_tracing.html" class="btn btn-neutral float-right" title="line_tracing module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="line_tracing.html" class="btn btn-neutral float-right" title="line\_tracing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="utils.html" class="btn btn-neutral float-left" title="utils module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="utils.html" class="btn btn-neutral float-left" title="utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

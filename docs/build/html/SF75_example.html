@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1b1.dev: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Example: Two x-points in domain (SF75 example) &mdash; ingrid  documentation</title>
@@ -24,8 +25,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -168,7 +167,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="example-two-x-points-in-domain-sf75-example">
+  <section id="example-two-x-points-in-domain-sf75-example">
 <h1>Example: Two x-points in domain (SF75 example)<a class="headerlink" href="#example-two-x-points-in-domain-sf75-example" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -177,7 +176,7 @@
 <p>Here we will demonstrate how to generate a grid when there are two x-points in the domain. In particular, we will generate a grid for a snowflake-75 (SF75) configuration.</p>
 <p>Because INGRID internally handles the identification and classification of magnetic topology, the general steps detailed here for generating a grid apply to <strong>all</strong> the other configurations with two x-points in the domain.
 The user will only need to refer to provided diagrams of a configuration’s Patch map, x-point NSEW directions, and psi labels for a specific configuration.</p>
-<div class="section" id="loading-our-example">
+<section id="loading-our-example">
 <h2>Loading our example<a class="headerlink" href="#loading-our-example" title="Permalink to this headline">¶</a></h2>
 <p>The parameter file <code class="docutils literal notranslate"><span class="pre">SF75.yml</span></code> we will use in this tutorial is located in <code class="docutils literal notranslate"><span class="pre">example_files/SF75</span></code>.</p>
 <p>A key difference inside the parameter file is that now the entry <code class="docutils literal notranslate"><span class="pre">num_xpt</span></code> has an associated value of <code class="docutils literal notranslate"><span class="pre">2</span></code>. This <strong>activates</strong> INGRID’s topology classification when two x-points are present in the domain. With this,
@@ -193,8 +192,8 @@ INGRID now expects more parameter file entries from the user. These include:</p>
 <img alt="_images/SF75_EFIT_view.png" src="_images/SF75_EFIT_view.png" />
 <p>We can immediately see the presence of a secondary x-point, it’s corresponding separatrix, a rectangular (psuedo) limiter and additionaly psi lines that we will use to generate a Patch map.</p>
 <p>Before generating a Patch map, we discuss the SF75 layout.</p>
-</div>
-<div class="section" id="the-sf75-line-tracing-pattern-x-point-directions-and-psi-labels">
+</section>
+<section id="the-sf75-line-tracing-pattern-x-point-directions-and-psi-labels">
 <h2>The SF75 line-tracing pattern, x-point directions, and psi labels<a class="headerlink" href="#the-sf75-line-tracing-pattern-x-point-directions-and-psi-labels" title="Permalink to this headline">¶</a></h2>
 <p>The figure below shows a Patch map for general SF75 configuration.</p>
 <img alt="_images/SF75_general_patch_map.png" src="_images/SF75_general_patch_map.png" />
@@ -208,8 +207,8 @@ INGRID now expects more parameter file entries from the user. These include:</p>
 <p>The above shows we now have parameter file entries <code class="docutils literal notranslate"><span class="pre">psi_2</span></code> and <code class="docutils literal notranslate"><span class="pre">psi_pf_2</span></code> to assign values to.</p>
 <p>We will see in other configurations (e.g. <code class="docutils literal notranslate"><span class="pre">UDN</span></code>, <code class="docutils literal notranslate"><span class="pre">SF45</span></code>, etc) that the location of the psi labels <strong>will</strong> vary. Because the location of psi boundaries vary with each configuration, the user must carefully note which psi boundaries they are dealing with.</p>
 <p>In general, <code class="docutils literal notranslate"><span class="pre">psi_1</span></code> will correspond to psi-max, <code class="docutils literal notranslate"><span class="pre">psi_core</span></code> remains set to the core psi value, <code class="docutils literal notranslate"><span class="pre">psi_pf_1</span></code> will correspond to the psi-surface we intersect by tracing <code class="docutils literal notranslate"><span class="pre">S</span></code> of <code class="docutils literal notranslate"><span class="pre">xpt1</span></code>, and <code class="docutils literal notranslate"><span class="pre">psi_pf_2</span></code> will correspond to the psi-surface we intersect by tracing <code class="docutils literal notranslate"><span class="pre">S</span></code> of <code class="docutils literal notranslate"><span class="pre">xpt2</span></code>. Typically, the <code class="docutils literal notranslate"><span class="pre">psi_2</span></code> psi-boundary and strike-point locations for the psi-entries listed above often vary.</p>
-</div>
-<div class="section" id="activating-the-limiter-for-patch-generation">
+</section>
+<section id="activating-the-limiter-for-patch-generation">
 <h2>Activating the limiter for Patch generation<a class="headerlink" href="#activating-the-limiter-for-patch-generation" title="Permalink to this headline">¶</a></h2>
 <p>Understanding INGRID limiter usage is an essential part of generating a Patch map for cases with two x-points in the domain.</p>
 <p>INGRID does not require the use of target plates for generating a Patch map if the user opts for using a limiter.</p>
@@ -284,8 +283,8 @@ INGRID now expects more parameter file entries from the user. These include:</p>
 <p class="admonition-title">Warning</p>
 <p>When setting <code class="docutils literal notranslate"><span class="pre">use_efit_bounds</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>, the user must provide a non-zero value for values <code class="docutils literal notranslate"><span class="pre">efit_buffer_r</span></code> and <code class="docutils literal notranslate"><span class="pre">efit_buffer_z</span></code>.</p>
 </div>
-</div>
-<div class="section" id="ingrid-identification-of-configuration">
+</section>
+<section id="ingrid-identification-of-configuration">
 <h2>INGRID identification of configuration<a class="headerlink" href="#ingrid-identification-of-configuration" title="Permalink to this headline">¶</a></h2>
 <p>As mentioned in the previous section, understanding INGRID limiter usage is an essential part of generating a Patch map for cases with two x-points in the domain.</p>
 <p>This is because INGRID identifies a configuration by decomposing subset of the domain contained within the limiter into three distinct regions: core, private-flux, and separatrix exterior.</p>
@@ -303,8 +302,8 @@ INGRID now expects more parameter file entries from the user. These include:</p>
 </ul>
 <p>We can indeed see that our parameter file has been preset to satisfy all of the above.</p>
 <img alt="_images/SF75_EFIT_view.png" src="_images/SF75_EFIT_view.png" />
-</div>
-<div class="section" id="using-target-plates-for-generating-a-patch-map">
+</section>
+<section id="using-target-plates-for-generating-a-patch-map">
 <h2>Using target-plates for generating a Patch map<a class="headerlink" href="#using-target-plates-for-generating-a-patch-map" title="Permalink to this headline">¶</a></h2>
 <p>The user can opt for using target-plates rather than a limiter for generating a Patch map for cases with two x-points in the domain. Setting the entry <code class="docutils literal notranslate"><span class="pre">strike_pt_loc</span></code> to <code class="docutils literal notranslate"><span class="pre">target_plates</span></code> tells INGRID to generate the Patch map
 using geometry provided in the parameter file block <code class="docutils literal notranslate"><span class="pre">target_plates</span></code>. We see this snippet below.</p>
@@ -354,12 +353,13 @@ using geometry provided in the parameter file block <code class="docutils litera
 <p>By making the above edits, we then refresh our view of the data to obtain the following plot.</p>
 <img alt="_images/SF75_EFIT_view_target_plates.png" src="_images/SF75_EFIT_view_target_plates.png" />
 <p>Indeed, we see there are now four target plates in the EFIT domain.</p>
-<dl class="simple">
-<dt>..note:: <strong>The presence of the limiter in the figure is not a bug.</strong> Regardless of whether we decide to utilize the limiter or target plates for generating a Patch map, INGRID still relies on the limiter to classify the magnetic topology.</dt><dd><p>This is why the user must be comfortable with limiter controls.</p>
-</dd>
-</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>The presence of the limiter in the figure is not a bug.</strong> Regardless of whether we decide to utilize the limiter or target plates for generating a Patch map, INGRID still relies on the limiter to classify the magnetic topology.
+This is why the user must be comfortable with limiter controls.</p>
 </div>
-<div class="section" id="creating-the-patch-map-and-grid">
+</section>
+<section id="creating-the-patch-map-and-grid">
 <h2>Creating the Patch map and grid<a class="headerlink" href="#creating-the-patch-map-and-grid" title="Permalink to this headline">¶</a></h2>
 <p>The majority of the effort for generating a Patch map goes into the preparation of the EFIT data. We indeed saw this in the previous sections. From here, we carry out the usual process of generating a Patch map that we saw in the SNL case.</p>
 <p>All of the Patch map edit capabilities that we performed on the <code class="docutils literal notranslate"><span class="pre">SNL</span></code> cases are also available for all other cases with no further explanation.</p>
@@ -373,8 +373,8 @@ using geometry provided in the parameter file block <code class="docutils litera
 <p>Using <code class="docutils literal notranslate"><span class="pre">np_default</span></code> and <code class="docutils literal notranslate"><span class="pre">nr_default</span></code> with values of <code class="docutils literal notranslate"><span class="pre">3</span></code> produces the following grid when using the limiter.</p>
 <img alt="_images/SF75_grid_1.png" src="_images/SF75_grid_1.png" />
 <p>All other grid generation customization tools such as <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code>, <code class="docutils literal notranslate"><span class="pre">poloidal_f_A</span></code> - <code class="docutils literal notranslate"><span class="pre">poloidal_f_I</span></code>, and <code class="docutils literal notranslate"><span class="pre">radial_f_1</span></code> - <code class="docutils literal notranslate"><span class="pre">radial_f_3</span></code> are utilized in the same ways we saw in the earlier <code class="docutils literal notranslate"><span class="pre">SNL</span></code> cases.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

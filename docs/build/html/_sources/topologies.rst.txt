@@ -1,77 +1,87 @@
-topologies package
-==================
+topologies
+==============
 
-Submodules
-----------
+The ``topologies`` subpackage contains modules for INGRID
+supported grid topologies.
 
-topologies.sf105 module
+----
+
+``topologies.sf105``
 -----------------------
 
-.. automodule:: topologies.sf105
+.. automodule:: INGRID.topologies.sf105
    :members:
    :undoc-members:
    :show-inheritance:
 
-topologies.sf135 module
+----
+
+``topologies.sf135``
 -----------------------
 
-.. automodule:: topologies.sf135
+.. automodule:: INGRID.topologies.sf135
    :members:
    :undoc-members:
    :show-inheritance:
 
-topologies.sf15 module
+----
+
+``topologies.sf15``
 ----------------------
 
-.. automodule:: topologies.sf15
+.. automodule:: INGRID.topologies.sf15
    :members:
    :undoc-members:
    :show-inheritance:
 
-topologies.sf165 module
+----
+
+``topologies.sf165``
 -----------------------
 
-.. automodule:: topologies.sf165
+.. automodule:: INGRID.topologies.sf165
    :members:
    :undoc-members:
    :show-inheritance:
 
-topologies.sf45 module
+----
+
+``topologies.sf45``
 ----------------------
 
-.. automodule:: topologies.sf45
+.. automodule:: INGRID.topologies.sf45
    :members:
    :undoc-members:
    :show-inheritance:
 
-topologies.sf75 module
+----
+
+``topologies.sf75``
 ----------------------
 
-.. automodule:: topologies.sf75
+.. automodule:: INGRID.topologies.sf75
    :members:
    :undoc-members:
    :show-inheritance:
 
-topologies.snl module
+----
+
+``topologies.snl``
 ---------------------
 
-.. automodule:: topologies.snl
+.. automodule:: INGRID.topologies.snl
    :members:
    :undoc-members:
    :show-inheritance:
 
-topologies.udn module
+----
+
+``topologies.udn``
 ---------------------
 
-.. automodule:: topologies.udn
+.. automodule:: INGRID.topologies.udn
    :members:
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: topologies
-   :members:
-   :undoc-members:
-   :show-inheritance:
+----

@@ -5,10 +5,11 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1b1.dev: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>line_tracing module &mdash; ingrid  documentation</title>
+  <title>line\_tracing &mdash; ingrid  documentation</title>
   
 
   
@@ -24,8 +25,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -36,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="interpol module" href="interpol.html" />
-    <link rel="prev" title="geometry module" href="geometry.html" /> 
+    <link rel="next" title="interpol" href="interpol.html" />
+    <link rel="prev" title="geometry" href="geometry.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,12 +85,12 @@
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">INGRID Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">Module Documentation</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="ingrid.html">ingrid module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="topologies.html">topologies package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html">utils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="geometry.html">geometry module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">line_tracing module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="interpol.html">interpol module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ingrid.html"><code class="docutils literal notranslate"><span class="pre">ingrid</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="topologies.html">topologies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><code class="docutils literal notranslate"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html"><code class="docutils literal notranslate"><span class="pre">geometry</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">line\_tracing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="interpol.html"><code class="docutils literal notranslate"><span class="pre">interpol</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -141,7 +140,7 @@
         
           <li><a href="modules.html">Module Documentation</a> &raquo;</li>
         
-      <li>line_tracing module</li>
+      <li><code class="docutils literal notranslate"><span class="pre">line\_tracing</span></code></li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -160,17 +159,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-line_tracing">
-<span id="line-tracing-module"></span><h1>line_tracing module<a class="headerlink" href="#module-line_tracing" title="Permalink to this headline">¶</a></h1>
+  <section id="module-INGRID.line_tracing">
+<span id="line-tracing"></span><h1><code class="docutils literal notranslate"><span class="pre">line\_tracing</span></code><a class="headerlink" href="#module-INGRID.line_tracing" title="Permalink to this headline">¶</a></h1>
 <dl class="py exception">
-<dt id="line_tracing.RegionEntered">
-<em class="property">exception </em><code class="sig-prename descclassname">line_tracing.</code><code class="sig-name descname">RegionEntered</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span></em>, <em class="sig-param"><span class="n">region</span></em><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.RegionEntered" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.RegionEntered">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">INGRID.line_tracing.</span></code><code class="sig-name descname"><span class="pre">RegionEntered</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.RegionEntered" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="line_tracing.LineTracing">
-<em class="property">class </em><code class="sig-prename descclassname">line_tracing.</code><code class="sig-name descname">LineTracing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">grid</span></em>, <em class="sig-param"><span class="n">settings</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">1e-06</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">5e-05</span></em>, <em class="sig-param"><span class="n">first_step</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">numPoints</span><span class="o">=</span><span class="default_value">25</span></em>, <em class="sig-param"><span class="n">dt</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">option</span><span class="o">=</span><span class="default_value">'xpt_circ'</span></em>, <em class="sig-param"><span class="n">direction</span><span class="o">=</span><span class="default_value">'cw'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.LineTracing" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.LineTracing">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">INGRID.line_tracing.</span></code><code class="sig-name descname"><span class="pre">LineTracing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numPoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xpt_circ'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cw'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.LineTracing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class traces the polodal and radial lines of a given psi
 function based of the points where the user clicks.</p>
@@ -197,8 +196,8 @@ tracing.</p></li>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="line_tracing.LineTracing.DNL_find_NSEW">
-<code class="sig-name descname">DNL_find_NSEW</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt1</span></em>, <em class="sig-param"><span class="n">xpt2</span></em>, <em class="sig-param"><span class="n">magx</span></em>, <em class="sig-param"><span class="n">visual</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.LineTracing.DNL_find_NSEW" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.LineTracing.DNL_find_NSEW">
+<code class="sig-name descname"><span class="pre">DNL_find_NSEW</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xpt1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xpt2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.LineTracing.DNL_find_NSEW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find NSEW based off primary x-point and magnetic axis,</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -213,13 +212,13 @@ tracing.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="line_tracing.LineTracing.PsiCostFunc">
-<code class="sig-name descname">PsiCostFunc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xy</span></em><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.LineTracing.PsiCostFunc" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.LineTracing.PsiCostFunc">
+<code class="sig-name descname"><span class="pre">PsiCostFunc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xy</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.LineTracing.PsiCostFunc" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="line_tracing.LineTracing.SNL_find_NSEW">
-<code class="sig-name descname">SNL_find_NSEW</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt</span></em>, <em class="sig-param"><span class="n">magx</span></em>, <em class="sig-param"><span class="n">visual</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.LineTracing.SNL_find_NSEW" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.LineTracing.SNL_find_NSEW">
+<code class="sig-name descname"><span class="pre">SNL_find_NSEW</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.LineTracing.SNL_find_NSEW" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find NSEW based off primary x-point and magnetic axis,</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -234,20 +233,20 @@ tracing.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="line_tracing.LineTracing.analyze_saddle">
-<code class="sig-name descname">analyze_saddle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt</span></em>, <em class="sig-param"><span class="n">xpt_ID</span></em><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.LineTracing.analyze_saddle" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.LineTracing.analyze_saddle">
+<code class="sig-name descname"><span class="pre">analyze_saddle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xpt_ID</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.LineTracing.analyze_saddle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds theta values to be tested for N and S directions</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="line_tracing.LineTracing.disconnect">
-<code class="sig-name descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.LineTracing.disconnect" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.LineTracing.disconnect">
+<code class="sig-name descname"><span class="pre">disconnect</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.LineTracing.disconnect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turns off the click functionality</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="line_tracing.LineTracing.draw_line">
-<code class="sig-name descname">draw_line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rz_start</span></em>, <em class="sig-param"><span class="n">rz_end</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'purple'</span></em>, <em class="sig-param"><span class="n">option</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">direction</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_plot</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">text</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">dynamic_step</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">Verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.LineTracing.draw_line" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.LineTracing.draw_line">
+<code class="sig-name descname"><span class="pre">draw_line</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rz_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rz_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'purple'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.LineTracing.draw_line" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses scipy.integrate.solve_ivp to trace poloidal or radial
 lines. Uses the LSODA method to solve the differential
 equations. Three options for termination criteria, specified
@@ -255,7 +254,7 @@ by rz_end.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rz_start</strong> (<em>array-like</em><em> or </em><a class="reference internal" href="geometry.html#geometry.Point" title="geometry.Point"><em>geometry.Point</em></a>) – Starting location for line tracing.</p></li>
+<li><p><strong>rz_start</strong> (<em>array-like</em><em> or </em><a class="reference internal" href="geometry.html#INGRID.geometry.Point" title="INGRID.geometry.Point"><em>geometry.Point</em></a>) – Starting location for line tracing.</p></li>
 <li><p><strong>rz_end</strong> (<em>dict</em><em>, </em><em>optional</em>) – Defaults to be rz_start. This is how we specify the
 termination critera. i.e. {‘point’: Point}, {‘line’: Line},
 {‘psi’: Psi}
@@ -284,23 +283,23 @@ intermediate points.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="line_tracing.LineTracing.flip_NSEW_lookup">
-<code class="sig-name descname">flip_NSEW_lookup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt_ID</span></em><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.LineTracing.flip_NSEW_lookup" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.LineTracing.flip_NSEW_lookup">
+<code class="sig-name descname"><span class="pre">flip_NSEW_lookup</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xpt_ID</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.LineTracing.flip_NSEW_lookup" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="line_tracing.LineTracing.map_xpt">
-<code class="sig-name descname">map_xpt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt</span></em>, <em class="sig-param"><span class="n">magx</span></em>, <em class="sig-param"><span class="n">xpt_ID</span><span class="o">=</span><span class="default_value">'xpt1'</span></em>, <em class="sig-param"><span class="n">visual</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.LineTracing.map_xpt" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.LineTracing.map_xpt">
+<code class="sig-name descname"><span class="pre">map_xpt</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xpt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xpt_ID</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xpt1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.LineTracing.map_xpt" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="line_tracing.LineTracing.rotate_NSEW_lookup">
-<code class="sig-name descname">rotate_NSEW_lookup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xpt_ID</span></em>, <em class="sig-param"><span class="n">turns</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#line_tracing.LineTracing.rotate_NSEW_lookup" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.line_tracing.LineTracing.rotate_NSEW_lookup">
+<code class="sig-name descname"><span class="pre">rotate_NSEW_lookup</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xpt_ID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">turns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.line_tracing.LineTracing.rotate_NSEW_lookup" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>
@@ -310,10 +309,10 @@ intermediate points.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="interpol.html" class="btn btn-neutral float-right" title="interpol module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="interpol.html" class="btn btn-neutral float-right" title="interpol" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="geometry.html" class="btn btn-neutral float-left" title="geometry module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="geometry.html" class="btn btn-neutral float-left" title="geometry" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

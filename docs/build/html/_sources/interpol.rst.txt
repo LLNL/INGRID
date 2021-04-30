@@ -1,7 +1,7 @@
-interpol module
-===============
+``interpol``
+============
 
-.. automodule:: interpol
+.. automodule:: INGRID.interpol
    :members:
    :undoc-members:
    :show-inheritance:

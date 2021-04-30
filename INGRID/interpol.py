@@ -508,8 +508,10 @@ class EfitData:
 
     def plot_data(self: object, nlevs: int = 30, interactive: bool = True, fig: object = None,
                   ax: object = None, view_mode: str = 'filled', refined: bool = True, refine_factor: int = 10):
-        """ generates the plot that we will be able to manipulate
-        using the root finder
+        """
+        Plot the EFIT data.
+
+        Visualizes eqdsk file with either contour lines or filled contours.
 
         Parameters
         ----------
@@ -530,6 +532,7 @@ class EfitData:
         refine_factor: int, optional
             Refinement factor for to be passed to SciPy zoom method
         """
+
         lev = self.v.min() + (self.v.max() - self.v.min()) * np.arange(nlevs) / (nlevs - 1)
         self.fig = fig if fig is not None else plt.figure('INGRID: ' + self.name, figsize=(8, 10))
         self.fig.subplots_adjust(bottom=0.075)

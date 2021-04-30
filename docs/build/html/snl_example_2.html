@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1b1.dev: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Example: single-null configuration (further exploration) &mdash; ingrid  documentation</title>
@@ -24,7 +25,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -171,7 +171,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="example-single-null-configuration-further-exploration">
+  <section id="example-single-null-configuration-further-exploration">
 <h1>Example: single-null configuration (further exploration)<a class="headerlink" href="#example-single-null-configuration-further-exploration" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -185,7 +185,7 @@
 <li><p>Illustrate how to apply poloidal/radial transformations for non-uniform grid spacing</p></li>
 <li><p>Demonstrate how to reduce cell-shearing (increase orthoganality) of a grid via <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code></p></li>
 </ul>
-<div class="section" id="loading-our-example">
+<section id="loading-our-example">
 <h2>Loading our example<a class="headerlink" href="#loading-our-example" title="Permalink to this headline">¶</a></h2>
 <p>The parameter file <code class="docutils literal notranslate"><span class="pre">cmod_param.yml</span></code> we will use in this tutorial is located in <code class="docutils literal notranslate"><span class="pre">example_files/SNL</span></code>.</p>
 <p>Loading the parameter file in the GUI and viewing the data should show the following.</p>
@@ -193,8 +193,8 @@
 <p>Immediately we see that there is a line segment originating from the primary x-point and extending to the EFIT domain boundary.</p>
 <p>This is an indicator that INGRID will be overriding the default line tracing behavior from the primary x-point. As for why and how we
 activate this capability will be detailed in the next section.</p>
-</div>
-<div class="section" id="standard-snl-primary-x-point-line-tracing-pattern">
+</section>
+<section id="standard-snl-primary-x-point-line-tracing-pattern">
 <h2>Standard SNL primary x-point line tracing pattern<a class="headerlink" href="#standard-snl-primary-x-point-line-tracing-pattern" title="Permalink to this headline">¶</a></h2>
 <p>INGRID utilizes specific line tracing procedures for each supported topology. Below is a cartoon of line tracing directions from the primary x-point.</p>
 <img alt="_images/snl_line_trace_directions.png" src="_images/snl_line_trace_directions.png" />
@@ -207,8 +207,8 @@ along the poloidal line and searches for intersection with a target plate.</p>
 <p>Although this can indeed be remedied by modifying the target plate geometry or adjusting psi-max surfaces, INGRID allows the user to override the default orthogonal line tracing so that
 line tracing can continue without error. This remedy is illustrated below.</p>
 <img alt="_images/snl_line_trace_resolution.png" src="_images/snl_line_trace_resolution.png" />
-</div>
-<div class="section" id="overriding-snl-primary-x-point-line-tracing-pattern">
+</section>
+<section id="overriding-snl-primary-x-point-line-tracing-pattern">
 <h2>Overriding SNL primary x-point line tracing pattern<a class="headerlink" href="#overriding-snl-primary-x-point-line-tracing-pattern" title="Permalink to this headline">¶</a></h2>
 <p>We can override the default orthogonal line tracing for both <strong>E</strong> and <strong>W</strong> directions with the entries <code class="docutils literal notranslate"><span class="pre">use_xpt1_E</span></code> and <code class="docutils literal notranslate"><span class="pre">use_xpt1_W</span></code> that reside within <code class="docutils literal notranslate"><span class="pre">patch_generation</span></code>.
 This can be seen below.</p>
@@ -242,8 +242,8 @@ This can be seen below.</p>
 </div>
 <p>filled contours to unfilled. We do this by changing <code class="docutils literal notranslate"><span class="pre">view_mode:</span> <span class="pre">filled</span></code> to <code class="docutils literal notranslate"><span class="pre">view_mode:</span> <span class="pre">lines</span></code>. We can control the number of contour lines plotted by modifying the <code class="docutils literal notranslate"><span class="pre">nlevs</span></code> entry as well. This can help
 with visually imagining where orthogonal line tracing will terminate.</p>
-</div>
-<div class="section" id="other-settings-for-patch-map-modification">
+</section>
+<section id="other-settings-for-patch-map-modification">
 <h2>Other settings for Patch map modification<a class="headerlink" href="#other-settings-for-patch-map-modification" title="Permalink to this headline">¶</a></h2>
 <p>Overriding orthogonal line tracing from the primary x-point is just one modification that can be made to influence a final Patch map.</p>
 <p>SNL line tracing for certain patches in the core will define boundaries based off intersection with the <strong>horizontal</strong> and <strong>vertical</strong> lines that intersect the
@@ -282,8 +282,8 @@ as well as the west faces of patches <code class="docutils literal notranslate">
 </div>
 <p>On the left is the grid with no Patch map modifications for reference.</p>
 <img alt="_images/cmod_magx_transform_comparison.png" src="_images/cmod_magx_transform_comparison.png" />
-</div>
-<div class="section" id="background-knowledge-for-poloidal-and-radial-grid-transformations">
+</section>
+<section id="background-knowledge-for-poloidal-and-radial-grid-transformations">
 <h2>Background knowledge for poloidal and radial grid transformations<a class="headerlink" href="#background-knowledge-for-poloidal-and-radial-grid-transformations" title="Permalink to this headline">¶</a></h2>
 <p>INGRID allows the user to provided poloidal and radial grid distribution functions for generating non-uniform grids.</p>
 <p>Before detailing how to invoke these features, some background on the Patch object itself.</p>
@@ -306,8 +306,8 @@ vertices for defining the grid (consistent with what we have seen).</p>
 </div>
 <p>INGRID utilizes <a class="reference external" href="https://www.sympy.org/en/index.html">SymPy</a> for generating a function from the user provided string. Standard Python arithmetic operations are supported (<code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">**</span></code>, …), as well as common
 mathematical functions such as <code class="docutils literal notranslate"><span class="pre">exp</span></code> and <code class="docutils literal notranslate"><span class="pre">log</span></code>.</p>
-</div>
-<div class="section" id="applying-poloidal-and-radial-grid-transformations">
+</section>
+<section id="applying-poloidal-and-radial-grid-transformations">
 <h2>Applying poloidal and radial grid transformations<a class="headerlink" href="#applying-poloidal-and-radial-grid-transformations" title="Permalink to this headline">¶</a></h2>
 <p>In general, we adopt a notation similar to specifying np/nr cells. Below is a snippet of a YAML file with default poloidal and radial transformation values.</p>
 <div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="nt">grid_settings</span><span class="p">:</span>
@@ -342,8 +342,8 @@ The <code class="docutils literal notranslate"><span class="pre">default</span><
 </div>
 <p>The resulting grid with transformations can be seen on the left, and the original grid with no transformations can be seen on the right.</p>
 <img alt="_images/cmod_grid_transform_compare.png" src="_images/cmod_grid_transform_compare.png" />
-</div>
-<div class="section" id="reducing-cell-shearing-via-distortion-correction">
+</section>
+<section id="reducing-cell-shearing-via-distortion-correction">
 <h2>Reducing cell shearing via <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code><a class="headerlink" href="#reducing-cell-shearing-via-distortion-correction" title="Permalink to this headline">¶</a></h2>
 <p>INGRID does not enforce an orthogonality condition when generating a grid. INGRID allows the user to impose angle constraints on cells within a generated grid
 in order to increase orthogonality. We do this via the <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code> feature.</p>
@@ -385,8 +385,8 @@ INGRID will shift the cell vertex by increments of 1 / <code class="docutils lit
 <p>We can see that the radial lines are indeed more orthogonal to the poloidal contours. Although only a mild effect in this case, we
 have seen that <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code> can significantly reduce shearing and generate tidier grids in others (example SF cases seen below).</p>
 <p>This feature (in addition to those detailed above) is just another tool at a user’s disposal that need not be utilized in every case.</p>
-</div>
-<div class="section" id="adjusting-guard-cell-size">
+</section>
+<section id="adjusting-guard-cell-size">
 <h2>Adjusting guard cell size<a class="headerlink" href="#adjusting-guard-cell-size" title="Permalink to this headline">¶</a></h2>
 <p>Guard cell size for a generated grid can be specified within the parameter file by editing entry <code class="docutils literal notranslate"><span class="pre">guard_cell_eps</span></code> within <code class="docutils literal notranslate"><span class="pre">grid_settings</span></code>. That is:</p>
 <div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="c1"># ---------------------------------------------------</span>
@@ -403,8 +403,8 @@ have seen that <code class="docutils literal notranslate"><span class="pre">dist
 <p class="admonition-title">Note</p>
 <p>Specification of guard cell size must be done prior to initiating grid generation (clicking <code class="docutils literal notranslate"><span class="pre">Create</span> <span class="pre">Grid</span></code>).</p>
 </div>
-</div>
-<div class="section" id="summary">
+</section>
+<section id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
 <p>In this tutorial, we encountered a situation where parameter file modification is required for INGRID to successfully generate a Patch map.
 This was resolved by modifying the line tracing procedure in order to accomodate the provided geometry.</p>
@@ -412,8 +412,8 @@ This was resolved by modifying the line tracing procedure in order to accomodate
 customize a Patch map.</p>
 <p>Finally, we dove deeper into grid customization capabilities such as applying <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code>, poloidal and radial transformations,
 and specifying guard cell size.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

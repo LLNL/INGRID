@@ -1,7 +1,7 @@
-ingrid module
-=============
+``ingrid``
+==========
 
-.. automodule:: ingrid
+.. automodule:: INGRID.ingrid
    :members:
    :undoc-members:
    :show-inheritance:

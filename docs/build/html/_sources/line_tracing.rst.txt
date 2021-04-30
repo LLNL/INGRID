@@ -1,7 +1,7 @@
-line\_tracing module
-====================
+``line\_tracing``
+=================
 
-.. automodule:: line_tracing
+.. automodule:: INGRID.line_tracing
    :members:
    :undoc-members:
    :show-inheritance:

@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1b1.dev: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Launching the INGRID GUI &mdash; ingrid  documentation</title>
@@ -24,8 +25,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -164,14 +163,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="launching-the-ingrid-gui">
+  <section id="launching-the-ingrid-gui">
 <h1>Launching the INGRID GUI<a class="headerlink" href="#launching-the-ingrid-gui" title="Permalink to this headline">¶</a></h1>
 <p>Now that INGRID has been installed on the machine, you can now begin utilizing INGRID in both GUI mode and as an importable module in Python. We will focus on using INGRID’s stand-alone GUI for now.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>As a reminder, MacOS Mojave users must ensure the conda environment provided with the INGRID code has been installed. The following information assumes the user has done so (see <a class="reference internal" href="installation.html"><span class="doc">Downloading and installing INGRID</span></a> if unsure).</p>
 </div>
-<div class="section" id="launching-from-drivers">
+<section id="launching-from-drivers">
 <h2>Launching from <code class="docutils literal notranslate"><span class="pre">drivers</span></code><a class="headerlink" href="#launching-from-drivers" title="Permalink to this headline">¶</a></h2>
 <p>Although INGRID can be imported and launched from a Python session, we will first explain how to launch INGRID from the cloned repo.</p>
 <p>We recommend new users launch INGRID in this way since the <code class="docutils literal notranslate"><span class="pre">example_files</span></code> we will explore in the tutorials come pre-set with relative paths to necessary data (eqdsk files, geometry files, etc…).</p>
@@ -184,8 +183,8 @@
 </pre></div>
 </div>
 <p>The INGRID GUI should now be visible, and ready for use.</p>
-</div>
-<div class="section" id="launching-from-a-python-session">
+</section>
+<section id="launching-from-a-python-session">
 <h2>Launching from a Python session<a class="headerlink" href="#launching-from-a-python-session" title="Permalink to this headline">¶</a></h2>
 <p>For users who know do not intend on using the YAML files within <code class="docutils literal notranslate"><span class="pre">example_files</span></code>, or those who understand how to set paths within the INGRID parameter file, you can launch the INGRID GUI from a Python prompt as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">INGRID</span> <span class="kn">import</span> <span class="n">ingrid</span>
@@ -198,8 +197,8 @@
 <p class="admonition-title">Note</p>
 <p>Upon launching the INGRID GUI, the user will be prompted with a plenty of terminal output. This is nothing to be alarmed of since this part the <code class="docutils literal notranslate"><span class="pre">Ingrid</span></code> class’ initialization. As we load parameter files and modify settings, we should see appropriate changes reflected in the terminal output.</p>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

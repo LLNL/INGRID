@@ -117,20 +117,7 @@ class SNL(TopologyUtils):
         """
         Create the Patch map with :class:`LineTracing`.
 
-        Patch Labeling Key:
-
-        - I: Inner,
-        - O: Outer,
-        - DL: Divertor Leg,
-        - PF: Private Flux,
-        - T: Top,
-        - B: Bottom,
-        - S: Scrape Off Layer,
-        - C: Core.
-
         """
-        # TODO: Create a 'lookup' procedure for determining line drawing
-        #       orientations and inner-outer locations.
 
         try:
             visual = self.settings['DEBUG']['visual']['patch_map']

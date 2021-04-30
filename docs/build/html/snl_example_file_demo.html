@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1b1.dev: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Example: single-null configuration &mdash; ingrid  documentation</title>
@@ -24,7 +25,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -148,7 +148,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="example-single-null-configuration">
+  <section id="example-single-null-configuration">
 <h1>Example: single-null configuration<a class="headerlink" href="#example-single-null-configuration" title="Permalink to this headline">¶</a></h1>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -164,7 +164,7 @@
 <p class="admonition-title">Note</p>
 <p>Although we are creating a lower single-null grid here, INGRID internally treats both lower and upper single-null configurations as <code class="docutils literal notranslate"><span class="pre">SNL</span></code> class instances. This means there is <em>no difference in user operation for generating a grid for either LSN or USN configurations.</em></p>
 </div>
-<div class="section" id="loading-our-first-example">
+<section id="loading-our-first-example">
 <h2>Loading our first example<a class="headerlink" href="#loading-our-first-example" title="Permalink to this headline">¶</a></h2>
 <p>After <a class="reference external" href="launching_ingrid">getting the INGRID GUI up and running</a>, click the GUI button labeled “Select Parameter File” shown below boxed in red.</p>
 <img alt="_images/ingrid_gui_select_param.png" src="_images/ingrid_gui_select_param.png" />
@@ -181,8 +181,8 @@
 <li><p>Initialization of visualization settings</p></li>
 </ul>
 <p>With the data loaded, we can now proceed.</p>
-</div>
-<div class="section" id="viewing-loaded-data">
+</section>
+<section id="viewing-loaded-data">
 <h2>Viewing loaded data<a class="headerlink" href="#viewing-loaded-data" title="Permalink to this headline">¶</a></h2>
 <p>To view the <code class="docutils literal notranslate"><span class="pre">EFIT</span></code> data, loaded strike-geometry, and psi-levels that will dictate our final grid, simply select “View Loaded File” shown below boxed in red.</p>
 <img alt="_images/ingrid_gui_view_loaded_file.png" src="_images/ingrid_gui_view_loaded_file.png" />
@@ -205,16 +205,16 @@
 <p>The user provides the approximate primary x-point coordinates (<code class="docutils literal notranslate"><span class="pre">rxpt1</span></code>, <code class="docutils literal notranslate"><span class="pre">zxpt1</span></code>), and magnetic axis coordinates (<code class="docutils literal notranslate"><span class="pre">rmagx</span></code>, <code class="docutils literal notranslate"><span class="pre">zmagx</span></code>) in the INGRID parameter file. INGRID takes these as an initial guess to provide to a root-finder in order to <strong>refine</strong> the user-provided coordinates to high-accuracy. These values are used internally throughout the user-session.</p>
 </div>
 <p>This stage is where the user will interact the most with the INGRID parameter file (tweaking psi-values, target-plate locations, limiter data, etc). Said settings will be used to generate the patch map we will see in the next section. Since these have already been provided for you, let us proceed to creating patches.</p>
-</div>
-<div class="section" id="creating-patches">
+</section>
+<section id="creating-patches">
 <h2>Creating patches<a class="headerlink" href="#creating-patches" title="Permalink to this headline">¶</a></h2>
 <p>INGRID interally uses a geometry object hierarchy (<code class="docutils literal notranslate"><span class="pre">Point</span></code> <span class="math notranslate nohighlight">\(\in\)</span> <code class="docutils literal notranslate"><span class="pre">Line</span></code> <span class="math notranslate nohighlight">\(\in\)</span> <code class="docutils literal notranslate"><span class="pre">Patch</span></code> <span class="math notranslate nohighlight">\(\in\)</span> <code class="docutils literal notranslate"><span class="pre">TopologyUtils</span></code>) to generate the final gridue file. We will now create a collection of <code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects. These <code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects are quadrilaterals that form a <em>partition</em> of the region we are interested in generating a grid for. Before elaborating further, let us now create said collection of patches (referred to as a <em>Patch map</em>) by clicking the GUI button labeled “Create Patches” shown below boxed in red.</p>
 <img alt="_images/ingrid_gui_create_patches.png" src="_images/ingrid_gui_create_patches.png" />
 <p>Once clicked, INGRID begins line-tracing in order to generate the Patch map seen below.</p>
 <a class="reference internal image-reference" href="_images/snl_demo_patches.png"><img alt="_images/snl_demo_patches.png" src="_images/snl_demo_patches.png" style="width: 303.5px; height: 531.0px;" /></a>
 <p>The collection of <code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects are pictured in the Patch map. These <code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects will generate their own subgrid that will be stitched together to form the exported global grid.</p>
-</div>
-<div class="section" id="saving-patch-data">
+</section>
+<section id="saving-patch-data">
 <h2>Saving <code class="docutils literal notranslate"><span class="pre">Patch</span></code> data<a class="headerlink" href="#saving-patch-data" title="Permalink to this headline">¶</a></h2>
 <p>INGRID provides the user the capability of saving <code class="docutils literal notranslate"><span class="pre">Patch</span></code> data into a specially formatted NumPy <code class="docutils literal notranslate"><span class="pre">npy</span></code> files for later reconstruction. We control this feature within the parameter file by modifying the entries under <code class="docutils literal notranslate"><span class="pre">patch_data</span></code> (seen below):</p>
 <div class="highlight-YAML notranslate"><div class="highlight"><pre><span></span><span class="c1"># ---------------------------------------------------</span>
@@ -254,8 +254,8 @@
 <p class="admonition-title">Tip</p>
 <p><code class="docutils literal notranslate"><span class="pre">Patch</span></code> data files expedite the grid generation process by bypassing all line-tracing. This feature is also useful for trading cases with other INGRID users</p>
 </div>
-</div>
-<div class="section" id="the-patch-map">
+</section>
+<section id="the-patch-map">
 <span id="patch-map-ref"></span><h2>The <code class="docutils literal notranslate"><span class="pre">Patch</span></code> map<a class="headerlink" href="#the-patch-map" title="Permalink to this headline">¶</a></h2>
 <p>In the above plot we can see the “<code class="docutils literal notranslate"><span class="pre">Patch</span></code> map”. Each <code class="docutils literal notranslate"><span class="pre">Patch</span></code> is been assigned it’s own color, as well as a <code class="docutils literal notranslate"><span class="pre">Patch</span></code> label/tag consisting of a two-character string of the form “&lt;alpha_char&gt;&lt;numeric_char&gt;””. This coding directly represents the index space of the final grid with:</p>
 <ul class="simple">
@@ -265,7 +265,7 @@
 <p>Below is diagram illustrating said notation.</p>
 <img alt="_images/snl_demo_patches_index_space.png" src="_images/snl_demo_patches_index_space.png" />
 <p>This notation proves to be robust since it holds for not only <code class="docutils literal notranslate"><span class="pre">SNL</span></code> topologies (both LSN and USN), but also all topologies such as <code class="docutils literal notranslate"><span class="pre">UDN</span></code> and the family <code class="docutils literal notranslate"><span class="pre">SF*</span></code>.</p>
-<p>For the <code class="docutils literal notranslate"><span class="pre">SNL</span></code> family of configurations, the collection of <code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects with numeric_char == “2” (“<strong>A2</strong>” - “<strong>F2</strong>”) represent the SOL, <code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects “<strong>A1</strong>” and “<strong>F1</strong>” represent the PF region, and <code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects “<strong>B1</strong>”, “<strong>C1</strong>”, “<strong>D1</strong>”, and “<strong>E1</strong>” represent the CORE.</p>
+<p>For the <code class="docutils literal notranslate"><span class="pre">SNL</span></code> family of configurations, the collection of <code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects with numeric_char == “2” (”<strong>A2</strong>” - “<strong>F2</strong>”) represent the SOL, <code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects “<strong>A1</strong>” and “<strong>F1</strong>” represent the PF region, and <code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects “<strong>B1</strong>”, “<strong>C1</strong>”, “<strong>D1</strong>”, and “<strong>E1</strong>” represent the CORE.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>We will use this notation extensively for fine-tuning the final grid</p>
@@ -275,8 +275,8 @@
 <p><code class="docutils literal notranslate"><span class="pre">Patch</span></code> objects are ordered alphabetically clock-wise around the magnetic-axis and enumerated in direction of increasing psi</p>
 </div>
 <p>Now that we have partitioned the EFIT domain into the region we wish to model, let us now generate a grid.</p>
-</div>
-<div class="section" id="creating-a-grid">
+</section>
+<section id="creating-a-grid">
 <h2>Creating a grid<a class="headerlink" href="#creating-a-grid" title="Permalink to this headline">¶</a></h2>
 <p>Before generating a grid, let’s take a look at some grid controls in the INGRID parameter file.</p>
 <p>Below are some entries we will be modifying.</p>
@@ -320,8 +320,8 @@
 <p>The terminal will prompt the user with the progress of <code class="docutils literal notranslate"><span class="pre">Patch</span></code> refinement by providing a short summary of the subgrid being generated within each <code class="docutils literal notranslate"><span class="pre">Patch</span></code>. When <code class="docutils literal notranslate"><span class="pre">Patch</span></code> refinement has finalized, we are greeted with a new window showing the resultant grid.</p>
 <a class="reference internal image-reference" href="_images/snl_demo_grid_default.png"><img alt="_images/snl_demo_grid_default.png" src="_images/snl_demo_grid_default.png" style="width: 303.0px; height: 530.0px;" /></a>
 <p>Although this grid can be immediately exported, there are still actions we can take to improve our grid naively generated with only <code class="docutils literal notranslate"><span class="pre">np_default</span></code> and <code class="docutils literal notranslate"><span class="pre">nr_default</span></code>.</p>
-</div>
-<div class="section" id="fine-tuning-the-grid">
+</section>
+<section id="fine-tuning-the-grid">
 <h2>Fine-tuning the grid<a class="headerlink" href="#fine-tuning-the-grid" title="Permalink to this headline">¶</a></h2>
 <p>Generating grids with global values <code class="docutils literal notranslate"><span class="pre">np_default</span></code> and <code class="docutils literal notranslate"><span class="pre">nr_default</span></code> is not enough in many cases. INGRID allows users to specify the number of poloidal and radial cells for particular regions of the <code class="docutils literal notranslate"><span class="pre">Patch</span></code> map. This allows for refining the grid near regions of interest while maintaining global/default grid values per <code class="docutils literal notranslate"><span class="pre">Patch</span></code>.</p>
 <p>To utilize this feature, we will fall back on the <code class="docutils literal notranslate"><span class="pre">Patch</span></code> naming convention explained in section <a class="reference internal" href="#patch-map-ref"><span class="std std-ref">The Patch map</span></a>. The figure below shows a collection of keyword entries (<code class="docutils literal notranslate"><span class="pre">np_A</span></code>, <code class="docutils literal notranslate"><span class="pre">np_B</span></code>, … <code class="docutils literal notranslate"><span class="pre">np_F</span></code>, <code class="docutils literal notranslate"><span class="pre">nr_1</span></code>, <code class="docutils literal notranslate"><span class="pre">nr_2</span></code>) that can be added to the INGRID parameter file to control the number cells in a grid.</p>
@@ -410,15 +410,15 @@
 <p>and produces a grid that we can see below (zoomed with Matplotlib toolbar provided in plots).</p>
 <a class="reference internal image-reference" href="_images/snl_demo_refined.png"><img alt="_images/snl_demo_refined.png" src="_images/snl_demo_refined.png" style="width: 303.0px; height: 530.0px;" /></a>
 <p>We will explore one more useful feature the user can control during grid generation: <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code>.</p>
-</div>
-<div class="section" id="reducing-cell-shearing-with-distortion-correction">
+</section>
+<section id="reducing-cell-shearing-with-distortion-correction">
 <h2>Reducing cell shearing with <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code><a class="headerlink" href="#reducing-cell-shearing-with-distortion-correction" title="Permalink to this headline">¶</a></h2>
 <p>INGRID does not enforce an orthogonality condition when generating a grid. Non-orthogonal grids in INGRID allow for generation of grids that conform entirely to plate/limiter geometry. Although non-orthogonal grids can generate some cell shearing/distortion in certain cases (see figures below), INGRID allows the user to mitigate these effects with the <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code> feature.</p>
 <p>Below is an example of cell shearing and <code class="docutils literal notranslate"><span class="pre">distortion_correction</span></code> activated.</p>
 <a class="reference internal image-reference" href="_images/cell1.png"><img alt="_images/cell1.png" src="_images/cell1.png" style="width: 47.25%; height: 421.05px;" /></a>
 <a class="reference internal image-reference" href="_images/cell2.png"><img alt="_images/cell2.png" src="_images/cell2.png" style="width: 47.25%; height: 421.05px;" /></a>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

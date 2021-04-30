@@ -1,7 +1,7 @@
-utils module
-============
+``utils``
+=========
 
-.. automodule:: utils
+.. automodule:: INGRID.utils
    :members:
    :undoc-members:
    :show-inheritance:

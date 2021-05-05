@@ -18,12 +18,13 @@ except:
 import matplotlib.pyplot as plt
 import pathlib
 import inspect
+import functools
 from scipy.optimize import root, minimize
 
 import yaml as yml
 import os
 from pathlib import Path
-from time import time
+from time import time, perf_counter
 from collections import OrderedDict
 
 from INGRID.OMFITgeqdsk import OMFITgeqdsk
@@ -116,6 +117,17 @@ class Ingrid(IngridUtils):
     def __init__(self, settings: dict = {}, **kwargs):
         IngridUtils.__init__(self, settings, **kwargs)
         self.PrintSummaryInput()
+
+    def _timer(func):
+        @functools.wraps(func)
+        def wrapper_timer(*args, **kwargs):
+            start_time = perf_counter()
+            value = func(*args, **kwargs)
+            end_time = perf_counter()
+            run_time = end_time - start_time
+            print(f"--> Finished {func.__name__!r} in {run_time:.6f}s...")
+            return value
+        return wrapper_timer
 
     def LoadEFIT(self, fpath: str) -> None:
         self.settings['eqdsk'] = fpath
@@ -1327,6 +1339,7 @@ class Ingrid(IngridUtils):
         self.PlotPsiNormBounds()
         self.PrintSummaryParams()
 
+    @_timer
     def ConstructPatches(self) -> None:
         """
         Create a patch map that can be refined into a grid.
@@ -1422,6 +1435,7 @@ class Ingrid(IngridUtils):
             self.CurrentTopology.SetupPatchMatrix()
             self.CheckPatches()
 
+    @_timer
     def ConstructGrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
         """
         Refine a generated patch map into a grid for exporting.

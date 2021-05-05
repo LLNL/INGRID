@@ -8,6 +8,7 @@ from __future__ import division, print_function, absolute_import
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import zoom
+from scipy.interpolate import RectBivariateSpline as rbs
 
 
 def Bicubic(f, fx: 'array-like', fy: 'array-like', fxy: 'array-like', x0: float, y0: float, derivs: str = '') -> float:
@@ -255,6 +256,8 @@ class EfitData:
             elif tag == 'vrz':
                 self.vrz = value
 
+        self.rbs = rbs(self.r[:, 0], self.z[0, :], self.v)
+
     def Calculate_PDeriv(self, unit_spacing=True):
         """ Calculate partial derivatives at grid nodes.
 
@@ -416,33 +419,13 @@ class EfitData:
         float
             Value of psi or its derviative at the coordinate specified.
         """
-        cell = self.locate_cell(r0, z0)
-        rcell = self.r[cell['ir'], cell['iz']]
-        zcell = self.z[cell['ir'], cell['iz']]
-        fcell = self.v[cell['ir'], cell['iz']]
-        frcell = self.vr[cell['ir'], cell['iz']]
-        fzcell = self.vz[cell['ir'], cell['iz']]
-        frzcell = self.vrz[cell['ir'], cell['iz']]
 
-        # ==BICUBIC INTERPOLATION==
-        # NOTE: assumes unit cell
-        r0norm = (r0 - rcell[0]) / self.dr
-        z0norm = (z0 - zcell[0]) / self.dz
-        res = Bicubic(fcell, frcell, fzcell, frzcell,
-                      x0=r0norm, y0=z0norm, derivs=tag)
+        lookup = {'v': (0, 0), 'vr': (1, 0), 'vrr': (2, 0),
+                  'vz': (0, 1), 'vzz': (0, 2), 'vrz': (1, 1)
+        }
 
-        if tag == 'vr':
-            res /= self.dr
-        elif tag == 'vz':
-            res /= self.dz
-        elif tag == 'vrz':
-            res /= self.dr * self.dz
-        elif tag == 'vrr':
-            res /= self.dr * self.dr
-        elif tag == 'vzz':
-            res /= self.dz * self.dz
-
-        return res
+        dx, dy = lookup[tag]
+        return self.rbs(r0, z0, dx, dy)[0]
 
     def plot_levels(self, level=1.0, color='red'):
         """

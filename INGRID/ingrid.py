@@ -18,17 +18,17 @@ except:
 import matplotlib.pyplot as plt
 import pathlib
 import inspect
+import functools
 from scipy.optimize import root, minimize
 
 import yaml as yml
 import os
 from pathlib import Path
-from time import time
+from time import time, perf_counter
 from collections import OrderedDict
 
 from INGRID.OMFITgeqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
-from INGRID.interpol import Bicubic
 from INGRID.utils import IngridUtils
 from INGRID.topologies.snl import SNL
 from INGRID.topologies.sf15 import SF15
@@ -117,10 +117,20 @@ class Ingrid(IngridUtils):
         IngridUtils.__init__(self, settings, **kwargs)
         self.PrintSummaryInput()
 
+    def _timer(func):
+        @functools.wraps(func)
+        def wrapper_timer(*args, **kwargs):
+            start_time = perf_counter()
+            value = func(*args, **kwargs)
+            end_time = perf_counter()
+            run_time = end_time - start_time
+            print(f"--> Finished {func.__name__!r} in {run_time:.6f}s...")
+            return value
+        return wrapper_timer
+
     def LoadEFIT(self, fpath: str) -> None:
         self.settings['eqdsk'] = fpath
         self.OMFIT_read_psi()
-        self.calc_efit_derivs()
 
     def StartGUI(self) -> None:
         """
@@ -691,12 +701,12 @@ class Ingrid(IngridUtils):
         else:
             raise ValueError(f"# LoadGeometryData input must be of type dict with format {{GEO_KEY : FNAME}}")
 
-    def ClearLegend(self) -> None:
+    def ClearLegend(self, ax) -> None:
         """
         Safely remove the legend form the normalized psi data.
         """
-        if self.PsiNorm.ax.get_legend() is not None:
-            [line.remove() for line in self.PsiNorm.ax.get_legend().get_lines()]
+        if ax.get_legend() is not None:
+            [line.remove() for line in ax.get_legend().get_lines()]
 
     def RemovePlotLine(self, label: str, ax: object = None) -> None:
         if ax is None:
@@ -1106,18 +1116,13 @@ class Ingrid(IngridUtils):
         self._PatchFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Patches', figsize=(6, 10))
         self.PatchAx = self._PatchFig.add_subplot(111)
         self.CurrentTopology.patch_diagram(fig=self._PatchFig, ax=self.PatchAx)
-        # handles, labels = self.PatchAx.get_legend_handles_labels()
-        # lookup = {label: handle for label, handle in zip(labels, handles)}
-        # self.PatchAx.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
-        #                        bbox_to_anchor=(0.5, -0.25), loc='lower center',
-        #                        ncol=len([label for label in lookup.keys()]) // 4)
         self.PlotStrikeGeometry(ax=self.PatchAx)
         if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'target_plates':
             self.RemovePlotLine(label='limiter', ax=self.PatchAx)
 
-    def PlotSubgrid(self) -> None:
+    def PlotGrid(self) -> None:
         """
-        Plot the grid that was generated with method 'CreateSubgrid'.
+        Plot the grid that was generated with method 'ConstructGrid'.
         """
         try:
             plt.close(self._SubgridFig)
@@ -1126,6 +1131,12 @@ class Ingrid(IngridUtils):
         self._SubgridFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Grid', figsize=(6, 10))
         self._SubgridAx = self._SubgridFig.add_subplot(111)
         self.CurrentTopology.grid_diagram(fig=self._SubgridFig, ax=self._SubgridAx)
+
+    def PlotSubgrid(self) -> None:
+        """
+        Alias for method `PlotGrid`. See `PlotGrid` for documentation.
+        """
+        self.PlotGrid()
 
     def AutoRefineMagAxis(self) -> None:
         """
@@ -1182,8 +1193,10 @@ class Ingrid(IngridUtils):
         psi_magx = self.PsiUNorm.get_psi(self.magx[0], self.magx[1])
         psi_xpt1 = self.PsiUNorm.get_psi(self.xpt1[0], self.xpt1[1])
         psinorm = (psi - np.full_like(psi, psi_magx)) / (psi_xpt1 - psi_magx)
-        self.PsiNorm.set_v(psinorm)
-        self.PsiNorm.Calculate_PDeriv()
+
+        self.PsiNorm.init_bivariate_spline(self.PsiNorm.r[:, 0], 
+                                           self.PsiNorm.z[0, :], 
+                                           psinorm)
 
         self._PsiNormFig = plt.figure('INGRID: ' + self.PsiNorm.name, figsize=(8, 10))
         self.PsiNormAx = self._PsiNormFig.add_subplot(111)
@@ -1291,8 +1304,11 @@ class Ingrid(IngridUtils):
         self.AutoRefineXPoint()
         if topology == 'DNL':
             self.AutoRefineXPoint2()
-        if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'limiter':
-            self.SetGeometry({'limiter': self.settings['limiter']})
+        if hasattr(self, 'LimiterData'):
+            self.LimiterData = None
+        self.SetGeometry({'limiter': self.settings['limiter']})
+        if hasattr(self, 'PlateData'):
+            self.PlateData = {k: {} for k in self.PlateData.keys()}
         self.SetTargetPlates()
         self.SetMagReference()
         self.CalcPsiNorm()
@@ -1305,6 +1321,14 @@ class Ingrid(IngridUtils):
         This method plots normalized psi data, psi boundaries, strike geometry,
         and midplane lines through the magnetic axis.
         """
+        try:
+            ax = plt.figure('INGRID: Normalized Efit Data').axes[0]
+            self.ClearLegend(ax=ax)
+            self.RemovePlotPatch(ax=ax, label='Core')
+            self.RemovePlotPatch(ax=ax, label='PF_1')
+            self.RemovePlotLine(ax=ax, label='RegionLineCut')
+        except:
+            pass
         self.PlotPsiNorm(view_mode=view_mode)
         self.PlotPsiNormMagReference()
         self.PlotStrikeGeometry(ax=self.PsiNormAx)
@@ -1315,6 +1339,7 @@ class Ingrid(IngridUtils):
         self.PlotPsiNormBounds()
         self.PrintSummaryParams()
 
+    @_timer
     def ConstructPatches(self) -> None:
         """
         Create a patch map that can be refined into a grid.
@@ -1340,6 +1365,14 @@ class Ingrid(IngridUtils):
 
         if self.settings['patch_data']['preferences']['new_file']:
             self.SavePatches(self.settings['patch_data']['preferences']['new_fname'])
+
+    def CreatePatches(self) -> None:
+        """
+        An alias for `ConstructPatches`. See `ConstructPatches`
+        for more details.
+
+        """
+        self.ConstructPatches()
 
     def SavePatches(self, fname: str = '') -> None:
         """
@@ -1402,7 +1435,8 @@ class Ingrid(IngridUtils):
             self.CurrentTopology.SetupPatchMatrix()
             self.CheckPatches()
 
-    def CreateSubgrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
+    @_timer
+    def ConstructGrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
         """
         Refine a generated patch map into a grid for exporting.
 
@@ -1427,7 +1461,14 @@ class Ingrid(IngridUtils):
         """
         self.CurrentTopology.construct_grid()
 
-    def ExportGridue(self, fname: str = 'gridue') -> None:
+    def CreateSubgrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
+        """
+        Alias for `ConstructGrid`. See `ConstructGrid` for documentation.
+
+        """
+        self.ConstructGrid(NewFig, ShowVertices)
+
+    def ExportGridue(self, fname: str = 'gridue', guard_cell_eps=1e-3) -> None:
         """
         Export a gridue file for the created grid.
 
@@ -1437,6 +1478,8 @@ class Ingrid(IngridUtils):
             Name of gridue file to save.
 
         """
+        self.PrepGridue(guard_cell_eps=guard_cell_eps)
+
         if type(self.CurrentTopology) in [SNL]:
             if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")

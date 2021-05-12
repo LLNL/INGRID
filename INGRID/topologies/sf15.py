@@ -141,6 +141,11 @@ class SF15(TopologyUtils):
             magx_tilt_2 = self.settings['grid_settings']['patch_generation']['magx_tilt_2']
         except KeyError:
             magx_tilt_2 = 0.0
+        try:
+            pf_split_point_ratio = self.settings['grid_settings']['patch_generation']['pf_split_point_ratio']
+            pf_split_point_ratio = min(0.95, pf_split_point_ratio) if pf_split_point_ratio > 0 else max(0.05, pf_split_point_ratio)
+        except KeyError:
+            pf_split_point_ratio = 0.5
 
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         xpt2 = self.LineTracer.NSEW_lookup['xpt2']['coor']
@@ -332,7 +337,12 @@ class SF15(TopologyUtils):
         xpt2__psiMinPF2 = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_2},
             option='rho', direction='cw', show_plot=visual, text=verbose)
 
-        F1_W, F2_W = xpt2__psiMinPF2.reverse_copy().split(xpt2__psiMinPF2.p[len(xpt2__psiMinPF2.p) // 2], add_split_point=True)
+        if len(xpt2__psiMinPF2.p) < 100:
+            xpt2__psiMinPF2 = xpt2__psiMinPF2.fluff_copy(100)
+
+        ind = int(len(xpt2__psiMinPF2.p) * pf_split_point_ratio)
+
+        F1_W, F2_W = xpt2__psiMinPF2.reverse_copy().split(xpt2__psiMinPF2.p[ind], add_split_point=True)
         G1_E = F1_W.reverse_copy()
         G2_E = F2_W.reverse_copy()
 

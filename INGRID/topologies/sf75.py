@@ -99,6 +99,16 @@ class SF75(TopologyUtils):
             magx_tilt_2 = self.settings['grid_settings']['patch_generation']['magx_tilt_2']
         except KeyError:
             magx_tilt_2 = 0.0
+        try:
+            core_split_point_ratio = self.settings['grid_settings']['patch_generation']['core_split_point_ratio']
+            core_split_point_ratio = min(0.95, core_split_point_ratio) if core_split_point_ratio > 0 else max(0.05, core_split_point_ratio)
+        except KeyError:
+            core_split_point_ratio = 0.5
+        try:
+            pf_split_point_ratio = self.settings['grid_settings']['patch_generation']['pf_split_point_ratio']
+            pf_split_point_ratio = min(0.95, pf_split_point_ratio) if pf_split_point_ratio > 0 else max(0.05, pf_split_point_ratio)
+        except KeyError:
+            pf_split_point_ratio = 0.5
 
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         xpt2 = self.LineTracer.NSEW_lookup['xpt2']['coor']
@@ -146,7 +156,13 @@ class SF75(TopologyUtils):
 
         xpt1N__psiMinCore = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core},
             option='rho', direction='cw', show_plot=visual, text=verbose)
-        E2_E, E1_E = xpt1N__psiMinCore.split(xpt1N__psiMinCore.p[len(xpt1N__psiMinCore.p) // 2],
+
+        if len(xpt1N__psiMinCore.p) < 100:
+            xpt1N__psiMinCore = xpt1N__psiMinCore.fluff_copy(100)
+
+        ind = int(len(xpt1N__psiMinCore.p) * core_split_point_ratio)
+
+        E2_E, E1_E = xpt1N__psiMinCore.split(xpt1N__psiMinCore.p[ind],
             add_split_point=True)
         B2_W, B1_W = E2_E.reverse_copy(), E1_E.reverse_copy()
 
@@ -302,7 +318,12 @@ class SF75(TopologyUtils):
 
         H2_S = H1_N.reverse_copy()
 
-        I2_W, I3_W = I2_W__I3_W.split(I2_W__I3_W.p[len(I2_W__I3_W.p) // 2], add_split_point=True)
+        if len(I2_W__I3_W.p) < 100:
+            I2_W__I3_W = I2_W__I3_W.fluff_copy(100)
+
+        ind = int(len(I2_W__I3_W.p) * pf_split_point_ratio)
+
+        I2_W, I3_W = I2_W__I3_W.split(I2_W__I3_W.p[ind], add_split_point=True)
         H2_E, H3_E = I2_W.reverse_copy(), I3_W.reverse_copy()
 
         I2_N = self.LineTracer.draw_line(I2_W.p[-1], {'line': WestPlate2}, option='theta', direction='cw',

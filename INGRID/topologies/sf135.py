@@ -111,6 +111,16 @@ class SF135(TopologyUtils):
             magx_tilt_2 = self.settings['grid_settings']['patch_generation']['magx_tilt_2']
         except KeyError:
             magx_tilt_2 = 0.0
+        try:
+            core_split_point_ratio = self.settings['grid_settings']['patch_generation']['core_split_point_ratio']
+            core_split_point_ratio = min(0.95, core_split_point_ratio) if core_split_point_ratio > 0 else max(0.05, core_split_point_ratio)
+        except KeyError:
+            core_split_point_ratio = 0.5
+        try:
+            pf_split_point_ratio = self.settings['grid_settings']['patch_generation']['pf_split_point_ratio']
+            pf_split_point_ratio = min(0.95, pf_split_point_ratio) if pf_split_point_ratio > 0 else max(0.05, pf_split_point_ratio)
+        except KeyError:
+            pf_split_point_ratio = 0.5
 
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         xpt2 = self.LineTracer.NSEW_lookup['xpt2']['coor']
@@ -280,7 +290,12 @@ class SF135(TopologyUtils):
         A2_E__A1_E = d(xpt2['S'], {'psi': psi_pf_2}, option='rho', direction='cw',
             show_plot=visual, text=verbose)
 
-        A2_E, A1_E = A2_E__A1_E.split(A2_E__A1_E.p[len(A2_E__A1_E.p) // 2], add_split_point=True)
+        if len(A2_E__A1_E.p) < 100:
+            A2_E__A1_E = A2_E__A1_E.fluff_copy(100)
+
+        ind = int(len(A2_E__A1_E.p) * pf_split_point_ratio)
+
+        A2_E, A1_E = A2_E__A1_E.split(A2_E__A1_E.p[ind], add_split_point=True)
         I1_W, I2_W = A1_E.reverse_copy(), A2_E.reverse_copy()
 
         A1_S = d(A1_E.p[-1], {'line': WestPlate2}, option='theta', direction='ccw',

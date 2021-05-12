@@ -99,6 +99,16 @@ class SF105(TopologyUtils):
             magx_tilt_2 = self.settings['grid_settings']['patch_generation']['magx_tilt_2']
         except KeyError:
             magx_tilt_2 = 0.0
+        try:
+            core_split_point_ratio = self.settings['grid_settings']['patch_generation']['core_split_point_ratio']
+            core_split_point_ratio = min(0.95, core_split_point_ratio) if core_split_point_ratio > 0 else max(0.05, core_split_point_ratio)
+        except KeyError:
+            core_split_point_ratio = 0.5
+        try:
+            pf_split_point_ratio = self.settings['grid_settings']['patch_generation']['pf_split_point_ratio']
+            pf_split_point_ratio = min(0.95, pf_split_point_ratio) if pf_split_point_ratio > 0 else max(0.05, pf_split_point_ratio)
+        except KeyError:
+            pf_split_point_ratio = 0.5
 
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         xpt2 = self.LineTracer.NSEW_lookup['xpt2']['coor']
@@ -147,7 +157,12 @@ class SF105(TopologyUtils):
         xpt1N__psiMinCore = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core}, option='rho', direction='cw',
             show_plot=visual, text=verbose)
 
-        F2_E, F1_E = xpt1N__psiMinCore.split(xpt1N__psiMinCore.p[len(xpt1N__psiMinCore.p) // 2], add_split_point=True)
+        if len(xpt1N__psiMinCore.p) < 100:
+            xpt1N__psiMinCore = xpt1N__psiMinCore.fluff_copy(100)
+
+        ind = int(len(xpt1N__psiMinCore.p) * core_split_point_ratio)
+
+        F2_E, F1_E = xpt1N__psiMinCore.split(xpt1N__psiMinCore.p[ind], add_split_point=True)
         C2_W, C1_W = F2_E.reverse_copy(), F1_E.reverse_copy()
 
         xpt1NW__midline_1 = self.LineTracer.draw_line(xpt1['NW'], {'line': midline_1}, option='theta', direction='cw',
@@ -290,7 +305,12 @@ class SF105(TopologyUtils):
         H3_E__H2_E = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_2}, option='rho', direction='ccw',
             show_plot=visual, text=verbose).reverse_copy()
 
-        H3_E, H2_E = H3_E__H2_E.split(H3_E__H2_E.p[len(H3_E__H2_E.p) // 2], add_split_point=True)
+        if len(H3_E__H2_E.p) < 100:
+            H3_E__H2_E = H3_E__H2_E.fluff_copy(100)
+
+        ind = int(len(H3_E__H2_E.p) * pf_split_point_ratio)
+
+        H3_E, H2_E = H3_E__H2_E.split(H3_E__H2_E.p[ind], add_split_point=True)
         I3_W, I2_W = H3_E.reverse_copy(), H2_E.reverse_copy()
 
         if self.settings['grid_settings']['patch_generation']['use_xpt2_W']:

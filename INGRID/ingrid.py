@@ -18,17 +18,17 @@ except:
 import matplotlib.pyplot as plt
 import pathlib
 import inspect
+import functools
 from scipy.optimize import root, minimize
 
 import yaml as yml
 import os
 from pathlib import Path
-from time import time
+from time import time, perf_counter
 from collections import OrderedDict
 
 from INGRID.OMFITgeqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
-from INGRID.interpol import Bicubic
 from INGRID.utils import IngridUtils
 from INGRID.topologies.snl import SNL
 from INGRID.topologies.snlh import SNLH
@@ -124,10 +124,20 @@ class Ingrid(IngridUtils):
         IngridUtils.__init__(self, settings, **kwargs)
         self.PrintSummaryInput()
 
+    def _timer(func):
+        @functools.wraps(func)
+        def wrapper_timer(*args, **kwargs):
+            start_time = perf_counter()
+            value = func(*args, **kwargs)
+            end_time = perf_counter()
+            run_time = end_time - start_time
+            print(f"--> Finished {func.__name__!r} in {run_time:.6f}s...")
+            return value
+        return wrapper_timer
+
     def LoadEFIT(self, fpath: str) -> None:
         self.settings['eqdsk'] = fpath
         self.OMFIT_read_psi()
-        self.calc_efit_derivs()
 
     def StartGUI(self) -> None:
         """
@@ -1190,8 +1200,10 @@ class Ingrid(IngridUtils):
         psi_magx = self.PsiUNorm.get_psi(self.magx[0], self.magx[1])
         psi_xpt1 = self.PsiUNorm.get_psi(self.xpt1[0], self.xpt1[1])
         psinorm = (psi - np.full_like(psi, psi_magx)) / (psi_xpt1 - psi_magx)
-        self.PsiNorm.set_v(psinorm)
-        self.PsiNorm.Calculate_PDeriv()
+
+        self.PsiNorm.init_bivariate_spline(self.PsiNorm.r[:, 0], 
+                                           self.PsiNorm.z[0, :], 
+                                           psinorm)
 
         self._PsiNormFig = plt.figure('INGRID: ' + self.PsiNorm.name, figsize=(8, 10))
         self.PsiNormAx = self._PsiNormFig.add_subplot(111)
@@ -1363,6 +1375,7 @@ class Ingrid(IngridUtils):
         self.PlotPsiNormBounds()
         self.PrintSummaryParams()
 
+    @_timer
     def ConstructPatches(self) -> None:
         """
         Create a patch map that can be refined into a grid.
@@ -1459,6 +1472,7 @@ class Ingrid(IngridUtils):
             self.CurrentTopology.SetupPatchMatrix()
             self.CheckPatches()
 
+    @_timer
     def ConstructGrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:
         """
         Refine a generated patch map into a grid for exporting.

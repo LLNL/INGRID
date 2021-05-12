@@ -504,22 +504,15 @@ class IngridUtils():
                                  rlimiter, zlimiter,
                                  rmagx, zmagx,
                                  name='Efit Data', parent=self)
-        self.PsiUNorm.set_v(psi)
-        # self.PsiUNorm.upscale_psi(self.PsiUNorm.nr * 5, self.PsiUNorm.nz * 5)
+
+        self.PsiUNorm.init_bivariate_spline(self.PsiUNorm.r[:, 0], 
+                                            self.PsiUNorm.z[0, :], 
+                                            psi)
 
         if self.settings['grid_settings']['rmagx'] is None or self.settings['grid_settings']['zmagx'] is None:
             self.settings['grid_settings']['rmagx'], self.settings['grid_settings']['zmagx'] = (self.PsiUNorm.rmagx, self.PsiUNorm.zmagx)
 
         self.OMFIT_psi = g
-
-    def calc_efit_derivs(self) -> None:
-        """
-        Calculate the partial derivatives using finite differences
-        on the unormalized psi data stored in class attribute ``PsiUNorm``.
-
-        Wrapper for the member function in the EfitData class.
-        """
-        self.PsiUNorm.Calculate_PDeriv()
 
     def ParseTxtCoordinates(self, fpath: str, rshift: float = 0.0, zshift: float = 0.0) -> tuple:
         """

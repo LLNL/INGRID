@@ -820,10 +820,10 @@ class LineTracing:
                             first_step=self.first_step, max_step=self.max_step,
                             rtol=1e-13, atol=1e-12)
             # unpack
-            self.x = sol.y[0]
-            self.y = sol.y[1]
+            x0, xf = sol.y[0][0], sol.y[0][-1]
+            y0, yf = sol.y[1][0], sol.y[1][-1]
 
-            ynot = [self.x[-1], self.y[-1]]
+            ynot = [xf, yf]
             told, tnew = tnew, tnew + dt
 
             # TODO: reduce the list passed in to only be the endpoints
@@ -831,7 +831,7 @@ class LineTracing:
             # currently there is an error in the calculation of midpoints
             # for the sepratrix, when we try to truncate the points list.
             # Occurs with point converence.
-            points = ((self.x[0], self.x[-1]), (self.y[0], self.y[-1]))
+            points = ((x0, xf), (y0, yf))
 
             if count > 3500:
                 if Verbose:

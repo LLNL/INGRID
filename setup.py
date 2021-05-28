@@ -32,23 +32,22 @@ setup(
     # above.
     author_email='bgarci26@ucsc.edu, umansky1@llnl.gov',
     classifiers=[
-        'Development Status :: 4 - Beta',
+	'Development Status :: 5 - Production/Stable',
         #'Intended Audience :: Any UEDGE users',
         'Topic :: Software Development',
-        #'License :: ???',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3 :: Only',
+	'Programming Language :: Python :: 3.9',
     ],
-    keywords='sample, setuptools, development',  # Optional
+    keywords='grid, mesh, generator, tokamak, edge, plasma, efit, uedge',
     packages=find_packages(),
     python_requires='>=3.5, <4',
     install_requires=[
         'm2r2',
-        # 'omfit-eqdsk',
         'scipy >= 1.3.1',
         'numpy',
         'pyyaml',

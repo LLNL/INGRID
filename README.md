@@ -1,55 +1,26 @@
 # INGRID
 
-* INGRID (**IN**teractive **GRID**) is a Python based tokamak edge plasma grid generator capable of automatic generation of grids for magnetic-topologies with up to two x-points anywhere in the domain.
+Tokamak edge plasma grid generator for magnetic-topologies with up to two x-points anywhere in the domain.
 
-* Developed at Lawrence Livermore National Laboratory by Bryan Garcia (UCSC), Jerome Guterl (GA), Joey Watkins (BYU), and Maxim Umansky (LLNL).
+## Description
 
-* Maintained by Bryan Garcia and Maxim Umansky.
+INGRID (Interactive Grid) is a Python based tokamak edge plasma grid generator capable of automatic generation of grids for magnetic-topologies with up to two x-points anywhere in the domain. The code generates block-structured grids in three steps:
 
-* Our Read The Docs can be found [here](https://ingrid.readthedocs.io/en/latest/).
+    - Analysis of MHD reconscruction code such as EFIT to identify the embedded topology.
+    - Generation of the appropriate Patch map which appropriately models the domain (blocks).
+    - Generation of the grid ready for export.
+    
+INGRID can be utilized in a GUI mode and noninteractively via Python scripts. Both modes of operation support the use of the YAML formatted parameter file.
 
-## Obtaining INGRID:
-Clone the INGRID repo with the command:
-```console
-git clone username@https://github.com/LLNL/INGRID.git IngridDir
-```
-where ``IngridDir`` is the name of your clone destination.
+All documentation and tutorials pertaining to INGRID are hosted on Read The Docs, and can be found [here](https://ingrid.readthedocs.io/en/latest/).
 
-## Installation prerequisites:
-To run INGRID on your machine, you must have ``anaconda3`` and ``setuptools`` installed
-and up to date. 
+## Obtaining INGRID
 
-***MacOS Mojave users please read on. Otherwise, continue to the next section.***
+Installation instructions can be found [here](https://ingrid.readthedocs.io/en/latest/installation.html) on Read The Docs.
 
-MacOS Mojave has issues with certain backend libraries used in INGRID. This has been documented by Apple. To remedy this, a Conda evironment has been created and must be installed by the user. Inside the cloned repo should be the file ``conda_env.yml``. Creating the Conda environment can be done by running:
-```console
-conda env create -f conda_env.yml
-```
-Activate the created Conda environment by running:
-```console
-conda activate ingrid
-```
-When active, the terminal prompt should begin with ``(ingrid)``.
+## Getting Started
+Instructions for starting an INGRID session and generating grids are [here](https://ingrid.readthedocs.io/en/latest/getting_started.html) on Read The Docs.
 
-## Installing INGRID
-The user can install INGRID via the ``setup.py`` file (***MacOS Mojave users: make sure the ``ingrid`` conda environment is activated***). Installation can be started by running: 
-```console
-python setup.py install --user
-```
+## Development Information
 
-## Example cases
-Included in the ``example_files`` directory are some test cases for Ingrid usuage.
-
-### Running GUI from drivers
-Navigate into the ``drivers`` directory.
-```console
-python StartGUI.py
-```
-From here a user can select an example case from ``example_files`` or create a new case by utilizing a template file.
-
-### Running GUI from CL
-Running the gui directly from a python session can be done as follows:
-```python
-from INGRID import ingrid
-ingrid.QuickStart()
-```
+INGRID was developed at Lawrence Livermore National Laboratory by Bryan Garcia (UCSC), Jerome Guterl (GA), Joey Watkins (BYU), and Maxim Umansky (LLNL). Maintained by Bryan Garcia and Maxim Umansky.

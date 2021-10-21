@@ -12,7 +12,7 @@ DEBUG:
 eqdsk: ../data/SF75/TCV/g44826.8000_mr4
 grid_settings:
   grid_generation:
-    # distortion_correction: # refined TCV
+    # skewness_correction: # refined TCV
     #   all:
     #     active: true
     #     resolution: 1000

@@ -189,7 +189,7 @@ class IngridUtils():
                 'nr_default': 2,
                 'poloidal_f_default': 'x, x',
                 'radial_f_default': 'x, x',
-                'distortion_correction': {
+                'skewness_correction': {
                     'all': {
                         'theta_min': 80.0,
                         'theta_max': 120.0,
@@ -1359,7 +1359,7 @@ class TopologyUtils():
     ConnexionMap : dict
         A mapping describing how Patch objects are connected to each other (see notes).
 
-    CorrectDistortion : dict
+    CorrectSkewness : dict
         The settings to be used for correcting grid shearing.
 
     config : str
@@ -1393,7 +1393,7 @@ class TopologyUtils():
         self.CurrentListPatch = {}
         self.ConnexionMap = {}
         self.Verbose = False
-        self.GetDistortionCorrectionSettings()
+        self.GetSkewnessCorrectionSettings()
 
     def RefreshSettings(self):
         self.settings = self.parent.settings
@@ -1698,23 +1698,23 @@ class TopologyUtils():
 
         return (nr_cells, np_cells)
 
-    def GetDistortionCorrectionSettings(self) -> dict:
+    def GetSkewnessCorrectionSettings(self) -> dict:
         """
-        Get settings associated with the ``CorrectDistortion`` capability.
+        Get settings associated with the ``CorrectSkewness`` capability.
 
         Parameters
         ----------
 
         Returns
         -------
-            A dictionary containing ``CorrectDistortion`` settings.
+            A dictionary containing ``CorrectSkewness`` settings.
         """
-        if self.settings['grid_settings']['grid_generation'].get('distortion_correction') is not None:
-            CD = self.settings['grid_settings']['grid_generation']['distortion_correction']
+        if self.settings['grid_settings']['grid_generation'].get('skewness_correction') is not None:
+            CD = self.settings['grid_settings']['grid_generation']['skewness_correction']
         else:
             CD = {}
 
-        self.distortion_correction = CD
+        self.skewness_correction = CD
         return CD
 
     def construct_grid(self, np_cells: int = 1, nr_cells: int = 1, Verbose: bool = False,
@@ -1723,7 +1723,7 @@ class TopologyUtils():
         Construct a grid by refining a Patch map.
 
         This method gathers transformation and dimension information to apply
-        to each Patch. In addition, this applies any ``CorrectDistortion``
+        to each Patch. In addition, this applies any ``CorrectSkewness``
         settings the user may want to apply.
 
         **Assumes a Patch map has been generated or that Patches have been
@@ -1793,7 +1793,7 @@ class TopologyUtils():
 
         verbose = Verbose or verbose
 
-        self.GetDistortionCorrectionSettings()
+        self.GetSkewnessCorrectionSettings()
 
         print('>>> Patches:', [k for k in self.patches.keys()])
         if RestartScratch:
@@ -1801,14 +1801,14 @@ class TopologyUtils():
 
         for name, patch in self.patches.items():
 
-            if self.distortion_correction.get(name) is not None:
-                patch.distortion_correction = self.distortion_correction.get(name)
-            elif self.distortion_correction.get(patch.get_tag()) is not None:
-                patch.distortion_correction = self.distortion_correction.get(patch.get_tag())
-            elif self.distortion_correction.get('all') is not None:
-                patch.distortion_correction = self.distortion_correction.get('all')
+            if self.skewness_correction.get(name) is not None:
+                patch.skewness_correction = self.skewness_correction.get(name)
+            elif self.skewness_correction.get(patch.get_tag()) is not None:
+                patch.skewness_correction = self.skewness_correction.get(patch.get_tag())
+            elif self.skewness_correction.get('all') is not None:
+                patch.skewness_correction = self.skewness_correction.get('all')
             else:
-                patch.distortion_correction = {'Active': False}
+                patch.skewness_correction = {'Active': False}
             if (ListPatches == 'all' and patch not in self.CurrentListPatch) or (ListPatches != 'all' and name in ListPatches):
                 self.SetPatchBoundaryPoints(patch, verbose)
                 (nr_cells, np_cells) = self.GetNpoints(patch)

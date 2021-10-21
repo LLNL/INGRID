@@ -17,7 +17,7 @@ DEBUG:
 eqdsk: neqdsk
 grid_settings:
   grid_generation:
-    distortion_correction:
+    skewness_correction:
       all:
         active: true
         resolution: 1000

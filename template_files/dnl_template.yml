@@ -18,7 +18,7 @@ dir_settings:
 eqdsk: /Users/torvaltz/Desktop/INGRID
 grid_settings:
   grid_generation:
-    distortion_correction:
+    skewness_correction:
       all:
         active: false
         resolution: 1000

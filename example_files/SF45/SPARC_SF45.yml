@@ -8,7 +8,7 @@ dir_settings:
 eqdsk: V2_FREEGS_geqdsk_LSNX
 grid_settings:
   grid_generation:
-    distortion_correction:  # Apply shearing correction to all patches
+    skewness_correction:  # Apply shearing correction to all patches
       all:
         active: True
         resolution: 1000

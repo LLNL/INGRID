@@ -15,7 +15,7 @@ DEBUG:
 eqdsk: V1D_low_geqdsk
 grid_settings:
   grid_generation:
-    distortion_correction:
+    skewness_correction:
       all:
         active: false
         resolution: 1000

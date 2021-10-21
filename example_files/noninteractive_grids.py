@@ -37,7 +37,7 @@ session.settings['grid_settings']['grid_generation'] = updated_settings
 """
 Repopulate any ommitted values in 'updated_settings' with default values
 
-(e.g. 'poloidal_f_default', 'radial_f_default', 'DistortionCorrection')
+(e.g. 'poloidal_f_default', 'radial_f_default', 'SkewnessCorrection')
 
 Note we pass the entire 'settings' dictionary.
 """
@@ -78,13 +78,13 @@ session.PlotSubgrid()
 
 """
 ==================================================================
-# Example 3: update settings with 'distortion_correction' globally
+# Example 3: update settings with 'skewness_correction' globally
 ==================================================================
 """
 
 # YAML entries interpreted as dictionaries. We nest accordingly.
 
-distortion_correction_settings = {
+skewness_correction_settings = {
   'all': {
         'active': True,
         'resolution': 1000,
@@ -94,15 +94,15 @@ distortion_correction_settings = {
 }
 
 # Same base use case as previous example, but with new key that
-# accomadates our new 'distortion_correction' entry.
+# accomadates our new 'skewness_correction' entry.
 updated_settings = {
                     'np_default': 5,
                     'nr_default': 5,
                     'np_A': 12,
                     'np_F': 12,
-                    'distortion_correction': None
+                    'skewness_correction': None
                     }
-updated_settings['distortion_correction'] = distortion_correction_settings
+updated_settings['skewness_correction'] = skewness_correction_settings
 
 # Overwrite current settings, and repopulate any missing entries.
 session.settings['grid_settings']['grid_generation'] = updated_settings
@@ -118,7 +118,7 @@ session.PlotSubgrid()
 
 """
 ==================================================================
-# Example 4: Selectively apply 'distortion_correction' to SOL,
+# Example 4: Selectively apply 'skewness_correction' to SOL,
 # and modify poloidal cells.
 ==================================================================
 """
@@ -126,7 +126,7 @@ session.PlotSubgrid()
 # Patches of interest
 desired_patches = ['A', 'C', 'E', 'F']
 
-# Distortion correction values
+# Skewness correction values
 resolution = 1000
 theta_max = 140.0
 theta_min = 100.0
@@ -135,14 +135,14 @@ theta_min = 100.0
 num_cells = 15
 
 # Initial dics for us to populate.
-# Important to initially turn OFF distortion correction! See below!
-distortion_correction_settings = {'all': {'active': False}}
+# Important to initially turn OFF skewness correction! See below!
+skewness_correction_settings = {'all': {'active': False}}
 updated_settings = {'nr_default': 5, 'np_default': 5}
 
 for tag in desired_patches:
-    # Generate distortion correction entry.
+    # Generate skewness correction entry.
     # We recall '2' corresponds to SOL in SNL cases.
-    distortion_correction_settings[tag + '2'] = {
+    skewness_correction_settings[tag + '2'] = {
         'active': True,
         'resolution': resolution,
         'theta_max': theta_max,
@@ -152,8 +152,8 @@ for tag in desired_patches:
     # Generate poloidal cell entry
     updated_settings['np_' + tag] = num_cells
 
-# Include distortion correction settings
-updated_settings['distortion_correction'] = distortion_correction_settings
+# Include skewness correction settings
+updated_settings['skewness_correction'] = skewness_correction_settings
 
 # Overwrite current settings, and repopulate any missing entries.
 session.settings['grid_settings']['grid_generation'] = updated_settings

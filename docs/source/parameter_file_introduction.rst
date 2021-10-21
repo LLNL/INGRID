@@ -72,10 +72,10 @@ We will be using the pre-populated INGRID parameter file ``DIIID_SNL.yml`` from 
     # ---------------------------------------------------
     grid_settings:
       # ----------------------------------------------------------------------------
-      # Settings for grid generation (num cells, transforms, distortion_correction)
+      # Settings for grid generation (num cells, transforms, skewness_correction)
       # ----------------------------------------------------------------------------
       grid_generation:
-        distortion_correction:
+        skewness_correction:
           all:
             active: True # true, 1 also valid.
             resolution: 1000

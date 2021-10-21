@@ -4,7 +4,7 @@
 #       illustrates how this can be done when no limiter data is provided in the EFIT
 #       file (or invalid geometry) and when no user supplied geometry file is provided.
 #
-#       Illustrates de-activation of 'distortion_correction' for a single patch (I2)
+#       Illustrates de-activation of 'skewness_correction' for a single patch (I2)
 dir_settings:
   patch_data: ../data/SF45/
 eqdsk: ../data/SF45/neqdsk
@@ -16,7 +16,7 @@ patch_data:
     new_file: True
 grid_settings:
   grid_generation:
-    distortion_correction:   # Apply to all except patch I2
+    skewness_correction:   # Apply to all except patch I2
       all:
         active: true
         resolution: 1000

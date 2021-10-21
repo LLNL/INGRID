@@ -1,7 +1,7 @@
 eqdsk: ../data/NEQDSK_maxim/neqdsk_5
 grid_settings:
   grid_generation:
-    distortion_correction:
+    skewness_correction:
       all:
         active: false
         resolution: 1000

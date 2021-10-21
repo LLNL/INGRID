@@ -258,5 +258,5 @@ Using ``np_default`` and ``nr_default`` with values of ``3`` produces the follow
 .. image:: figures/SF75/SF75_grid_1.png
 
 
-All other grid generation customization tools such as ``distortion_correction``, ``poloidal_f_A`` - ``poloidal_f_I``, and ``radial_f_1`` - ``radial_f_3`` are utilized in the same ways we saw in the earlier ``SNL`` cases. 
+All other grid generation customization tools such as ``skewness_correction``, ``poloidal_f_A`` - ``poloidal_f_I``, and ``radial_f_1`` - ``radial_f_3`` are utilized in the same ways we saw in the earlier ``SNL`` cases. 
 

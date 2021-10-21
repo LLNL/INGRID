@@ -19,10 +19,10 @@ eqdsk: ''
 # ---------------------------------------------------
 grid_settings:
   # ---------------------------------------------------------------------------
-  # Settings for grid generation (num cells, transforms, distortion_correction)
+  # Settings for grid generation (num cells, transforms, skewness_correction)
   # ----------------------------------------------------------------------------
   grid_generation:
-    distortion_correction:
+    skewness_correction:
       all:
         active: false
         resolution: 1000

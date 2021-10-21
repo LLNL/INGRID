@@ -975,16 +975,16 @@ class Patch:
                 u = _poloidal_f(j / (np_lines - 1))
                 _r = splev(u, self.radial_spl[i])
                 Pt = Point((float(_r[0]), float(_r[1])))
-                if self.distortion_correction['active'] and j > 0 and j < np_lines - 1:
-                    Res = self.distortion_correction['resolution']
-                    ThetaMin = self.distortion_correction['theta_min']
-                    ThetaMax = self.distortion_correction['theta_max']
+                if self.skewness_correction['active'] and j > 0 and j < np_lines - 1:
+                    Res = self.skewness_correction['resolution']
+                    ThetaMin = self.skewness_correction['theta_min']
+                    ThetaMax = self.skewness_correction['theta_max']
                     umin = _poloidal_f((j - 1) / (np_lines - 1))
                     umax = _poloidal_f((j + 1) / (np_lines - 1))
                     Pt1 = radial_vertices[i][j]
                     Pt2 = radial_vertices[i][j - 1]
                     Tag = '---- Correcting points: {},{}'.format(i, j)
-                    Pt = CorrectDistortion(u, Pt, Pt1, Pt2, self.radial_spl[i], ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
+                    Pt = CorrectSkewness(u, Pt, Pt1, Pt2, self.radial_spl[i], ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
 
                 vertex_list.append(Pt)
                 if visual:
@@ -997,19 +997,19 @@ class Patch:
         self.E_vertices = temp_vertices
 
         #Correct point on south boundary
-        if self.distortion_correction['active']:
+        if self.skewness_correction['active']:
             for j in range(1, np_lines - 1):
                 u = _poloidal_f(j / (np_lines - 1))
                 Pt = self.S_vertices[j]
-                Res = self.distortion_correction['resolution']
-                ThetaMin = self.distortion_correction['theta_min']
-                ThetaMax = self.distortion_correction['theta_max']
+                Res = self.skewness_correction['resolution']
+                ThetaMin = self.skewness_correction['theta_min']
+                ThetaMax = self.skewness_correction['theta_max']
                 umin = _poloidal_f((j - 1) / (np_lines - 1))
                 umax = _poloidal_f((j + 1) / (np_lines - 1))
                 Pt1 = radial_vertices[-1][j]
                 Pt2 = radial_vertices[-1][j - 1]
                 Tag = '---- Correcting south boundary points:{}'.format(j)
-                self.S_vertices[j] = CorrectDistortion(u, Pt, Pt1, Pt2, self.S_spl, ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
+                self.S_vertices[j] = CorrectSkewness(u, Pt, Pt1, Pt2, self.S_spl, ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
         radial_vertices.append(self.S_vertices)
         if verbose: print('# Create Cells: South boundary -> North Boundary')
         # Create Cells: South boundary -> North Boundary
@@ -1301,7 +1301,7 @@ def trim_geometry(geoline, start, end):
     return trim
 
 
-def CorrectDistortion(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, Resolution, visual, Tag, MinTol=1.02, MaxTol=0.98, Verbose=False):
+def CorrectSkewness(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, Resolution, visual, Tag, MinTol=1.02, MaxTol=0.98, Verbose=False):
     MaxIter = Resolution * 10
     dumax = (umax - u) / Resolution
     dumin = (u - umin) / Resolution

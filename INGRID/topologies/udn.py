@@ -96,6 +96,22 @@ class UDN(TopologyUtils):
             magx_tilt_2 = self.settings['grid_settings']['patch_generation']['magx_tilt_2']
         except KeyError:
             magx_tilt_2 = 0.0
+        try:
+            pf_split_point_ratio = (self.settings['grid_settings']
+                                                 ['patch_generation']
+                                                 ['pf_split_point_ratio']
+            )
+            invalid_pf_ratio_message = (
+                f"""
+                'pf_split_point_ratio' must be between 0.0 and 1.0:
+                pf_split_point_ratio = {pf_split_point_ratio}
+                """
+            )
+            assert pf_split_point_ratio > 0, invalid_pf_ratio_message
+            assert pf_split_point_ratio < 1, invalid_pf_ratio_message
+
+        except KeyError:
+            pf_split_point_ratio = 0.5
 
         xpt1 = self.LineTracer.NSEW_lookup['xpt1']['coor']
         xpt2 = self.LineTracer.NSEW_lookup['xpt2']['coor']
@@ -254,7 +270,13 @@ class UDN(TopologyUtils):
 
         xpt2__psiMinPF2 = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_2},
             option='rho', direction='cw', show_plot=visual, text=verbose)
-        E2_E, E1_E = xpt2__psiMinPF2.split(xpt2__psiMinPF2.p[len(xpt2__psiMinPF2.p) // 2], add_split_point=True)
+
+        if len(xpt2__psiMinPF2.p) < 100:
+            xpt2__psiMinPF2 = xpt2__psiMinPF2.fluff_copy(100)
+
+        ind = int(len(xpt2__psiMinPF2.p) * pf_split_point_ratio)
+
+        E2_E, E1_E = xpt2__psiMinPF2.split(xpt2__psiMinPF2.p[ind], add_split_point=True)
         D1_W = E1_E.reverse_copy()
         D2_W = E2_E.reverse_copy()
 

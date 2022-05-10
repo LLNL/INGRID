@@ -25,6 +25,7 @@ grid_settings:
   nlevs: 30
   num_xpt: 2
   patch_generation:
+    pf_split_point_ratio: 0.5
     xpt1_E_tilt: 0.0
     xpt1_W_tilt: 0.65
     rmagx_shift: 0.0

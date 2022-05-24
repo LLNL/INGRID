@@ -43,18 +43,16 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3 :: Only',
     ],
-    keywords='sample, setuptools, development',  # Optional
     packages=find_packages(),
     python_requires='>=3.5, <4',
     install_requires=[
-        'm2r2',
-        # 'omfit-eqdsk',
         'scipy >= 1.3.1',
         'numpy',
         'pyyaml',
         'matplotlib',
         'tk',
-        'sympy'
+        'sympy',
+        'schema'
     ]
 )
 

@@ -148,6 +148,11 @@ class Ingrid(IngridUtils):
             import tkinter.messagebox as messagebox
         except:
             import tkMessageBox as messagebox
+        
+        #
+        # For robustness reset the default matplotlib rcparams
+        #
+        matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 
         def on_closing():
             if messagebox.askyesno('', 'Are you sure you want to quit?'):

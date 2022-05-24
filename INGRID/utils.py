@@ -230,25 +230,29 @@ class IngridUtils():
             'plate_E1': {
                 'file': '',
                 'rshift': 0.0,
-                'zshift': 0.0
+                'zshift': 0.0,
+                'auto_order': True
             },
 
             'plate_E2': {
                 'file': '',
                 'rshift': 0.0,
-                'zshift': 0.0
+                'zshift': 0.0,
+                'auto_order': True
             },
 
             'plate_W1': {
                 'file': '',
                 'rshift': 0.0,
-                'zshift': 0.0
+                'zshift': 0.0,
+                'auto_order': True
             },
 
             'plate_W2': {
                 'file': '',
                 'rshift': 0.0,
-                'zshift': 0.0
+                'zshift': 0.0,
+                'auto_order': True
             },
         }
 
@@ -833,7 +837,9 @@ class IngridUtils():
         Convenience method for ordering target plate Point objects.
         """
         for k in self.PlateData.keys():
-            if type(self.PlateData[k]) == Line:
+            if not type(self.PlateData[k]) == Line:
+                continue
+            if self.settings['target_plates'][k]['auto_order']:
                 self.OrderTargetPlate(k)
 
     def OrderLimiter(self) -> None:

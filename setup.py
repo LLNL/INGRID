@@ -54,7 +54,7 @@ setup(
         'pyyaml',
         'matplotlib',
         'tk',
-        'sympy'
+        'sympy' >= 1.4
     ]
 )
 

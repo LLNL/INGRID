@@ -157,9 +157,11 @@ We will be using the pre-populated INGRID parameter file ``DIIID_SNL.yml`` from 
       plate_E1:
         file: d3d_otp.txt
         zshift: -1.6
+        auto_order: True
       plate_W1:
         file: d3d_itp.txt
         zshift: -1.6
+        auto_order: True
 
 Let's highlight some important entries that are often used when operating INGRID for single-null cases (basic usage). Advanced tutorials will also be provided.
 
@@ -213,13 +215,39 @@ All target plate settings are under the global INGRID parameter file entry ``tar
       plate_E1:
         file: d3d_otp.txt
         zshift: -1.6
+        auto_order: True
       plate_W1:
         file: d3d_itp.txt
         zshift: -1.6
+        auto_order: True
 
-INGRID adopts a N-S-E-W compass direction notation in order to help generalize and simplify grid generation. It is important for a user to eventually learn these conventions. A detailed discussion of INGRID's naming conventions can be found `here <ingrid_notation>`__.
+INGRID adopts a N-S-E-W compass direction notation in order to help generalize and simplify grid generation. 
+It is important for a user to eventually learn these conventions. 
+A detailed discussion of INGRID's naming conventions can be found `here <ingrid_notation>`__.
 
-For now (in the case of a lower single-null configuration), note that entries ``plate_E1`` and ``plate_W1`` correspond to the `outer` and `inner` target plates, respectively. Each plate entry recognizes sub-entries ``file`` (file name to load), ``zshift`` (z-translation) and ``rshift`` (r-translation, not utilized and internal to INGRID defaults to ``0.0``). 
+For now (in the case of a lower single-null configuration), note that entries ``plate_E1`` and ``plate_W1`` 
+correspond to the `outer` and `inner` target plates, respectively. 
+Each plate entry recognizes sub-entries such as ``file`` (file name to load), ``zshift`` (z-translation), 
+``rshift`` (r-translation, not utilized and internal to INGRID defaults to ``0.0``), and ``auto_order`` (INGRID geometry pre-processor).
+
+An especially important note on target plate geometries
+=======================================================
+In order to automate and simplify much of the grid generation process, INGRID needs to perform format checks and pre-processing
+of user inputs.
+
+In general, a user provided geometry file (target plate or limiter) can be a text file with ``(r, z)`` coordinates on each line,
+or a numpy file representing a saved numpy array of shape ``(N, 2)``.
+
+Provided a geometry file, INGRID performs a **crucial** pre-processing step that attempts to order the provided coordinates
+**clock-wise** around the magnetic-axis. This operation is performed automatically by default, and must be done for
+visualization and Patch Map generation purposes. The clock-wise convention and Patch Map generation is dicussed in the documented 
+example pages.
+
+.. note:: The ordering operation performed automatically can be turned off by setting the ``auto_order`` flag to ``False`` within a specific target_plate entry. 
+
+.. warning:: Although disabling ``auto_order`` can be useful for dealing with tricky geometries in which INGRID's ordering algorithm fails, the user MUST ensure the *clock-wise* orientation of the provided geometry file themselves.
+
+
 
 
 Defining x-points, magnetic-axis, and psi-levels

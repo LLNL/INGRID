@@ -26,9 +26,8 @@ Obtaining the code
 Clone the INGRID repo with the command:
 ::
 
-    git clone username@https://github.com/LLNL/INGRID.git IngridDir
+    git clone https://github.com/LLNL/INGRID.git
 
-where ``IngridDir`` is the name of the destination clone directory.
 
 Installing INGRID
 =================

@@ -243,26 +243,13 @@ stored in attribute “settings[‘grid_settings’]”.</p>
 
 <dl class="py method">
 <dt id="INGRID.ingrid.Ingrid.ClearLegend">
-<code class="sig-name descname"><span class="pre">ClearLegend</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.ClearLegend" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">ClearLegend</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.ClearLegend" title="Permalink to this definition">¶</a></dt>
 <dd><p>Safely remove the legend form the normalized psi data.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="INGRID.ingrid.Ingrid.ConstructPatches">
-<code class="sig-name descname"><span class="pre">ConstructPatches</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.ConstructPatches" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a patch map that can be refined into a grid.</p>
-<p>This method assumes the user has either loaded patch data
-from a previous Ingrid session (see ‘LoadPatches’), or that
-the user has already successfully called method ‘AnalyzeTopology’.</p>
-<p>Should the user want to automatically enable patch saving, the user
-should set the entry</p>
-<p>‘settings[‘’patch_data’’][‘’preferences’’][‘’new_file’’]’</p>
-<p>with a value of ‘True’.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="INGRID.ingrid.Ingrid.CreateSubgrid">
-<code class="sig-name descname"><span class="pre">CreateSubgrid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NewFig</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ShowVertices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.CreateSubgrid" title="Permalink to this definition">¶</a></dt>
+<dt id="INGRID.ingrid.Ingrid.ConstructGrid">
+<code class="sig-name descname"><span class="pre">ConstructGrid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NewFig</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ShowVertices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.ConstructGrid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Refine a generated patch map into a grid for exporting.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -283,8 +270,34 @@ the particular patch.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="INGRID.ingrid.Ingrid.ConstructPatches">
+<code class="sig-name descname"><span class="pre">ConstructPatches</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.ConstructPatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a patch map that can be refined into a grid.</p>
+<p>This method assumes the user has either loaded patch data
+from a previous Ingrid session (see ‘LoadPatches’), or that
+the user has already successfully called method ‘AnalyzeTopology’.</p>
+<p>Should the user want to automatically enable patch saving, the user
+should set the entry</p>
+<p>‘settings[‘’patch_data’’][‘’preferences’’][‘’new_file’’]’</p>
+<p>with a value of ‘True’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="INGRID.ingrid.Ingrid.CreatePatches">
+<code class="sig-name descname"><span class="pre">CreatePatches</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.CreatePatches" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for <cite>ConstructPatches</cite>. See <cite>ConstructPatches</cite>
+for more details.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="INGRID.ingrid.Ingrid.CreateSubgrid">
+<code class="sig-name descname"><span class="pre">CreateSubgrid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NewFig</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ShowVertices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.CreateSubgrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <cite>ConstructGrid</cite>. See <cite>ConstructGrid</cite> for documentation.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="INGRID.ingrid.Ingrid.ExportGridue">
-<code class="sig-name descname"><span class="pre">ExportGridue</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'gridue'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.ExportGridue" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">ExportGridue</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'gridue'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guard_cell_eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.ExportGridue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Export a gridue file for the created grid.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -373,6 +386,12 @@ transformations specified in settings.</p>
 transformations specified in settings.</p>
 <p>This method can be used to inspect the effects of ‘magx_tilt_1’,
 ‘magx_tilt_2’, ‘rmagx_shift’, and ‘zmagx_shift’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="INGRID.ingrid.Ingrid.PlotGrid">
+<code class="sig-name descname"><span class="pre">PlotGrid</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.PlotGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the grid that was generated with method ‘ConstructGrid’.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -473,7 +492,7 @@ to determine whether or not to plot the limiter geometry.</p>
 <dl class="py method">
 <dt id="INGRID.ingrid.Ingrid.PlotSubgrid">
 <code class="sig-name descname"><span class="pre">PlotSubgrid</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.ingrid.Ingrid.PlotSubgrid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the grid that was generated with method ‘CreateSubgrid’.</p>
+<dd><p>Alias for method <cite>PlotGrid</cite>. See <cite>PlotGrid</cite> for documentation.</p>
 </dd></dl>
 
 <dl class="py method">

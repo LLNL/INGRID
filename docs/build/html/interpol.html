@@ -25,7 +25,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -161,7 +160,7 @@
             
   <section id="module-INGRID.interpol">
 <span id="interpol"></span><h1>interpol<a class="headerlink" href="#module-INGRID.interpol" title="Permalink to this headline">¶</a></h1>
-<p>Module containing Bicubic class and EfitData class for handling all interpolation
+<p>Module containing EfitData class for handling all interpolation
 related computations.</p>
 <dl class="py class">
 <dt id="INGRID.interpol.EfitData">
@@ -184,23 +183,6 @@ tokamak.</p>
 </ul>
 </dd>
 </dl>
-<dl class="py method">
-<dt id="INGRID.interpol.EfitData.Calculate_PDeriv">
-<code class="sig-name descname"><span class="pre">Calculate_PDeriv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.interpol.EfitData.Calculate_PDeriv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate partial derivatives at grid nodes.</p>
-<p>Use finite differences to increase accuracy at the
-boundaries.</p>
-<p>These formulas are derived from Taylor Series representations.
-Values for vr, vz, and vrz are produced and saved within the
-grid structure.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>unit_spacing</strong> (<em>bool</em><em>, </em><em>optional</em>) – Allow for the derivatives to be calculated on a unit cell,
-or on a grid with any other spacing. Default is true.</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt id="INGRID.interpol.EfitData.Gradient">
 <code class="sig-name descname"><span class="pre">Gradient</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#INGRID.interpol.EfitData.Gradient" title="Permalink to this definition">¶</a></dt>
@@ -284,35 +266,18 @@ if nothing is provided, it assumes no derivative (v).</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="INGRID.interpol.EfitData.get_v">
-<code class="sig-name descname"><span class="pre">get_v</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'v'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="headerlink" href="#INGRID.interpol.EfitData.get_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the entire array of v, vr, vz, or vrz.
-If you want a single value use self.get_psi</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>tag</strong> (<em>str</em><em>, </em><em>optional</em>) – Specify the type of derivative. ‘v’, ‘vr’, ‘vz’, ‘vrz’</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><em>ndarray</em> – value of the function or its derivative over the entire
-grid.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="INGRID.interpol.EfitData.locate_cell">
-<code class="sig-name descname"><span class="pre">locate_cell</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r0</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="headerlink" href="#INGRID.interpol.EfitData.locate_cell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Locate the cell on the rectangular grid that surrounds
-a point of interest.</p>
+<dt id="INGRID.interpol.EfitData.init_bivariate_spline">
+<code class="sig-name descname"><span class="pre">init_bivariate_spline</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#INGRID.interpol.EfitData.init_bivariate_spline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize scipy.interpolate.RectBivariateSpline
+object for Bicubic interpolation.</p>
+<p>Sets class member v to crude EFIT grid.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>r0</strong> (<em>float</em>) – R or x coordinate of the point</p></li>
-<li><p><strong>z0</strong> (<em>float</em>) – Z or y coordinate of the tested point</p></li>
+<li><p><strong>r</strong> (<em>array-like</em>) – 1-D array of r coordinates in strictly ascending order.</p></li>
+<li><p><strong>z</strong> (<em>array-like</em>) – 1-D array of z coordinates in strictly ascending order.</p></li>
+<li><p><strong>v</strong> (<em>array-like</em>) – 2-D array of EFIT data with shape (r.shape, z.shape)</p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><em>A dict with node indices of grid cell encompassing tested point</em></p>
 </dd>
 </dl>
 </dd></dl>
@@ -357,55 +322,6 @@ line tracing class.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="INGRID.interpol.EfitData.set_v">
-<code class="sig-name descname"><span class="pre">set_v</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'v'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#INGRID.interpol.EfitData.set_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>sets a value for v, vr, vz, or vrz.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>value</strong> (<em>ndarray</em><em>, </em><em>float</em>) – new set of values for the function. Must be the same shape
-as the grid if you are setting every value. Also accepts a
-single float for setting spevific values.</p></li>
-<li><p><strong>coords</strong> (<em>array-like</em><em>, </em><em>optional</em>) – The coordinates of a single value, if you are setting one value.
-if set to none, it will set the entire value</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt id="INGRID.interpol.Bicubic">
-<code class="sig-prename descclassname"><span class="pre">INGRID.interpol.</span></code><code class="sig-name descname"><span class="pre">Bicubic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fxy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">array</span> <span class="pre">-</span> <span class="pre">like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#INGRID.interpol.Bicubic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bicubic interpolation on unit square [0,1]x[0,1].
-Returns the value of the interpolated polynomial at the given interior
-point (x0,y0).
-f, fx, fy, fxy can be arrays, lists, tulpes etc.
-They must each have four values and are ordered:</p>
-<div class="math notranslate nohighlight">
-\[f_{i,j}, f_{i,j+1}, f_{i+1,j}, f_{i+1,j+1}.\]</div>
-<p>This is the natural order produced by the locate cell method,
-in the EfitData.EFit_Data class, which how
-this function is usually called.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>f</strong> (<em>array-like</em>) – Contains the value of the function of each cell coordinate.</p></li>
-<li><p><strong>fx</strong> (<em>array-like</em>) – Contains the x or R derivative</p></li>
-<li><p><strong>fy</strong> (<em>array-like</em>) – Contains the y or Z derivative</p></li>
-<li><p><strong>fxy</strong> (<em>array-like</em>) – Contains the cross derivative, xy or RZ</p></li>
-<li><p><strong>x0</strong> (<em>float</em>) – Normalized x or R coordinate of the point of interest</p></li>
-<li><p><strong>y0</strong> (<em>float</em>) – Normalized y  or Z coordinate of the point</p></li>
-<li><p><strong>derivs</strong> (<em>str</em><em>, </em><em>optional</em>) – Contains the tag for the type of derivative we want.
-Accepts ‘v’, ‘vr’, ‘vz’, ‘vrz’</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><em>The value of the function of its derivative at a given location</em></p>
-</dd>
-</dl>
 </dd></dl>
 
 </section>

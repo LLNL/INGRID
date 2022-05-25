@@ -25,6 +25,7 @@ from pathlib import Path
 from time import time
 from collections import OrderedDict
 
+from INGRID.config import defaults, schemas
 from INGRID.OMFITgeqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.line_tracing import LineTracing
@@ -134,8 +135,13 @@ class IngridUtils():
             'DEBUG'
         ]
         self.SetDefaultSettings()
-        self.PopulateSettings(settings)
+        # self.PopulateSettings(settings)
         self.ProcessKeywords(**kwargs)
+        import pdb
+        pdb.set_trace()
+        settings = self.ProcessPaths(settings)
+        config_schema = schemas.Schema(schemas.user_configuration_file_schema)
+        self.settings = config_schema.validate(settings)
 
     def get_config(self) -> str:
         """
@@ -167,149 +173,15 @@ class IngridUtils():
         Additional entries may be added here as development continues.
         """
 
-        self.default_grid_settings = {
-            'num_xpt': 1,
-            'nlevs': 30,
-            'view_mode': 'filled',
-            'psi_1': 0.0,
-            'psi_core': 0.0,
-            'psi_pf_1': 0.0,
-            'psi_pf_2': 0.0,
-            'psi_1': 0.0,
-            'psi_2': 0.0,
-            'rmagx': 0.0,
-            'zmagx': 0.0,
-            'rxpt': 0.0,
-            'zxpt': 0.0,
-            'rxpt2': 0.0,
-            'zxpt2': 0.0,
-            'guard_cell_eps': 1.0e-3,
-            'grid_generation': {
-                'np_default': 2,
-                'nr_default': 2,
-                'poloidal_f_default': 'x, x',
-                'radial_f_default': 'x, x',
-                'skewness_correction': {
-                    'all': {
-                        'theta_min': 80.0,
-                        'theta_max': 120.0,
-                        'resolution': 1000,
-                        'active': False
-                    },
-                },
-            },
-            'patch_generation': {
-                'core_split_point_ratio': 0.5,
-                'pf_split_point_ratio': 0.5,
-                'strike_pt_loc': 'limiter',
-                'rmagx_shift': 0.0,
-                'zmagx_shift': 0.0,
-                'magx_tilt_1': 0.0,
-                'magx_tilt_2': 0.0,
-                'use_xpt1_W': False,
-                'use_xpt1_E': False,
-                'use_xpt2_W': False,
-                'use_xpt2_E': False,
-                'xpt1_W_tilt': -0.785398,  # All values of pi / 4 radians.
-                'xpt1_E_tilt': 0.785398,
-                'xpt2_W_tilt': -0.785398,
-                'xpt2_E_tilt': 0.785398,
-            }
-        }
-
-        self.default_integrator_settings = {
-            'dt': 0.01,
-            'eps': 5e-5,
-            'first_step': 1e-5,
-            'step_ratio': 0.02,
-            'tol': 5e-3,
-            'max_step': 0.064
-        }
-
-        self.default_target_plate_settings = {
-            'plate_E1': {
-                'file': '',
-                'rshift': 0.0,
-                'zshift': 0.0
-            },
-
-            'plate_E2': {
-                'file': '',
-                'rshift': 0.0,
-                'zshift': 0.0
-            },
-
-            'plate_W1': {
-                'file': '',
-                'rshift': 0.0,
-                'zshift': 0.0
-            },
-
-            'plate_W2': {
-                'file': '',
-                'rshift': 0.0,
-                'zshift': 0.0
-            },
-        }
-
-        self.default_limiter_settings = {
-            'file': '',
-            'use_efit_bounds': False,
-            'efit_buffer_r': 1e-2,
-            'efit_buffer_z': 1e-2,
-            'rshift': 0.0,
-            'zshift': 0.0
-        }
-
-        self.default_patch_data_settings = {
-            'file': '',
-            'use_file': False,
-            'preferences': {
-                'new_file': False,
-                'new_fname': ''
-            }
-        }
-
-        self.default_DEBUG_settings = {
-            'visual': {
-                'find_NSEW': False,
-                'patch_map': False,
-                'subgrid': False,
-                'gridue': False,
-                'SF_analysis': False
-            },
-
-            'verbose': {
-                'patch_generation': False,
-                'grid_generation': False,
-                'SF_analysis': False
-            }
-        }
-
-        self.default_dir_settings = {
-            'eqdsk': '.',
-            'limiter': '.',
-            'patch_data': '.',
-            'target_plates': '.'
-        }
-
-        self.default_values_lookup = {
-            'eqdsk': '',
-            'dir_settings': self.default_dir_settings,
-            'grid_settings': self.default_grid_settings,
-            'integrator_settings': self.default_integrator_settings,
-            'target_plates': self.default_target_plate_settings,
-            'limiter': self. default_limiter_settings,
-            'patch_data': self.default_patch_data_settings,
-            'DEBUG': self.default_DEBUG_settings
-        }
-
-        self.PlateData = {
-            'plate_W1': {},
-            'plate_E1': {},
-            'plate_W2': {},
-            'plate_E2': {}
-        }
+        self.default_grid_settings         = defaults.default_grid_settings
+        self.default_integrator_settings   = defaults.default_integrator_settings
+        self.default_target_plate_settings = defaults.default_target_plate_settings
+        self.default_limiter_settings      = defaults.default_limiter_settings
+        self.default_patch_data_settings   = defaults.default_patch_data_settings
+        self.default_DEBUG_settings        = defaults.default_DEBUG_settings
+        self.default_dir_settings          = defaults.default_dir_settings
+        self.default_values_lookup         = defaults.default_values_lookup
+        self.PlateData                     = defaults.PlateData
 
     def ProcessKeywords(self, **kwargs) -> None:
         """
@@ -340,128 +212,61 @@ class IngridUtils():
                 continue
             print('Keyword "' + k + '" unknown and ignored...')
 
-    def PopulateSettings(self, settings: dict, verbose: bool = True) -> None:
-        """
-        Populate a settings dict with any missing entries that INGRID may need.
-
-        This should be used to screen for any illegal parameter file entries
-        and to ensure clean data entry.
-
-        Parameters
-        ----------
-        settings : dict
-            Dictionary object conforming to structure of ``settings`` dictionary
-
-        verbose : bool, optional
-            Print full output to terminal. Defaults to False.
-
-        """
-
-        def _check_settings_input(input_settings, comparison):
-            raise_assertion = False
-            items = []
-            for k in input_settings.keys():
-                if comparison.get(k) is None:
-                    items.append(k)
-                    raise_assertion = True
-
-            if raise_assertion is True:
-                raise ValueError(f'Invalid entries {items} in provided settings file f{self.InputFile}. Remove invalid entries listed.')
-
-        def _get_default_values(item, sub_item=None, attribute=None):
-            """
-            Helper function for processing the YAML file dump.
-            Determines if the entry within the YAML file dump is valid and currently
-            recognized by INGRID.
-            """
-            try:
-                default_values = self.default_values_lookup[item]
-            except KeyError:
-                print(f'Key ''{item}'' not recognized... Add default values to source code for support.')
-                return None
-
-            if item and sub_item and attribute:
-                return self.default_values_lookup[item][sub_item][attribute]
-            elif item and sub_item:
-                return self.default_values_lookup[item][sub_item]
-            elif item:
-                return self.default_values_lookup[item]
-
-        _check_settings_input(input_settings=settings, comparison=self.default_values_lookup)
-
-        # First level entries within YAML file dump.
-        for item in self.default_values_lookup.keys():
-
-            try:
-                # Check to see if the item is in the YAML dump.
-                settings[item]
-            except KeyError:
-                settings[item] = _get_default_values(item)
-                if verbose:
-                    print('Could not find "{}" in YAML file.'.format(item))
-                    print('Populated "{}" with default value of "{}".\n'.format(item, settings[item]))
-                continue
-
-            if item in ['eqdsk']:
-                continue
-
-            _check_settings_input(input_settings=settings[item], comparison=self.default_values_lookup[item])
-
-            # Second level entries within YAML file dump.
-
-            for sub_item in self.default_values_lookup[item].keys():
-                try:
-                    settings[item][sub_item]
-                except KeyError:
-                    settings[item][sub_item] = _get_default_values(item, sub_item)
-                    if verbose:
-                        print('Could not find "{}/{}" in YAML file.'.format(item, sub_item))
-                        print('Populated "{}/{}" with default value of "{}".\n'.format(item, sub_item, settings[item][sub_item]))
-                    continue
-
-                if item in ['grid_settings', 'target_plates'] \
-                        and sub_item in ['patch_generation', 'grid_generation', 'plate_E1', 'plate_W1', 'plate_E2', 'plate_W2']:
-                    for plate_attribute in self.default_values_lookup[item][sub_item].keys():
-                        try:
-                            if settings[item][sub_item][plate_attribute] is None:
-                                settings[item][sub_item][plate_attribute] = _get_default_values(item, sub_item, plate_attribute)
-                        except:
-                            settings[item][sub_item][plate_attribute] = _get_default_values(item, sub_item, plate_attribute)
-
-        # Update references to YAML entries.
-        self.settings = settings
-        self.grid_settings = settings['grid_settings']
-        self.integrator_settings = settings['integrator_settings']
-        self.target_plates = settings['target_plates']
-        self.DEBUG = settings['DEBUG']
-        self.ProcessPaths()
-
-    def ProcessPaths(self) -> None:
+    def ProcessPaths(self, settings) -> None:
         """
         Update settings by pre-pending path entries to all file entries.
         """
-        for k in self.default_dir_settings.keys():
-            path_obj = Path(self.settings['dir_settings'][k])
-            if path_obj.is_dir() is False:
-                v = self.settings['dir_settings'][k]
-                raise ValueError(f"# Error processing directory provided for entry '{k}'. Entry '{v}' is not a valid directory.")
+        if not settings.get('dir_settings', False):
+            return settings
+
+        default_dir_settings = defaults.default_dir_settings
+        for k in default_dir_settings.keys():
+            if not settings['dir_settings'].get(k, False):
+                continue
+            path_obj = Path(settings['dir_settings'][k])
+            if not path_obj.is_dir():
+                v = str(path_obj)
+                raise ValueError(
+                    f"# Error processing directory provided for entry '{k}'. "
+                    f"Entry '{v}' is not a valid directory."
+                )
 
             if k == 'eqdsk':
-                self.settings['eqdsk'] = str((path_obj / self.settings['eqdsk']).absolute())
+                settings['eqdsk'] = str(
+                    (path_obj / settings['eqdsk']).resolve()
+                )
                 continue
             if k == 'limiter':
-                self.settings['limiter']['file'] = str((path_obj / self.settings['limiter']['file']).absolute())
+                settings['limiter']['file'] = str(
+                    (path_obj / settings['limiter']['file']).resolve()
+                )
                 continue
             if k == 'target_plates':
-                self.settings['target_plates']['plate_W1']['file'] = str((path_obj / self.settings['target_plates']['plate_W1']['file']).absolute())
-                self.settings['target_plates']['plate_E1']['file'] = str((path_obj / self.settings['target_plates']['plate_E1']['file']).absolute())
-                self.settings['target_plates']['plate_W2']['file'] = str((path_obj / self.settings['target_plates']['plate_W2']['file']).absolute())
-                self.settings['target_plates']['plate_E2']['file'] = str((path_obj / self.settings['target_plates']['plate_E2']['file']).absolute())
+
+                for plate in ['plate_W1', 'plate_E1', 'plate_W2', 'plate_E2']:
+                    try:
+                        plate_file = settings['target_plates'][plate]['file']
+                        plate_file = str((path_obj / plate_file).resolve())
+                        settings['target_plates'][plate]['file'] = plate_file
+                    except KeyError:
+                        continue
                 continue
+            
             if k == 'patch_data':
-                self.settings['patch_data']['file'] = str((path_obj / self.settings['patch_data']['file']).absolute())
-                self.settings['patch_data']['preferences']['new_fname'] = str((path_obj / self.settings['patch_data']['preferences']['new_fname']).absolute())
+
+                patch_data = settings['patch_data']
+                patch_data['file'] = str(
+                    (path_obj / patch_data['file']).resolve()
+                )
+                settings['patch_data'] = patch_data
+
+                preferences = settings['patch_data']['preferences']
+                preferences['new_fname'] = str(
+                    (path_obj / preferences['new_fname']).resolve())
+                settings['patch_data']['preferences'] = preferences
+
                 continue
+        return settings
 
     def OMFIT_read_psi(self) -> None:
         """
@@ -470,7 +275,7 @@ class IngridUtils():
         Saves the boundary information and generates an EfitData instance.
         """
 
-        g = OMFITgeqdsk(self.settings['eqdsk'])
+        g = OMFITgeqdsk(settings['eqdsk'])
 
         nxefit = g['NW']
         nyefit = g['NH']

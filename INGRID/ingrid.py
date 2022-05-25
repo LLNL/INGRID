@@ -1304,6 +1304,7 @@ class Ingrid(IngridUtils):
                 + 'Must be <= 2).'
             raise ValueError(v_error_str)
 
+        self.ProcessPaths()
         self.LoadEFIT(self.settings['eqdsk'])
         self.AutoRefineMagAxis()
         self.AutoRefineXPoint()

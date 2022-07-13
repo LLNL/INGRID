@@ -354,28 +354,22 @@ class UDN(TopologyUtils):
         A3_N, B3_N = midline_1__WestPlate1.reverse_copy().split(B3_W.p[-1], add_split_point=True)
         G3_N, H3_N = midline_2__EastPlate1.split(H3_W.p[-1], add_split_point=True)
 
-        B1_E = self.LineTracer.draw_line(B1_N.p[-1], {'psi_horizontal': psi_core}, option='z_const',
-            direction='cw', show_plot=visual, text=verbose)
+        B1_E = Line([B1_N.p[-1], B1_S.p[0]])
         C1_W = B1_E.reverse_copy()
 
-        B2_E = self.LineTracer.draw_line(B2_N.p[-1], {'psi_horizontal': 1.0}, option='z_const',
-            direction='cw', show_plot=visual, text=verbose)
+        B2_E = Line([B2_N.p[-1], B2_S.p[0]])
         C2_W = B2_E.reverse_copy()
 
-        B3_E = self.LineTracer.draw_line(B3_N.p[-1], {'psi_horizontal': xpt2_psi}, option='z_const',
-            direction='cw', show_plot=visual, text=verbose)
+        B3_E = Line([B3_N.p[-1], B3_S.p[0]])
         C3_W = B3_E.reverse_copy()
 
-        F1_E = self.LineTracer.draw_line(F1_N.p[-1], {'psi_horizontal': psi_core}, option='z_const',
-            direction='ccw', show_plot=visual, text=verbose)
+        F1_E = Line([F1_N.p[-1], F1_S.p[0]])
         G1_W = F1_E.reverse_copy()
 
-        F2_E = self.LineTracer.draw_line(F2_N.p[-1], {'psi_horizontal': 1.0}, option='z_const',
-            direction='ccw', show_plot=visual, text=verbose)
+        F2_E = Line([F2_N.p[-1], F2_S.p[0]])
         G2_W = F2_E.reverse_copy()
 
-        F3_E = self.LineTracer.draw_line(F3_N.p[-1], {'psi_horizontal': xpt2_psi}, option='z_const',
-            direction='ccw', show_plot=visual, text=verbose)
+        F3_E = Line([F3_N.p[-1], F3_S.p[0]])
         G3_W = F3_E.reverse_copy()
 
         A1_W = trim_geometry(WestPlate1, A1_S.p[-1], A1_N.p[0])

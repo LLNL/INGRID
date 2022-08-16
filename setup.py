@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Mon Sep 14 09:03:11 2020
 @author: jguterl, bgarcia
@@ -30,23 +29,20 @@ setup(
 
     # This should be a valid email address corresponding to the author listed
     # above.
-    author_email='bgarci26@ucsc.edu, umansky1@llnl.gov',
+    author_email='garcia299@llnl.gov, umansky1@llnl.gov',
     classifiers=[
         'Development Status :: 4 - Beta',
-        #'Intended Audience :: Any UEDGE users',
+        'Intended Audience :: Any UEDGE users',
         'Topic :: Software Development',
-        #'License :: ???',
-        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3 :: Only',
     ],
     packages=find_packages(),
     python_requires='>=3.5, <4',
     install_requires=[
-        'scipy >= 1.3.1',
+        'scipy',
         'numpy',
         'pyyaml',
         'matplotlib',

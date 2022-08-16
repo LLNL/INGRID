@@ -1,10 +1,23 @@
-from ast import Num
 import numpy as np
 import numpy.lib.mixins
 from collections.abc import Iterable
 from numbers import Number
 
 class Point(np.lib.mixins.NDArrayOperatorsMixin):
+    """
+    Define a Point.
+    Can be used to later define Line objects.
+
+    Inherits from `numpy.lib.mixins.NDArrayOperatorsMixin` to allow
+    numpy operations directly on a Point object
+
+    Parameters
+    ----------
+    *coordinates : array-like, positional
+        Accepts either an array like container of numerical values or
+        numerical arguments as positional arguments
+    
+    """
 
     def __init__(self, *coordinates, **kargs) -> None:
 
@@ -16,12 +29,17 @@ class Point(np.lib.mixins.NDArrayOperatorsMixin):
             self.coordinates = coordinates[0]
         else:
             self.coordinates = [coordinate for coordinate in coordinates]
+
+        self.coordinates = self.__array__(dtype=kargs.get('dtype', None))
+
+    def __getitem__(self, slice, **kargs):
+        return self.__array__(kargs.get('dtype', None))[slice]
         
     def __repr__(self) -> str:
-        return self.__repr__()
+        return f'{self.__class__.__name__}{(*self.coordinates, )}'
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__}{(*self.coordinates, )}'
+        return self.__repr__()
     
     def __array__(self, dtype=None):
         return np.array(self.coordinates, dtype=dtype)
@@ -41,13 +59,3 @@ class Point(np.lib.mixins.NDArrayOperatorsMixin):
             return self.__class__(ufunc(*scalars, **kwargs))
         else:
             return NotImplemented
-
-if __name__ == '__main__':
-
-    r = np.random.rand(10, 2)
-
-    for xy in r:
-        print(Point(xy))
-        result =  2 * (Point(xy) + [2, 45]) + (xy + [1 ,2 ])
-        print(result, type(result))
-        print(result + result)

@@ -79,15 +79,10 @@ def test_slicing_000():
 def test_initialization_000():
     """
     Test the ability to initialize a Point via an array-like container
-    or via positional-arguments/unpacking
     """
 
     initializer = np.random.rand(100)
-
-    A = Point(initializer)
-    B = Point(*initializer)
-
-    assert np.array_equal(A, B)
+    A           = Point(initializer)
 
 def test_initialization_001():
     """
@@ -99,3 +94,41 @@ def test_initialization_001():
     A           = Point(initializer)
 
     assert np.array_equal(A, A.coordinates)
+
+def test_initialization_002():
+    """
+    Test the ability to initialize a Point via an array-like container
+    and a keyword argument
+    """
+
+    initializer = np.random.rand(100)
+    A           = Point(coordinates=initializer)
+
+def test_distance_to_000():
+    """
+    Test the ability to compute the distance between two Point objects
+    """
+
+    initializer       = np.random.rand(2, 2)
+    A                 = Point(initializer[0])
+    B                 = Point(initializer[1])
+    baseline_distance = np.linalg.norm(np.diff(initializer, axis=0))
+    result            = A.distance_to(B)
+
+    print(result, baseline_distance)
+    assert np.equal(result, baseline_distance)
+
+def test_distance_to_001():
+    """
+    Test the ability to compute the distance between a Point object and
+    a numpy array
+    """
+
+    initializer       = np.random.rand(2, 2)
+    A                 = Point(initializer[0])
+    B                 = initializer[1]
+    baseline_distance = np.linalg.norm(np.diff(initializer, axis=0))
+    result            = A.distance_to(B)
+
+    print(result, baseline_distance)
+    assert np.equal(result, baseline_distance)

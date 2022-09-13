@@ -154,6 +154,15 @@ class UDN(TopologyUtils):
         Upper_Point = Point(magx[0], magx[1] + 1e6)
         topLine = Line([Lower_Point, Upper_Point])
 
+        #
+        # If primary x-point is in the "upper" orientation, we swap
+        # the midlines
+        #
+        if self.LineTracer.swap_midlines:
+            temp = midline_1.copy()
+            midline_1 = midline_2
+            midline_2 = temp
+
         # Tracing primary-separatrix: core-boundary
 
         xpt1N__psiMinCore = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core},

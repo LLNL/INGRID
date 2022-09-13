@@ -154,6 +154,15 @@ class UDN(TopologyUtils):
         Upper_Point = Point(magx[0], magx[1] + 1e6)
         topLine = Line([Lower_Point, Upper_Point])
 
+        #
+        # If primary x-point is in the "upper" orientation, we swap
+        # the midlines
+        #
+        if self.LineTracer.swap_midlines:
+            temp = midline_1.copy()
+            midline_1 = midline_2
+            midline_2 = temp
+
         # Tracing primary-separatrix: core-boundary
 
         xpt1N__psiMinCore = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core},
@@ -304,14 +313,14 @@ class UDN(TopologyUtils):
 
         if self.settings['grid_settings']['patch_generation']['use_xpt2_W']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt2_W_tilt']
-            E3_E = self.LineTracer.draw_line(xpt2['W'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+            E3_E = self.LineTracer.draw_line(xpt2['W'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         else:
             E3_E = self.LineTracer.draw_line(xpt2['W'], {'psi': psi_2}, option='rho', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         F3_W = E3_E.reverse_copy()
 
         if self.settings['grid_settings']['patch_generation']['use_xpt2_E']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt2_E_tilt']
-            D3_W = self.LineTracer.draw_line(xpt2['E'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+            D3_W = self.LineTracer.draw_line(xpt2['E'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
         else:
             D3_W = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
         C3_E = D3_W.reverse_copy()
@@ -341,7 +350,7 @@ class UDN(TopologyUtils):
         G2_E = H2_W.reverse_copy()
 
         if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
-            tilt = -self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
             B3_W = self.LineTracer.draw_line(B2_W.p[-1], {'line': (midline_1__WestPlate1, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
         else:
             B3_W = self.LineTracer.draw_line(B2_W.p[-1], {'line': midline_1__WestPlate1},

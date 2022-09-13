@@ -168,8 +168,11 @@ class SNL(TopologyUtils):
         Upper_Point = Point(magx[0], magx[1] + 1e6)
         topLine = Line([Lower_Point, Upper_Point])
 
-        # If USN, we swap east and west lines
-        if self.config == 'USN':
+        #
+        # If primary x-point is in the "upper" orientation, we swap
+        # the midlines
+        #
+        if self.LineTracer.swap_midlines:
             temp = midline_1.copy()
             midline_1 = midline_2
             midline_2 = temp

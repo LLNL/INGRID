@@ -301,7 +301,21 @@ class LineTracing:
             if (np.linalg.norm(N_minimizer - magx) >= self.eps):
                 self.flip_NSEW_lookup(xpt_ID)
 
-            self.config = 'LSN' if self.NSEW_lookup['xpt1']['coor']['N'][1] > xpt[1] else 'USN'
+            #
+            # By default assume we are not needing to swap midlines
+            #
+            # NOTE: This can occur when the primary x-point is in the
+            #       upper midplane. 
+            #       Since we perform an xpt1 analysis even in the case of
+            #       two x-points, we will always know whether or not to
+            #       swap midlines
+            #
+            if self.NSEW_lookup['xpt1']['coor']['N'][1] > xpt[1]:
+                self.config = 'LSN' 
+                self.swap_midlines = False
+            else: 
+                self.config = 'USN'
+                self.swap_midlines = True
 
         elif xpt_ID == 'xpt2':
 

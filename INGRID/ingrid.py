@@ -132,21 +132,24 @@ class Ingrid(IngridUtils):
         self.settings['eqdsk'] = fpath
         self.OMFIT_read_psi()
 
-    def StartGUI(self) -> None:
+    def StartGUI(self, test_initialization: bool = False) -> None:
         """
         Start GUI for Ingrid.
 
         Will assume usage on a machine with tk GUI capabilities.
         No prior settings file is required as the user will be
         prompted with an option to generate a new file.
+
+        Parameters
+        ----------
+        test_initialization : optional
+            Flag to trigger a TkInitializationSuccess exception when
+            entering the method calling tk.mainloop(). Suggests a successful
+            initialization of the IngridGUI class on the tk side of things.
         """
-        def on_closing():
-            self.IngridWindow.Exit()
         from INGRID.gui.ingrid_gui import IngridGUI
         self.IngridWindow = IngridGUI(IngridSession=self)
-        self.IngridWindow.tk_session.title('INGRID')
-        self.IngridWindow.tk_session.protocol('WM_DELETE_WINDOW', on_closing)
-        self.IngridWindow.tk_session.mainloop()
+        self.IngridWindow.Run(test_initialization=test_initialization)
 
     def RefreshSettings(self):
         try:

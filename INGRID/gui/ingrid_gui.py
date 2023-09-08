@@ -16,6 +16,7 @@ from time import time
 from os.path import getmtime
 from pathlib import Path
 from INGRID.ingrid import Ingrid
+from INGRID.exceptions import TkInitializationSuccess
 
 class IngridGUI:
     """
@@ -107,6 +108,28 @@ class IngridGUI:
             #
             self.IngridSession.SaveSettingsFile(fname=fname)
             break
+
+    def Run(self, test_initialization: bool = False):
+        """
+        Initiate the tk.mainloop() call
+
+        Parameters
+        ----------
+        test_initialization : optional
+            Flag to trigger a TkInitializationSuccess exception when
+            entering the method calling tk.mainloop(). Suggests a successful
+            initialization of the IngridGUI class on the tk side of things.
+        """
+        def on_closing():
+            self.Exit()
+        self.tk_session.title('INGRID')
+        self.tk_session.protocol('WM_DELETE_WINDOW', on_closing)
+        if test_initialization:
+            def session_test():
+                self.tk_session.destroy()
+                raise TkInitializationSuccess
+            self.tk_session.after(1, session_test)
+        self.tk_session.mainloop()
 
     def Reset(self, message='Are you sure you want to reset?'):
         """

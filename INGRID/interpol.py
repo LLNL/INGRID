@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import zoom
 from scipy.interpolate import RectBivariateSpline as rbs
 
+
 class EfitData:
     """
     Structure to store the rectangular grid of psi data. It uses
@@ -71,9 +72,9 @@ class EfitData:
         self.parent = parent
         self.psi_levels = {}
 
-    def init_bivariate_spline(self, r: 'np.ndarray', 
-                                    z: 'np.ndarray', 
-                                    v: 'np.ndarray') -> None:
+    def init_bivariate_spline(self, r: 'np.ndarray',
+                              z: 'np.ndarray',
+                              v: 'np.ndarray') -> None:
         """ Initialize scipy.interpolate.RectBivariateSpline
         object for Bicubic interpolation.
 
@@ -162,7 +163,7 @@ class EfitData:
 
         lookup = {'v': (0, 0), 'vr': (1, 0), 'vrr': (2, 0),
                   'vz': (0, 1), 'vzz': (0, 2), 'vrz': (1, 1)
-        }
+                  }
 
         dx, dy = lookup[tag]
         return self.rbs(r0, z0, dx, dy)[0]
@@ -188,7 +189,7 @@ class EfitData:
         self.ax.contour(self.r, self.z, self.v, level, colors=color)
 
     def PlotLevel(self: object, level: float = 1.0, color: str = 'red', label: str = '', linestyles: str = 'solid',
-                  refined: bool = True, refine_factor: int = 10) -> None:
+                  refined: bool = True, refine_factor: int = 20) -> None:
         """
         Plot a psi level and provide it a label.
 
@@ -219,14 +220,17 @@ class EfitData:
         if refined is True:
             data = zoom(input=self.v, zoom=refine_factor)
             rgrid, zgrid = np.meshgrid(np.linspace(self.rmin, self.rmax, data.shape[0]),
-                                       np.linspace(self.zmin, self.zmax, data.shape[1]),
+                                       np.linspace(
+                                           self.zmin, self.zmax, data.shape[1]),
                                        indexing='ij')
         try:
             self.psi_levels[label].collections[0].remove()
-            self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(level)], colors=color, label=label, linestyles=linestyles)
+            self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(
+                level)], colors=color, label=label, linestyles=linestyles)
             self.psi_levels[label].collections[0].set_label(label)
         except:
-            self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(level)], colors=color, label=label, linestyles=linestyles)
+            self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(
+                level)], colors=color, label=label, linestyles=linestyles)
             self.psi_levels[label].collections[0].set_label(label)
 
     def plot_data(self: object, nlevs: int = 30, interactive: bool = True, fig: object = None,
@@ -256,8 +260,10 @@ class EfitData:
             Refinement factor for to be passed to SciPy zoom method
         """
 
-        lev = self.v.min() + (self.v.max() - self.v.min()) * np.arange(nlevs) / (nlevs - 1)
-        self.fig = fig if fig is not None else plt.figure('INGRID: ' + self.name, figsize=(8, 10))
+        lev = self.v.min() + (self.v.max() - self.v.min()) * \
+            np.arange(nlevs) / (nlevs - 1)
+        self.fig = fig if fig is not None else plt.figure(
+            'INGRID: ' + self.name, figsize=(8, 10))
         self.fig.subplots_adjust(bottom=0.075)
         self.ax = ax if ax is not None else self.fig.add_subplot(111)
 
@@ -268,7 +274,8 @@ class EfitData:
         if refined is True:
             data = zoom(input=self.v, zoom=refine_factor)
             rgrid, zgrid = np.meshgrid(np.linspace(self.rmin, self.rmax, data.shape[0]),
-                                       np.linspace(self.zmin, self.zmax, data.shape[1]),
+                                       np.linspace(
+                                           self.zmin, self.zmax, data.shape[1]),
                                        indexing='ij')
         if view_mode == 'lines':
             self.ax.contour(rgrid, zgrid, data, lev, cmap='gist_gray')

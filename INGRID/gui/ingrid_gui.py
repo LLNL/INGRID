@@ -1,67 +1,58 @@
-from __future__ import print_function
-
-from sys import platform as sys_pf
-from sys import path
-
-from os.path import getmtime
 import matplotlib
-
 try:
     matplotlib.use("TkAgg")
 except:
     pass
-import matplotlib.pyplot as plt
-
-try:
-    from pathlib import Path
-except:
-    from pathlib2 import Path
 try:
     import tkinter as tk
 except:
     import Tkinter as tk
-try:
-    import tkinter.filedialog as filedialog
-except:
-    import tkFileDialog as tkFD
-try:
-    from tkinter import messagebox as tkMB
-except:
-    import tkMessageBox as tkMB
 
-import yaml
+import matplotlib.pyplot as plt
+import tkinter.filedialog as filedialog
+from tkinter import messagebox as tkMB
 from INGRID.ingrid import Ingrid
 from time import time
+from os.path import getmtime
+from pathlib import Path
 
+class IngridGUI:
+        
+    def __init__(self, IngridSession=None) -> None:
 
-class IngridGUI(tk.Tk):
-    def __init__(self, master=None, IngridSession=None, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
+        #
+        # Track the Ingrid session or init a new one
+        #
+        self.IngridSession = IngridSession if IngridSession else Ingrid()
 
-        self.container = tk.Frame(self)
-        self.container.pack(side="top", fill="both", expand=True)
+        #
+        # Starts a tk session
+        #
+        self.tk_session = tk.Tk()
+        self.containter = tk.Frame(master=self.tk_session)
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
-        self.gui_dimensions = {FilePicker: "550x270"}
 
-        # attached to the parent Ingrid instance instead of new instance
-        if IngridSession is None:
-            self.NewIG()
-        else:
-            self.Ingrid = IngridSession
+        #
+        # Default GUI dimensions for each frame type
+        #
+        self.gui_dimensions = {
+            FilePicker: "550x270"
+        }
 
-        # self.NewSettingsPrompt()
+        #
+        # Populate the GUI with frames
+        #
         self.PopulateGUI()
 
-        #automatic loading of input files
-        if self.Ingrid.InputFile is not None:
+        #
+        # Automatic loading of input files using the Ingrid
+        # session
+        #
+        if self.IngridSession.InputFile:
             self.frames[FilePicker].load_param_file(
-                ExistingParamFile=self.Ingrid.yaml)
-
-    def ShowFrame(self, item):
-        frame = self.frames[item]
-        frame.tkraise()
-        self.geometry(self.gui_dimensions[FilePicker])
+                ExistingParamFile=self.IngridSession.yaml
+            )
 
     def NewSettingsPrompt(self):
         fname = ''
@@ -71,28 +62,57 @@ class IngridGUI(tk.Tk):
                 fname = filedialog.asksaveasfilename(initialdir='.', title='New YAML',
                     defaultextension='.yml', initialfile=fname)
                 if fname not in ['', None]:
-                    self.Ingrid.SaveSettingsFile(fname=fname)
+                    self.IngridSession.SaveSettingsFile(fname=fname)
                     break
             else:
                 break
 
     def Reset(self, message='Are you sure you want to reset?'):
-        if tkMB.askyesno('', message):
+        """
+        Reset the GUI and Ingrid state
 
+        Parameters
+        ----------
+        message: str, optional
+            Box message to prompt users with
+
+        Returns
+        -------
+            Bool indicating prompt response
+        """
+
+        prompt_response = tkMB.askyesno('', message)
+
+        if prompt_response:
+            #
+            # Close all open matplotlib figures
+            #
             try:
-                # Close all open figures
                 plt.close('all')
             except:
                 pass
 
-            self.PopulateGUI()
-            self.ResetIG()
-            self.ShowFrame(FilePicker)
-            self.geometry(self.gui_dimensions[ParamPicker])
-            return True
+            #
+            # Initialize the GUI frames on hand
+            #
+            self.InitializeFrames()
 
-        else:
-            return False
+            #
+            # Reset the Ingrid session state to None
+            #
+            self.IngridSession = None
+            #
+            # Reset the frame view to the FilePicker
+            #
+            frame = self.frames[FilePicker]
+            frame.tkraise()
+            self.tk_session.geometry(self.gui_dimensions[FilePicker])
+            #
+            # Set FilePicker gui dimensions
+            #
+            self.geometry(self.gui_dimensions[FilePicker])
+
+        return prompt_response
 
     def Exit(self):
         if tkMB.askyesno('', 'Are you sure you want to quit?'):
@@ -102,31 +122,23 @@ class IngridGUI(tk.Tk):
                 pass
             self.destroy()
 
-    def NewIG(self):
-        self.Ingrid = Ingrid()
+    def InitializeFrames(self):
+        frames = {}
+        for FrameType in [FilePicker]:
+            frame = FrameType(master=self.tk_session)
+            frame.IngridSession = self.IngridSession
+            frames[FrameType] = frame
+        self.frames = frames
+        return frames
 
-    def ResetIG(self):
-        self.Ingrid = None
-
-    def PopulateGUI(self):
-        self.frames = {}
-
-        for F in [FilePicker]:
-            frame = F(self.container, self)
-            frame.Ingrid = self.Ingrid
-            self.frames[F] = frame
-            #frame.grid(row=0, column=0, sticky="nsew")
-
-
-class FilePicker(tk.Tk):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.parent = parent
-        self.controller = controller
+class FilePicker(tk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.master      = master
         self.PreviewPlot = None
 
-        self.EntryFrame = tk.Frame(parent)
-        self.ControlFrame = tk.Frame(parent)
+        self.EntryFrame   = tk.Frame(master=master)
+        self.ControlFrame = tk.Frame(master=master)
 
         self.EntryFrame.grid(row=0, column=0, padx=10, pady=10)
         self.ControlFrame.grid(row=1, column=0, padx=10, pady=10)
@@ -167,13 +179,13 @@ class FilePicker(tk.Tk):
         self.QuitButton.grid(row=0, column=5, padx=10, pady=10, sticky='nsew')
 
     def NewCase(self):
-        self.controller.NewIG()
-        self.Ingrid = self.controller.Ingrid
+        self.controller.Ingrid = Ingrid()
+        self.IngridSession = self.controller.Ingrid
 
     def ProcessParameterFile(self, fname):
         self.NewCase()
-        self.Ingrid.InputFile = fname
-        self.Ingrid.PopulateSettings(Ingrid.ReadYamlFile(fname))
+        self.IngridSession.InputFile = fname
+        self.IngridSession.PopulateSettings(Ingrid.ReadYamlFile(fname))
         self.ParamFileMtime = getmtime(fname)
         self.ParamFileName = fname
 
@@ -192,10 +204,10 @@ class FilePicker(tk.Tk):
     def ReadyIngridData(self):
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
-        self.Ingrid.StartSetup()
+        self.IngridSession.StartSetup()
 
     def AnalyzeTopology(self):
-        IG = self.Ingrid
+        IG = self.IngridSession
         self.ViewData()
         IG.AnalyzeTopology()
 
@@ -203,7 +215,7 @@ class FilePicker(tk.Tk):
             IG.PlotTopologyAnalysis()
 
     def CreatePatches(self):
-        IG = self.Ingrid
+        IG = self.IngridSession
         patch_data_available = False
 
         if self.ParamFileMtime != getmtime(self.ParamFileName):
@@ -226,7 +238,7 @@ class FilePicker(tk.Tk):
         IG.PlotPatches()
 
     def CreateSubgrid(self):
-        IG = self.Ingrid
+        IG = self.IngridSession
         if self.ParamFileMtime != getmtime(self.ParamFileName):
             self.ProcessParameterFile(self.ParamFileName)
             IG.RefreshSettings()
@@ -234,15 +246,15 @@ class FilePicker(tk.Tk):
         IG.PlotGrid()
 
     def ExportGridue(self):
-        IG = self.Ingrid
+        IG = self.IngridSession
         fname = filedialog.asksaveasfilename(initialdir='.', title='Save File', defaultextension='', initialfile='gridue')
         if fname != '':
             IG.ExportGridue(fname)
 
     def ViewData(self):
-        IG = self.Ingrid
+        IG = self.IngridSession
         self.ReadyIngridData()
         IG.ShowSetup(view_mode=IG.settings['grid_settings']['view_mode'])
 
     def Quit(self):
-        self.controller.Exit()
+        self.master.Exit()

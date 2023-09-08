@@ -125,11 +125,15 @@ class IngridGUI:
         self.tk_session.title('INGRID')
         self.tk_session.protocol('WM_DELETE_WINDOW', on_closing)
         if test_initialization:
-            def session_test():
-                self.tk_session.destroy()
-                raise TkInitializationSuccess
-            self.tk_session.after(1, session_test)
+            self.tk_session.after(1, self.tk_session.destroy())
         self.tk_session.mainloop()
+        #
+        # If test_initialization flag is set, the gui mainloop
+        # will auto-destroy after initialization. We raise this
+        # exception to be caught in the test suite
+        #
+        if test_initialization:
+            raise TkInitializationSuccess
 
     def Reset(self, message='Are you sure you want to reset?'):
         """

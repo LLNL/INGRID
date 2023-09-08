@@ -1,4 +1,3 @@
-
 class RegionEntered(Exception):
     """
     Exception for identifying when we enter topological regions

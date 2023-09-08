@@ -1,7 +1,12 @@
 import matplotlib
+import os
 
 try:
-    matplotlib.use("TkAgg")
+    if os.environ.get('DISPLAY','') == '':
+        print('no display found. Using non-interactive Agg backend')
+        matplotlib.use('Agg')
+    else:
+        matplotlib.use("TkAgg")
 except:
    active_backend = matplotlib.get_backend()
    msg = 'Warning: Could not set matplotlib backend to "TkAgg". '
@@ -16,6 +21,7 @@ from time import time
 from os.path import getmtime
 from pathlib import Path
 from INGRID.ingrid import Ingrid
+from INGRID.exceptions import TkInitializationSuccess
 
 class IngridGUI:
     """
@@ -107,6 +113,32 @@ class IngridGUI:
             #
             self.IngridSession.SaveSettingsFile(fname=fname)
             break
+
+    def Run(self, test_initialization: bool = False):
+        """
+        Initiate the tk.mainloop() call
+
+        Parameters
+        ----------
+        test_initialization : optional
+            Flag to trigger a TkInitializationSuccess exception when
+            entering the method calling tk.mainloop(). Suggests a successful
+            initialization of the IngridGUI class on the tk side of things.
+        """
+        def on_closing():
+            self.Exit()
+        self.tk_session.title('INGRID')
+        self.tk_session.protocol('WM_DELETE_WINDOW', on_closing)
+        if test_initialization:
+            self.tk_session.after(1, self.tk_session.destroy())
+        self.tk_session.mainloop()
+        #
+        # If test_initialization flag is set, the gui mainloop
+        # will auto-destroy after initialization. We raise this
+        # exception to be caught in the test suite
+        #
+        if test_initialization:
+            raise TkInitializationSuccess
 
     def Reset(self, message='Are you sure you want to reset?'):
         """

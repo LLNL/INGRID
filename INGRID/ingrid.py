@@ -140,24 +140,13 @@ class Ingrid(IngridUtils):
         No prior settings file is required as the user will be
         prompted with an option to generate a new file.
         """
-        try:
-            import tkinter as tk
-        except:
-            import Tkinter as tk
-        try:
-            import tkinter.messagebox as messagebox
-        except:
-            import tkMessageBox as messagebox
-
         def on_closing():
-            if messagebox.askyesno('', 'Are you sure you want to quit?'):
-                plt.close('all')
-                self.IngridWindow.destroy()
+            self.IngridWindow.Exit()
         from INGRID.gui.ingrid_gui import IngridGUI
         self.IngridWindow = IngridGUI(IngridSession=self)
-        self.IngridWindow.title('INGRID')
-        self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
-        self.IngridWindow.mainloop()
+        self.IngridWindow.tk_session.title('INGRID')
+        self.IngridWindow.tk_session.protocol('WM_DELETE_WINDOW', on_closing)
+        self.IngridWindow.tk_session.mainloop()
 
     def RefreshSettings(self):
         try:

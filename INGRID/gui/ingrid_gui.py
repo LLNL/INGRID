@@ -1,7 +1,12 @@
 import matplotlib
+import os
 
 try:
-    matplotlib.use("TkAgg")
+    if os.environ.get('DISPLAY','') == '':
+        print('no display found. Using non-interactive Agg backend')
+        matplotlib.use('Agg')
+    else:
+        matplotlib.use("TkAgg")
 except:
    active_backend = matplotlib.get_backend()
    msg = 'Warning: Could not set matplotlib backend to "TkAgg". '

@@ -42,7 +42,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        # Only testing 3.11 due to known tk macos issue with python < 3.11
+        # See issue here: https://github.com/actions/setup-python/issues/649
+        python-version: ["3.11"]
 
     steps:
     - uses: actions/checkout@v3

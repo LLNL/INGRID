@@ -253,7 +253,8 @@ class Line:
         """
         label = None if label == '' else label
         _ax = plt.gca() if ax is None else ax
-        _ax.plot(self.xval, self.yval, color=color, zorder=5, label=label, linewidth=linewidth)
+        _ax.plot(self.xval, self.yval, color=color,
+                 zorder=5, label=label, linewidth=linewidth)
         return _ax
 
     def print_points(self) -> None:
@@ -284,8 +285,10 @@ class Line:
         if verbose is True:
             print(f'# fluff: len(self.xval) = {len(self.xval)}')
         for i in range(len(self.xval) - 1):
-            x_fluff = np.append(x_fluff, np.linspace(self.xval[i], self.xval[i + 1], num, endpoint=False))
-            y_fluff = np.append(y_fluff, np.linspace(self.yval[i], self.yval[i + 1], num, endpoint=False))
+            x_fluff = np.append(x_fluff, np.linspace(
+                self.xval[i], self.xval[i + 1], num, endpoint=False))
+            y_fluff = np.append(y_fluff, np.linspace(
+                self.yval[i], self.yval[i + 1], num, endpoint=False))
         x_fluff = np.append(x_fluff, self.xval[-1])
         y_fluff = np.append(y_fluff, self.yval[-1])
 
@@ -347,7 +350,8 @@ class Line:
 
         start__split = self.p[:ind + (1 if not same_line_split else 0)]
         start__split += [split_point] if add_split_point else []
-        split__end = [split_point] + self.p[ind + (1 if not same_line_split else 2):]
+        split__end = [split_point] + \
+            self.p[ind + (1 if not same_line_split else 2):]
 
         return Line(start__split), Line(split__end)
 
@@ -522,7 +526,8 @@ class Cell:
         """
         if ax is None:
             ax = plt.gca()
-        ax.plot(self.center.x, self.center.y, '.', markersize=1, color=color, label='cell')
+        ax.plot(self.center.x, self.center.y, '.',
+                markersize=1, color=color, label='cell')
 
     def as_np(self) -> np.ndarray:
         """
@@ -570,7 +575,8 @@ class Patch:
         # This is the border for the fill function
         # It need to only include N and S lines
         self.RemoveDuplicatePoints()
-        self.p = list(self.N.p) + list(self.E.p) + list(self.S.p) + list(self.W.p)
+        self.p = list(self.N.p) + list(self.E.p) + \
+            list(self.S.p) + list(self.W.p)
         self.PatchTagMap = PatchTagMap
         self.plate_patch = plate_patch
         self.plate_location = plate_location
@@ -625,7 +631,8 @@ class Patch:
         x = np.array([p.x for p in self.p])
         y = np.array([p.y for p in self.p])
         arr = np.column_stack((x, y))
-        patch = Polygon(arr, fill=True, closed=True, color=color, label=self.get_tag(), alpha=alpha)
+        patch = Polygon(arr, fill=True, closed=True, color=color,
+                        label=self.get_tag(), alpha=alpha)
         _ax = plt.gca() if ax is None else ax
         _ax.add_patch(patch)
         _ax.plot()
@@ -644,7 +651,8 @@ class Patch:
     def RemoveDuplicatePoints(self):
         for line in [self.N, self.E, self.S, self.W]:
             line.RemoveDuplicatePoints()
-        self.p = list(self.N.p) + list(self.E.p) + list(self.S.p) + list(self.W.p)
+        self.p = list(self.N.p) + list(self.E.p) + \
+            list(self.S.p) + list(self.W.p)
 
     def adjust_corner(self, point, corner):
         if corner == 'NW':
@@ -679,7 +687,8 @@ class Patch:
                 self.cell_grid[-1][j].vertices['SW'] = patch.cell_grid[0][j].vertices['NW']
                 self.cell_grid[-1][j].vertices['SE'] = patch.cell_grid[0][j].vertices['NE']
         else:
-            raise ValueError(f"# Invalid face '{face}' provided for adjusting.")
+            raise ValueError(
+                f"# Invalid face '{face}' provided for adjusting.")
 
     def get_tag(self):
         return self.PatchTagMap[self.patch_name]
@@ -715,7 +724,8 @@ class Patch:
         patch_data = np.array(patch_data, dtype=object)
         cell_data = self.cell_grid_as_np()
         patch_settings = self.get_settings()
-        payload = np.array([patch_data, cell_data, patch_settings], dtype=object)
+        payload = np.array(
+            [patch_data, cell_data, patch_settings], dtype=object)
         return payload
 
     def make_subgrid(self, grid, np_cells=2, nr_cells=2, _poloidal_f=lambda x: x, _radial_f=lambda x: x, verbose=False, visual=False, ShowVertices=False):
@@ -746,7 +756,8 @@ class Patch:
             vparameterization = np.empty(0)
             for i in range(len(r)):
                 vcurr = grid.PsiNorm.get_psi(r[i], z[i])
-                vparameterization = np.append(vparameterization, abs((vcurr - vmin) / (vmax - vmin)))
+                vparameterization = np.append(
+                    vparameterization, abs((vcurr - vmin) / (vmax - vmin)))
 
             return vparameterization
 
@@ -771,7 +782,8 @@ class Patch:
             """
             d = 0
             for i in range(nr_lines):
-                d += np.sqrt((self.E_vertices[i].x - self.W_vertices[i].x)**2 + (self.E_vertices[i].y - self.W_vertices[i].y)**2)
+                d += np.sqrt((self.E_vertices[i].x - self.W_vertices[i].x)
+                             ** 2 + (self.E_vertices[i].y - self.W_vertices[i].y)**2)
             dynamic_step = d / nr_lines
             # print('Dynamic-Step value came out to be: {}\n'.format(dynamic_step * ratio))
             return dynamic_step * ratio
@@ -781,12 +793,14 @@ class Patch:
         cell_grid = []
 
         if verbose:
-            print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(self.patch_name, np_cells, nr_cells))
+            print('Constructing grid for patch "{}" with dimensions (np, nr) = ({}, {})'.format(
+                self.patch_name, np_cells, nr_cells))
             print(np_cells)
             print(nr_cells)
         np_lines = np_cells + 1
         nr_lines = nr_cells + 1
-        if verbose: print(' # Create B-Splines along the North and South boundaries.')
+        if verbose:
+            print(' # Create B-Splines along the North and South boundaries.')
         # Create B-Splines along the North and South boundaries.
         N_vals = self.N.fluff()
 
@@ -795,11 +809,12 @@ class Patch:
 
         S_vals = self.S.reverse_copy().fluff()
         self.S_spl, uS = splprep([S_vals[0], S_vals[1]], s=0)
-        if verbose: print(' # Create B-Splines along West boundaries.')
+        if verbose:
+            print(' # Create B-Splines along West boundaries.')
         # Create B-Splines along the East and West boundaries.
         # Parameterize EW splines in Psi
         try:
-            #Cannot fluff with too many points
+            # Cannot fluff with too many points
             n = 500 if len(self.W.p) < 50 else 100
            # W_vals = self.W.reverse_copy().fluff(num = n)
             W_vals = self.W.reverse_copy().fluff(n, verbose=verbose)
@@ -812,18 +827,22 @@ class Patch:
             filename = f.f_code.co_filename
             linecache.checkcache(filename)
             line = linecache.getline(filename, lineno, f.f_globals)
-            print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
+            print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(
+                filename, lineno, line.strip(), exc_obj))
 
-        if verbose: print(' # Create B-Splines along the East boundaries.')
+        if verbose:
+            print(' # Create B-Splines along the East boundaries.')
         try:
             n = 500 if len(self.E.p) < 50 else 100
             E_vals = self.E.fluff(num=n)
-            self.E_spl, uE = splprep([E_vals[0], E_vals[1]], u=psi_parameterize(grid, E_vals[0], E_vals[1]), s=10)
+            self.E_spl, uE = splprep([E_vals[0], E_vals[1]], u=psi_parameterize(
+                grid, E_vals[0], E_vals[1]), s=10)
         except Exception as e:
             print(' Number of points on the boundary:', len(self.E.p))
             plt.plot(E_vals[0], E_vals[1], '.', color='black')
             print(repr(e))
-        if verbose: print(' #check plate_patch')
+        if verbose:
+            print(' #check plate_patch')
 
         if self.plate_patch:
 
@@ -859,24 +878,32 @@ class Patch:
             for i in range(len(_u)):
                 lookup[_u[i]] = i
             try:
-                plate_north_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_north[0], plate_north[1])))]
+                plate_north_index = lookup[find_nearest(_u, brentq(
+                    f, _u[0], _u[-1], args=(U_spl, plate_north[0], plate_north[1])))]
             except ValueError:
                 try:
-                    plate_north_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_north[0], plate_north[1])))]
+                    plate_north_index = lookup[find_nearest(_u, fsolve(
+                        f, 0, args=(U_spl, plate_north[0], plate_north[1])))]
                 except:
-                    if verbose: print('NorthIndex: ERROR IN PARAMETERIZATION IN PSI')
+                    if verbose:
+                        print('NorthIndex: ERROR IN PARAMETERIZATION IN PSI')
             try:
-                plate_south_index = lookup[find_nearest(_u, brentq(f, _u[0], _u[-1], args=(U_spl, plate_south[0], plate_south[1])))]
+                plate_south_index = lookup[find_nearest(_u, brentq(
+                    f, _u[0], _u[-1], args=(U_spl, plate_south[0], plate_south[1])))]
             except ValueError:
                 try:
-                    plate_south_index = lookup[find_nearest(_u, fsolve(f, 0, args=(U_spl, plate_south[0], plate_south[1])))]
+                    plate_south_index = lookup[find_nearest(_u, fsolve(
+                        f, 0, args=(U_spl, plate_south[0], plate_south[1])))]
                 except:
-                    if verbose: print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
+                    if verbose:
+                        print('SouthIndex: ERROR IN PARAMETERIZATION IN PSI')
             if plate_south_index > plate_north_index:
                 plate_north_index, plate_south_index = plate_south_index, plate_north_index
 
-            U_vals = [U_vals[0][plate_south_index:plate_north_index + 1], U_vals[1][plate_south_index:plate_north_index + 1]]
-            U_spl, _u = splprep([U_vals[0], U_vals[1]], u=psi_parameterize(grid, U_vals[0], U_vals[1]), s=0)
+            U_vals = [U_vals[0][plate_south_index:plate_north_index + 1],
+                      U_vals[1][plate_south_index:plate_north_index + 1]]
+            U_spl, _u = splprep([U_vals[0], U_vals[1]], u=psi_parameterize(
+                grid, U_vals[0], U_vals[1]), s=0)
 
             if self.plate_location == 'W':
                 W_vals = U_vals
@@ -894,7 +921,9 @@ class Patch:
         self.E_vertices = []
         self.W_vertices = []
 
-        if verbose: print('# Generate our sub-grid anchor points along the North and South boundaries of our patch.')
+        if verbose:
+            print(
+                '# Generate our sub-grid anchor points along the North and South boundaries of our patch.')
         # and South boundaries of our patch')
 
         if self.BoundaryPoints.get('N') is None:
@@ -902,7 +931,9 @@ class Patch:
                 _n = splev(_poloidal_f(i / (np_lines - 1)), self.N_spl)
                 self.N_vertices.append(Point((float(_n[0]), float(_n[1]))))
         else:
-            if verbose: print('Find boundary points at face "N" for {}:{}'.format(self.patch_name, self.BoundaryPoints.get('N')))
+            if verbose:
+                print('Find boundary points at face "N" for {}:{}'.format(
+                    self.patch_name, self.BoundaryPoints.get('N')))
             self.N_vertices = self.BoundaryPoints.get('N')
 
         if self.BoundaryPoints.get('S') is None:
@@ -937,7 +968,8 @@ class Patch:
                 ShowVertices = True
                 DetailedVertices = True
             else:
-                raise ValueError('Unknow type for ShowVertices: must be True,False or "detailed"', ShowVertices)
+                raise ValueError(
+                    'Unknow type for ShowVertices: must be True,False or "detailed"', ShowVertices)
 
         if visual or ShowVertices:
             if not DetailedVertices:
@@ -951,22 +983,26 @@ class Patch:
                 markers = ['o', 'X', 's', 'D']
             for vertices, mark in zip([self.W_vertices, self.E_vertices, self.N_vertices, self.S_vertices], markers):
                 for p in vertices:
-                    plt.plot(p.x, p.y, '.', color=color, markersize=ms, marker=mark, markeredgecolor='black')
+                    plt.plot(p.x, p.y, '.', color=color, markersize=ms,
+                             marker=mark, markeredgecolor='black')
         # Radial lines of Psi surfaces. Ordered with increasing magnitude, starting with
         # the South boundary of the current Patch, and ending with the North boundary of
         # this current Patch. These will serve as delimiters when constructing cells.
         radial_lines = [self.N]
         radial_vertices = [self.N_vertices]
         dynamic_step = set_dynamic_step()
-        if verbose: print('# Interpolate radial lines between North and South patch boundaries..')
+        if verbose:
+            print('# Interpolate radial lines between North and South patch boundaries..')
         # Interpolate radial lines between North and South patch boundaries.
         self.radial_spl = []
         temp_vertices = []
         temp_vertices.append(self.N.p[-1])
         for i in range(len(self.W_vertices) - 2):
-            #TODO: parallelize tracing of radial lines (draw_line function must be "externalized" in the scope of the script)
+            # for (i_, i) in enumerate(reversed(range(len(self.W_vertices) - 2))):
+
+            # TODO: parallelize tracing of radial lines (draw_line function must be "externalized" in the scope of the script)
             radial_lines.append(grid.LineTracer.draw_line(self.W_vertices[i + 1], {'line': self.E}, option='theta',
-                direction='cw', show_plot=visual, dynamic_step=dynamic_step, text=verbose))
+                                                          direction='cw', show_plot=visual, dynamic_step=dynamic_step, text=verbose))
             temp_vertices.append(radial_lines[-1].p[-1])
             radial_vals = radial_lines[i + 1].fluff(1000)
             Radial_spl, uR = splprep([radial_vals[0], radial_vals[1]], s=0)
@@ -976,43 +1012,257 @@ class Patch:
                 u = _poloidal_f(j / (np_lines - 1))
                 _r = splev(u, self.radial_spl[i])
                 Pt = Point((float(_r[0]), float(_r[1])))
-                if self.distortion_correction['active'] and j > 0 and j < np_lines - 1:
+                # if self.distortion_correction['active'] and j > 0 and j < np_lines - 1:
+                #     Res = self.distortion_correction['resolution']
+                #     ThetaMin = self.distortion_correction['theta_min']
+                #     ThetaMax = self.distortion_correction['theta_max']
+                #     umin = _poloidal_f((j - 1) / (np_lines - 1))
+                #     umax = _poloidal_f((j + 1) / (np_lines - 1))
+                #     Pt1 = radial_vertices[i][j]
+                #     Pt2 = radial_vertices[i][j - 1]
+                #     Tag = '---- Correcting points: {},{}'.format(i, j)
+                #     Pt = CorrectDistortion(
+                #         u, Pt, Pt1, Pt2, self.radial_spl[i], ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
+
+                vertex_list.append(Pt)
+
+                if visual:
+                    for p in vertex_list:
+                        plt.plot(p.x, p.y, '.', color='black',
+                                 markersize=2, marker='+')
+
+            radial_vertices.append(vertex_list)
+        radial_vertices.append(self.S_vertices)
+
+        # correction of distortion ----------------------
+
+        if not self.distortion_correction['reverse']:
+            print("distortion correction : regular", "has_limit",
+                  self.distortion_correction['has_limit'],
+                  self.distortion_correction["du_min"], self.distortion_correction[
+                      "MaxTol"], self.distortion_correction["reverse_j"]
+                  )
+            for i in range(len(self.W_vertices) - 2):
+                print("i=", i, len(self.W_vertices) - 2)
+                if not self.distortion_correction["reverse_j"]:
+                    for j in range(np_lines):
+                        u = _poloidal_f(j / (np_lines - 1))
+                        if self.distortion_correction['active'] and j > 0 and j < np_lines - 1:
+                            Res = self.distortion_correction['resolution']
+                            ThetaMin = self.distortion_correction['theta_min']
+                            ThetaMax = self.distortion_correction['theta_max']
+                            umin = _poloidal_f((j - 1) / (np_lines - 1))
+                            umax = _poloidal_f((j + 1) / (np_lines - 1))
+                            Pt1 = radial_vertices[i][j]
+                            Pt2 = radial_vertices[i][j - 1]
+                            Tag = '---- Correcting points: {},{}'.format(i, j)
+                            Pt = radial_vertices[i+1][j]
+                            if j == (np_lines - 1) or j == 1:
+                                min_du = self.distortion_correction["du_min"]
+                                if j == 1:
+                                    plt.plot(Pt.x, Pt.y, '.', color='red',
+                                             markersize=8, marker='d')
+                                    plt.show()
+                                    plt.draw()
+                                    u_du_min = 0.0  # umin
+                                else:
+                                    u_du_min = umax
+                                    plt.plot(Pt.x, Pt.y, '.', color='blue',
+                                             markersize=8, marker='d')
+                                    plt.show()
+                                    plt.draw()
+                            else:
+                                min_du = -10.0
+                                u_du_min = 10.0
+
+                            Pt = CorrectDistortion(
+                                u, Pt, Pt1, Pt2, self.radial_spl[
+                                    i], ThetaMin, ThetaMax, umin, umax, u_du_min, Res, visual, Tag, Verbose=verbose,
+                                has_limit=self.distortion_correction[
+                                    'has_limit'], du_min=min_du, MaxTol=self.distortion_correction['MaxTol']
+                            )
+                            radial_vertices[i+1][j] = Pt
+                else:
+                    for j in reversed(range(np_lines-1)):
+                        u = _poloidal_f(j / (np_lines - 1))
+
+                        if self.distortion_correction['active'] and j > 0 and j < np_lines - 1:
+                            Res = self.distortion_correction['resolution']
+                            ThetaMin = self.distortion_correction['theta_min']
+                            ThetaMax = self.distortion_correction['theta_max']
+                            umin = _poloidal_f((j - 1) / (np_lines - 1))
+                            umax = _poloidal_f((j + 1) / (np_lines - 1))
+                            Pt1 = radial_vertices[i][j+1]
+                            Pt2 = radial_vertices[i][j]
+                            Tag = '---- Correcting points: {},{}'.format(i, j)
+                            Pt = radial_vertices[i+1][j]
+                            if j == (np_lines - 1) or j == 1:
+                                min_du = self.distortion_correction["du_min"]
+                                if j == 1:
+                                    plt.plot(Pt.x, Pt.y, '.', color='red',
+                                             markersize=8, marker='d')
+                                    plt.show()
+                                    plt.draw()
+                                    u_du_min = 0.0  # umin
+                                else:
+                                    u_du_min = umax
+                                    plt.plot(Pt.x, Pt.y, '.', color='blue',
+                                             markersize=8, marker='d')
+                                    plt.show()
+                                    plt.draw()
+                            else:
+                                min_du = -10.0
+                                u_du_min = 10.0
+
+                            Pt = CorrectDistortion_reverse_j(
+                                u, Pt, Pt1, Pt2, self.radial_spl[
+                                    i], ThetaMin, ThetaMax, umin, umax, u_du_min, Res, visual, Tag, Verbose=True,
+                                has_limit=self.distortion_correction[
+                                    'has_limit'], du_min=min_du, MaxTol=self.distortion_correction['MaxTol']
+                            )
+                            radial_vertices[i+1][j] = Pt
+
+            # Correct point on south boundary
+            if self.distortion_correction['active']:
+                if not self.distortion_correction["reverse_j"]:
+
+                    for j in range(1, np_lines - 1):
+                        u = _poloidal_f(j / (np_lines - 1))
+                        Pt = self.S_vertices[j]
+                        Res = self.distortion_correction['resolution']
+                        ThetaMin = self.distortion_correction['theta_min']
+                        ThetaMax = self.distortion_correction['theta_max']
+                        umin = _poloidal_f((j - 1) / (np_lines - 1))
+                        umax = _poloidal_f((j + 1) / (np_lines - 1))
+                        Pt1 = radial_vertices[-2][j]
+                        Pt2 = radial_vertices[-2][j - 1]
+                        Tag = '---- Correcting south boundary points:{}'.format(
+                            j)
+                        if j == (np_lines - 2) or j == 1:
+                            min_du = self.distortion_correction["du_min"]
+                            if j == 1:
+                                u_du_min = umin
+                            else:
+                                u_du_min = umax
+                        else:
+                            min_du = -10.0
+                            u_du_min = 10.0
+
+                        radial_vertices[-1][j] = CorrectDistortion(
+                            u, Pt, Pt1, Pt2, self.S_spl, ThetaMin, ThetaMax, umin, umax, u_du_min, Res, visual, Tag, Verbose=verbose,
+                            has_limit=self.distortion_correction[
+                                'has_limit'], du_min=min_du,
+                            MaxTol=self.distortion_correction['MaxTol'],
+                            MinTol=self.distortion_correction['MinTol'])
+                else:
+
+                    for j in reversed(range(1, np_lines - 1)):
+                        u = _poloidal_f(j / (np_lines - 1))
+                        Pt = self.S_vertices[j]
+                        Res = self.distortion_correction['resolution']
+                        ThetaMin = self.distortion_correction['theta_min']
+                        ThetaMax = self.distortion_correction['theta_max']
+                        umin = _poloidal_f((j - 1) / (np_lines - 1))
+                        umax = _poloidal_f((j + 1) / (np_lines - 1))
+                        Pt1 = radial_vertices[-2][j+1]
+                        Pt2 = radial_vertices[-2][j]
+                        Tag = '---- Correcting south boundary points:{}'.format(
+                            j)
+                        if j == (np_lines - 2) or j == 1:
+                            min_du = self.distortion_correction["du_min"]
+                            if j == 1:
+                                u_du_min = umin
+                            else:
+                                u_du_min = umax
+                        else:
+                            min_du = -10.0
+                            u_du_min = 10.0
+
+                        radial_vertices[-1][j] = CorrectDistortion_reverse_j(
+                            u, Pt, Pt1, Pt2, self.S_spl, ThetaMin, ThetaMax, umin, umax, u_du_min, Res, visual, Tag, Verbose=verbose,
+                            has_limit=self.distortion_correction['has_limit'], du_min=min_du,
+                            MaxTol=self.distortion_correction['MaxTol'],
+                            MinTol=self.distortion_correction['MinTol'])
+
+        else:
+            print("distortion correction : reverse", "has_limit",
+                  self.distortion_correction['has_limit'],
+                  self.distortion_correction["du_min"], self.distortion_correction["MaxTol"])
+
+            for i in reversed(range(len(self.W_vertices) - 2)):
+                print("i=", i, len(self.W_vertices) - 2)
+                for j in range(np_lines):
+                    u = _poloidal_f(j / (np_lines - 1))
+                    if self.distortion_correction['active'] and j > 0 and j < np_lines - 1:
+                        Res = self.distortion_correction['resolution']
+                        ThetaMin = self.distortion_correction['theta_min']
+                        ThetaMax = self.distortion_correction['theta_max']
+                        umin = _poloidal_f((j - 1) / (np_lines - 1))
+                        umax = _poloidal_f((j + 1) / (np_lines - 1))
+                        Pt1 = radial_vertices[i+2][j]
+                        Pt2 = radial_vertices[i+2][j - 1]
+                        Tag = '---- Correcting points: {},{}'.format(i, j)
+                        Pt = radial_vertices[i+1][j]
+                        if j == (np_lines - 2) or j == 1:
+                            min_du = self.distortion_correction["du_min"]
+                            if j == 1:
+                                plt.plot(Pt.x, Pt.y, '.', color='red',
+                                         markersize=8, marker='d')
+                                plt.show()
+                                plt.draw()
+                                u_du_min = umin
+                            else:
+                                u_du_min = umax
+                                plt.plot(Pt.x, Pt.y, '.', color='blue',
+                                         markersize=8, marker='d')
+                                plt.show()
+                                plt.draw()
+                        else:
+                            min_du = -10.0
+                            u_du_min = 10.0
+                        Pt = CorrectDistortion(
+                            u, Pt, Pt1, Pt2, self.radial_spl[
+                                i], ThetaMin, ThetaMax, umin, umax, u_du_min, Res, visual, Tag, Verbose=verbose,
+                            has_limit=self.distortion_correction[
+                                'has_limit'], du_min=min_du,
+                            MaxTol=self.distortion_correction['MaxTol'],
+                            MinTol=self.distortion_correction['MinTol']
+                        )
+                        radial_vertices[i+1][j] = Pt
+
+            if self.distortion_correction['active']:
+                for j in range(1, np_lines-1):
+                    u = _poloidal_f(j / (np_lines - 1))
+                    Pt = radial_vertices[0][j]
                     Res = self.distortion_correction['resolution']
                     ThetaMin = self.distortion_correction['theta_min']
                     ThetaMax = self.distortion_correction['theta_max']
                     umin = _poloidal_f((j - 1) / (np_lines - 1))
                     umax = _poloidal_f((j + 1) / (np_lines - 1))
-                    Pt1 = radial_vertices[i][j]
-                    Pt2 = radial_vertices[i][j - 1]
-                    Tag = '---- Correcting points: {},{}'.format(i, j)
-                    Pt = CorrectDistortion(u, Pt, Pt1, Pt2, self.radial_spl[i], ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
+                    Pt1 = radial_vertices[1][j]
+                    Pt2 = radial_vertices[1][j - 1]
+                    Tag = '---- Correcting south boundary points:{}'.format(j)
+                    if j == (np_lines - 2) or j == 1:
+                        min_du = self.distortion_correction["du_min"]
+                        if j == 1:
+                            u_du_min = umin
+                        else:
+                            u_du_min = umax
+                    else:
+                        min_du = -10.0
+                        u_du_min = 10.0
+                    radial_vertices[0][j] = CorrectDistortion(
+                        u, Pt, Pt1, Pt2, self.N_spl, ThetaMin, ThetaMax, umin, umax, u_du_min, Res, visual, Tag, Verbose=verbose,
+                        has_limit=self.distortion_correction['has_limit'], du_min=min_du,
+                        MaxTol=self.distortion_correction['MaxTol'],
+                        MinTol=self.distortion_correction['MinTol'])
 
-                vertex_list.append(Pt)
-                if visual:
-                    for p in vertex_list:
-                        plt.plot(p.x, p.y, '.', color='black', markersize=8)
-
-            radial_vertices.append(vertex_list)
         radial_lines.append(self.S)
         temp_vertices.append(self.S.p[0])
         self.E_vertices = temp_vertices
 
-        #Correct point on south boundary
-        if self.distortion_correction['active']:
-            for j in range(1, np_lines - 1):
-                u = _poloidal_f(j / (np_lines - 1))
-                Pt = self.S_vertices[j]
-                Res = self.distortion_correction['resolution']
-                ThetaMin = self.distortion_correction['theta_min']
-                ThetaMax = self.distortion_correction['theta_max']
-                umin = _poloidal_f((j - 1) / (np_lines - 1))
-                umax = _poloidal_f((j + 1) / (np_lines - 1))
-                Pt1 = radial_vertices[-1][j]
-                Pt2 = radial_vertices[-1][j - 1]
-                Tag = '---- Correcting south boundary points:{}'.format(j)
-                self.S_vertices[j] = CorrectDistortion(u, Pt, Pt1, Pt2, self.S_spl, ThetaMin, ThetaMax, umin, umax, Res, visual, Tag, verbose)
-        radial_vertices.append(self.S_vertices)
-        if verbose: print('# Create Cells: South boundary -> North Boundary')
+        if verbose:
+            print('# Create Cells: South boundary -> North Boundary')
         # Create Cells: South boundary -> North Boundary
         for i in range(len(radial_lines)):
             if radial_lines[i] is self.S:
@@ -1023,12 +1273,14 @@ class Patch:
                 NE = radial_vertices[i][j + 1]
                 SW = radial_vertices[i + 1][j]
                 SE = radial_vertices[i + 1][j + 1]
-                cell_grid[i].append(Cell([Line([NW, NE]), Line([SW, SE]), Line([SE, NE]), Line([SW, NW])]))
+                cell_grid[i].append(
+                    Cell([Line([NW, NE]), Line([SW, SE]), Line([SE, NE]), Line([SW, NW])]))
 
         self.cell_grid = cell_grid
 
     def CheckPatch(self, grid, verbose=False):
-        if verbose: print(' # Checking if patch boundaries can be interpolated wiht splines')
+        if verbose:
+            print(' # Checking if patch boundaries can be interpolated wiht splines')
 
         def psi_parameterize(grid, r, z):
             """
@@ -1042,7 +1294,8 @@ class Patch:
             vparameterization = np.empty(0)
             for i in range(len(r)):
                 vcurr = grid.PsiNorm.get_psi(r[i], z[i])
-                vparameterization = np.append(vparameterization, abs((vcurr - vmin) / (vmax - vmin)))
+                vparameterization = np.append(
+                    vparameterization, abs((vcurr - vmin) / (vmax - vmin)))
 
             return vparameterization
 
@@ -1055,20 +1308,22 @@ class Patch:
                 plt.plot(x[d], y[d], 'o', 'b')
                 raise ValueError(Str + ' is not monotonic')
             else:
-               print(Str + ' is monotonic')
+                print(Str + ' is monotonic')
 
-       # N_vals = self.N.fluff()
-        #S_vals = self.S.reverse_copy().fluff()
+        # N_vals = self.N.fluff()
+        # S_vals = self.S.reverse_copy().fluff()
         n = 20 if len(self.W.p) > 500 else 100
         W_vals = self.W.reverse_copy().fluff(n)
         n = 20 if len(self.E.p) > 500 else 100
         E_vals = self.E.fluff(num=n)
-        if verbose: print(' ## Getting Psi values along the boundaries')
-        #PsiN=psi_parameterize(grid, N_vals[0], N_vals[1])
-        #PsiS=psi_parameterize(grid, S_vals[0], S_vals[1])
+        if verbose:
+            print(' ## Getting Psi values along the boundaries')
+        # PsiN=psi_parameterize(grid, N_vals[0], N_vals[1])
+        # PsiS=psi_parameterize(grid, S_vals[0], S_vals[1])
         PsiW = psi_parameterize(grid, W_vals[0], W_vals[1])
         PsiE = psi_parameterize(grid, E_vals[0], E_vals[1])
-        if verbose: print(' ## Checking monoticity of Psi values along the boundaries')
+        if verbose:
+            print(' ## Checking monoticity of Psi values along the boundaries')
         IsMonotonic(PsiW, W_vals[0], W_vals[1], 'PsiW')
         IsMonotonic(PsiE, E_vals[0], E_vals[1], 'PsiE')
 
@@ -1206,8 +1461,10 @@ def find_split_index(split_point: Point, line: Line) -> tuple:
             same_line_split = True
             return i, same_line_split
         # Create two vectors.
-        end_u = np.array([line.p[i + 1].x - line.p[i].x, line.p[i + 1].y - line.p[i].y])
-        split_v = np.array([split_point.x - line.p[i].x, split_point.y - line.p[i].y])
+        end_u = np.array([line.p[i + 1].x - line.p[i].x,
+                         line.p[i + 1].y - line.p[i].y])
+        split_v = np.array([split_point.x - line.p[i].x,
+                           split_point.y - line.p[i].y])
 
         if is_between(end_u, split_v):
             # store index corresponding to the start of the segment containing the split_point.
@@ -1302,36 +1559,96 @@ def trim_geometry(geoline, start, end):
     return trim
 
 
-def CorrectDistortion(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, Resolution, visual, Tag, MinTol=1.02, MaxTol=0.98, Verbose=False):
+def CorrectDistortion(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, u_du_min, Resolution, visual, Tag, MinTol=1.02, MaxTol=0.98, Verbose=False, has_limit=True, du_min=0.02):
     MaxIter = Resolution * 10
     dumax = (umax - u) / Resolution
     dumin = (u - umin) / Resolution
     Theta = Line([Pt1, Pt]).GetAngle(Line([Pt1, Pt2]))
-    if Verbose: print(f'Current theta value: {Theta}')
+    if Verbose:
+        print(f'Current theta value: {Theta}')
+    if visual:
+        plt.plot(Pt.x, Pt.y, '.', color='yellow', markersize=8, marker='o')
+        plt.show()
+        plt.draw()
     if Theta < ThetaMin or Theta > ThetaMax:
-        if Verbose: print('{}: u={};Theta={};ThetaMin={};ThetaMax={}'.format(Tag, u, Theta, ThetaMin, ThetaMax))
-        if visual:
-                plt.plot(Pt.x, Pt.y, '.', color='red', markersize=8, marker='o')
-                plt.show()
-                plt.draw()
+        if Verbose:
+            print('{}: u={};Theta={};ThetaMin={};ThetaMax={}'.format(
+                Tag, u, Theta, ThetaMin, ThetaMax))
+        # if visual:
+        #     plt.plot(Pt.x, Pt.y, '.', color='red', markersize=4, marker='o')
+        #     plt.show()
+        #     plt.draw()
         icount = 0
         color = 'purple'
         while Theta < ThetaMin or Theta > ThetaMax:
             icount += 1
             if Theta < ThetaMin:
-               u = u + dumax
+                u = u + dumax
             elif Theta > ThetaMax:
-               u = u - dumin
-            if (u > umax * MaxTol or u < umin * MinTol) or icount >= MaxIter:
-               if Verbose: print('[{}]>>>> umax={} umin={};u:{};Theta={}'.format(icount, umax, umin, u, Theta))
-               color = 'gray'
-               break
+                u = u - dumin
+            if (has_limit and (u > umax * MaxTol or u < umin * MinTol)) or abs(u_du_min-u) < du_min or icount >= MaxIter:
+                if Verbose:
+                    print('[{}]>>>> umax={} umin={};u:{};Theta={}'.format(
+                        icount, umax, umin, u, Theta))
+                color = 'gray'
+                break
             _r = splev(u, spl)
             Pt = Point((_r[0], _r[1]))
             Theta = Line([Pt1, Pt]).GetAngle(Line([Pt1, Pt2]))
-        if Verbose: print('[{}]>>>> u:{};Theta={}'.format(icount, u, Theta))
+        if Verbose:
+            print('[{}]>>>> u:{};Theta={}'.format(icount, u, Theta))
         if visual:
-            plt.plot(Pt.x, Pt.y, '.', color=color, markersize=8, marker='s')
+            plt.plot(Pt.x, Pt.y, '.', color=color, markersize=4, marker='s')
+    return Pt
+
+
+def CorrectDistortion_reverse_j(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, u_du_min, Resolution, visual, Tag, MinTol=1.02, MaxTol=0.98, Verbose=False, has_limit=True, du_min=0.02):
+    MaxIter = Resolution * 10
+    dumax = (umax - u) / Resolution
+    dumin = (u - umin) / Resolution
+    # Theta = 180-Line([Pt2, Pt]).GetAngle(Line([Pt2, Pt1]))
+    Theta2 = Line([Pt2, Pt1]).GetAngle(Line([Pt, Pt1]))
+    Theta3 = Line([Pt2, Pt1]).GetAngle(Line([Pt2, Pt]))  # same than 1
+    Theta = Line([Pt, Pt2]).GetAngle(Line([Pt2, Pt1]))
+    Theta5 = Line([Pt2, Pt]).GetAngle(Line([Pt1, Pt2]))  # same as 1
+    if Verbose:
+        print(
+            f'Current theta value: {Theta} {Theta2} {Theta3} {Theta} {Theta5}')
+    if visual:
+        plt.plot(Pt.x, Pt.y, '.', color='yellow', markersize=8, marker='o')
+        plt.show()
+        plt.draw()
+    if Theta < ThetaMin or Theta > ThetaMax:
+        if Verbose:
+            print('{}: u={};Theta={};ThetaMin={};ThetaMax={}'.format(
+                Tag, u, Theta, ThetaMin, ThetaMax))
+        # if visual:
+        #     plt.plot(Pt.x, Pt.y, '.', color='red', markersize=4, marker='o')
+        #     plt.show()
+        #     plt.draw()
+        icount = 0
+        color = 'purple'
+        while Theta < ThetaMin or Theta > ThetaMax:
+            icount += 1
+            if Theta < ThetaMin:
+                u = u + dumax
+            elif Theta > ThetaMax:
+                u = u - dumin
+            if (has_limit and (u > umax * MaxTol or u < umin * MinTol)) or abs(u_du_min-u) < du_min or icount >= MaxIter:
+                if Verbose:
+                    print('[{}]>>>> umax={} umin={};u:{};Theta={}'.format(
+                        icount, umax, umin, u, Theta))
+                color = 'gray'
+                break
+            _r = splev(u, spl)
+            Pt = Point((_r[0], _r[1]))
+            # Theta = 180.0 - Line([Pt1, Pt2]).GetAngle(Line([Pt1, Pt]))
+            Theta = Line([Pt, Pt2]).GetAngle(Line([Pt2, Pt1]))
+
+        if Verbose:
+            print('[{}]>>>> u:{};Theta={}'.format(icount, u, Theta))
+        if visual:
+            plt.plot(Pt.x, Pt.y, '.', color=color, markersize=4, marker='s')
     return Pt
 
 

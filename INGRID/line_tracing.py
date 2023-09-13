@@ -560,9 +560,9 @@ class LineTracing:
         if option is not None and direction is not None:
             self._set_function(option, direction)
 
-        print("direction=", self.dir)
-        print("option=", self.option)
-        print('rz_start = ', rz_start)
+        # print("direction=", self.dir)
+        # print("option=", self.option)
+        # print('rz_start = ', rz_start)
         # check rz_start
         if isinstance(rz_start, Point):
             ynot = (rz_start.x, rz_start.y)
@@ -887,7 +887,7 @@ class LineTracing:
 
         if Verbose:
             print('Drew for {} seconds\n'.format(end - start))
-        print('')
+
         return Line(line)
 
     def PsiCostFunc(self, xy):

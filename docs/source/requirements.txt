@@ -1,5 +1,5 @@
 altgraph==0.16.1
-certifi==2019.9.11
+certifi==2023.7.22
 cycler==0.10.0
 f90nml==1.1.2
 fastcache==1.1.0

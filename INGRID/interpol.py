@@ -1,10 +1,7 @@
-#!/usr/bin/env pythonu
-# -*- coding: utf-8 -*-
 """
 Module containing EfitData class for handling all interpolation
 related computations.
 """
-from __future__ import division, print_function, absolute_import
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import zoom
@@ -42,9 +39,22 @@ class EfitData:
         Specify the title of the figure the data will be plotted on.
     """
 
-    def __init__(self, rmin=0.0, rmax=1.0, nr=10, zmin=0.0, zmax=2.0, nz=20,
-                 rcenter=1.6955000, bcenter=-2.1094041, rlimiter=None, zlimiter=None,
-                 rmagx=0.0, zmagx=0.0, name='unnamed', parent=None):
+    def __init__(self, 
+                 rmin=0.0, 
+                 rmax=1.0, 
+                 nr=10, 
+                 zmin=0.0, 
+                 zmax=2.0, 
+                 nz=20,
+                 rcenter=1.6955000, 
+                 bcenter=-2.1094041, 
+                 rlimiter=None, 
+                 zlimiter=None,
+                 rmagx=0.0, 
+                 zmagx=0.0, 
+                 name='unnamed', 
+                 parent=None):
+
         r, dr = np.linspace(rmin, rmax, nr, retstep=True)
         z, dz = np.linspace(zmin, zmax, nz, retstep=True)
         rgrid, zgrid = np.meshgrid(r, z, indexing='ij')

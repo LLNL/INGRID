@@ -51,7 +51,8 @@ setup(
         'pyyaml',
         'matplotlib',
         'tk',
-        'sympy'
+        'sympy',
+        'freeqdsk'
     ]
 )
 

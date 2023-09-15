@@ -124,9 +124,9 @@ class Ingrid(IngridUtils):
             return value
         return wrapper_timer
 
-    def LoadEFIT(self, fpath: str) -> None:
+    def LoadGEQDSK(self, fpath: str) -> None:
         self.settings['eqdsk'] = fpath
-        self.OMFIT_read_psi()
+        self.LoadGEQDSK(geqdsk_path=fpath)
 
     def StartGUI(self, test_initialization: bool = False) -> None:
         """
@@ -1287,7 +1287,7 @@ class Ingrid(IngridUtils):
                 + 'Must be <= 2).'
             raise ValueError(v_error_str)
 
-        self.LoadEFIT(self.settings['eqdsk'])
+        self.LoadGEQDSK(self.settings['eqdsk'])
         self.AutoRefineMagAxis()
         self.AutoRefineXPoint()
         if topology == 'DNL':

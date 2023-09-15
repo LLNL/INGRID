@@ -66,12 +66,12 @@ class OMFITgeqdsk(dict):
         try:
             # official gEQDSK file format saves PSIRZ as a single flat array of size rowsXcols
             nlNWNH = int(np.ceil(self['NW'] * self['NH'] / 5.))
-            self['PSIRZ'] = np.reshape(np.fromiter(splitter(''.join(EQDSK[offset:offset + nlNWNH])), dtype=np.float64),(self['NH'], self['NW']))
+            self['PSIRZ'] = np.reshape(np.fromiter(splitter(''.join(EQDSK[offset:offset + nlNWNH])), dtype=float),(self['NH'], self['NW']))
             offset = offset + nlNWNH
         except ValueError:
             # sometimes gEQDSK files save row by row of the PSIRZ grid (eg. FIESTA code)
             nlNWNH = self['NH'] * nlNW
-            self['PSIRZ'] = np.reshape(np.fromiter(splitter(''.join(EQDSK[offset:offset + nlNWNH])), dtype=np.float64),(self['NH'], self['NW']))
+            self['PSIRZ'] = np.reshape(np.fromiter(splitter(''.join(EQDSK[offset:offset + nlNWNH])), dtype=float),(self['NH'], self['NW']))
             offset = offset + nlNWNH
         self['QPSI'] = np.array(list(map(np.float64, splitter(merge(EQDSK[offset:offset + nlNW])))))
         offset = offset + nlNW

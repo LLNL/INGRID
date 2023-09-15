@@ -124,10 +124,6 @@ class Ingrid(IngridUtils):
             return value
         return wrapper_timer
 
-    def LoadGEQDSK(self, fpath: str) -> None:
-        self.settings['eqdsk'] = fpath
-        self.LoadGEQDSK(geqdsk_path=fpath)
-
     def StartGUI(self, test_initialization: bool = False) -> None:
         """
         Start GUI for Ingrid.

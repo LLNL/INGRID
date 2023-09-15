@@ -516,7 +516,15 @@ class IngridUtils():
         if self.settings['grid_settings']['rmagx'] is None or self.settings['grid_settings']['zmagx'] is None:
             self.settings['grid_settings']['rmagx'], self.settings['grid_settings']['zmagx'] = (self.PsiUNorm.rmagx, self.PsiUNorm.zmagx)
 
+        #
+        # Save the stored data in the object
+        #
         self.geqdsk_data = geqdsk_data
+        #
+        # Update the eqdsk file referenced in settings to that of the loaded data
+        #
+        self.settings['eqdsk'] = geqdsk_path
+
 
     def ParseTxtCoordinates(self, fpath: str, rshift: float = 0.0, zshift: float = 0.0) -> tuple:
         """

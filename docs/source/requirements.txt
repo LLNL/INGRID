@@ -12,7 +12,6 @@ mkl-random==1.1.0
 mkl-service==2.3.0
 mpmath==1.1.0
 numpy==1.17.2
-pycrypto==2.6.1
 PyInstaller==3.6
 pyparsing==2.4.2
 python-dateutil==2.8.0

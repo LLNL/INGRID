@@ -16,6 +16,7 @@ try:
 except:
     pass
 import matplotlib.pyplot as plt
+import matplotlib.lines as mplines
 import pathlib
 import inspect
 import functools
@@ -38,7 +39,6 @@ from INGRID.topologies.sf105 import SF105
 from INGRID.topologies.sf135 import SF135
 from INGRID.topologies.sf165 import SF165
 from INGRID.topologies.udn import UDN
-from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line
 
 
@@ -697,34 +697,37 @@ class Ingrid(IngridUtils):
         """
         Safely remove the legend form the normalized psi data.
         """
-        if ax.get_legend() is not None:
-            [line.remove() for line in ax.get_legend().get_lines()]
+        for legend in ax.figure.legends:
+            legend.remove()
 
-    def RemovePlotLine(self, label: str, ax: object = None) -> None:
+    def ClearContours(self, ax=None):
+        
         if ax is None:
-            ax = plt.gca()
-        try:
-            [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == label]
-        except:
-            pass
+            ax = self.get_psi_norm_ax()
 
-    def RemovePlotPoint(self, label: str, ax: object = None) -> None:
-        if ax is None:
-            ax = plt.gca()
-        try:
-            [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == label]
-        except:
-            pass
+        for collection in getattr(ax, 'collections', list()):
+            collection.remove()
+        ax.figure.canvas.draw()
 
-    def RemovePlotPatch(self, label: str, ax: object = None) -> None:
-        if ax is None:
-            ax = plt.gca()
-        try:
-            [ax_patch.remove() for ax_patch in ax.patches if ax_patch.get_label() == label]
-        except:
-            pass
+    def RemovePlotLine(self, label: str, ax) -> None:
+        for line in ax.lines:
+            if label == line.get_label():
+                line.remove()
 
-    def PlotStrikeGeometry(self, ax: object = None) -> None:
+    def RemovePlotPoint(self, label: str, ax) -> None:
+        #
+        # NOTE: Same as above?!?
+        #
+        for line in ax.lines:
+            if label == line.get_label():
+                line.remove()
+
+    def RemovePlotPatch(self, label: str, ax) -> None:
+        for patch in ax.patches:
+            if label == patch.get_label():
+                patch.remove()
+
+    def PlotStrikeGeometry(self, ax) -> None:
         """
         Plot all strike geometry to be used for drawing the Patch Map.
 
@@ -735,9 +738,6 @@ class Ingrid(IngridUtils):
 
         Otherwise only any loaded target plates will be plotted.
         """
-
-        if ax is None:
-            ax = plt.gca()
 
         # In case previous plot still contains limiter when not needed.
         self.RemovePlotLine(label='limiter', ax=ax)
@@ -752,18 +752,16 @@ class Ingrid(IngridUtils):
         else:
             self.PlotTargetPlates(ax=ax)
 
-    def PlotTargetPlates(self, ax: object = None) -> None:
+    def PlotTargetPlates(self, ax) -> None:
         """
         Plot all PlateData and remove outdated plate line artists.
         """
         plate_colors = ['blue', 'orange', 'firebrick', 'green']
 
-        if ax is None:
-            ax = plt.gca()
-        for k, c in zip([key for key in self.PlateData.keys()], plate_colors):
+        for k, c in zip(self.PlateData, plate_colors):
             self.PlotTargetPlate(plate_key=k, color=c, ax=ax)
 
-    def PlotTargetPlate(self, plate_key: str, color: str = 'red', ax: object = None) -> None:
+    def PlotTargetPlate(self, ax, plate_key: str, color: str = 'red') -> None:
         """
         Plot a target plate corresponding to a plate key.
 
@@ -776,54 +774,33 @@ class Ingrid(IngridUtils):
         color : str, optional
             Color to provide to matplotlib
         """
-        if ax is None:
-            ax = plt.gca()
-
-        if plate_key in [k for k in self.PlateData.keys()]:
+        if plate_key in self.PlateData:
             self.RemovePlotLine(label=plate_key, ax=ax)
-            if type(self.PlateData[plate_key]) is Line:
-                print(f"# Plotting plate '{plate_key}'")
-                self.PlateData[plate_key].plot(label=plate_key, color=color)
-            else:
-                pass
+            print(f"# Plotting plate '{plate_key}'")
+            line = self.PlateData[plate_key]
+            if line != {}:
+                line.plot(ax=ax, label=plate_key, color=color, zorder=10)
         else:
             raise ValueError(f"# Value '{plate_key}' is not an Ingrid supported target plate key.")
 
-    def PlotLimiter(self, ax: object = None) -> None:
+    def PlotLimiter(self, ax) -> None:
         """
         Plot limiter geometry.
         """
-        if ax is None:
-            ax = plt.gca()
         self.RemovePlotLine(label='limiter', ax=ax)
-        self.LimiterData.plot(color='dodgerblue', label='limiter')
+        self.LimiterData.plot(ax=ax, color='dodgerblue', label='limiter')
 
-    def PlotPsiUNorm(self) -> None:
-        """
-        Plot unnormalized psi data.
-        """
-        try:
-            if self.PsiUNorm.ax.__dict__['collections'] is not None:
-                self.PsiUNorm.ax.collections = []
-                plt.draw()
-        except:
-            pass
-        self.PsiUNorm.plot_data(self.settings['grid_settings']['nlevs'])
-
-    def PlotPsiNorm(self, view_mode: str = 'filled') -> None:
+    def PlotPsiNorm(self, ax=None, view_mode: str = 'filled') -> None:
         """
         Plot normalized psi data.
         """
-        try:
-            if self.PsiNormAx.__dict__['collections'] is not None:
-                self.PsiNormAx.collections = []
-                plt.draw()
-        except:
-            pass
+        if ax is None:
+            ax = self.get_psi_norm_ax()
+        self.ClearLegend(ax=ax)
+        self.ClearContours(ax=ax)
+        self.PsiNorm.plot_data(nlevs=self.settings['grid_settings']['nlevs'], ax=ax, view_mode=view_mode)
 
-        self.PsiNorm.plot_data(nlevs=self.settings['grid_settings']['nlevs'], fig=self._PsiNormFig, ax=self.PsiNormAx, view_mode=view_mode)
-
-    def PlotPsiNormBounds(self) -> None:
+    def PlotPsiNormBounds(self, ax=None) -> None:
         """
         Plot contour lines associated with psi boundary values provided.
 
@@ -841,31 +818,45 @@ class Ingrid(IngridUtils):
 
         nxpt = self.settings['grid_settings']['num_xpt']
         if nxpt == 1:
-            Dic = {'psi_1': 'lime',
+            color_map = {'psi_1': 'lime',
                    'psi_core': 'cyan',
                    'psi_pf_1': 'white'}
         elif nxpt == 2:
-            Dic = {'psi_core': 'cyan',
+            color_map = {'psi_core': 'cyan',
                    'psi_1': 'lime',
                    'psi_2': 'fuchsia',
                    'psi_pf_1': 'white',
                    'psi_pf_2': 'yellow'}
 
-        for k, c in Dic.items():
-            self.PsiNorm.PlotLevel(self.settings['grid_settings'][k], color=Dic[k], label=k)
+        if ax is None:
+            ax = self.get_psi_norm_ax()
 
-        self.PsiNorm.PlotLevel(1.0, color='red', label='Primary Separatrix')
+        for k, c in color_map.items():
+            self.PsiNorm.PlotLevel(ax=ax, level=self.settings['grid_settings'][k], color=c, label=k)
+        self.PsiNorm.PlotLevel(ax=ax, level=1.0, color='red', label='Primary Separatrix')
+
         if nxpt == 2:
             self.PsiNorm.PlotLevel(
-                self.PsiNorm.get_psi(self.xpt2[0], self.xpt2[1]), color='blue', label='Secondary Separatrix')
+                ax=ax,
+                level=self.PsiNorm.get_psi(self.xpt2[0], self.xpt2[1]), 
+                color='blue', 
+                label='Secondary Separatrix')
 
         handles, labels = self.PsiNorm.ax.get_legend_handles_labels()
+
+        #
+        # Process handles for convenience
+        #
+        color_map = {'Primary Separatrix': 'red', **color_map}
+        for i, label in enumerate(labels):
+            if not label in color_map:
+                continue
+            handles[i] = mplines.Line2D([0], [0], color=color_map[label])
+
         lookup = {label: handle for label, handle in zip(labels, handles)}
-        try:
-            self.PsiNorm.fig.legends[0].remove()
-        except:
-            pass
-        self.PsiNorm.fig.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
+
+        self.ClearLegend(ax=ax)
+        ax.figure.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
                                bbox_to_anchor=(0.5, 1), loc='upper center',
                                ncol=len([label for label in lookup.keys()]) // 3)
 
@@ -875,7 +866,7 @@ class Ingrid(IngridUtils):
         """
 
         if ax is None:
-            ax = plt.gca()
+            ax = self.get_psi_norm_ax()
 
         (x, y) = self.magx
         x += self.settings['grid_settings']['patch_generation']['rmagx_shift']
@@ -911,7 +902,7 @@ class Ingrid(IngridUtils):
 
         self.PsiNorm.ax.add_patch(self.LineTracer.RegionPolygon['Core'])
         self.PsiNorm.ax.add_patch(self.LineTracer.RegionPolygon['PF_1'])
-        self.LineTracer.RegionLineCut.plot(color='white', label='RegionLineCut')
+        self.LineTracer.RegionLineCut.plot(ax=ax, color='white', label='RegionLineCut')
 
     def PlotPsiLevel(self, efit_psi: object, level: float, Label: str = '') -> None:
         """
@@ -955,25 +946,25 @@ class Ingrid(IngridUtils):
         magx = Point(np.array([R, Z]))
 
         # Generate Horizontal Mid-Plane lines
-        LHS_Point = Point(magx.x - 1e6 * np.cos(magx_tilt_1), magx.y - 1e6 * np.sin(magx_tilt_1))
-        RHS_Point = Point(magx.x, magx.y)
+        LHS_Point = Point(magx[0] - np.array([1e6 * np.cos(magx_tilt_1), 1e6 * np.sin(magx_tilt_1)]))
+        RHS_Point = Point(magx.data)
         midline_1 = Line([LHS_Point, RHS_Point])
 
-        LHS_Point = Point(magx.x, magx.y)
-        RHS_Point = Point(magx.x + 1e6 * np.cos(magx_tilt_2), magx.y + 1e6 * np.sin(magx_tilt_2))
+        LHS_Point = Point(magx.data)
+        RHS_Point = Point(magx + np.array([1e6 * np.cos(magx_tilt_2), 1e6 * np.sin(magx_tilt_2)]))
         midline_2 = Line([LHS_Point, RHS_Point])
 
         try:
             [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'midline_1']
         except:
             pass
-        midline_1.plot(color='darkkhaki', label='midline_1')
+        midline_1.plot(ax=ax, color='darkkhaki', label='midline_1')
 
         try:
             [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'midline_2']
         except:
             pass
-        midline_2.plot(color='lightpink', label='midline_2')
+        midline_2.plot(ax=ax, color='lightpink', label='midline_2')
 
     def PlotEastWestXpt1Ref(self, ax: object = None) -> None:
         """
@@ -1010,15 +1001,15 @@ class Ingrid(IngridUtils):
             xpt1 = Point(np.array([R, Z]))
 
         # Generate Horizontal Mid-Plane lines
-            LHS_Point = Point(xpt1.x - 1e6 * np.cos(magx_tilt_1), xpt1.y - 1e6 * np.sin(magx_tilt_1))
-            RHS_Point = Point(xpt1.x, xpt1.y)
+            LHS_Point = Point(xpt1 - np.array([1e6 * np.cos(magx_tilt_1), xpt1[1] - 1e6 * np.sin(magx_tilt_1)]))
+            RHS_Point = Point(xpt1.data)
             xpt1_midline_ref_E = Line([LHS_Point, RHS_Point])
 
             try:
                 [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt1_ref_W']
             except:
                 pass
-            xpt1_midline_ref_E.plot(color='darkkhaki', label='xpt1_ref_W')
+            xpt1_midline_ref_E.plot(ax=ax, color='darkkhaki', label='xpt1_ref_W')
 
         if self.settings['grid_settings']['patch_generation']['use_xpt1_E'] is True:
             R = self.settings['grid_settings']['rxpt']
@@ -1026,15 +1017,15 @@ class Ingrid(IngridUtils):
             xpt1 = Point(np.array([R, Z]))
 
         # Generate Horizontal Mid-Plane lines
-            LHS_Point = Point(xpt1.x, xpt1.y)
-            RHS_Point = Point(xpt1.x + 1e6 * np.cos(magx_tilt_2), xpt1.y + 1e6 * np.sin(magx_tilt_2))
+            LHS_Point = Point(xpt1.data)
+            RHS_Point = Point(xpt1 + np.array([1e6 * np.cos(magx_tilt_2), 1e6 * np.sin(magx_tilt_2)]))
             xpt1_midline_ref_W = Line([LHS_Point, RHS_Point])
 
             try:
                 [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt1_ref_E']
             except:
                 pass
-            xpt1_midline_ref_W.plot(color='lightpink', label='xpt1_ref_E')
+            xpt1_midline_ref_W.plot(ax=ax, color='lightpink', label='xpt1_ref_E')
 
     def PlotEastWestXpt2Ref(self, ax: object = None) -> None:
         """
@@ -1071,15 +1062,15 @@ class Ingrid(IngridUtils):
             xpt2 = Point(np.array([R, Z]))
 
         # Generate Horizontal Mid-Plane lines
-            LHS_Point = Point(xpt2.x - 1e6 * np.cos(magx_tilt_1), xpt2.y - 1e6 * np.sin(magx_tilt_1))
-            RHS_Point = Point(xpt2.x, xpt2.y)
+            LHS_Point = Point(xpt2.x - np.array([1e6 * np.cos(magx_tilt_1), 1e6 * np.sin(magx_tilt_1)]))
+            RHS_Point = Point(xpt2)
             xpt2_midline_ref_E = Line([LHS_Point, RHS_Point])
 
             try:
                 [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt2_ref_W']
             except:
                 pass
-            xpt2_midline_ref_E.plot(color='darkkhaki', label='xpt2_ref_W')
+            xpt2_midline_ref_E.plot(ax=ax, color='darkkhaki', label='xpt2_ref_W')
 
         if self.settings['grid_settings']['patch_generation']['use_xpt2_E'] is True:
             R = self.settings['grid_settings']['rxpt2']
@@ -1087,30 +1078,31 @@ class Ingrid(IngridUtils):
             xpt2 = Point(np.array([R, Z]))
 
         # Generate Horizontal Mid-Plane lines
-            LHS_Point = Point(xpt2.x, xpt2.y)
-            RHS_Point = Point(xpt2.x + 1e6 * np.cos(magx_tilt_2), xpt2.y + 1e6 * np.sin(magx_tilt_2))
+            LHS_Point = Point(xpt2)
+            RHS_Point = Point(xpt2 + np.array([1e6 * np.cos(magx_tilt_2), 1e6 * np.sin(magx_tilt_2)]))
             xpt2_midline_ref_W = Line([LHS_Point, RHS_Point])
 
             try:
                 [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt2_ref_E']
             except:
                 pass
-            xpt2_midline_ref_W.plot(color='lightpink', label='xpt2_ref_E')
+            xpt2_midline_ref_W.plot(ax=ax, color='lightpink', label='xpt2_ref_E')
 
-    def PlotPatches(self) -> None:
+    def PlotPatches(self, ax=None) -> None:
         """
         Plot the patch map that was generated with method 'CreatePatches'
         """
-        try:
-            plt.close(self._PatchFig)
-        except:
-            pass
-        self._PatchFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Patches', figsize=(6, 10))
-        self.PatchAx = self._PatchFig.add_subplot(111)
-        self.CurrentTopology.patch_diagram(fig=self._PatchFig, ax=self.PatchAx)
-        self.PlotStrikeGeometry(ax=self.PatchAx)
+
+        if ax is None:
+            ax = self.get_patch_map_ax()
+
+        fig = ax.figure
+        fig.clear()
+
+        self.CurrentTopology.patch_diagram(fig=fig, ax=ax)
+        self.PlotStrikeGeometry(ax=ax)
         if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'target_plates':
-            self.RemovePlotLine(label='limiter', ax=self.PatchAx)
+            self.RemovePlotLine(label='limiter', ax=ax)
 
     def PlotGrid(self) -> None:
         """
@@ -1120,8 +1112,8 @@ class Ingrid(IngridUtils):
             plt.close(self._SubgridFig)
         except:
             pass
-        self._SubgridFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Grid', figsize=(6, 10))
-        self._SubgridAx = self._SubgridFig.add_subplot(111)
+        self._SubgridFig = self.get_subgrid_figure()
+        self._SubgridAx = self.get_subgrid_ax()
         self.CurrentTopology.grid_diagram(fig=self._SubgridFig, ax=self._SubgridAx)
 
     def PlotSubgrid(self) -> None:
@@ -1189,9 +1181,6 @@ class Ingrid(IngridUtils):
         self.PsiNorm.init_bivariate_spline(self.PsiNorm.r[:, 0], 
                                            self.PsiNorm.z[0, :], 
                                            psinorm)
-
-        self._PsiNormFig = plt.figure('INGRID: ' + self.PsiNorm.name, figsize=(8, 10))
-        self.PsiNormAx = self._PsiNormFig.add_subplot(111)
 
     def AnalyzeTopology(self) -> None:
         """
@@ -1306,29 +1295,22 @@ class Ingrid(IngridUtils):
         self.CalcPsiNorm()
         self.PrepLineTracing()
 
-    def ShowSetup(self, view_mode: str = 'filled') -> None:
+    def ShowSetup(self, view_mode: str = 'filled', ax=None) -> None:
         """
         Show Ingrid setup that a patch map will be generated from.
 
         This method plots normalized psi data, psi boundaries, strike geometry,
         and midplane lines through the magnetic axis.
         """
-        try:
-            ax = plt.figure('INGRID: Normalized Efit Data').axes[0]
-            self.ClearLegend(ax=ax)
-            self.RemovePlotPatch(ax=ax, label='Core')
-            self.RemovePlotPatch(ax=ax, label='PF_1')
-            self.RemovePlotLine(ax=ax, label='RegionLineCut')
-        except:
-            pass
-        self.PlotPsiNorm(view_mode=view_mode)
-        self.PlotPsiNormMagReference()
-        self.PlotStrikeGeometry(ax=self.PsiNormAx)
-        self.PlotMidplane(ax=self.PsiNormAx)
-        self.PlotEastWestXpt1Ref(ax=self.PsiNormAx)
+        psi_norm_ax  = self.get_psi_norm_ax()
+        self.PlotPsiNorm(ax=psi_norm_ax, view_mode=view_mode)
+        self.PlotPsiNormMagReference(ax=psi_norm_ax)
+        self.PlotStrikeGeometry(ax=psi_norm_ax)
+        self.PlotMidplane(ax=psi_norm_ax)
+        self.PlotEastWestXpt1Ref(ax=psi_norm_ax)
         if self.settings['grid_settings']['num_xpt'] == 2:
-            self.PlotEastWestXpt2Ref(ax=self.PsiNormAx)
-        self.PlotPsiNormBounds()
+            self.PlotEastWestXpt2Ref(ax=psi_norm_ax)
+        self.PlotPsiNormBounds(ax=psi_norm_ax)
         self.PrintSummaryParams()
 
     @_timer

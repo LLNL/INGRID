@@ -2,11 +2,7 @@ import matplotlib
 import os
 
 try:
-    if os.environ.get('DISPLAY','') == '':
-        print('no display found. Using non-interactive Agg backend')
-        matplotlib.use('Agg')
-    else:
-        matplotlib.use("TkAgg")
+    matplotlib.use("TkAgg")
 except:
    active_backend = matplotlib.get_backend()
    msg = 'Warning: Could not set matplotlib backend to "TkAgg". '
@@ -45,6 +41,7 @@ class IngridGUI:
         # Starts a tk session
         #
         self.tk_session = tk.Tk()
+        plt.ion()
         self.main_frame = tk.Frame(master=self.tk_session)
         self.main_frame.grid_rowconfigure(0, weight=1)
         self.main_frame.grid_columnconfigure(0, weight=1)
@@ -447,7 +444,6 @@ class FilePicker(tk.Frame):
         """
         self.ViewData()
         self.controller.IngridSession.AnalyzeTopology()
-
         if self.controller.IngridSession.settings['grid_settings']['num_xpt'] == 2:
             self.controller.IngridSession.PlotTopologyAnalysis()
 

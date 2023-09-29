@@ -1,19 +1,10 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
-"""
 
-"""
-
-# want to click on a point close to a zero, adjust to the exact point
-# via newton's, and then trace out the contour line.
-from __future__ import print_function, division
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from scipy.integrate import solve_ivp, LSODA
+from scipy.integrate import solve_ivp
 from scipy.optimize import root_scalar, minimize
 from time import time
-from INGRID.geometry import Point, Line, rotate, find_split_index, angle_between, \
+from INGRID.geometry import Point, Line, rotate, find_split_index, \
     segment_intersect, test2points
 from INGRID.exceptions import RegionEntered
 
@@ -34,8 +25,6 @@ class LineTracing:
     tol : float, optional
         Short for tolerance. Specifies how close to the final point the
         line must get before converging. Also defines a circle.
-    numPoints : int
-        Number of points in the circle of radius eps.
     dt : float, optional
         Specify the size of each line segment that is traced by
         scipy.integrate.solve_ivp.
@@ -50,8 +39,7 @@ class LineTracing:
         tracing.
     """
 
-    def __init__(self, grid, settings, eps=1e-6, tol=5e-5, first_step=1e-5,
-                 numPoints=25, dt=0.01, option='xpt_circ', direction='cw'):
+    def __init__(self, grid, settings, eps=1e-6, tol=5e-5, first_step=1e-5, dt=0.01, option='xpt_circ', direction='cw'):
 
         self.grid = grid
         self.settings = settings
@@ -191,31 +179,6 @@ class LineTracing:
         elif self.option == 'z_const':
             self.function = self._differential_z_const
 
-    def __call__(self, event):
-        """
-        Activates upon mouse click. Will call the appropriate function
-        based on parameters.
-        """
-        if event.button == 3:
-            # print('...disabling fuzzy click mode...')
-            # event.canvas.mpl_disconnect(self.cid)
-            return
-        if event.inaxes != self.grid.ax.axes:
-            # safe guards against clicking outside the figure
-            return
-
-        x0, y0 = event.xdata, event.ydata
-        plt.draw()
-
-        if self.option in ['theta', 'rho']:
-            self.draw_line((x0, y0), show_plot=True, text=True)
-
-    def disconnect(self):
-        """ Turns off the click functionality """
-        # self.grid.ax.figure.canvas.mpl_disconnect(self.cid)
-        # self.root.disconnect()
-        pass
-
     def analyze_saddle(self, xpt, xpt_ID):
         """
         Finds theta values to be tested for N and S directions
@@ -229,7 +192,10 @@ class LineTracing:
         hessian[1, 0] = self.grid.get_psi(rxpt, zxpt, tag='vrz')
 
         eigval, eigvect = np.linalg.eig(hessian)
-        index = 0 if np.sign(eigval[0]) == -1 else 1
+
+        index = 1
+        if np.sign(eigval[0]) == -1: 
+            index = 0
 
         origin = np.array([rxpt, zxpt])
 
@@ -307,10 +273,6 @@ class LineTracing:
                 elif pf_polygon.get_path().contains_point(xk):
                     raise RegionEntered(message='# Entered PF...', region='PF')
 
-            def reorder_limiter(new_start, limiter):
-                start_index, = find_split_index(new_start, limiter)
-                return limiter
-
             def limiter_split(start, end, limiter):
                 start_index, sls = find_split_index(start, limiter)
                 end_index, sls = find_split_index(end, limiter)
@@ -327,44 +289,45 @@ class LineTracing:
             except KeyError:
                 verbose = False
 
-            WestPlate = self.grid.parent.PlateData['plate_W1']
-            EastPlate = self.grid.parent.PlateData['plate_E1']
 
             limiter = self.grid.parent.LimiterData
 
             xpt1 = self.NSEW_lookup['xpt1']['coor']
             magx = np.array([self.grid.parent.settings['grid_settings']['rmagx'], self.grid.parent.settings['grid_settings']['zmagx']])
 
-            psi_max = self.grid.parent.settings['grid_settings']['psi_1']
-            psi_core = self.grid.parent.settings['grid_settings']['psi_core']
-            psi_pf_1 = self.grid.parent.settings['grid_settings']['psi_pf_1']
-
             # Create mid-line
-            LHS_Point = Point(magx[0] - 1e6, magx[1])
-            RHS_Point = Point(magx[0] + 1e6, magx[1])
+            LHS_Point = Point([magx[0] - 1e6, magx[1]])
+            RHS_Point = Point([magx[0] + 1e6, magx[1]])
             midline = Line([LHS_Point, RHS_Point])
 
             # Generate Vertical Mid-Plane line
-            Lower_Point = Point(magx[0], magx[1] - 1e6)
-            Upper_Point = Point(magx[0], magx[1] + 1e6)
+            Lower_Point = Point([magx[0], magx[1] - 1e6])
+            Upper_Point = Point([magx[0], magx[1] + 1e6])
             topline = Line([Lower_Point, Upper_Point])
 
             # Drawing Separatrix
             print('# Tracing core region...')
             xptNW_midLine = self.draw_line(xpt1['NW'], {'line': midline}, option='theta', direction='cw', show_plot=visual, text=verbose)
             xptNE_midLine = self.draw_line(xpt1['NE'], {'line': midline}, option='theta', direction='ccw', show_plot=visual, text=verbose)
-            midline_topline_west = self.draw_line(xptNW_midLine.p[-1], {'line': topline}, option='theta', direction='cw', show_plot=visual, text=verbose)
-            midline_topline_east = self.draw_line(xptNE_midLine.p[-1], {'line': topline}, option='theta', direction='ccw', show_plot=visual, text=verbose)
+            midline_topline_west = self.draw_line(xptNW_midLine[-1], {'line': topline}, option='theta', direction='cw', show_plot=visual, text=verbose)
+            midline_topline_east = self.draw_line(xptNE_midLine[-1], {'line': topline}, option='theta', direction='ccw', show_plot=visual, text=verbose)
 
             print('# Tracing PF region...')
-            xptSW_limiter = self.draw_line(xpt1['SW'], {'line': limiter}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+            xptSW_limiter = self.draw_line(xpt1['SW'], {'line': limiter}, option='theta', direction='ccw', show_plot=visual, text=verbose)[::-1]
             xptSE_limiter = self.draw_line(xpt1['SE'], {'line': limiter}, option='theta', direction='cw', show_plot=visual, text=verbose)
-            core_boundary = Line((xptNW_midLine.p + midline_topline_west.p + midline_topline_east.reverse_copy().p + xptNE_midLine.reverse_copy().p))
-            core_polygon = Polygon(np.column_stack(core_boundary.points()).T, fill=True, closed=True, color='violet', label='Core')
+            core_boundary = xptNW_midLine + midline_topline_west + midline_topline_east[::-1] + xptNE_midLine[::-1]
+            core_polygon = Polygon(core_boundary, fill=True, closed=True, color='violet', label='Core')
 
-            pf_boundary = Line((xptSW_limiter.p + xptSE_limiter.p +
-                (limiter_split(xptSE_limiter.p[-1], xptSW_limiter.p[0], limiter).split(xptSE_limiter.p[-1])[1]).split(xptSW_limiter.p[0], add_split_point=True)[0].p))
-            pf_polygon = Polygon(np.column_stack(pf_boundary.points()).T, fill=True, closed=True, color='dodgerblue', label='PF_1')
+            pf_boundary = (
+                xptSW_limiter + 
+                xptSE_limiter + (
+                    limiter_split(
+                        start=xptSE_limiter[-1], 
+                        end=xptSW_limiter[0], 
+                        limiter=limiter
+                    ).split(xptSE_limiter[-1])[1]).split(xptSW_limiter[0], add_split_point=True)[0]
+                )
+            pf_polygon = Polygon(pf_boundary, fill=True, closed=True, color='dodgerblue', label='PF_1')
 
             self.RegionPolygon = {'Core': core_polygon, 'PF_1': pf_polygon}
 
@@ -383,15 +346,15 @@ class LineTracing:
                 self.RegionLineCut = self.draw_line(xpt2['N'], {'line_group': [xptSW_limiter, xptSE_limiter, limiter]},
                     option='rho', direction='ccw', show_plot=visual, text=verbose)
 
-                if self.line_group_intersect == limiter.points():
+                if np.allclose(self.line_group_intersect - limiter, 0.0):
                     self.flip_NSEW_lookup(xpt_ID)
                     xpt2 = self.NSEW_lookup['xpt2']['coor']
                     self.RegionLineCut = self.draw_line(xpt2['N'], {'line_group': [xptSW_limiter, xptSE_limiter, limiter]},
                         option='rho', direction='ccw', show_plot=visual, text=verbose)
 
-                if self.line_group_intersect == xptSE_limiter.points():
+                if np.allclose(self.line_group_intersect - xptSE_limiter, 0.0):
                     self.config = 'SF75'
-                elif self.line_group_intersect == xptSW_limiter.points():
+                elif np.allclose(self.line_group_intersect - xptSW_limiter, 0.0):
                     self.config = 'SF105'
 
             else:
@@ -429,13 +392,13 @@ class LineTracing:
                                 midline_topline_west, midline_topline_east, limiter]},
                                 option='rho', direction='cw', show_plot=visual, text=verbose)
 
-                            if self.line_group_intersect == xptNE_midLine.points():
+                            if np.allclose(self.line_group_intersect - xptNE_midLine, 0.0):
                                 self.config = 'SF15'
-                            elif self.line_group_intersect == xptNW_midLine.points():
+                            elif np.allclose(self.line_group_intersect - xptNW_midLine, 0.0):
                                 self.config = 'SF165'
-                            elif self.line_group_intersect == midline_topline_west.points():
+                            elif np.allclose(self.line_group_intersect - midline_topline_west, 0.0):
                                 self.config = 'UDN'
-                            elif self.line_group_intersect == midline_topline_east.points():
+                            elif np.allclose(self.line_group_intersect - midline_topline_east, 0.0):
                                 self.config = 'UDN'
                             break
 
@@ -449,13 +412,13 @@ class LineTracing:
                             self.RegionLineCut = self.draw_line(xpt2['N'], {'line_group': [xptSW_limiter, xptSE_limiter]},
                                 option='rho', direction='cw', show_plot=visual, text=verbose)
 
-                            if self.line_group_intersect == xptSE_limiter.points():
+                            if np.allclose(self.line_group_intersect - xptSE_limiter, 0.0):
                                 self.config = 'SF45'
-                            elif self.line_group_intersect == xptSW_limiter.points():
+                            elif np.allclose(self.line_group_intersect - xptSW_limiter, 0.0):
                                 self.config = 'SF135'
                             break
         else:
-            raise ValueError(f'# Invalid xpt_ID "{xpt_ID}"in function map_xpt(). Valid IDs are "xpt1" and "xpt2".')
+            raise ValueError(f'# Invalid xpt_ID "{xpt_ID}" in function map_xpt(). Valid IDs are "xpt1" and "xpt2".')
 
     def SNL_find_NSEW(self, xpt, magx, visual=False):
         """
@@ -540,87 +503,59 @@ class LineTracing:
             self._set_function(option, direction)
 
         # check rz_start
-        if isinstance(rz_start, Point):
-            ynot = (rz_start.x, rz_start.y)
-        else:
-            ynot = rz_start
+        ynot = rz_start
 
-        key_list = list()
-
-        for item in rz_end.keys():
-            key_list.append(item)
-
-        # check rz_end:
-        if rz_end is None:
-            print('# Starting search for loop completion...')
+        if 'point' in rz_end:
+            if Verbose: 
+                print('# Starting search for Point convergence...')
             test = 'point'
-            rz_end = ynot
-            xf, yf = rz_end
+            xf = rz_end['point']
+            yf = rz_end['point']
 
-        elif key_list == ['point']:
-            if Verbose: print('# Starting search for Point convergence...')
-            test = 'point'
-            if isinstance(rz_end['point'], Point):
-                xf = rz_end['point'].x
-                yf = rz_end['point'].y
-            else:
-                xf = rz_end['point'][0]
-                yf = rz_end['point'][1]
-
-        elif key_list == ['line']:
-            if Verbose: print('# Starting search for Line intersection...')
+        elif 'line' in rz_end:
+            if Verbose: 
+                print('# Starting search for Line intersection...')
             test = 'line'
             try:
                 self.tilt_angle = rz_end['line'][1]
-                if isinstance(rz_end['line'][0], Line):
-                    # extract
-                    endLine = rz_end['line'][0].points()
-                else:
-                    # form ((),())
-                    endLine = rz_end['line'][0]
+                endLine = rz_end['line'][0]
             except:
-                if isinstance(rz_end['line'], Line):
-                    # extract
-                    endLine = rz_end['line'].points()
-                else:
-                    # form ((),())
-                    endLine = rz_end['line']
-        elif key_list == ['line_group']:
-            if Verbose: print('# Starting search for Line (grouping) intersection...')
+                 endLine = rz_end['line']
+
+        elif 'line_group' in rz_end:
+            if Verbose: 
+                print('# Starting search for Line (grouping) intersection...')
             test = 'line_group'
-            line_group = []
-            for L in rz_end['line_group']:
+            line_group = rz_end['line_group']
 
-                if isinstance(L, Line):
-                    # extract
-                    line_group.append(L.points())
-                else:
-                    # form ((),())
-                    line_group.append(rz_end['line'])
-
-        elif key_list == ['psi']:
-            if Verbose: print('# Starting search for Psi value convergence...')
+        elif 'psi' in rz_end:
+            if Verbose: 
+                print('# Starting search for Psi value convergence...')
             test = 'psi'
             psi_test = rz_end['psi']
 
-        elif key_list == ['psi_horizontal']:
+        elif 'psi_horizontal' in rz_end:
             try:
                 psi_test = rz_end['psi_horizontal'][0]
                 self.tilt_angle = rz_end['psi_horizontal'][1]
                 test = 'psi' if self.tilt_angle != 0.0 else 'psi_horizontal'
-                if Verbose: print('# Starting search for Psi value convergence...')
+                if Verbose: 
+                    print('# Starting search for Psi value convergence...')
             except:
                 psi_test = rz_end['psi_horizontal']
                 self.tilt_angle = 0.0
                 test = 'psi_horizontal'
-                if Verbose: print('# Starting search for Psi value convergence...')
+                if Verbose: 
+                    print('# Starting search for Psi value convergence...')
 
-        elif key_list == ['psi_vertical']:
-            if Verbose: print('# Starting search for Psi value convergence...')
+        elif 'psi_vertical' in rz_end:
+            if Verbose: 
+                print('# Starting search for Psi value convergence...')
             test = 'psi_vertical'
             psi_test = rz_end['psi_vertical']
         else:
-            if Verbose: print('rz_end type not recognized')
+            if Verbose: 
+                print('rz_end type not recognized')
 
         count = 0
         # unpack boundaries
@@ -648,7 +583,7 @@ class LineTracing:
                 # it for future use
                 # x: list -- r endpoints
                 # y: list -- z endpoints
-                line.append(Point(x[-1], y[-1]))
+                line.append(Point([x[-1], y[-1]]))
                 if show_plot:
                     if hasattr(self.grid, 'ax') is False:
                         self.grid.plot_data()
@@ -667,9 +602,8 @@ class LineTracing:
             for edge in boundary:
                 p1 = (points[0][0], points[1][0])
                 p2 = (points[0][-1], points[1][-1])
-                # result = test2points(p1, p2, edge)
                 intersected, segment = segment_intersect((p1, p2), edge, text)
-                if intersected is True:
+                if intersected:
                     self.grid.ax.plot(segment[1][0], segment[1][1], marker='s', color='red', markersize=12.5, zorder=20)
                     self.grid.ax.plot(segment[1][0], segment[1][1], marker='o', color='black', markersize=8, zorder=21)
                     raise ValueError(f'# LineTracing Error: The line missed the intended target of type "{test}" and intersected the boundary instead.')
@@ -692,7 +626,6 @@ class LineTracing:
                 p1 = (points[0][0], points[1][0])
                 p2 = (points[0][-1], points[1][-1])
 
-                #result = test2points(p1, p2, endLine)
                 intersected, segment = segment_intersect((p1, p2), endLine, text)
 
                 if intersected:
@@ -739,8 +672,6 @@ class LineTracing:
                     if text:
                         if Verbose: print('[x1, y1]: [{}, {}]'.format(x1, y1))
                         if Verbose: print('[x2, y2]: [{}, {}]'.format(x2, y2))
-                    x_end = x1 + (x2 - x1) / (psi2 - psi1) * (psi_test - psi1)
-                    y_end = y1 + (y2 - y1) / (psi2 - psi1) * (psi_test - psi1)
 
                     save_line([x1, r_psi], [y1, z_psi])
                     return True
@@ -802,11 +733,14 @@ class LineTracing:
         if dynamic_step:
             dt = np.amin([self.dt, dynamic_step])
             if dt < self.dt:
-                if Verbose: print('Using dynamic_step value!\n')
+                if Verbose: 
+                    print('Using dynamic_step value!\n')
         else:
             dt = self.dt
 
-        if Verbose: print('# Tracing line', end='')
+        if Verbose: 
+            print('# Tracing line', end='')
+
         while not converged(points):
             t_span = (told, tnew)
             # solve the system of differential equations

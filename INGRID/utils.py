@@ -746,12 +746,10 @@ class IngridUtils():
         print(f"# Setting coordinates for '{k}'")
 
         R, Z = v
-
-        # Make sure coordinates are unique
-        data = np.array([c for c in zip(R, Z)])
-        a, index = np.unique(data, return_index=True, axis=0)
-        index.sort()
-        self.PlateData[k] = Line([Point(x + rshift, y + zshift) for x, y in data[index]])
+        data = np.array(list(zip(R, Z)))
+        # a, index = np.unique(data, return_index=True, axis=0)
+        # index.sort()
+        self.PlateData[k] = Line(data + np.array([rshift, zshift]))
 
     def OrderTargetPlate(self, plate_key: str) -> None:
         """
@@ -1333,6 +1331,39 @@ class IngridUtils():
                     ListIntersect.append((pinfo1, pinfo2))
                     print('p1:{} and p2:{} intersect!'.format(pinfo1, pinfo2))
         return ListIntersect
+    
+    def get_psi_norm_figure(self):
+        return plt.figure('Normalized Psi', figsize=(6, 10))
+
+    def get_psi_norm_ax(self):
+        fig = self.get_psi_norm_figure()
+        ax  = self.get_axis(fig=fig)
+        return ax
+    
+    def get_patch_map_figure(self):
+        return plt.figure(self.CurrentTopology.config + ' Patches', figsize=(6, 10))
+
+    def get_patch_map_ax(self):
+        fig = self.get_patch_map_figure()
+        ax  = self.get_axis(fig=fig)
+        return ax
+    
+    def get_subgrid_figure(self):
+        return plt.figure(self.CurrentTopology.config + ' Grid', figsize=(6, 10))
+    
+    def get_subgrid_ax(self):
+        fig = self.get_subgrid_figure()
+        ax  = self.get_axis(fig=fig)
+        return ax
+
+    def get_axis(self, fig):
+        if len(fig.axes):
+            ax = fig.axes[0]
+        else:
+            ax = fig.add_subplot(111)
+            # ax.axis('off')
+        return ax
+
 
 
 class TopologyUtils():
@@ -1419,7 +1450,10 @@ class TopologyUtils():
                   'E': 'magenta', 'F': 'olivedrab', 'G': 'darkorange', 'H': 'yellow', 'I': 'navy'}
         alpha = {'3': 1.0, '2': 0.75, '1': 0.5}
 
-        f = fig if fig else plt.figure('INGRID Patch Map', figsize=(6, 10))
+        if fig is None:
+            fig = plt.figure('Patch Map', figsize=(6, 10))
+
+        f = fig
         f.subplots_adjust(bottom=0.2)
         a = ax if ax else f.subplots(1, 1)
         a.set_xlim([self.PsiUNorm.rmin, self.PsiUNorm.rmax])

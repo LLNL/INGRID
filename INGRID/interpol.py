@@ -167,7 +167,7 @@ class EfitData:
         dx, dy = lookup[tag]
         return self.rbs(r0, z0, dx, dy)[0]
 
-    def plot_levels(self, level=1.0, color='red'):
+    def plot_levels(self, ax, level=1.0, color='red'):
         """
         This function is useful if you need to quickly see
         where a particular line of constant psi is. It in't able to store
@@ -185,9 +185,9 @@ class EfitData:
         """
         # draw contour line on top of existing figure
         level = float(level)
-        self.ax.contour(self.r, self.z, self.v, level, colors=color)
+        ax.contour(self.r, self.z, self.v, level, colors=color)
 
-    def PlotLevel(self: object, level: float = 1.0, color: str = 'red', label: str = '', linestyles: str = 'solid',
+    def PlotLevel(self: object, ax, level: float = 1.0, color: str = 'red', label: str = '', linestyles: str = 'solid',
                   refined: bool = True, refine_factor: int = 10) -> None:
         """
         Plot a psi level and provide it a label.
@@ -223,10 +223,10 @@ class EfitData:
                                        indexing='ij')
         try:
             self.psi_levels[label].collections[0].remove()
-            self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(level)], colors=color, label=label, linestyles=linestyles)
+            self.psi_levels[label] = ax.contour(rgrid, zgrid, data, [float(level)], colors=color, linestyles=linestyles)
             self.psi_levels[label].collections[0].set_label(label)
         except:
-            self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(level)], colors=color, label=label, linestyles=linestyles)
+            self.psi_levels[label] = ax.contour(rgrid, zgrid, data, [float(level)], colors=color, linestyles=linestyles)
             self.psi_levels[label].collections[0].set_label(label)
 
     def plot_data(self: object, nlevs: int = 30, interactive: bool = True, fig: object = None,
@@ -257,9 +257,11 @@ class EfitData:
         """
 
         lev = self.v.min() + (self.v.max() - self.v.min()) * np.arange(nlevs) / (nlevs - 1)
-        self.fig = fig if fig is not None else plt.figure('INGRID: ' + self.name, figsize=(8, 10))
-        self.fig.subplots_adjust(bottom=0.075)
-        self.ax = ax if ax is not None else self.fig.add_subplot(111)
+
+        fig if fig is not None else plt.gcf()
+        # self.fig.subplots_adjust(bottom=0.075)
+        self.ax = ax if ax is not None else plt.gca()
+        # self.ax = ax if ax is not None else self.fig.add_subplot(111)
 
         data = self.v
         rgrid = self.r
@@ -279,9 +281,6 @@ class EfitData:
         self.ax.set_ylabel('Z')
         self.ax.set_xlim(self.rmin, self.rmax)
         self.ax.set_ylim(self.zmin, self.zmax)
-        if interactive:
-            plt.ion()
-        self.fig.show()
 
     def clear_plot(self):
         if plt.get_fignums():

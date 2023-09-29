@@ -1,85 +1,56 @@
+"""
+The `geometry` module contains core classes that support the INGRID
+geometrical object hierarchy. This module also contains various helper
+functions that work in tandem with the `LineTracing` class to generate
+Patch maps and grids.
+"""
+from __future__ import print_function, division
 import numpy as np
-import numpy.lib.mixins
-from collections.abc import Iterable
-from numbers import Number
+import matplotlib
+try:
+    matplotlib.use("TkAgg")
+except:
+    pass
+import matplotlib.pyplot as plt
+import sys
+import linecache
+from matplotlib.patches import Polygon
+from scipy.optimize import fsolve, brentq
+from scipy.interpolate import splprep, splev
+from collections import OrderedDict
 
-class Point(np.lib.mixins.NDArrayOperatorsMixin):
+class Point:
     """
-    Define a Point in the RZ plane.
-    Can be used to later define Line objects.
+    Define a Point.
 
-    Inherits from `numpy.lib.mixins.NDArrayOperatorsMixin` to allow
-    numpy operations directly on a Point object
+    Can be used to later define Line objects.
 
     Parameters
     ----------
-    rz : array-like
-        Accepts either an array like container of numerical values or
-        numerical arguments 
-    
+    pts : array-like
+        Accepts either two values x, y as floats, or
+        a single tuple/list value (x, y).
+
+    Attributes
+    ----------
+    x : float
+        x coordinate of the point
+    y : float
+        y coordinate of the point
+    coor : tuple
+        x and y coordinates together as a tuple
     """
-    def __init__(self, rz, **kargs) -> None:
-        self.dtype   = kargs.get('dtype', float)
-        self.data    = rz
-        self.data    = self.__array__(dtype=self.dtype)
-        self.shape   = self.data.shape
-        shape_check  = (2,)
-        format_error = f'Point data must result in shape {shape_check}'
-        assert self.shape == shape_check, format_error
 
-    def __getitem__(self, slice, **kargs):
-        return self.data[slice]
-        
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}{(*self.data, )}'
-
-    def __str__(self) -> str:
-        return self.__repr__()
-    
-    def __array__(self, dtype=None):
-        return np.array(self.data, dtype=dtype)
-
-    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        if method == '__call__':
-            scalars = []
-            for input in inputs:
-                if isinstance(input, Number):
-                    scalars.append(input)
-                elif isinstance(input, self.__class__):
-                    scalars.append(input.data)
-                elif isinstance(input, np.ndarray):
-                    scalars.append(input)
-                else:
-                    raise NotImplementedError
-            return self.__class__(ufunc(*scalars, **kwargs))
+    def __init__(self, *pts):
+        if np.shape(pts) == (2,):
+            self.x, self.y = float(pts[0]), float(pts[1])
+            self.coor = (self.x, self.y)
+        elif np.shape(pts) == (1, 2):
+            self.x, self.y = float(pts[0][0]), float(pts[0][1])
+            self.coor = (self.x, self.y)
         else:
-            return NotImplemented
-
-    def distance_to(self, point):
-        """
-        Compute the distance in unitless coordinates to another Point
-
-        Parameters:
-        -----------
-        point: Point, np.ndarray
-            Another Point object or numpy array of same shape
-        
-        Returns:
-        --------
-            Euclidean distance to the other point
-        """
-        return np.linalg.norm(self - point)
-    
-    def plot(self, ax: 'matplotlib.axes.Axes', **kargs) -> None:
-        """
-        Plot the Point.
-
-        Parameters
-        ----------
-        ax : matplotlib.axes.Axes
-            The Axes instance to plot to.
-        """
-        ax.plot(*self.data, **kargs)
+            print('incompatible form')
+            print(np.shape(pts), pts)
 
     def psi(self, grid: 'EfitData', tag: str = 'v') -> float:
         """
@@ -99,225 +70,410 @@ class Point(np.lib.mixins.NDArrayOperatorsMixin):
         """
         return grid.PsiNorm.get_psi(self.x, self.y, tag)
 
+    def plot(self, ax: 'matplotlib.axes.Axes' = None) -> None:
+        """
+        Plot the Point.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            The Axes instance to plot to.
+            Default is None and calls function `matplotlib.pyplot.gca`.
+
+        Returns
+        -------
+        """
+
+        if ax is None:
+            ax = plt.gca()
+
+        ax.plot(self.x, self.y, 'x')
+
+    def as_np(self) -> np.ndarray:
+        """
+        Return the Point object as a numpy ndarray.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+            An ndarray representation of the Point object.
+        """
+        return np.array([self.x, self.y])
+
+
 class Line:
     """
-    Define a Line.
-    Can be used to later define Patch objects.
+    Define an arbitrary line/curve.
+
+    This is ordered collection of Point objects can later be used to define
+    a Patch object.
 
     Parameters
     ----------
-    points : array-like
-        An array like container containing either numerical values of shape (n, 2)
-        An array like container containing Point objects
+    points : list
+        The Point objects that define the Line.
+
+    Attributes
+    ----------
+    p : list
+        The list of Point objects that define this Line.
+    xval : list
+        A list consisting the x-coordinates for each Point.
+    yval : list
+        A list consisting the y-coordinates for each Point.
     """
 
-    def __init__(self, points, **kargs) -> None:
-
-        # Case container of Point objects
-        if all(isinstance(point, Point) for point in points):
-            data        = np.array(points, dtype=float)
-        # Case numpy array input
-        elif isinstance(points, np.ndarray):
-            data        = points
-        # Case list. Convert to numpy array and assume format is valid
-        elif isinstance(points, list):
-            data = np.array(points, dtype=float)
+    def __init__(self, points: list):
+        self.p = points
+        self.xval = [p.x for p in points]
+        self.yval = [p.y for p in points]
+        if len(points) > 1:
+            self.X = self.xval[1] - self.xval[0]
+            self.Y = self.yval[1] - self.yval[0]
         else:
-            raise ValueError('Invalid "points" argument type')
-        #
-        # Enforce shape (n, 2)
-        #
-        format_error  = f'Invalid format of points provided. Final shape = {data.shape}. \n'
-        format_error += f'Points argument = {points}'
-        assert data.shape[-1] == 2, format_error
+            self.X = 0
+            self.Y = 0
 
-        # If we didnt set self.points, do it now with validated data
-
-        self.points = [Point(point) for point in data]
-        
-        # Finalize setup and compute quantities
-        self.data                   = data
-        self.arclen                 = self.calculate_length()
-        self.cumlen_data            = self.calculate_cumulative_length()
-        self.normalized_cumlen_data = self.cumlen_data / self.arclen
-
-    def __getitem__(self, val, **kargs):
+    def copy(self) -> 'Line':
         """
-        Define slicing/indexing capabilities
-        """
-        if not isinstance(val, (slice, Iterable, int)):
-            raise NotImplementedError
-        return self.points[val]
-
-    def __iter__(self):
-        """
-        Dispatch to the list of points
-        """
-        return self.points.__iter__()
-
-    def __next__(self):
-        """
-        Dispatch to the list of points
-        """
-        return self.points.__next__()
-        
-    def __repr__(self) -> str:
-        _repr  = f'{self.__class__.__name__} (\n'
-        _repr += '\n'.join('    ' + repr(p) for p in self.points)
-        _repr += '\n)'
-        return _repr
-
-    def __str__(self) -> str:
-        return self.__repr__()
-    
-    def __array__(self, dtype=float):
-        return np.array(self.data, dtype=dtype)
-
-    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        if method == '__call__':
-            scalars = []
-            for input in inputs:
-                if isinstance(input, Number):
-                    scalars.append(input)
-                elif isinstance(input, self.__class__):
-                    scalars.append(input.data)
-                elif isinstance(input, np.ndarray):
-                    scalars.append(input)
-                else:
-                    raise NotImplementedError
-            return self.__class__(ufunc(*scalars, **kwargs))
-        else:
-            return NotImplementedError
-
-    def __add__(self, other):
-        """
-        Concatenate two line objects
-        """
-        if not isinstance(other, self.__class__):
-            error_message  = 'Line addition can only be performed between '
-            error_message += 'Line types. Recieved type = "{type(other)}"'
-            raise ValueError(error_message)
-        
-        # Concatenate values along first dimension
-        new_points = np.vstack([self.points, other.points])
-        return Line(points=new_points)
-
-    def calculate_length(self):
-        """
-        Calculate the arclength of the Line object
-
-        Returns:
-        --------
-            Float computing the sum of all curve segments
-        """
-        return np.linalg.norm(np.diff(self.data, axis=0), axis=1).sum()
-
-    def calculate_cumulative_length(self):
-        """
-        Calculate the cumulative arclength of the Line object
-
-        Returns:
-        --------
-            Numpy array containing cumulative lengths
-        """
-        return np.linalg.norm(np.diff(self.data, axis=0), axis=1).cumsum()
-    
-    def at(self, parametric_t):
-        """
-        Interface to compute_parametric_point
-        """
-        return self.compute_parametric_point(parametric_t=parametric_t)
-
-    def compute_parametric_point(self, parametric_t):
-        """
-        Infer the Point which would reside along a parametric representation
-        of the Line object.
-
-        Given a parametric value p in [0., 1.], compute the coordinates via
-        linear interpolation along line segments
-
-        Parameters:
-        -----------
-        parametric_t: float
-            A numeric representing the input to the parametric curve equation
-        
-        Returns:
-        --------
-            A Point object
-        """
-
-        parametric_t = np.clip(parametric_t, a_min=0., a_max=1.)
-
-        if np.allclose(parametric_t, 1.):
-            result = self.points[-1]
-        elif np.allclose(parametric_t, 0.):
-            result = self.points[0]
-        else:
-            #
-            # Find indices where parametric request is less than normalized
-            # cumsum of line segments. 
-            #
-            # This allows us to find the Point in the Line *after* where our 
-            # parametric request should lie
-            #
-            where_below = \
-                np.where(parametric_t < self.normalized_cumlen_data)[0]
-            endpoint_index = where_below[0]
-            endpoint = self.points[endpoint_index]
-            
-            endpoint_parametric_t = \
-                self.normalized_cumlen_data[endpoint_index]
-
-            parametric_t_diff = endpoint_parametric_t - parametric_t
-            
-            #
-            # Compute new coordinates via linear interpolation
-            #
-            result = endpoint * (1 - parametric_t_diff)
-
-        return result
-    
-    def refined_copy(self, num_points_between: int):
-        """
-        Refine the Line object with linear interpolation given a requested
-        number of points
+        Create a copy of this Line object.
 
         Parameters
         ----------
-        num_points_between : int
-            The number of points place between each line segment of the
-            refined copy
-        
+
         Returns
         -------
-            A Line object
-        """
-        refined_array = []
-        for i in range(self.data.shape[0] - 1):
-            refined_array.append(self.data[i])
-            #
-            # Perform the linear interpolation over each dimension
-            #
-            interpolated_values = np.column_stack(
-                [
-                    np.linspace(self.data[i][dim], self.data[i + 1][dim], num_points_between + 2)[1:-1]
-                    for dim in range(self.data.shape[-1])
-                ]
-            )
-            refined_array.extend(interpolated_values)
-        refined_array.append(self.data[-1])
-        return Line(points=np.array(refined_array))
+            A new Line instance.
 
-    def plot(self, ax, **kargs):
         """
-        Plot the Line
+        return Line(self.p[::])
+
+    def reverse_copy(self) -> 'Line':
+        """
+        Create a copy of this Line in reversed order.
 
         Parameters
         ----------
-        ax : matplotlib.axes.Axes
-            The Axes instance to plot to.
+
+        Returns
+        -------
+            A new Line instance
         """
-        ax.plot(*self.data.T, **kargs)
+        return Line(self.p[::-1])
+
+    def plot(self, color: str = '#1f77b4', label: str = '',
+             ax: 'matplotlib.axes.Axes' = None, linewidth: float = 1.0) -> 'matplotlib.axes.Axes':
+        """
+        Plot the Line.
+
+        Parameters
+        ----------
+        color : str, optional
+            Defaults to a light blue.
+        label : str, optional
+            A label to plot with. Defaults to None.
+        ax : matplotlib.axes.Axes, optional
+            The Axes instance to plot the Line to.
+        linewidth : float, optional
+            The linewidth to plot with.
+
+        Returns
+        -------
+            The matplotlib.axes.Axes instance plotted on.
+        """
+        label = None if label == '' else label
+        _ax = plt.gca() if ax is None else ax
+        _ax.plot(self.xval, self.yval, color=color, zorder=5, label=label, linewidth=linewidth)
+        return _ax
+
+    def print_points(self) -> None:
+        """ Prints each point in the line to the terminal. """
+        print([(p.x, p.y) for p in self.p])
+
+    def fluff(self, num: int = 1000, verbose: bool = False) -> tuple:
+        """
+        Obtain linspaced copies of the ``xval`` and ``yval`` attributes.
+
+        Parameters
+        ----------
+        num : int, optional
+            Number of entries to include between **each** segment within the Line.
+            Defaults to 100.
+        verbose : bool, optional
+            Print full output to terminal.
+            Defaults to False
+
+        Returns
+        -------
+            A 2-tuple consisting of 'fluffed' ``xval`` and ``yval``.
+        """
+        if verbose is True:
+            print(f'# Fluffing with n = {num}')
+        x_fluff = np.empty(0)
+        y_fluff = np.empty(0)
+        if verbose is True:
+            print(f'# fluff: len(self.xval) = {len(self.xval)}')
+        for i in range(len(self.xval) - 1):
+            x_fluff = np.append(x_fluff, np.linspace(self.xval[i], self.xval[i + 1], num, endpoint=False))
+            y_fluff = np.append(y_fluff, np.linspace(self.yval[i], self.yval[i + 1], num, endpoint=False))
+        x_fluff = np.append(x_fluff, self.xval[-1])
+        y_fluff = np.append(y_fluff, self.yval[-1])
+
+        return x_fluff, y_fluff
+
+    def fluff_copy(self, num: int = 5) -> 'Line':
+        """
+        Create a 'fluffed' copy of this Line.
+
+        Calls the method ``fluff`` internally.
+
+        Parameters
+        ----------
+        num : int, optional
+            Number of entries to include between **each** segment within the Line copy.
+
+        Returns
+        -------
+            A 'fluffed' copy of the calling Line object.
+        """
+        pts = []
+        xf, yf = self.fluff(num)
+        for i in zip(xf, yf):
+            pts.append(Point(i))
+        return Line(pts)
+
+    def split(self, split_point, add_split_point=False) -> tuple:
+        """
+        Split a line object into two line objects at a particular point.
+
+        Returns two Line objects Segment A and Segment B (corresponding to both subsets of Points)
+        The split_point is always included in Segment B.
+
+        Parameters
+        ----------
+        split_point: Point
+            Point that determines splitting location.
+
+        add_split_point: bool
+            Append the split point to Segment A while still including the
+            split point in Segment B.
+
+        Returns
+        -------
+            A tuple with Line objects representing Segment A and Segment B.
+        """
+        d_arr = []
+
+        # ind was not defined if the conditions are not met, e.g. when magnetic field lines do not intersect the targets
+        # Safety check added with an exception
+        ind, same_line_split = find_split_index(split_point, self)
+        if ind is None:
+            for i in range(len(self.p) - 1):
+                plt.plot(self.p[i].x, self.p[i].y, '.', color='black', ms=8)
+                plt.plot(split_point.x, split_point.y, 's', color='red', ms=8)
+            plt.show()
+            raise ValueError("Value of ind has not been set. This probably means that one of the targets does not intersect one of the field lines.\
+                             Check that targets are wide enough to emcompass the SOL and PFR region")
+
+        start__split = self.p[:ind + (1 if not same_line_split else 0)]
+        start__split += [split_point] if add_split_point else []
+        split__end = [split_point] + self.p[ind + (1 if not same_line_split else 2):]
+
+        return Line(start__split), Line(split__end)
+
+    def points(self) -> list:
+        """
+        Get a list of all coordinates within the Line object.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+            A list of tuples representing (x, y) coordinates of the Line.
+        """
+        return [(p.x, p.y) for p in self.p]
+
+    def as_np(self) -> np.ndarray:
+        """
+        Get the calling Line object represented as an ndarray.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+            An ndarray representation of the Line.
+
+        Notes
+        -----
+        Format of ndarray is of shape (2, n), with n being the number of
+        Point objects in the Line.
+
+        The first entry of the ndarray is the ``xval`` attribute.
+        The second entry of the ndarray is the ``yval`` attribute.
+
+        This method is used to encode the `patch_data` file.
+        """
+        return np.array([self.xval, self.yval])
+
+    def RemoveDuplicatePoints(self):
+        """
+        Remove any duplicate points from list of points
+        """
+        ordered_points = OrderedDict([(p.coor, p) for p in self.p])
+        self.p = [p for p in ordered_points.values()]
+
+    def Norm(self):
+        """
+        Return norm of the lines
+        Returns:
+            None.
+        """
+
+        return np.sqrt(self.X**2 + self.Y**2)
+
+    def GetAngle(self, Line):
+        """
+        Return the angle between two lines in degree (between 0 and 180 degrees) 
+        Args:
+            Line (TYPE): DESCRIPTION.
+        Returns:
+            None.
+        """
+        if Line.Norm() != 0 and self.Norm() != 0:
+            return np.rad2deg(np.arccos(((self.X) * (Line.X) + (self.Y) * (Line.Y)) / (Line.Norm() * self.Norm())))
+        else:
+            return None
+
+
+class Cell:
+    """
+    Define a Cell that resides within a grid.
+
+    Parameters
+    ----------
+    lines : array-like
+        A collection of 4 Line objects that define the borders of a Cell.
+
+    Attributes
+    ----------
+    lines : array-like
+        The 4 Lines that create the border of the Cell.
+    vertices : dict
+        A lookup for accessing NW, NE, SE, SW, and CENTER spatial information.
+    p : list
+        A list of Point objects along the North and South border.
+
+    Notes
+    -----
+    When accessing vertices, we have the following convention:
+
+    ========= =====================
+    Location   Accepted Key (str)
+    --------- ---------------------
+    NW Corner ``NW``
+    NE Corner ``NE``
+    SW Corner ``SW``
+    SE Corner ``SE``
+    Center    ``CENTER``
+    ========= =====================
+
+    """
+
+    def __init__(self, lines):
+        self.lines = lines
+        N = lines[0]
+        S = lines[1]
+        E = lines[2]
+        W = lines[3]
+
+        self.vertices = {'NW': N.p[0], 'NE': N.p[-1],
+                         'SW': S.p[0], 'SE': S.p[-1]}
+
+        self.center = Point((np.mean([p.x for p in [self.vertices[coor] for coor in ['NW', 'NE', 'SE', 'SW']]]),
+                             np.mean([p.y for p in [self.vertices[coor] for coor in ['NW', 'NE', 'SE', 'SW']]])))
+
+        self.vertices.update({'CENTER': self.center})
+
+        self.p = list(N.p) + list(S.p)
+
+    def plot_border(self, color: str = 'red', ax: 'matplotlib.axes.Axes' = None) -> None:
+        """
+        Plot the Cell.
+
+        Parameters
+        ----------
+        color : str, optional
+            Color of the Cell border.
+            Defaults to 'red'
+
+        ax : matplotlib.axes.Axes, optional
+            The Axes instance to plot the Cell to.
+
+        Returns
+        -------
+
+        """
+        if ax is None:
+            ax = plt.gca()
+
+        ax.plot([self.vertices['NW'].x, self.vertices['NE'].x],
+                [self.vertices['NW'].y, self.vertices['NE'].y],
+                linewidth=1, color=color, label='cell')
+
+        ax.plot([self.vertices['NE'].x, self.vertices['SE'].x],
+                [self.vertices['NE'].y, self.vertices['SE'].y],
+                linewidth=1, color=color, label='cell')
+
+        ax.plot([self.vertices['SE'].x, self.vertices['SW'].x],
+                [self.vertices['SE'].y, self.vertices['SW'].y],
+                linewidth=1, color=color, label='cell')
+
+        ax.plot([self.vertices['SW'].x, self.vertices['NW'].x],
+                [self.vertices['SW'].y, self.vertices['NW'].y],
+                linewidth=1, color=color, label='cell')
+
+    def plot_center(self, color='black', ax: 'matplotlib.axes.Axes' = None) -> None:
+        """
+        Plot the center of a Cell.
+
+        Parameters
+        ----------
+        color : str, optional
+            The color of the marker.
+            Defaults to 'black'
+        ax : matplotlib.axes.Axes, optional
+            The Axes instance to plot the Cell center to.
+
+        Returns
+        -------
+
+        """
+        if ax is None:
+            ax = plt.gca()
+        ax.plot(self.center.x, self.center.y, '.', markersize=1, color=color, label='cell')
+
+    def as_np(self) -> np.ndarray:
+        """
+        Get the ndarray representation of a Cell object
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+            An ndarray representing a cell
+        """
+        NW = self.vertices['NW'].as_np()
+        NE = self.vertices['NE'].as_np()
+        SW = self.vertices['SW'].as_np()
+        SE = self.vertices['SE'].as_np()
+        C = self.vertices['CENTER'].as_np()
+        return np.array([NW, NE, SW, SE, C])
+
 
 class Patch:
     """
@@ -849,6 +1005,22 @@ class Patch:
         IsMonotonic(PsiE, E_vals[0], E_vals[1], 'PsiE')
 
 
+def strictly_increasing(L: 'array-like') -> bool:
+    """
+    Determine if strictly increasing.
+
+    Parameters
+    ----------
+    L : array-like
+        Values to test.
+
+    Returns
+    -------
+        True if strictly increasing and False otherwise
+    """
+    return all(x < y for x, y in zip(L, L[1:]))
+
+
 def strictly_decreasing(L: 'array-like') -> bool:
     """
     Determine if strictly decreasing.
@@ -880,6 +1052,7 @@ def non_increasing(L: 'array-like') -> bool:
     """
     return all(x >= y for x, y in zip(L, L[1:]))
 
+
 def which_non_increasing(L: 'array-like') -> list:
     """
     Determine non-increasing values.
@@ -894,6 +1067,7 @@ def which_non_increasing(L: 'array-like') -> list:
         A list of 2-tuples containing index and non-increasing element.
     """
     return [i for i, (x, y) in enumerate(zip(L, L[1:])) if x > y]
+
 
 def which_increasing(L: 'array-like') -> list:
     """
@@ -910,6 +1084,7 @@ def which_increasing(L: 'array-like') -> list:
     """
     return [i for i, (x, y) in enumerate(zip(L, L[1:])) if x < y]
 
+
 def non_decreasing(L: 'array-like') -> bool:
     """
     Determine if non-decreasing.
@@ -924,6 +1099,7 @@ def non_decreasing(L: 'array-like') -> bool:
         True if non-decreasing and False otherwise
     """
     return all(x <= y for x, y in zip(L, L[1:]))
+
 
 def find_split_index(split_point: Point, line: Line) -> tuple:
     """
@@ -954,16 +1130,16 @@ def find_split_index(split_point: Point, line: Line) -> tuple:
     the `split_point` parameter was used to define the `line` parameter.
     """
     same_line_split = False
-    for i in range(len(line) - 1):
+    for i in range(len(line.p) - 1):
         # Split point is exactly on a Line object's point. Occurs often
         # when splitting a Line object with itself.
 
-        if split_point[-1] == line[i][-1] and split_point[0] == line[i][0]:
+        if split_point.y == line.p[i].y and split_point.x == line.p[i].x:
             same_line_split = True
             return i, same_line_split
         # Create two vectors.
-        end_u   = line[i + 1] - line[i]
-        split_v = split_point - line.p[i]
+        end_u = np.array([line.p[i + 1].x - line.p[i].x, line.p[i + 1].y - line.p[i].y])
+        split_v = np.array([split_point.x - line.p[i].x, split_point.y - line.p[i].y])
 
         if is_between(end_u, split_v):
             # store index corresponding to the start of the segment containing the split_point.
@@ -971,6 +1147,7 @@ def find_split_index(split_point: Point, line: Line) -> tuple:
         else:
             continue
     return None, same_line_split
+
 
 def is_between(end_u: 'array-like', split_v: 'array-like') -> bool:
     eps = 1e-9
@@ -982,6 +1159,7 @@ def is_between(end_u: 'array-like', split_v: 'array-like') -> bool:
             return True
     else:
         return False
+
 
 def rotmatrix(theta: float) -> 'numpy.ndarray':
     """
@@ -1003,14 +1181,17 @@ def rotmatrix(theta: float) -> 'numpy.ndarray':
     rot[1, 0] = np.sin(theta)
     return rot
 
+
 def rotate(vec, theta, origin):
     return np.matmul(rotmatrix(theta), vec - origin) + origin
+
 
 def unit_vector(v):
     """
     Returns unit vector
     """
     return v / np.linalg.norm(v)
+
 
 def angle_between(u, v, origin, relative=False):
     """
@@ -1021,6 +1202,7 @@ def angle_between(u, v, origin, relative=False):
     angle = np.arccos(np.clip(np.dot(u_norm, v_norm), -1, 1))
     return orientation_between(u, v, origin) * angle if relative else angle
 
+
 def orientation_between(u, v, origin):
     """
     Compute angle in radians between vectors u and v
@@ -1030,16 +1212,19 @@ def orientation_between(u, v, origin):
     return np.sign(np.arctan2(u_norm[0] * v_norm[1] - u_norm[1] * v_norm[0],
                    u_norm[0] * v_norm[0] + u_norm[0] * v_norm[1]))
 
+
 def reorder_limiter(new_start, limiter):
     start_index, = find_split_index(new_start, limiter)
     return limiter
+
 
 def limiter_split(start, end, limiter):
     start_index, sls = find_split_index(start, limiter)
     end_index, sls = find_split_index(end, limiter)
     if end_index <= start_index:
-        limiter = Line(limiter.points[start_index:] + limiter.points[:start_index + 1])
+        limiter.p = limiter.p[start_index:] + limiter.p[:start_index + 1]
     return limiter
+
 
 def trim_geometry(geoline, start, end):
     try:
@@ -1047,6 +1232,7 @@ def trim_geometry(geoline, start, end):
     except:
         trim = limiter_split(start, end, geoline)
     return trim
+
 
 def CorrectDistortion(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, Resolution, visual, Tag, MinTol=1.02, MaxTol=0.98, Verbose=False):
     MaxIter = Resolution * 10
@@ -1079,6 +1265,7 @@ def CorrectDistortion(u, Pt, Pt1, Pt2, spl, ThetaMin, ThetaMax, umin, umax, Reso
         if visual:
             plt.plot(Pt.x, Pt.y, '.', color=color, markersize=8, marker='s')
     return Pt
+
 
 def calc_mid_point(v1, v2):
     """
@@ -1123,6 +1310,7 @@ def calc_mid_point(v1, v2):
     y = v1.yorigin + v1.mag() * np.sin(theta + angle)
     return x, y
 
+
 def test2points(p1, p2, line):
     """
     Check if two points are on opposite sides of a given line.
@@ -1152,6 +1340,7 @@ def test2points(p1, p2, line):
         if (np.sign(d1) != np.sign(d2)):
             return True
     return False
+
 
 def intersect(line1, line2, verbose=False):
     """ Finds the intersection of two line segments
@@ -1186,6 +1375,8 @@ def intersect(line1, line2, verbose=False):
         return np.array([y - line(x, line1),
                          y - line(x, test_line)])
 
+    if isinstance(line2, Line):
+        line2 = [(p.x, p.y) for p in line2.p]
     for ind in range(len(line2) - 1):
         # use the mean for initial guess
         test_line = [line2[ind], line2[ind + 1]]
@@ -1198,6 +1389,7 @@ def intersect(line1, line2, verbose=False):
         if ier == 1:
             break
     return sol[0], sol[1]
+
 
 def segment_intersect(line1, line2, verbose=False):
     """ Finds the intersection of two FINITE line segments.
@@ -1213,6 +1405,8 @@ def segment_intersect(line1, line2, verbose=False):
         Coordinates of the intersection
     """
     (xa, ya), (xb, yb) = line1
+    if isinstance(line2, Line):
+        line2 = [(p.x, p.y) for p in line2.p]
 
     for i in range(len(line2) - 1):
         (xc, yc), (xd, yd) = line2[i], line2[i + 1]
@@ -1228,6 +1422,7 @@ def segment_intersect(line1, line2, verbose=False):
                 and (sol[0] >= 0) and (sol[1] >= 0):
             return True, [(xc, yc), (xc + sol[1] * (xd - xc), yc + sol[1] * (yd - yc))]
     return False, [(np.nan, np.nan), (np.nan, np.nan)]
+
 
 def UnfoldLabel(Dic: dict, Name: str) -> str:
     """

@@ -852,7 +852,7 @@ class IngridUtils():
         x-points.
         """
 
-        limiter = self.LimiterData.fluff_copy(100)
+        limiter = self.LimiterData.refined_copy(num_points_between=100)
 
         rmid = (self.PsiUNorm.rmin + self.PsiUNorm.rmax) / 2
         zmid = (self.PsiUNorm.zmin + self.PsiUNorm.zmax) / 2

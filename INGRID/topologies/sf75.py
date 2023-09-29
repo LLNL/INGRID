@@ -158,7 +158,7 @@ class SF75(TopologyUtils):
             option='rho', direction='cw', show_plot=visual, text=verbose)
 
         if len(xpt1N__psiMinCore.p) < 100:
-            xpt1N__psiMinCore = xpt1N__psiMinCore.fluff_copy(100)
+            xpt1N__psiMinCore = xpt1N__psiMinCore.refined_copy(num_points_between=100)
 
         ind = int(len(xpt1N__psiMinCore.p) * core_split_point_ratio)
 
@@ -319,7 +319,7 @@ class SF75(TopologyUtils):
         H2_S = H1_N.reverse_copy()
 
         if len(I2_W__I3_W.p) < 100:
-            I2_W__I3_W = I2_W__I3_W.fluff_copy(100)
+            I2_W__I3_W = I2_W__I3_W.refined_copy(num_points_between=100)
 
         ind = int(len(I2_W__I3_W.p) * pf_split_point_ratio)
 

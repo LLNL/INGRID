@@ -845,9 +845,13 @@ class Ingrid(IngridUtils):
         handles, labels = self.PsiNorm.ax.get_legend_handles_labels()
 
         #
-        # Process handles for convenience
+        # Process color map for legend formatting
         #
-        color_map = {'Primary Separatrix': 'red', **color_map}
+        color_map = {
+            'Primary Separatrix': 'red',
+            'Secondary Separatrix': 'blue',
+            **color_map
+        }
         for i, label in enumerate(labels):
             if not label in color_map:
                 continue

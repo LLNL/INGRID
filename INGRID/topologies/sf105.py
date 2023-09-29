@@ -158,7 +158,7 @@ class SF105(TopologyUtils):
             show_plot=visual, text=verbose)
 
         if len(xpt1N__psiMinCore.p) < 100:
-            xpt1N__psiMinCore = xpt1N__psiMinCore.fluff_copy(100)
+            xpt1N__psiMinCore = xpt1N__psiMinCore.refined_copy(num_points_between=100)
 
         ind = int(len(xpt1N__psiMinCore.p) * core_split_point_ratio)
 
@@ -306,7 +306,7 @@ class SF105(TopologyUtils):
             show_plot=visual, text=verbose).reverse_copy()
 
         if len(H3_E__H2_E.p) < 100:
-            H3_E__H2_E = H3_E__H2_E.fluff_copy(100)
+            H3_E__H2_E = H3_E__H2_E.refined_copy(num_points_between=100)
 
         ind = int(len(H3_E__H2_E.p) * pf_split_point_ratio)
 

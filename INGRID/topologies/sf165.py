@@ -279,7 +279,7 @@ class SF165(TopologyUtils):
         A2_E__A1_E = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_2}, option='rho', direction='cw', show_plot=visual, text=verbose)
 
         if len(A2_E__A1_E.p) < 100:
-            A2_E__A1_E = A2_E__A1_E.fluff_copy(100)
+            A2_E__A1_E = A2_E__A1_E.refined_copy(num_points_between=100)
 
         ind = int(len(A2_E__A1_E.p) * pf_split_point_ratio)
 

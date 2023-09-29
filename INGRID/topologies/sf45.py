@@ -304,7 +304,7 @@ class SF45(TopologyUtils):
         xpt2__psiMinPF2 = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_2}, option='rho', direction='cw', show_plot=visual, text=verbose)
 
         if len(xpt2__psiMinPF2.p) < 100:
-            xpt2__psiMinPF2 = xpt2__psiMinPF2.fluff_copy(100)
+            xpt2__psiMinPF2 = xpt2__psiMinPF2.refined_copy(num_points_between=100)
 
         ind = int(len(xpt2__psiMinPF2.p) * pf_split_point_ratio)
 

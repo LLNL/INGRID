@@ -785,28 +785,28 @@ class IngridUtils():
 
         plate = self.PlateData[k]
 
-        start = plate.p[0]
-        end = plate.p[-1]
+        start = plate[0]
+        end = plate[-1]
 
         # Endpoints are on same vertical line
-        if start.x == end.x:
+        if start[0] == end[0]:
             # If end point is above start point
-            if start.y < end.y:
+            if start[-1] < end[-1]:
                 # Return target plate as is
-                ordered_plate = plate.copy()
+                ordered_plate = Line(plate.points)
             else:
                 # Flip plate orientation
-                ordered_plate = plate.reverse_copy()
+                ordered_plate = Line(plate[::-1])
 
         # Endpoints are on same horizontal line
-        elif start.y == end.y:
+        elif start[-1] == end[-1]:
             # If start point is right of end point
-            if start.x > end.x:
+            if start[0] > end[0]:
                 # Return strike plate as is
-                ordered_plate = plate.copy()
+                ordered_plate = Line(plate.points)
             else:
                 # Flip plate orientation
-                ordered_plate = plate.reverse_copy()
+                ordered_plate = Line(plate[::-1])
 
         else:
 
@@ -815,13 +815,10 @@ class IngridUtils():
             v_reference = np.array([self.settings['grid_settings']['rmagx'],
                                     self.settings['grid_settings']['zmagx']])
 
-            v_start = np.array([start.x, start.y])
-            v_end = np.array([end.x, end.y])
-
-            if orientation_between(v_start, v_end, v_reference) <= 0:
-                ordered_plate = plate.copy()
+            if orientation_between(start, end, v_reference) <= 0:
+                ordered_plate = Line(plate.points)
             else:
-                ordered_plate = plate.reverse_copy()
+                ordered_plate = Line(plate[::-1])
 
             # Gather raw data
             self.PlateData[k] = ordered_plate
@@ -859,52 +856,48 @@ class IngridUtils():
 
         lookup = {}
         point_list = []
-        for p in limiter.p:
-            try:
-                lookup[(p.x, p.y)]
-            except:
-                if (p.x >= rmid) and (p.y >= zmid):
-                    lookup[(p.x, p.y)] = p
-                    point_list.append(p)
+        for point in limiter:
+            tuple_point = (*point.data.tolist(),)
+            if tuple_point in lookup:
+                continue
+            if (tuple_point[0] >= rmid) and (tuple_point[-1] >= zmid):
+                lookup[tuple_point] = point
+                point_list.append(point)
 
         quadrant_boundary = Line(point_list)
 
         ordered = False
-        start = quadrant_boundary.p[0]
-        for p in reversed(quadrant_boundary.p):
+        start = quadrant_boundary[0]
+        for p in reversed(quadrant_boundary):
             end = p
-            if end.coor != start.coor:
+            if np.allclose(start, end):
                 break
 
         # Endpoints are on same vertical line
-        if start.x == end.x:
+        if start[0] == end[0]:
             # If end point is above start point
-            if start.y < end.y:
+            if start[-1] < end[-1]:
                 # Return target plate as is
                 ordered = True
 
         # Endpoints are on same horizontal line
-        elif start.y == end.y:
+        elif start[-1] == end[-1]:
             # If start point is left of end point
-            if start.x < end.x:
+            if start[0] < end[0]:
                 # Return strike plate as is
                 ordered = True
 
         else:
-
             # Check the angle between the plate endpoints with
             # tail fixed on the magnetic axis
             v_reference = np.array([self.settings['grid_settings']['rmagx'],
                                     self.settings['grid_settings']['zmagx']])
 
-            v_start = np.array([start.x, start.y])
-            v_end = np.array([end.x, end.y])
-
-            if orientation_between(v_start, v_end, v_reference) <= 0:
+            if orientation_between(start, end, v_reference) <= 0:
                 ordered = True
 
         if ordered is False:
-            self.LimiterData = self.LimiterData.reverse_copy()
+            self.LimiterData = Line(self.LimiterData[::-1])
 
     def FindMagAxis(self, r: float, z: float) -> None:
         """

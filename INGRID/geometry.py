@@ -160,6 +160,9 @@ class Line:
         Dispatch to the list of points
         """
         return self.points.__next__()
+    
+    def __len__(self):
+        return len(self.data)
         
     def __repr__(self) -> str:
         _repr  = f'{self.__class__.__name__} (\n'

@@ -43,7 +43,7 @@ setup(
     install_requires=[
         'm2r2',
         'scipy >= 1.3.1',
-        'numpy',
+        'numpy >= 1.20.0',
         'pyyaml',
         'matplotlib',
         'tk',

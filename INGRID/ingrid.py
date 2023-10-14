@@ -17,7 +17,6 @@ except:
     pass
 import matplotlib.pyplot as plt
 import pathlib
-import inspect
 import functools
 from scipy.optimize import root, minimize
 
@@ -25,9 +24,7 @@ import yaml as yml
 import os
 from pathlib import Path
 from time import time, perf_counter
-from collections import OrderedDict
 
-from INGRID.OMFITgeqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.utils import IngridUtils
 from INGRID.topologies.snl import SNL
@@ -38,7 +35,6 @@ from INGRID.topologies.sf105 import SF105
 from INGRID.topologies.sf135 import SF135
 from INGRID.topologies.sf165 import SF165
 from INGRID.topologies.udn import UDN
-from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line
 
 
@@ -127,10 +123,6 @@ class Ingrid(IngridUtils):
             print(f"--> Finished {func.__name__!r} in {run_time:.6f}s...")
             return value
         return wrapper_timer
-
-    def LoadEFIT(self, fpath: str) -> None:
-        self.settings['eqdsk'] = fpath
-        self.OMFIT_read_psi()
 
     def StartGUI(self, test_initialization: bool = False) -> None:
         """
@@ -1291,7 +1283,7 @@ class Ingrid(IngridUtils):
                 + 'Must be <= 2).'
             raise ValueError(v_error_str)
 
-        self.LoadEFIT(self.settings['eqdsk'])
+        self.LoadGEQDSK(self.settings['eqdsk'])
         self.AutoRefineMagAxis()
         self.AutoRefineXPoint()
         if topology == 'DNL':

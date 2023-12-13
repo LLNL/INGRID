@@ -31,8 +31,10 @@ def test_load_geqdsk(data_dir):
     #
     # Check keys and values of loaded SNL eqdsk are consistent
     #
+    explicit_comparisons = ['comment']  # Keys to use "==" operator with
     for baseline_k, test_k in zip(sorted(baseline), sorted(session.geqdsk_data)):
         assert baseline_k == test_k, "Key mismatch in loaded data."
         k = baseline_k
-        assert np.allclose(baseline[k], session.geqdsk_data[k]), "Numerics mismatch in data."
+        compare = lambda x, y: x == y if k in explicit_comparisons else np.allclose
+        assert compare(baseline[k], session.geqdsk_data[k]), "Numerics mismatch in data."
 

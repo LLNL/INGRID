@@ -1,5 +1,3 @@
-#!/usr/bin/env pythonu
-# -*- coding: utf-8 -*-
 """Helper classes for the ingrid module and topologies package.
 
 This module contains classes `IngridUtils` and `TopologyUtils`. These classes
@@ -7,7 +5,7 @@ encapsulate much of the critical methods for handling file I/O, topology analysi
 generating patch maps, and generating grids.
 
 """
-from __future__ import print_function, division, absolute_import
+from typing import List, Dict, Tuple, TYPE_CHECKING
 import numpy as np
 import matplotlib
 try:

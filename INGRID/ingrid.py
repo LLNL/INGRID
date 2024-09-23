@@ -1,5 +1,3 @@
-#!/usr/bin/env pythonu
-# -*- coding: utf-8 -*-
 """Ingrid module for interfacing all grid generator capabilities.
 
 This module contains the Ingrid class that drives all code functionality.
@@ -8,7 +6,7 @@ The Ingrid class is to encapsulate all functionality and allow the user to
 easily take advantage of advanced features of the code.
 
 """
-from __future__ import print_function, division, absolute_import
+from typing import Dict, List, Tuple, Any, TYPE_CHECKING
 import numpy as np
 import matplotlib
 try:
@@ -18,7 +16,6 @@ except:
 import matplotlib.pyplot as plt
 import pathlib
 import functools
-from scipy.optimize import root, minimize
 
 import yaml as yml
 import os
@@ -49,7 +46,7 @@ def QuickStart() -> None:
     self-authored scripts.
 
     """
-    QuickGrid = Ingrid()
+    QuickGrid: Ingrid = Ingrid()
     QuickGrid.StartGUI()
 
 
@@ -109,7 +106,7 @@ class Ingrid(IngridUtils):
 
     """
 
-    def __init__(self, settings: dict = {}, **kwargs):
+    def __init__(self, settings: Dict[str, Any] = {}, **kwargs):
         IngridUtils.__init__(self, settings, **kwargs)
         self.PrintSummaryInput()
 
@@ -393,37 +390,23 @@ class Ingrid(IngridUtils):
                 return (x_ret_val, y_ret_val)
 
         def _parse_v_for_xy_coordinates(v_dict):
-            x_flag = False
-            y_flag = False
-            if v_dict.get('x') is not None:
-                x_ret_val = v_dict['x']
-                x_flag = True
-            if v_dict.get('X') is not None:
-                x_ret_val = v_dict['X']
-                x_flag = True
-            if v_dict.get('r') is not None:
-                x_ret_val = v_dict['r']
-                x_flag = True
-            if v_dict.get('R') is not None:
-                x_ret_val = v_dict['R']
-                x_flag = True
-            if v_dict.get('y') is not None:
-                y_ret_val = v_dict['y']
-                y_flag = True
-            if v_dict.get('Y') is not None:
-                y_ret_val = v_dict['Y']
-                y_flag = True
-            if v_dict.get('z') is not None:
-                y_ret_val = v_dict['z']
-                y_flag = True
-            if v_dict.get('Z') is not None:
-                y_ret_val = v_dict['Z']
-                y_flag = True
 
-            if x_flag is True and y_flag is True:
-                return (x_ret_val, y_ret_val)
-            else:
+            valid_x_entries: List[str] = list('xXrR')
+            valid_y_entries: List[str] = list('yYzZ')
+
+            if not any(x_entry in v_dict for x_entry in valid_x_entries) \
+               or not any(y_entry in v_dict for y_entry in valid_y_entries):
                 return None
+            
+            for x_entry in valid_x_entries:
+                if x_entry in v_dict:
+                    break
+
+            for y_entry in valid_y_entries:
+                if y_entry in v_dict:
+                    break
+            
+            return (v_dict[x_entry], v_dict[y_entry])
 
         for k, v in geo_items.items():
 
@@ -551,14 +534,14 @@ class Ingrid(IngridUtils):
             If requested strike geometry Line to save has no data.
         """
 
-        if type(settings) is dict:
+        if type(self.settings) is dict:
 
             if timestamp is True:  # Get same timestamp for all files.
                 f_tail = '_' + str(int(time()))
             else:
                 f_tail = ''
 
-            for k, v in settings.items():
+            for k, v in self.settings.items():
                 if k.lower() in ['w1', 'westplate1', 'plate_w1']:
                     k = 'plate_W1'
                 elif k.lower() in ['e1', 'eastplate1', 'plate_e1']:
@@ -580,7 +563,7 @@ class Ingrid(IngridUtils):
                 if fpath.name.strip() == '':
                     raise ValueError(f"# Cannot save '{k}' to empty file name.")
 
-                fname = fpath.fname
+                fname = fpath.name
 
                 if k == 'limiter':
                     geo = self.LimiterData
@@ -596,7 +579,7 @@ class Ingrid(IngridUtils):
                 fname += f_tail  # Add on f_tail value from start.
 
                 np.save(fname, np.array([R, Z]))
-                print(f"# Saved '{k}' plate data to file " + {fname} + ".npy")
+                print(f"# Saved '{k}' plate data to file " + str(fname) + ".npy")
 
         else:
             raise ValueError(f"# Argument 'geo_items' must be of type dict.")
@@ -1487,30 +1470,30 @@ class Ingrid(IngridUtils):
 
         """
         try:
-            f = open(fname, mode='r')
-            Values = [int(x) for x in next(f).split()]
-            HeaderItems = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
-            gridue_settings = dict(zip(HeaderItems, Values))
-            next(f)
-            BodyItems = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
-            Str = {i: [] for i in BodyItems}
-            k = iter(Str.keys())
-            Key = next(k)
-            for line in f:
-                if line == 'iogridue\n':
-                    continue
-                if line == '\n':
-                    try:
-                        Key = next(k)
-                    except:
+            with open(fname, mode='r') as f:
+                Values = [int(x) for x in next(f).split()]
+                HeaderItems = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
+                gridue_settings = dict(zip(HeaderItems, Values))
+                next(f)
+                BodyItems = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
+                body_str = {i: [] for i in BodyItems}
+                k = iter(body_str.keys())
+                Key = next(k)
+                for line in f:
+                    if line == 'iogridue\n':
                         continue
-                    print(Key)
-                else:
-                    Str[Key].append(line)
-            f.close()
+                    if line == '\n':
+                        try:
+                            Key = next(k)
+                        except:
+                            continue
+                        print(Key)
+                    else:
+                        body_str[Key].append(line)
+
             nx = gridue_settings['nxm'] + 2
             ny = gridue_settings['nym'] + 2
-            for k, v in Str.items():
+            for k, v in body_str.items():
                 L = (''.join(v).replace('\n', '').replace('D', 'e')).split()
                 _l = iter(L)
                 vv = next(_l)

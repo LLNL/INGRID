@@ -125,7 +125,7 @@ class IngridGUI:
         self.tk_session.title('INGRID')
         self.tk_session.protocol('WM_DELETE_WINDOW', on_closing)
         if test_initialization:
-            self.tk_session.after(1, self.tk_session.destroy())
+            self.tk_session.after(1, self.tk_session.destroy)
         self.tk_session.mainloop()
         #
         # If test_initialization flag is set, the gui mainloop

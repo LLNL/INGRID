@@ -48,7 +48,9 @@ setup(
         'matplotlib',
         'tk',
         'sympy',
-        'freeqdsk'
+        'freeqdsk',
+        'pydantic',
+        'mypy'
     ]
 )
 

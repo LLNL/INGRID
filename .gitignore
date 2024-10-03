@@ -28,7 +28,19 @@ share/python-wheels/
 *.egg
 MANIFEST
 .DS_Store
+COMMIT_EDITMSG
+FETCH_HEAD
+HEAD
+ORIG_HEAD
+commondir
+gitdir
+index
+index.lock
+logs
+*-dev-*
 
 # Sphinx documentation
 docs/_build/
 doc/_build/
+
+.python-version

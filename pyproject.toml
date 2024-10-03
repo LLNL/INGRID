@@ -1,5 +1,6 @@
 [project]
 name = "INGRID"
+url = 'https://github.com/LLNL/INGRID'
 description = "Tokamak edge plasma grid generator"
 readme = "README.md"
 license = {text = "MIT License"}

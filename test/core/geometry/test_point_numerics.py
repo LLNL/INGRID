@@ -1,5 +1,6 @@
+from typing import Any
 import numpy as np
-from ingrid.core.geometry import Point
+from INGRID.core.geometry import Point
 
 np.random.seed(0)
 
@@ -8,10 +9,11 @@ def test_add_000():
     Test adding Point objects: Point + Point
     """
 
-    initializers = np.random.rand(2, 2)
-    A, B         = Point(initializers[0]), Point(initializers[1])
-    result       = A + B
-    baseline     = initializers.sum(axis=0)
+    initializer: np.ndarray = np.random.rand(2, 2)
+    A: Point = Point(initializer[0])
+    B: Point = Point(initializer[1])
+    result: Point = A + B
+    baseline: Any = initializer.sum(axis=0)
 
     assert np.array_equal(result, baseline)
     assert isinstance(result, Point)
@@ -21,10 +23,10 @@ def test_add_001():
     Test adding Point objects: Point + np.array
     """
 
-    initializers = np.random.rand(2, 2)
-    A            = Point(initializers[0])
-    result       = A + initializers[1]
-    baseline     = initializers.sum(axis=0)
+    initializers: np.ndarray = np.random.rand(2, 2)
+    A: Point = Point(initializers[0])
+    result: Point = A + initializers[1]
+    baseline: Any = initializers.sum(axis=0)
 
     assert np.array_equal(result, baseline)
     assert isinstance(result, Point)
@@ -37,7 +39,7 @@ def test_add_002():
 
     """
 
-    A = Point(np.random.rand(2))
+    A: Point = Point(np.random.rand(2))
 
     assert np.array_equal(A, A + 0)
     assert isinstance(A + 0, Point)
@@ -53,13 +55,13 @@ def test_scale_000():
 
     """
 
-    initializer    = np.random.rand(2).astype(float)
-    A              = 2 * Point(initializer)
-    int_baseline   = 2 * initializer
+    initializer: np.ndarray = np.random.rand(2).astype(float)
+    A: Point = 2 * Point(initializer)
+    int_baseline: np.ndarray = 2 * initializer
 
-    initializer    = np.random.rand(2).astype(int)
-    B              = 2. * Point(initializer)
-    float_baseline = 2. * initializer
+    initializer: np.ndarray = np.random.rand(2).astype(int)
+    B: Point = 2. * Point(initializer)
+    float_baseline: np.ndarray = 2. * initializer
 
     assert np.array_equal(A, int_baseline)
     assert np.array_equal(B, float_baseline)
@@ -69,11 +71,11 @@ def test_slicing_000():
     Test the ability to slice into a Point object like a numpy array
     """
 
-    initializer = np.random.rand(100).astype(int)
-    indices     = np.random.randint(0, 100, size=50)
+    initializer: np.ndarray = np.random.rand(100).astype(int)
+    indices: np.ndarray = np.random.randint(0, 100, size=50)
     indices.sort()
-    indices     = np.unique(indices)
-    A           = Point(initializer)
+    indices: np.ndarray = np.unique(indices)
+    A: Point = Point(initializer)
     assert np.array_equal(A[indices], initializer[indices])
 
 def test_initialization_000():
@@ -81,8 +83,8 @@ def test_initialization_000():
     Test the ability to initialize a Point via an array-like container
     """
 
-    initializer = np.random.rand(100)
-    A           = Point(initializer)
+    initializer: np.ndarray= np.random.rand(100)
+    A: Point = Point(initializer)
 
 def test_initialization_001():
     """
@@ -90,8 +92,8 @@ def test_initialization_001():
     and recover data via the 'coordinates' attribute
     """
 
-    initializer = np.random.rand(100)
-    A           = Point(initializer)
+    initializer: np.ndarray= np.random.rand(100)
+    A: Point = Point(initializer)
 
     assert np.array_equal(A, A.coordinates)
 
@@ -101,22 +103,23 @@ def test_initialization_002():
     and a keyword argument
     """
 
-    initializer = np.random.rand(100)
-    A           = Point(coordinates=initializer)
+    initializer: np.ndarray = np.random.rand(100)
+    A: Point = Point(initializer)
 
 def test_distance_to_000():
     """
     Test the ability to compute the distance between two Point objects
     """
 
-    initializer       = np.random.rand(2, 2)
-    A                 = Point(initializer[0])
-    B                 = Point(initializer[1])
-    baseline_distance = np.linalg.norm(np.diff(initializer, axis=0))
-    result            = A.distance_to(B)
+    initializer: np.ndarray = np.random.rand(2, 2)
+    A: Point = Point(initializer[0])
+    B: Point = Point(initializer[1])
+    baseline_distance: np.floating[Any] = np.linalg.norm(np.diff(initializer, axis=0))
+    result: np.floating[Any] = A.distance_to(B)
 
     print(result, baseline_distance)
-    assert np.equal(result, baseline_distance)
+    assert np.isclose(result, baseline_distance)
+    assert isinstance(result, float)
 
 def test_distance_to_001():
     """
@@ -124,11 +127,12 @@ def test_distance_to_001():
     a numpy array
     """
 
-    initializer       = np.random.rand(2, 2)
-    A                 = Point(initializer[0])
-    B                 = initializer[1]
-    baseline_distance = np.linalg.norm(np.diff(initializer, axis=0))
-    result            = A.distance_to(B)
+    initializer: np.ndarray = np.random.rand(2, 2)
+    A: Point = Point(initializer[0])
+    B: np.float = initializer[1]
+    baseline_distance: np.floating[Any] = np.linalg.norm(np.diff(initializer, axis=0))
+    result: np.floating[Any] = A.distance_to(B)
 
     print(result, baseline_distance)
-    assert np.equal(result, baseline_distance)
+    assert np.isclose(result, baseline_distance)
+    assert isinstance(result, float)

@@ -1,5 +1,5 @@
 import numpy as np
-from ingrid.core.geometry import Point, Line
+from INGRID.core.geometry import Point, Line
 
 np.random.seed(0)
 
@@ -127,10 +127,10 @@ def test_line_point_at_parametric_000():
     parametric_t_vals = [0.0, 0.25, 0.5, 0.75, 1.0, 1.5, -1.]
     for pt in parametric_t_vals:
         if pt > 1.:
-            target = Point(coordinates=xy[-1])
+            target = Point(xy[-1])
         elif pt < 0.:
-            target = Point(coordinates=xy[0])
+            target = Point(xy[0])
         else:
-            target = Point(coordinates=np.array([2. * pt, 2. * pt]))
+            target = Point(np.array([2. * pt, 2. * pt]))
         result = L.at(parametric_t=pt)
         assert np.allclose(result, target, rtol=0.001)

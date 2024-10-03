@@ -1,0 +1,98 @@
+dir_settings:
+  eqdsk: ../data/SF15/
+  target_plates: ../data/SF15/geo_data
+  patch_data: ../data/SF15/patch_data/
+  limiter: ../data/SF15/geo_data
+DEBUG:
+  verbose:
+    grid_generation: 0
+    patch_generation: 1
+    target_plates: 0
+  visual:
+    SF_analysis: 0
+    find_NSEW: 0
+    gridue: 0
+    patch_map: 0
+    subgrid: 0
+eqdsk: neqdsk
+grid_settings:
+  grid_generation:
+    skewness_correction:
+      all:
+        active: true
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+    np_default: 4
+    nr_default: 4
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+  guard_cell_eps: 0.001
+  nlevs: 30
+  num_xpt: 2
+  patch_generation:
+    xpt1_E_tilt: 0.0
+    xpt1_W_tilt: 0.0
+    rmagx_shift: 0.0
+    xpt2_E_tilt: 0.5
+    xpt2_W_tilt: 0.5
+    strike_pt_loc: target_plates
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    use_xpt1_E: false
+    use_xpt1_W: false
+    use_xpt2_E: true
+    use_xpt2_W: true
+    zmagx_shift: 0.0
+  psi_1: 1.03
+  psi_2: 1.03
+  psi_core: 0.99
+  psi_pf_1: 0.99
+  psi_pf_2: 1.01
+  rmagx: 1.71
+  rxpt: 1.5
+  rxpt2: 2.1
+  view_mode: filled
+  zmagx: 0.45
+  zxpt: -0.62
+  zxpt2: -0.557
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-06
+  first_step: 5.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+limiter:
+  file: 'limiter.txt'
+  rshift: 0.0
+  use_efit_bounds: false
+  zshift: 0.3
+  rshift: 0.05
+  efit_buffer_r: 0.25
+  efit_buffer_z: 0.5
+patch_data:
+  file: SF15_patches_1597861710.npy
+  preferences:
+    new_file: true
+    new_fname: SF15_patches_1597861710.npy
+  use_file: false
+target_plates:
+  plate_E1:
+    file: plate_e1.txt
+    
+    rshift: 0.075
+    zshift: 0.10
+  plate_E2:
+    file: plate_e2.txt
+    
+    zshift: 0.0
+  plate_W1:
+    file: plate_w1.txt
+    
+    zshift: 0.2
+    rshift: 0.1
+  plate_W2:
+    file: plate_w2.txt
+    
+    zshift: 0.0

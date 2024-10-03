@@ -1,0 +1,98 @@
+DEBUG:
+  verbose:
+    SF_analysis: false
+    grid_generation: false
+    patch_generation: false
+    target_plates: false
+  visual:
+    SF_analysis: false
+    find_NSEW: false
+    gridue: false
+    patch_map: false
+    subgrid: false
+dir_settings:
+  eqdsk: .
+  limiter: .
+  patch_data: .
+  target_plates: .
+eqdsk: /Users/torvaltz/Desktop/INGRID
+grid_settings:
+  grid_generation:
+    skewness_correction:
+      all:
+        active: false
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+    np_default: 2
+    nr_default: 2
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+  guard_cell_eps: 0.001
+  nlevs: 30
+  num_xpt: 1
+  patch_generation:
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    rmagx_shift: 0.0
+    strike_pt_loc: limiter
+    use_xpt1_E: false
+    use_xpt1_W: false
+    xpt1_E_tilt: 0.785398
+    xpt1_W_tilt: -0.785398
+    xpt2_E_tilt: 0.785398
+    xpt2_W_tilt: -0.785398
+    zmagx_shift: 0.0
+  psi_1: 0.0
+  psi_2: 0.0
+  psi_core: 0.0
+  psi_pf_1: 0.0
+  psi_pf_2: 0.0
+  rmagx: 0.0
+  rxpt: 0.0
+  rxpt2: 0.0
+  view_mode: filled
+  zmagx: 0.0
+  zxpt: 0.0
+  zxpt2: 0.0
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-05
+  first_step: 1.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+limiter:
+  efit_buffer_r: 0.01
+  efit_buffer_z: 0.01
+  file: /Users/torvaltz/Desktop/INGRID
+  rshift: 0.0
+  use_efit_bounds: false
+  zshift: 0.0
+patch_data:
+  file: /Users/torvaltz/Desktop/INGRID
+  preferences:
+    new_file: false
+    new_fname: /Users/torvaltz/Desktop/INGRID
+  use_file: false
+target_plates:
+  plate_E1:
+    file: /Users/torvaltz/Desktop/INGRID
+    
+    rshift: 0.0
+    zshift: 0.0
+  plate_E2:
+    file: /Users/torvaltz/Desktop/INGRID
+    
+    rshift: 0.0
+    zshift: 0.0
+  plate_W1:
+    file: /Users/torvaltz/Desktop/INGRID
+    
+    rshift: 0.0
+    zshift: 0.0
+  plate_W2:
+    file: /Users/torvaltz/Desktop/INGRID
+    
+    rshift: 0.0
+    zshift: 0.0

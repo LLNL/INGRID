@@ -49,6 +49,7 @@ setup(
         'tk',
         'sympy',
         'freeqdsk'
+        'schema'
     ]
 )
 

@@ -1,0 +1,120 @@
+# ---------------------------------------------------
+# Template file for single-null cases
+# ---------------------------------------------------
+
+# ---------------------------------------------------
+# User data directories
+# ---------------------------------------------------
+dir_settings:
+  eqdsk: .  # dir containing eqdsk
+  limiter: .  # dir containing limiter
+  patch_data: .  # dir containing patch data
+  target_plates: .  # dir containing target plates
+# ---------------------------------------------------
+# eqdsk file name
+# ---------------------------------------------------
+eqdsk: ''
+# ---------------------------------------------------
+# General grid settings
+# ---------------------------------------------------
+grid_settings:
+  # ----------------------------------------------------------------------------
+  # Settings for grid generation (num cells, transforms, skewness_correction)
+  # ----------------------------------------------------------------------------
+  grid_generation:
+    skewness_correction:
+      all:
+        active: false
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+    np_default: 2
+    nr_default: 2
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+  # ---------------------------------------------------
+  # guard cell size
+  # ---------------------------------------------------
+  guard_cell_eps: 0.001
+  # ---------------------------------------------------
+  # num levels in efit plot
+  # ---------------------------------------------------
+  nlevs: 30
+  # ---------------------------------------------------
+  # num xpts
+  # ---------------------------------------------------
+  num_xpt: 1
+  # ---------------------------------------------------
+  # Settings for patch map
+  # ---------------------------------------------------
+  patch_generation:
+    strike_pt_loc: limiter  # 'limiter' or 'target_plates'
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    rmagx_shift: 0.0
+    zmagx_shift: 0.0
+    use_xpt1_E: false
+    use_xpt1_W: false
+    xpt1_E_tilt: 0.785398
+    xpt1_W_tilt: -0.785398
+  # ---------------------------------------------------
+  # Psi levels
+  # ---------------------------------------------------
+  psi_1: 0.0  # SOL psi level
+  psi_core: 0.0  # CORE psi level
+  psi_pf_1: 0.0  # PF psi level
+  # ---------------------------------------------------
+  # magx coordinates
+  # ---------------------------------------------------
+  rmagx: 0.0
+  zmagx: 0.0
+  # ---------------------------------------------------
+  # xpt coordinates
+  # ---------------------------------------------------
+  rxpt: 0.0
+  zxpt: 0.0
+  # ---------------------------------------------------
+  # Filled contours vs contour lines
+  # ---------------------------------------------------
+  view_mode: filled  # 'filled' or 'lines'
+# ---------------------------------------------------
+# Saved patch settings
+# ---------------------------------------------------
+patch_data:
+  use_file: false
+  file: ''
+  preferences:
+    new_file: false
+    new_fname: ''
+# ---------------------------------------------------
+# Integrator
+# ---------------------------------------------------
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-05
+  first_step: 1.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+# ---------------------------------------------------
+# Limiter settings
+# ---------------------------------------------------
+limiter:
+  file: ''  # limiter file name
+  efit_buffer_r: 0.01
+  efit_buffer_z: 0.01
+  rshift: 0.0
+  zshift: 0.0
+  use_efit_bounds: false
+# ---------------------------------------------------
+# target plate settings
+# ---------------------------------------------------
+target_plates:
+  plate_E1:
+    file: ''
+    rshift: 0.0
+    zshift: 0.0
+  plate_W1:
+    file: ''
+    rshift: 0.0
+    zshift: 0.0

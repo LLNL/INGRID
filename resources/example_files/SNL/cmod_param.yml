@@ -1,0 +1,81 @@
+dir_settings:
+  target_plates: ../data/SNL/C-MOD/
+  eqdsk: ../data/SNL/C-MOD/
+DEBUG:
+  verbose:
+    grid_generation: 1
+    patch_generation: 1
+    target_plates: 1
+  visual:
+    find_NSEW: 0
+    gridue: 0
+    patch_map: 0
+    subgrid: 0
+eqdsk: neqdsk
+grid_settings:
+  grid_generation:
+    skewness_correction:
+      all:
+        active: false
+        resolution: 1000
+        theta_max: 100.0
+        theta_min: 80.0
+      F2:
+        active: false
+        resolution: 1000
+        theta_max: 150.0
+        theta_min: 60.0
+    np_default: 5
+    nr_default: 5
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+    #radial_f_1: x, 1-(1-exp(-(1-x)/0.4))/(1-exp(-1/0.4))
+    #radial_f_2: 'x, (1-exp(-(x)/0.8))/(1-exp(-1/0.8))'
+    #radial_f_2: 'x, (1-exp(-(x)/0.8))/(1-exp(-1/0.8))'
+  guard_cell_eps: 0.001
+  nlevs: 50
+  num_xpt: 1
+  patch_generation:
+    xpt1_E_tilt: 0.2
+    xpt1_W_tilt: -0.8
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
+    strike_pt_loc: target_plates
+    magx_tilt_1: 0.0 #0.4
+    magx_tilt_2: 0.0 #-0.4
+    use_xpt1_E: true
+    use_xpt1_W: false
+    rmagx_shift: 0.0 #-0.1
+    zmagx_shift: 0.0 #-0.25
+  psi_1: 1.08
+  psi_core: 0.971886263593
+  psi_pf_1: 0.96983650612
+  psi_pf_2: 0.0
+  rmagx: 0.681827575433
+  rxpt: 0.563043114769
+  rxpt2: 0.0
+  view_mode: filled
+  zmagx: -0.003614829399
+  zxpt: -0.394986500081
+  zxpt2: 0.0
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-05
+  first_step: 1.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+# limiter:
+#   file: ''
+#   use_efit_bounds: true
+#   efit_buffer_r: 0.1
+#   efit_buffer_z: 0.2
+#   rshift: -0.075
+target_plates:
+  plate_E1:
+    file: cmod_otp.txt
+    zshift: 0.0
+    rshift: 0.0
+  plate_W1:
+    file: cmod_itp.txt
+    zshift: 0.0

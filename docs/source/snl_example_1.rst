@@ -153,10 +153,10 @@ Below are some entries we will be modifying.
     # ---------------------------------------------------
     grid_settings:
       # ----------------------------------------------------------------------------
-      # Settings for grid generation (num cells, transforms, distortion_correction)
+      # Settings for grid generation (num cells, transforms, skewness_correction)
       # ----------------------------------------------------------------------------
       grid_generation:
-        distortion_correction:
+        skewness_correction:
           all:
             active: True # true, 1 also valid.
             resolution: 1000
@@ -170,12 +170,12 @@ Within the entry ``grid_settings``, we have:
 
 * ``grid_generation`` - settings for controlling resultant grid
     
-    * ``distortion_correction`` - settings for controlling shearing in grid
+    * ``skewness_correction`` - settings for controlling shearing in grid
     
     * ``np_default`` - default number of poloidal cells per ``Patch``
     * ``nr_default`` - default number of radial cells per ``Patch``
 
-.. note:: We will work with entry ``distortion_correction`` at a later time (next section). For now, set the entry value to ``False`` so that we can see it's effects later
+.. note:: We will work with entry ``skewness_correction`` at a later time (next section). For now, set the entry value to ``False`` so that we can see it's effects later
 
 To execute refinement of the ``Patch`` map into a grid, we click the GUI button ``Create Grid``.
 
@@ -209,10 +209,10 @@ Let's illustrate this idea by increasing the number of poloidal cells near both 
     # ---------------------------------------------------
     grid_settings:
       # ----------------------------------------------------------------------------
-      # Settings for grid generation (num cells, transforms, distortion_correction)
+      # Settings for grid generation (num cells, transforms, skewness_correction)
       # ----------------------------------------------------------------------------
       grid_generation:
-        distortion_correction:
+        skewness_correction:
           all:
             active: false # true, 1 also valid.
             resolution: 1000
@@ -235,10 +235,10 @@ In addition to refining poloidally, let's increase the radial resolution near th
     # ---------------------------------------------------
     grid_settings:
       # ----------------------------------------------------------------------------
-      # Settings for grid generation (num cells, transforms, distortion_correction)
+      # Settings for grid generation (num cells, transforms, skewness_correction)
       # ----------------------------------------------------------------------------
       grid_generation:
-        distortion_correction:
+        skewness_correction:
           all:
             active: false # true, 1 also valid.
             resolution: 1000
@@ -268,10 +268,10 @@ We can continue to modify the grid in order to allocate more cells near the x-po
     # ---------------------------------------------------
     grid_settings:
       # ----------------------------------------------------------------------------
-      # Settings for grid generation (num cells, transforms, distortion_correction)
+      # Settings for grid generation (num cells, transforms, skewness_correction)
       # ----------------------------------------------------------------------------
       grid_generation:
-        distortion_correction:
+        skewness_correction:
           all:
             active: false # true, 1 also valid.
             resolution: 1000
@@ -313,14 +313,14 @@ Other capabilities such as customizing the ``Patch`` map, applying poloidal/radi
 
 ..
 
-.. Reducing cell shearing with ``distortion_correction``
+.. Reducing cell shearing with ``skewness_correction``
 .. =====================================================
 
-.. INGRID does not enforce an orthogonality condition when generating a grid. Non-orthogonal grids in INGRID allow for generation of grids that conform entirely to plate/limiter geometry. Although non-orthogonal grids can generate some cell shearing/distortion in certain cases (see figures below), INGRID allows the user to mitigate these effects with the ``distortion_correction`` feature. 
+.. INGRID does not enforce an orthogonality condition when generating a grid. Non-orthogonal grids in INGRID allow for generation of grids that conform entirely to plate/limiter geometry. Although non-orthogonal grids can generate some cell shearing/skewness in certain cases (see figures below), INGRID allows the user to mitigate these effects with the ``skewness_correction`` feature. 
 
-.. The user can activate this feature globally or on a per-patch basis. Below is a snippet illustrating the parameter file setup for ``distortion_correction``
+.. The user can activate this feature globally or on a per-patch basis. Below is a snippet illustrating the parameter file setup for ``skewness_correction``
 
-.. Below is an example of cell shearing and ``distortion_correction`` activated.
+.. Below is an example of cell shearing and ``skewness_correction`` activated.
 
 .. .. image:: figures/cell1.png
 ..     :scale: 105 %

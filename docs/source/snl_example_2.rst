@@ -11,7 +11,7 @@ Here we will detail said cases, and also dig deeper into INGRID's capabilities f
 * Detail when adjustment to line-tracing algorithm is required by user
 * Illustrate how to make adjustments to a generated ``Patch`` map 
 * Illustrate how to apply poloidal/radial transformations for non-uniform grid spacing
-* Demonstrate how to reduce cell-shearing (increase orthoganality) of a grid via ``distortion_correction``
+* Demonstrate how to reduce cell-shearing (increase orthoganality) of a grid via ``skewness_correction``
 
 Loading our example
 ===================
@@ -217,13 +217,13 @@ The resulting grid with transformations can be seen on the left, and the origina
 
 .. image:: figures/cmod_grid_transform_compare.png
 
-Reducing cell shearing via ``distortion_correction``
+Reducing cell shearing via ``skewness_correction``
 ====================================================
 
 INGRID does not enforce an orthogonality condition when generating a grid. INGRID allows the user to impose angle constraints on cells within a generated grid
-in order to increase orthogonality. We do this via the ``distortion_correction`` feature. 
+in order to increase orthogonality. We do this via the ``skewness_correction`` feature. 
 
-Below is an example of cell shearing and the motivation for INGRID's ``distortion_correction``.
+Below is an example of cell shearing and the motivation for INGRID's ``skewness_correction``.
 
 .. .. image:: figures/cell1.png
      :scale: 105 %
@@ -233,22 +233,22 @@ Below is an example of cell shearing and the motivation for INGRID's ``distortio
      :scale: 105 %
      :width: 45 %
 
-This ``distortion_correction`` tool allows the user to specify angle constraints ``theta_min`` and ``theta_max`` in order to mitigate cell shearing. 
+This ``skewness_correction`` tool allows the user to specify angle constraints ``theta_min`` and ``theta_max`` in order to mitigate cell shearing. 
 INGRID will shift the cell vertex by increments of 1 / ``resolution`` until the resultant angle is within the user constraints. 
 
 If the constraint cannot be satisfied (vertex leaves the Patch), INGRID will backtrack until the vertex is within the Patch bounds.
 
-Below is a snippet of the parameter file format showing ``distortion_correction`` applied globally.
+Below is a snippet of the parameter file format showing ``skewness_correction`` applied globally.
 
 .. code-block:: YAML
 
     grid_settings:
         grid_generation:
-            distortion_correction:
+            skewness_correction:
 
                 # Global settings
                 all:
-                    active: True  # toggle distortion_correction
+                    active: True  # toggle skewness_correction
                     resolution: 1000  # 1 / resolution step-size for shifting vertex
                     theta_max: 120.0  # angle constraint
                     theta_min: 80.0   # angle constraint
@@ -256,10 +256,10 @@ Below is a snippet of the parameter file format showing ``distortion_correction`
                 # Patch specific settings can be provided in addition to global settings
                 # (similar to how we specify np/nr for Patches on top of default np/nr)
                 
-                # Example: Specify distortion_correction for Patch A1
+                # Example: Specify skewness_correction for Patch A1
 
                 # A1:  # <-- (Patch name here can be changed)
-                #    active: false  # toggle distortion_correction
+                #    active: false  # toggle skewness_correction
                 #    resolution: 1000  # 1 / resolution step-size for shifting vertex
                 #    theta_max: 120.0  # angle constraint
                 #    theta_min: 80.0   # angle constraint
@@ -269,12 +269,12 @@ Below is a snippet of the parameter file format showing ``distortion_correction`
             poloidal_f_default: x, x
             radial_f_default: x, x
 
-Below is a side-by-side comparison of ``distortion_correction`` toggled on and off respectively.
+Below is a side-by-side comparison of ``skewness_correction`` toggled on and off respectively.
 
 .. image:: figures/cmod_final_dc_on_off.png
 
 We can see that the radial lines are indeed more orthogonal to the poloidal contours. Although only a mild effect in this case, we
-have seen that ``distortion_correction`` can significantly reduce shearing and generate tidier grids in others (example SF cases seen below).
+have seen that ``skewness_correction`` can significantly reduce shearing and generate tidier grids in others (example SF cases seen below).
 
 This feature (in addition to those detailed above) is just another tool at a user's disposal that need not be utilized in every case.
 
@@ -304,5 +304,5 @@ This was resolved by modifying the line tracing procedure in order to accomodate
 We also saw how the modification of the line tracing procedure falls into the over-arching category of INGRID tools that allow the user to
 customize a Patch map.
 
-Finally, we dove deeper into grid customization capabilities such as applying ``distortion_correction``, poloidal and radial transformations,
+Finally, we dove deeper into grid customization capabilities such as applying ``skewness_correction``, poloidal and radial transformations,
 and specifying guard cell size.

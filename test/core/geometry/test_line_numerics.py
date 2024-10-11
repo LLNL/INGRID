@@ -1,5 +1,6 @@
 import numpy as np
-from INGRID.core.geometry import Point, Line
+from ingrid.core.geometry.point import Point
+from ingrid.core.geometry.line import Line
 
 np.random.seed(0)
 
@@ -134,3 +135,15 @@ def test_line_point_at_parametric_000():
             target = Point(np.array([2. * pt, 2. * pt]))
         result = L.at(parametric_t=pt)
         assert np.allclose(result, target, rtol=0.001)
+
+def test_line_truncation_perpendicular():
+    num_segments = 10000
+    # Horizontal line segment at y = 0 from x = [0, 1]
+    line_A: Line = Line(np.column_stack([np.linspace(0, 1, num=num_segments+1), np.zeros(num_segments + 1)]))
+    # Vertical line segment at x = 0.5 from y = [-1, 1] 
+    line_B: Line = Line(np.column_stack([0.5 * np.ones(num_segments + 1), np.linspace(-1, 1, num_segments + 1)]))
+    # Should be line segment at y = 0 from x = [0, 0.5] with half the points of line_A
+    line_C: Line = line_A.truncate_at_intersection(other=line_B)
+    subset = line_A[:line_A.shape[0] // 2]
+    assert line_C.shape == subset.shape
+    print(np.linalg.norm(line_C - subset))

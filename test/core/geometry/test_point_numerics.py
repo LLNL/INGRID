@@ -1,6 +1,6 @@
 from typing import Any
 import numpy as np
-from INGRID.core.geometry import Point
+from ingrid.core.geometry.point import Point
 
 np.random.seed(0)
 
@@ -117,7 +117,6 @@ def test_distance_to_000():
     baseline_distance: np.floating[Any] = np.linalg.norm(np.diff(initializer, axis=0))
     result: np.floating[Any] = A.distance_to(B)
 
-    print(result, baseline_distance)
     assert np.isclose(result, baseline_distance)
     assert isinstance(result, float)
 
@@ -133,6 +132,5 @@ def test_distance_to_001():
     baseline_distance: np.floating[Any] = np.linalg.norm(np.diff(initializer, axis=0))
     result: np.floating[Any] = A.distance_to(B)
 
-    print(result, baseline_distance)
     assert np.isclose(result, baseline_distance)
     assert isinstance(result, float)

@@ -6,8 +6,5 @@ class RegionEntered(Exception):
         self.message = message
         self.region = region
 
-class TkInitializationSuccess(Exception):
-    """
-    Exception for identifying we have reached the end of IngridGUI.__init__
-    """
-    pass
+class MisalignedBoundaryError(Exception):
+    ...

@@ -31,4 +31,4 @@ def data_dir():
     """
     Fixture for root of data dir.
     """
-    return Path(__file__).parent.parent / 'data'
+    return Path(__file__).parent.parent / 'resources' / 'data'

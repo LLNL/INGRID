@@ -9,14 +9,16 @@ except:
    print(msg)
 
 import matplotlib.pyplot as plt
+from tkinter import *
+from tkinter.ttk import *
 import tkinter as tk
 import tkinter.messagebox as tk_messagebox
 import tkinter.filedialog as tk_filedialog
 from time import time
 from os.path import getmtime
 from pathlib import Path
-from INGRID.ingrid import Ingrid
-from INGRID.exceptions import TkInitializationSuccess
+from ingrid.interface import Ingrid
+from ingrid.core.exceptions import TkInitializationSuccess
 
 class IngridGUI:
     """

@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import Union, Optional
 import numpy as np
-from ingrid.core.geometry.point import Point, Line
-from ingrid.core.solver.line_tracing import SolverState
+from ingrid.core.geometry import Point, Line
+from ingrid.core.solver.state import SolverState
 
 class ConvergenceCriteria(ABC):
     atol: Optional[float]
     rtol: Optional[float]
     norm: Optional[Union[float, str]]
 
-    @abstractmethod()
-    def is_converged(self) -> bool:
+    @abstractmethod
+    def is_converged(self, solver_state: SolverState) -> bool:
         ...
 
 class PointConvergence(ConvergenceCriteria):

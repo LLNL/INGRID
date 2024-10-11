@@ -25,17 +25,17 @@ import os
 from pathlib import Path
 from time import time, perf_counter
 
-from INGRID.interpol import EfitData
-from INGRID.utils import IngridUtils
-from INGRID.topologies.snl import SNL
-from INGRID.topologies.sf15 import SF15
-from INGRID.topologies.sf45 import SF45
-from INGRID.topologies.sf75 import SF75
-from INGRID.topologies.sf105 import SF105
-from INGRID.topologies.sf135 import SF135
-from INGRID.topologies.sf165 import SF165
-from INGRID.topologies.udn import UDN
-from INGRID.geometry import Point, Line
+from ingrid.core.interpol import EfitData
+from ingrid.core.utils import IngridUtils
+from ingrid.core.topologies.snl import SNL
+from ingrid.core.topologies.sf15 import SF15
+from ingrid.core.topologies.sf45 import SF45
+from ingrid.core.topologies.sf75 import SF75
+from ingrid.core.topologies.sf105 import SF105
+from ingrid.core.topologies.sf135 import SF135
+from ingrid.core.topologies.sf165 import SF165
+from ingrid.core.topologies.udn import UDN
+from ingrid.core.geometry import Point, Line
 
 
 def QuickStart() -> None:
@@ -139,7 +139,7 @@ class Ingrid(IngridUtils):
             entering the method calling tk.mainloop(). Suggests a successful
             initialization of the IngridGUI class on the tk side of things.
         """
-        from INGRID.gui.ingrid_gui import IngridGUI
+        from ingrid.core.gui import IngridGUI
         self.IngridWindow = IngridGUI(IngridSession=self)
         self.IngridWindow.Run(test_initialization=test_initialization)
 

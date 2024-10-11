@@ -21,9 +21,9 @@ from scipy.optimize import root
 from pathlib import Path
 from freeqdsk import geqdsk
 
-from INGRID.interpol import EfitData
-from INGRID.line_tracing import LineTracing
-from INGRID.geometry import Point, Line, Patch, orientation_between
+from ingrid.core.interpol import EfitData
+from ingrid.core.solver.line_tracing import LineTracing
+from ingrid.core.geometry import Point, Line, Patch
 
 
 class IngridUtils():

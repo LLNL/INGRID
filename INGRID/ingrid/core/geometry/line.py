@@ -124,45 +124,7 @@ class Line(NDArrayOperatorsMixin):
         # Linear interpolation between points
         coords = (1 - frac) * p1.coordinates + frac * p2.coordinates
         return Point(coords)
-    
-    def truncate_at_intersection(self, other: Union['Line', np.ndarray]) -> Union['Line', None]:
-        """
-        Compute the truncation of this line with another line.
-        
-        Given a curve C parameterized with s, the truncation is defined as
-        all points in C up to the intersection at parameterization value s'
 
-        Parameters:
-        ----------
-        other: Another line
-
-        Returns:
-        --------
-            A Line object or None if no intersection
-        """
-        #
-        # TODO: REFACTOR ME!!!
-        #
-        for j, line1 in enumerate(iterable=zip(reversed(self.array[:-1]), reversed(self.array[1:]))):
-            print(j)
-            (xa, ya), (xb, yb) = line1
-
-            for i in range(len(other) - 1):
-                (xc, yc), (xd, yd) = other[i], other[i + 1]
-
-                M = np.array([[xb - xa, -xd + xc], [yb - ya, -yd + yc]])
-                r = np.array([xc - xa, yc - ya])
-                try:
-                    sol = np.linalg.solve(M, r)
-                except np.linalg.LinAlgError:
-                    continue
-
-                if (sol[0] <= 1) and (sol[1] <= 1) \
-                        and (sol[0] >= 0) and (sol[1] >= 0):
-                    #return Line([Point((xc, yc)), Point((xc + sol[1] * (xd - xc), yc + sol[1] * (yd - yc)))])
-                    print(xc, yc)
-                    return Line(self.points[:i] + [Point((xc + sol[1] * (xd - xc), yc + sol[1] * (yd - yc)))])
-        return None
 
     def __add__(self, other: Union['Line', np.ndarray]) -> 'Line':
         """

@@ -1,7 +1,7 @@
 import pytest
 import time
-from INGRID.ingrid import Ingrid
-from INGRID.exceptions import TkInitializationSuccess
+from ingrid.interface import Ingrid
+from ingrid.core.exceptions import TkInitializationSuccess
 
 def test_ingrid_gui_initialization():
     """

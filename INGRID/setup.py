@@ -35,10 +35,11 @@ setup(
         'Topic :: Software Development',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.8',
-	'Programming Language :: Python :: 3.9'
+	'Programming Language :: Python :: 3.9',
+	'Programming Language :: Python :: 3.10'                        
     ],
     keywords='grid, mesh, generator, tokamak, edge, plasma, efit, uedge',
-    packages=find_packages(),
+    packages=find_packages(where='.'),
     python_requires='>=3.8, <4',
     install_requires=[
         'm2r2',

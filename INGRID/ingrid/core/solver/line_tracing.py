@@ -1,36 +1,16 @@
 from __future__ import print_function, division
 import numpy as np
 from typing import Union, Optional, Tuple
-from scipy.integrate import solve_ivp, LSODA
+from scipy.integrate import solve_ivp
 from scipy.optimize import root_scalar, minimize
 from time import time
-from INGRID.geometry import Point, Line, rotate, find_split_index, angle_between, \
-    segment_intersect, test2points
-from INGRID.exceptions import RegionEntered
+from ingrid.core.geometry import Point, Line
+from ingrid.core.geometry.exceptions import RegionEntered
 import logging
 logger = logging.getLogger('.')
 
-from dataclasses import dataclass
-
-
 from ingrid.core.solver.convergence import ConvergenceCriteria, PointConvergence, LineIntersection
-
-@dataclass()
-class SolverState:
-    y_current: Union[Point, np.ndarray]
-    y_prev: Union[Point, np.ndarray]
-    dt: float
-    function: callable
-    tspan: Tuple[float, float]
-    first_step: Optional[float] = 1e-5
-    step_ratio: Optional[float] = 1e-3
-    max_step: Optional[float] = 1.0
-    atol: Optional[float] = 1e-12
-    rtol: Optional[float] = 1e-13
-    count: int = 0
-    running_time: float = 0.0
-
-
+from ingrid.core.solver.state import SolverState
 
 class LineTracing:
     """

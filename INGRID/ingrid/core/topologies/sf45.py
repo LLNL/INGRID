@@ -13,9 +13,10 @@ try:
 except:
     pass
 import matplotlib.pyplot as plt
-from INGRID.utils import TopologyUtils
-from INGRID.geometry import Point, Line, Patch, trim_geometry
+from ingrid.core.utils import TopologyUtils
+from ingrid.core.geometry import Point, Line, Patch
 from collections import OrderedDict
+
 
 
 class SF45(TopologyUtils):

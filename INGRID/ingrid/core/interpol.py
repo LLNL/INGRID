@@ -526,7 +526,7 @@ class GEQDSKInterpolator:
 
         dx, dy = lookup[tag] 
 
-        value = self.rbs(r0, z0, dx, dy)[0]
+        value = self.rbs(r0, z0, dx, dy)
         return value
     
     def __call__(self, r0: float, z0: float, tag: str = 'v') -> float:

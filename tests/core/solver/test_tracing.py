@@ -8,30 +8,39 @@ from ingrid.core.solver.experimental_trace import TracerSettings, TracerOptions,
 from ingrid.core.solver.convergence import ConvergenceSettings
 from ingrid.core.solver.exceptions import BoundaryCrossedError
 
-def test_tracing_SNL_core_plasma_separatrix_with_point_convergence(data_dir: Path) -> None:
-    """
-    Test tracing the core plasma separatrix in SNL with point convergence.
-    """
-    geqdsk_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'neqdsk', as_str=True)
-    geqdsk_interpolator = GEQDSKInterpolator(geqdsk_data=geqdsk_path)
-
+@pytest.fixture
+def xpt() -> Point:
     #
     # Xpt coordinates
     #
     rxpt: float = 1.300088209826728
     zxpt: float = -1.133074411967326
+    return Point([rxpt, zxpt])
 
+@pytest.fixture
+def magx() -> Point:
     #
-    # Baseline magx coordinates
+    # Magx coordinates
     #
     rmagx: float = 1.7578560423053675
     zmagx: float = -0.029247875129327684
+    return Point([rmagx, zmagx])
 
-    magx_psi: float = geqdsk_interpolator(rmagx, zmagx)
-    xpt_psi: float = geqdsk_interpolator(rxpt, zxpt)
+@pytest.fixture
+def normalized_geqdsk_interpolator(data_dir: Path, xpt: Point, magx: Point) -> GEQDSKInterpolator:
+    geqdsk_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'neqdsk', as_str=True)
+    geqdsk_interpolator = GEQDSKInterpolator(geqdsk_data=geqdsk_path)
+    magx_psi: float = geqdsk_interpolator(*magx)
+    xpt_psi: float = geqdsk_interpolator(*xpt)
     normalized_geqdsk_interpolator = geqdsk_interpolator.generate_normalized_interpolator(psi_min=magx_psi, psi_max=xpt_psi)
+    return normalized_geqdsk_interpolator
 
-    primary_xpoint: Point = Point([rxpt, zxpt])
+def test_tracing_SNL_core_plasma_separatrix_with_point_convergence(normalized_geqdsk_interpolator: GEQDSKInterpolator, xpt: Point, magx: Point) -> None:
+    """
+    Test tracing the core plasma separatrix in SNL with point convergence.
+    """
+    primary_xpoint = xpt
+
     tracer_settings = TracerSettings(
         option=TracerOptions.THETA,
         direction='cw',
@@ -83,31 +92,10 @@ def test_tracing_SNL_core_plasma_separatrix_with_point_convergence(data_dir: Pat
     #
     assert tracer.last_solver_state.count > 100
 
-def test_tracing_SNL_leg_with_line_intersection(data_dir: Path) -> None:
+def test_tracing_SNL_leg_with_line_intersection(normalized_geqdsk_interpolator: GEQDSKInterpolator, xpt: Point, magx: Point) -> None:
     """
     Test tracing a leg in SNL with point convergence.
     """
-    geqdsk_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'neqdsk', as_str=True)
-    SE_target_plate_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'd3d_otp.txt', as_str=True)
-    geqdsk_interpolator = GEQDSKInterpolator(geqdsk_data=geqdsk_path)
-
-    #
-    # Xpt coordinates
-    #
-    rxpt: float = 1.300088209826728
-    zxpt: float = -1.133074411967326
-
-    #
-    # Baseline magx coordinates
-    #
-    rmagx: float = 1.7578560423053675
-    zmagx: float = -0.029247875129327684
-
-    magx_psi: float = geqdsk_interpolator(rmagx, zmagx)
-    xpt_psi: float = geqdsk_interpolator(rxpt, zxpt)
-    normalized_geqdsk_interpolator = geqdsk_interpolator.generate_normalized_interpolator(psi_min=magx_psi, psi_max=xpt_psi)
-
-    primary_xpoint = Point([rxpt, zxpt])
     SE_target_plate: Line = Line(np.loadtxt(SE_target_plate_path, delimiter=',') - np.array([0.0, 1.6]))  # Applying a z-shift
 
     tracer_settings = TracerSettings(
@@ -126,8 +114,8 @@ def test_tracing_SNL_leg_with_line_intersection(data_dir: Path) -> None:
     )
 
     convergence_settings = ConvergenceSettings(
-        atol=1e-2,
-        rtol=1e-2,
+        atol=1e-8,
+        rtol=1e-8,
         norm=1
     )
 
@@ -138,7 +126,7 @@ def test_tracing_SNL_leg_with_line_intersection(data_dir: Path) -> None:
     )
 
     traced_points: np.ndarray = tracer.trace(
-        start_point=primary_xpoint - integrator_settings.first_step,  # Start a bit away from the x-point in the approx SW direction
+        start_point=xpt - integrator_settings.first_step,  # Start a bit away from the x-point in the approx SW direction
         tracer_settings=tracer_settings
     )
 
@@ -153,35 +141,13 @@ def test_tracing_SNL_leg_with_line_intersection(data_dir: Path) -> None:
         for r, z in zip(traced_points[:, 0], traced_points[:, 1])
     ])
 
-    assert np.allclose(psi_values,  1.0, atol=1e-7)
+    assert np.allclose(psi_values,  1.0)
     assert tracer.last_solver_state.count > 20
 
-def test_tracing_SNL_leg_with_line_group_intersection(data_dir: Path) -> None:
+def test_tracing_SNL_leg_with_line_group_intersection(normalized_geqdsk_interpolator: GEQDSKInterpolator, xpt: Point, magx: Point) -> None:
     """
     Test tracing a leg in SNL with line group convergence.
     """
-    geqdsk_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'neqdsk', as_str=True)
-    SW_target_plate_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'd3d_itp.txt', as_str=True)
-    SE_target_plate_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'd3d_otp.txt', as_str=True)
-    geqdsk_interpolator = GEQDSKInterpolator(geqdsk_data=geqdsk_path)
-
-    #
-    # Xpt coordinates
-    #
-    rxpt: float = 1.300088209826728
-    zxpt: float = -1.133074411967326
-
-    #
-    # Baseline magx coordinates
-    #
-    rmagx: float = 1.7578560423053675
-    zmagx: float = -0.029247875129327684
-
-    magx_psi: float = geqdsk_interpolator(rmagx, zmagx)
-    xpt_psi: float = geqdsk_interpolator(rxpt, zxpt)
-    normalized_geqdsk_interpolator = geqdsk_interpolator.generate_normalized_interpolator(psi_min=magx_psi, psi_max=xpt_psi)
-
-    primary_xpoint = Point([rxpt, zxpt])
     SW_target_plate: Line = Line(np.loadtxt(SW_target_plate_path, delimiter=',') - np.array([0.5, 1.6]))  # Applying an rz-shift
     SE_target_plate: Line = Line(np.loadtxt(SE_target_plate_path, delimiter=',') - np.array([0.0, 1.6]))  # Applying a z-shift
 
@@ -193,9 +159,9 @@ def test_tracing_SNL_leg_with_line_group_intersection(data_dir: Path) -> None:
         geqdsk_interpolator=normalized_geqdsk_interpolator
     )
 
-    convergence_check_settings = ConvergenceSettings(
-        atol=1e-2,
-        rtol=1e-2,
+    convergence_settings = ConvergenceSettings(
+        atol=1e-8,
+        rtol=1e-8,
         norm=1
     )
 
@@ -206,12 +172,6 @@ def test_tracing_SNL_leg_with_line_group_intersection(data_dir: Path) -> None:
         first_step=1e-5
     )
 
-    convergence_settings = ConvergenceSettings(
-        atol=1e-2,
-        rtol=1e-2,
-        norm=1
-    )
-
     tracer: LineTracer = LineTracer(
         tracer_settings=tracer_settings, 
         integrator_settings=integrator_settings,
@@ -219,7 +179,7 @@ def test_tracing_SNL_leg_with_line_group_intersection(data_dir: Path) -> None:
     )
 
     traced_points: np.ndarray = tracer.trace(
-        start_point=primary_xpoint - integrator_settings.first_step,  # Start a bit away from the x-point in the approx SW direction
+        start_point=xpt - integrator_settings.first_step,  # Start a bit away from the x-point in the approx SW direction
         tracer_settings=tracer_settings
     )
 
@@ -234,7 +194,7 @@ def test_tracing_SNL_leg_with_line_group_intersection(data_dir: Path) -> None:
         for r, z in zip(traced_points[:, 0], traced_points[:, 1])
     ])
 
-    assert np.allclose(psi_values,  1.0, atol=1e-7)
+    assert np.allclose(psi_values,  1.0)
     assert tracer.last_solver_state.count > 20
     #
     # The tracer should intersect the SE target plate. This corresponds to index 1 of
@@ -242,33 +202,11 @@ def test_tracing_SNL_leg_with_line_group_intersection(data_dir: Path) -> None:
     #
     assert tracer.last_convergence_checker.cache['event_index'] == 1
 
-def test_tracing_SNL_leg_intersects_boundaries(data_dir: Path) -> None:
+def test_tracing_SNL_leg_intersects_boundaries(normalized_geqdsk_interpolator: GEQDSKInterpolator, xpt: Point, magx: Point) -> None:
     """
     Test tracing a leg in without target plates in the path will result in
     going out of bounds
     """
-    geqdsk_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'neqdsk', as_str=True)
-    SW_target_plate_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'd3d_itp.txt', as_str=True)
-    SE_target_plate_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'd3d_otp.txt', as_str=True)
-    geqdsk_interpolator = GEQDSKInterpolator(geqdsk_data=geqdsk_path)
-
-    #
-    # Xpt coordinates
-    #
-    rxpt: float = 1.300088209826728
-    zxpt: float = -1.133074411967326
-
-    #
-    # Baseline magx coordinates
-    #
-    rmagx: float = 1.7578560423053675
-    zmagx: float = -0.029247875129327684
-
-    magx_psi: float = geqdsk_interpolator(rmagx, zmagx)
-    xpt_psi: float = geqdsk_interpolator(rxpt, zxpt)
-    normalized_geqdsk_interpolator = geqdsk_interpolator.generate_normalized_interpolator(psi_min=magx_psi, psi_max=xpt_psi)
-
-    primary_xpoint = Point([rxpt, zxpt])
     SW_target_plate: Line = Line(np.loadtxt(SW_target_plate_path, delimiter=','))  # Apply no shifts
     SE_target_plate: Line = Line(np.loadtxt(SE_target_plate_path, delimiter=','))  # Apply no shifts
 
@@ -280,12 +218,6 @@ def test_tracing_SNL_leg_intersects_boundaries(data_dir: Path) -> None:
         geqdsk_interpolator=normalized_geqdsk_interpolator
     )
 
-    convergence_check_settings = ConvergenceSettings(
-        atol=1e-2,
-        rtol=1e-2,
-        norm=1
-    )
-
     integrator_settings = IntegratorSettings(
         atol=1e-10,
         rtol=1e-10,
@@ -294,8 +226,8 @@ def test_tracing_SNL_leg_intersects_boundaries(data_dir: Path) -> None:
     )
 
     convergence_settings = ConvergenceSettings(
-        atol=1e-2,
-        rtol=1e-2,
+        atol=1e-8,
+        rtol=1e-8,
         norm=1
     )
 
@@ -307,42 +239,21 @@ def test_tracing_SNL_leg_intersects_boundaries(data_dir: Path) -> None:
 
     with pytest.raises(BoundaryCrossedError):
         traced_points: np.ndarray = tracer.trace(
-            start_point=primary_xpoint - integrator_settings.first_step,
+            start_point=xpt - integrator_settings.first_step,
             tracer_settings=tracer_settings
         )
 
     with pytest.raises(BoundaryCrossedError):
         tracer_settings.direction = 'ccw'  # Trace in the other direction as well
         traced_points: np.ndarray = tracer.trace(
-            start_point=primary_xpoint - integrator_settings.first_step,
+            start_point=xpt - integrator_settings.first_step,
             tracer_settings=tracer_settings
         )
 
-def test_tracing_SNL_psi_convergence(data_dir: Path) -> None:
+def test_tracing_SNL_psi_convergence(normalized_geqdsk_interpolator: GEQDSKInterpolator, xpt: Point, magx: Point) -> None:
     """
     Test tracing to psi value defining the SOL boundary
     """
-    geqdsk_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'neqdsk', as_str=True)
-    SE_target_plate_path: str = resolve_path(path=data_dir / 'SNL' / 'DIII-D' / 'd3d_otp.txt', as_str=True)
-    geqdsk_interpolator = GEQDSKInterpolator(geqdsk_data=geqdsk_path)
-
-    #
-    # Xpt coordinates
-    #
-    rxpt: float = 1.300088209826728
-    zxpt: float = -1.133074411967326
-
-    #
-    # Baseline magx coordinates
-    #
-    rmagx: float = 1.7578560423053675
-    zmagx: float = -0.029247875129327684
-
-    magx_psi: float = geqdsk_interpolator(rmagx, zmagx)
-    xpt_psi: float = geqdsk_interpolator(rxpt, zxpt)
-    normalized_geqdsk_interpolator = geqdsk_interpolator.generate_normalized_interpolator(psi_min=magx_psi, psi_max=xpt_psi)
-
-    primary_xpoint = Point([rxpt, zxpt])
     SE_target_plate: Line = Line(np.loadtxt(SE_target_plate_path, delimiter=',') - np.array([0.0, 1.6]))  # Applying a z-shift
     psi_1: float = 1.1
 
@@ -362,8 +273,8 @@ def test_tracing_SNL_psi_convergence(data_dir: Path) -> None:
     )
 
     convergence_settings = ConvergenceSettings(
-        atol=1e-2,
-        rtol=1e-2,
+        atol=1e-8,
+        rtol=1e-8,
         norm=1
     )
 
@@ -374,7 +285,7 @@ def test_tracing_SNL_psi_convergence(data_dir: Path) -> None:
     )
 
     segment_to_sol: np.ndarray = tracer.trace(
-        start_point=primary_xpoint - integrator_settings.first_step,  # Start a bit away from the x-point in the approx SW direction
+        start_point=xpt - integrator_settings.first_step,  # Start a bit away from the x-point in the approx SW direction
         tracer_settings=tracer_settings
     )
 
@@ -404,5 +315,5 @@ def test_tracing_SNL_psi_convergence(data_dir: Path) -> None:
         for r, z in zip(sol_boundary[:, 0], sol_boundary[:, 1])
     ])
 
-    assert np.allclose(psi_values,  psi_1, atol=1e-7)
+    assert np.allclose(psi_values,  psi_1)
     assert tracer.last_solver_state.count > 20

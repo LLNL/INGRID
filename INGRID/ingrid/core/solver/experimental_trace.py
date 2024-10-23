@@ -491,9 +491,15 @@ class LineTracer:
             y_end: float = y2
 
             #
+            # Define generic root finder
+            #
+            def find_root(f, bracket):
+                return root_scalar(f, bracket=bracket, rtol=convergence_settings.rtol, method='bisect')
+
+            #
             # Vertical line case
             #
-            if np.isclose(x2, x1, atol=np.finfo(float).eps):
+            if np.isclose(x2, x1, atol=convergence_settings.atol):
                 def refine_psi_root(y: float) -> float:
                     """
                     Refine the root finding for vertical lines.
@@ -508,13 +514,13 @@ class LineTracer:
                     float
                         Difference between terminal event and psi value.
                     """
-                    return convergence_checker.terminal_event - tracer_settings.geqdsk_interpolator.get_psi(x2, y)
-                sol = root_scalar(refine_psi_root, bracket=[y1, y2])
+                    return convergence_checker.terminal_event - tracer_settings.geqdsk_interpolator.get_psi(x2, y).squeeze()
+                sol = find_root(refine_psi_root, bracket=[y1, y2])
                 y_end = sol.root
             #
             # Horizontal line case
             #
-            elif np.isclose(y2, y1, atol=np.finfo(float).eps):
+            elif np.isclose(y2, y1, atol=convergence_settings.atol):
                 def refine_psi_root(x: float) -> float:
                     """
                     Refine the root finding for horizontal lines.
@@ -529,8 +535,8 @@ class LineTracer:
                     float
                         Difference between terminal event and psi value.
                     """
-                    return convergence_checker.terminal_event - tracer_settings.geqdsk_interpolator.get_psi(x, y2)
-                sol = root_scalar(refine_psi_root, bracket=[x1, x2])
+                    return convergence_checker.terminal_event - tracer_settings.geqdsk_interpolator.get_psi(x, y2).squeeze()
+                sol = find_root(refine_psi_root, bracket=[x1, x2])
                 x_end = sol.root
             #
             # Every other case is a line with a non-degenerate slope
@@ -557,8 +563,8 @@ class LineTracer:
                     #
                     # Compute the psi value at the given x, y coordinates
                     #
-                    return convergence_checker.terminal_event - tracer_settings.geqdsk_interpolator.get_psi(x, y)
-                sol = root_scalar(refine_psi_root, bracket=[x1, x2])
+                    return convergence_checker.terminal_event - tracer_settings.geqdsk_interpolator.get_psi(x, y).squeeze()
+                sol = find_root(refine_psi_root, bracket=[x1, x2])
                 x_end = sol.root
                 y_end = (y2 - y1) / (x2 - x1) * (x_end - x1) + y1
             generated_curve.append(np.array([x_end, y_end]))

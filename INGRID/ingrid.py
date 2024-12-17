@@ -17,7 +17,6 @@ except:
     pass
 import matplotlib.pyplot as plt
 import pathlib
-import inspect
 import functools
 from scipy.optimize import root, minimize
 
@@ -25,9 +24,7 @@ import yaml as yml
 import os
 from pathlib import Path
 from time import time, perf_counter
-from collections import OrderedDict
 
-from INGRID.OMFITgeqdsk import OMFITgeqdsk
 from INGRID.interpol import EfitData
 from INGRID.utils import IngridUtils
 from INGRID.topologies.snl import SNL
@@ -38,7 +35,7 @@ from INGRID.topologies.sf105 import SF105
 from INGRID.topologies.sf135 import SF135
 from INGRID.topologies.sf165 import SF165
 from INGRID.topologies.udn import UDN
-from INGRID.line_tracing import LineTracing
+from INGRID.topologies.udn_extended import UDN_Extended
 from INGRID.geometry import Point, Line
 
 
@@ -128,41 +125,24 @@ class Ingrid(IngridUtils):
             return value
         return wrapper_timer
 
-    def LoadEFIT(self, fpath: str) -> None:
-        self.settings['eqdsk'] = fpath
-        self.OMFIT_read_psi()
-
-    def StartGUI(self) -> None:
+    def StartGUI(self, test_initialization: bool = False) -> None:
         """
         Start GUI for Ingrid.
 
         Will assume usage on a machine with tk GUI capabilities.
         No prior settings file is required as the user will be
         prompted with an option to generate a new file.
-        """
-        try:
-            import tkinter as tk
-        except:
-            import Tkinter as tk
-        try:
-            import tkinter.messagebox as messagebox
-        except:
-            import tkMessageBox as messagebox
-        
-        #
-        # For robustness reset the default matplotlib rcparams
-        #
-        matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 
-        def on_closing():
-            if messagebox.askyesno('', 'Are you sure you want to quit?'):
-                plt.close('all')
-                self.IngridWindow.destroy()
+        Parameters
+        ----------
+        test_initialization : optional
+            Flag to trigger a TkInitializationSuccess exception when
+            entering the method calling tk.mainloop(). Suggests a successful
+            initialization of the IngridGUI class on the tk side of things.
+        """
         from INGRID.gui.ingrid_gui import IngridGUI
         self.IngridWindow = IngridGUI(IngridSession=self)
-        self.IngridWindow.title('INGRID')
-        self.IngridWindow.protocol('WM_DELETE_WINDOW', on_closing)
-        self.IngridWindow.mainloop()
+        self.IngridWindow.Run(test_initialization=test_initialization)
 
     def RefreshSettings(self):
         try:
@@ -518,6 +498,8 @@ class Ingrid(IngridUtils):
                 self.SetLimiter(coordinates=[x, y], rshift=rshift, zshift=zshift)
             elif Limiter and DefaultEQ:
                 self.SetLimiter(rshift=rshift, zshift=zshift)
+            elif not self.settings.get('virtual', {}).get('file', '') in ['', '.']:
+                self.SetVirtualBoundary(rshift=rshift, zshift=zshift)
             else:
                 raise ValueError(f"# Invalid key '{k}' was used for setting geometry.")
 
@@ -764,6 +746,9 @@ class Ingrid(IngridUtils):
             self.PlotLimiter(ax=ax)
         else:
             self.PlotTargetPlates(ax=ax)
+        
+        if hasattr(self, 'VirtualBoundary'):
+            self.PlotVirtualBoundary(ax=ax)
 
     def PlotTargetPlates(self, ax: object = None) -> None:
         """
@@ -811,6 +796,15 @@ class Ingrid(IngridUtils):
         self.RemovePlotLine(label='limiter', ax=ax)
         self.LimiterData.plot(color='dodgerblue', label='limiter')
 
+    def PlotVirtualBoundary(self, ax: object = None) -> None:
+        """
+        Plot limiter geometry.
+        """
+        if ax is None:
+            ax = plt.gca()
+        self.RemovePlotLine(label='virtual-boundary', ax=ax)
+        self.VirtualBoundary.plot(color='yellow', label='virtual-boundary')
+
     def PlotPsiUNorm(self) -> None:
         """
         Plot unnormalized psi data.
@@ -821,7 +815,9 @@ class Ingrid(IngridUtils):
                 plt.draw()
         except:
             pass
-        self.PsiUNorm.plot_data(self.settings['grid_settings']['nlevs'])
+        self.PsiUNorm.plot_data(self.settings['grid_settings']['nlevs'],
+                                r_extrapolation=self.settings['grid_settings']['r_extrapolation'],
+                                z_extrapolation=self.settings['grid_settings']['z_extrapolation'])
 
     def PlotPsiNorm(self, view_mode: str = 'filled') -> None:
         """
@@ -834,7 +830,9 @@ class Ingrid(IngridUtils):
         except:
             pass
 
-        self.PsiNorm.plot_data(nlevs=self.settings['grid_settings']['nlevs'], fig=self._PsiNormFig, ax=self.PsiNormAx, view_mode=view_mode)
+        self.PsiNorm.plot_data(nlevs=self.settings['grid_settings']['nlevs'], fig=self._PsiNormFig, ax=self.PsiNormAx, view_mode=view_mode,
+                                r_extrapolation=self.settings['grid_settings']['r_extrapolation'],
+                                z_extrapolation=self.settings['grid_settings']['z_extrapolation'])
 
     def PlotPsiNormBounds(self) -> None:
         """
@@ -855,12 +853,15 @@ class Ingrid(IngridUtils):
         nxpt = self.settings['grid_settings']['num_xpt']
         if nxpt == 1:
             Dic = {'psi_1': 'lime',
+                   'psi_2': 'fuchsia',
                    'psi_core': 'cyan',
                    'psi_pf_1': 'white'}
         elif nxpt == 2:
             Dic = {'psi_core': 'cyan',
                    'psi_1': 'lime',
                    'psi_2': 'fuchsia',
+                   'psi_HFS': 'orange',
+                   'psi_LFS': 'violet',
                    'psi_pf_1': 'white',
                    'psi_pf_2': 'yellow'}
 
@@ -878,9 +879,9 @@ class Ingrid(IngridUtils):
             self.PsiNorm.fig.legends[0].remove()
         except:
             pass
-        self.PsiNorm.fig.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
-                               bbox_to_anchor=(0.5, 1), loc='upper center',
-                               ncol=len([label for label in lookup.keys()]) // 3)
+        # self.PsiNorm.fig.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
+        #                        bbox_to_anchor=(0.5, 1), loc='upper center',
+        #                        ncol=len([label for label in lookup.keys()]) // 3)
 
     def PlotPsiNormMagReference(self, ax: object = None) -> None:
         """
@@ -1258,6 +1259,9 @@ class Ingrid(IngridUtils):
 
         elif topology == 'UDN':
             ingrid_topology = UDN(self, topology)
+        
+        elif topology == 'UDN_extended':
+            ingrid_topology = UDN_Extended(self, topology)
 
         elif topology == 'SF15':
             ingrid_topology = SF15(self, topology)
@@ -1304,7 +1308,7 @@ class Ingrid(IngridUtils):
                 + 'Must be <= 2).'
             raise ValueError(v_error_str)
 
-        self.LoadEFIT(self.settings['eqdsk'])
+        self.LoadGEQDSK(self.settings['eqdsk'])
         self.AutoRefineMagAxis()
         self.AutoRefineXPoint()
         if topology == 'DNL':
@@ -1314,6 +1318,8 @@ class Ingrid(IngridUtils):
         self.SetGeometry({'limiter': self.settings['limiter']})
         if hasattr(self, 'PlateData'):
             self.PlateData = {k: {} for k in self.PlateData.keys()}
+        if not self.settings.get('virtual', {}).get('file', '') in ['', '.']:
+                self.SetVirtualBoundary(self.settings['virtual']['file'])
         self.SetTargetPlates()
         self.SetMagReference()
         self.CalcPsiNorm()

@@ -15,13 +15,7 @@ from scipy.optimize import root_scalar, minimize
 from time import time
 from INGRID.geometry import Point, Line, rotate, find_split_index, angle_between, \
     segment_intersect, test2points
-
-
-class RegionEntered(Exception):
-    def __init__(self, message, region):
-        self.message = message
-        self.region = region
-
+from INGRID.exceptions import RegionEntered
 
 class LineTracing:
     """

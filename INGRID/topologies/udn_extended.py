@@ -18,7 +18,7 @@ from INGRID.geometry import Point, Line, Patch, trim_geometry, rotate
 from collections import OrderedDict
 
 
-class UDN(TopologyUtils):
+class UDN_Extended(TopologyUtils):
     """
     The `UDN` class for handling `Unbalanced Double Null` configurations
     within a tokamak.
@@ -45,35 +45,43 @@ class UDN(TopologyUtils):
         self.ConnexionMap = {
             'A1': {'N': ('A2', 'S')},
             'A2': {'N': ('A3', 'S')},
-            'A3': None,
+            'A3': {'N': ('A4', 'S')},
+            'A4': None,
 
             'B1': {'N': ('B2', 'S')},
             'B2': {'N': ('B3', 'S'), 'W': ('A2', 'E')},
-            'B3': {'W': ('A3', 'E')},
+            'B3': {'N': ('B4', 'S'), 'W': ('A3', 'E')},
+            'B4': {'W': ('A4', 'E')},
 
             'C1': {'N': ('C2', 'S'), 'W': ('B1', 'E')},
             'C2': {'N': ('C3', 'S'), 'W': ('B2', 'E')},
-            'C3': {'W': ('B3', 'E')},
+            'C3': {'N': ('C4', 'S'), 'W': ('B3', 'E')},
+            'C4': {'W': ('B4', 'E')},
 
             'D1': {'N': ('D2', 'S'), 'W': ('E1', 'E')},
             'D2': {'N': ('D3', 'S'), 'W': ('E2', 'E')},
-            'D3': {'W': ('C3', 'E')},
+            'D3': {'N': ('D4', 'S'), 'W': ('C3', 'E')},
+            'D4': {'W': ('C4', 'E')},
 
             'E1': {'N': ('E2', 'S')},
             'E2': {'N': ('E3', 'S')},
-            'E3': None,
+            'E3': {'N': ('E4', 'S')},
+            'E4': None,
 
             'F1': {'N': ('F2', 'S'), 'W': ('C1', 'E')},
             'F2': {'N': ('F3', 'S'), 'W': ('C2', 'E')},
-            'F3': {'W': ('E3', 'E')},
+            'F3': {'N': ('F4', 'S'), 'W': ('E3', 'E')},
+            'F4': {'W': ('E4', 'E')},
 
             'G1': {'N': ('G2', 'S'), 'W': ('F1', 'E'), 'E': ('B1', 'W')},
             'G2': {'N': ('G3', 'S'), 'W': ('F2', 'E')},
-            'G3': {'W': ('F3', 'E')},
+            'G3': {'N': ('G4', 'S'), 'W': ('F3', 'E')},
+            'G4': {'W': ('F4', 'E')},
 
             'H1': {'N': ('H2', 'S'), 'W': ('A1', 'E')},
             'H2': {'N': ('H3', 'S'), 'W': ('G2', 'E')},
-            'H3': {'W': ('G3', 'E')}
+            'H3': {'N': ('H4', 'S'), 'W': ('G3', 'E')},
+            'H4': {'W': ('G4', 'E')}
         }
 
     def construct_patches(self):
@@ -106,23 +114,16 @@ class UDN(TopologyUtils):
 
         psi_1 = self.settings['grid_settings']['psi_1']
         psi_2 = self.settings['grid_settings']['psi_2']
+        psi_LFS = self.settings['grid_settings']['psi_LFS']
+        psi_HFS = self.settings['grid_settings']['psi_HFS']
         psi_core = self.settings['grid_settings']['psi_core']
         psi_pf_1 = self.settings['grid_settings']['psi_pf_1']
         psi_pf_2 = self.settings['grid_settings']['psi_pf_2']
 
-        if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'limiter':
-            WestPlate1 = self.parent.LimiterData.copy()
-            WestPlate2 = self.parent.LimiterData.copy()
-
-            EastPlate1 = self.parent.LimiterData.copy()
-            EastPlate2 = self.parent.LimiterData.copy()
-
-        else:
-            WestPlate1 = self.PlateData['plate_W1']
-            WestPlate2 = self.PlateData['plate_W2']
-
-            EastPlate1 = self.PlateData['plate_E1']
-            EastPlate2 = self.PlateData['plate_E2']
+        WestPlate1 = self.parent.VirtualBoundary.copy()
+        WestPlate2 = self.parent.VirtualBoundary.copy()
+        EastPlate1 = self.parent.VirtualBoundary.copy()
+        EastPlate2 = self.parent.VirtualBoundary.copy()
 
         # Generate Horizontal Mid-Plane lines
         LHS_Point = Point(magx[0] - 1e6 * np.cos(magx_tilt_1), magx[1] - 1e6 * np.sin(magx_tilt_1))
@@ -282,14 +283,14 @@ class UDN(TopologyUtils):
 
         if self.settings['grid_settings']['patch_generation']['use_xpt2_W']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt2_W_tilt']
-            E3_E = self.LineTracer.draw_line(xpt2['W'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+            E3_E = self.LineTracer.draw_line(xpt2['W'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         else:
             E3_E = self.LineTracer.draw_line(xpt2['W'], {'psi': psi_2}, option='rho', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         F3_W = E3_E.reverse_copy()
 
         if self.settings['grid_settings']['patch_generation']['use_xpt2_E']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt2_E_tilt']
-            D3_W = self.LineTracer.draw_line(xpt2['E'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+            D3_W = self.LineTracer.draw_line(xpt2['E'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
         else:
             D3_W = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose)
         C3_E = D3_W.reverse_copy()
@@ -319,7 +320,7 @@ class UDN(TopologyUtils):
         G2_E = H2_W.reverse_copy()
 
         if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
-            tilt = -self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
             B3_W = self.LineTracer.draw_line(B2_W.p[-1], {'line': (midline_1__WestPlate1, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
         else:
             B3_W = self.LineTracer.draw_line(B2_W.p[-1], {'line': midline_1__WestPlate1},
@@ -356,21 +357,115 @@ class UDN(TopologyUtils):
             direction='ccw', show_plot=visual, text=verbose)
         G3_W = F3_E.reverse_copy()
 
+
+        #
+        # EXTENDED REGIONS: UPPER HALF OF PLANE
+        #
+
+        #
+        # Region D
+        #
+        D4_S = D3_N.reverse_copy()
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_E']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt2_E_tilt']
+            D4_W = self.LineTracer.draw_line(D3_N.p[0], {'psi_horizontal': (psi_HFS, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        else:
+            D4_W = self.LineTracer.draw_line(D3_N.p[0], {'psi': psi_HFS}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+        D4_N = self.LineTracer.draw_line(D4_W.p[-1], {'line': EastPlate2}, option='theta', direction='cw', show_plot=visual, text=verbose)
+
+        #
+        # Region C
+        #
+        C4_E = D4_W.reverse_copy()
+        C4_N = self.LineTracer.draw_line(C4_E.p[0], {'line': midline_1}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+        C4_S = C3_N.reverse_copy()
+        C4_W = self.LineTracer.draw_line(C4_S.p[-1], {'psi_horizontal': psi_HFS}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+
+        #
+        # Region E
+        #
+        E4_S = E3_N.reverse_copy()
+        try:
+            E4_E = self.LineTracer.draw_line(E3_N.p[-1], {'psi': psi_LFS}, option='rho', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+        except:
+            # prototype 000 used tilt = -0.2
+            # tilt = -0.2
+            tilt = -0.3
+            E4_E = self.LineTracer.draw_line(E3_N.p[-1], {'psi_horizontal': (psi_LFS, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+        E4_N = self.LineTracer.draw_line(E4_E.p[0], {'line': WestPlate2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+
+        #
+        # Region F
+        #
+        F4_W = E4_E.reverse_copy()
+        F4_S = F3_N.reverse_copy()
+        F4_N = self.LineTracer.draw_line(E4_N.p[-1], {'line': midline_2}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        F4_E = self.LineTracer.draw_line(F3_E.p[0], {'psi_horizontal': psi_LFS}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+
+
+        #
+        # EXTENDED REGIONS: LOWER HALF OF PLANE
+        #
+
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_W']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_W_tilt']
+            B4_W = self.LineTracer.draw_line(A3_E.p[0], {'psi_horizontal': (psi_HFS, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
+        else:
+            B4_W = self.LineTracer.draw_line(A3_E.p[0], {'psi': psi_HFS}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+
+        #
+        # Region A
+        #
+        A4_E = B4_W.reverse_copy()
+        A4_N = self.LineTracer.draw_line(A4_E.p[0], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+        A4_S = A3_N.reverse_copy()
+
+        #
+        # Region B
+        #
+        B4_N = self.LineTracer.draw_line(B4_W.p[-1], {'line': midline_1}, option='theta', direction='cw', show_plot=visual, text=verbose)
+        B4_S = B3_N.reverse_copy()
+        B4_E = C4_W.reverse_copy()
+
+        #
+        # Region G
+        #
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_E']:
+            tilt = -self.settings['grid_settings']['patch_generation']['xpt1_E_tilt']
+            G4_E = self.LineTracer.draw_line(G3_E.p[0], {'psi_horizontal': (psi_LFS, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+        else:
+            G4_E = self.LineTracer.draw_line(G3_E.p[0], {'psi': psi_LFS}, option='rho', direction='cw', show_plot=visual, text=verbose).reverse_copy()
+        G4_W = F4_E.reverse_copy()
+        G4_N = self.LineTracer.draw_line(G4_E.p[0], {'line': midline_2}, option='theta', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+        G4_S = G3_N.reverse_copy()
+        
+        #
+        # Region H
+        #
+        H4_W = G4_E.reverse_copy()
+        H4_S = H3_N.reverse_copy()
+        H4_N = self.LineTracer.draw_line(H4_W.p[-1], {'line': EastPlate1}, option='theta', direction='cw', show_plot=True, text=verbose)
+
+
         A1_W = trim_geometry(WestPlate1, A1_S.p[-1], A1_N.p[0])
         A2_W = trim_geometry(WestPlate1, A2_S.p[-1], A2_N.p[0])
         A3_W = trim_geometry(WestPlate1, A3_S.p[-1], A3_N.p[0])
+        A4_W = trim_geometry(WestPlate1, A4_S.p[-1], A4_N.p[0])
 
         D1_E = trim_geometry(EastPlate2, D1_N.p[-1], D1_S.p[0])
         D2_E = trim_geometry(EastPlate2, D2_N.p[-1], D2_S.p[0])
         D3_E = trim_geometry(EastPlate2, D3_N.p[-1], D3_S.p[0])
+        D4_E = trim_geometry(EastPlate2, D4_N.p[-1], D4_S.p[0])
 
         E1_W = trim_geometry(WestPlate2, E1_S.p[-1], E1_N.p[0])
         E2_W = trim_geometry(WestPlate2, E2_S.p[-1], E2_N.p[0])
         E3_W = trim_geometry(WestPlate2, E3_S.p[-1], E3_N.p[0])
+        E4_W = trim_geometry(WestPlate2, E4_S.p[-1], E4_N.p[0])
 
         H1_E = trim_geometry(EastPlate1, H1_N.p[-1], H1_S.p[0])
         H2_E = trim_geometry(EastPlate1, H2_N.p[-1], H2_S.p[0])
         H3_E = trim_geometry(EastPlate1, H3_N.p[-1], H3_S.p[0])
+        H4_E = trim_geometry(EastPlate2, H4_N.p[-1], H4_S.p[0])
 
         # ============== Patch A1 ==============
         A1 = Patch([A1_N, A1_E, A1_S, A1_W], patch_name='A1', plate_patch=True, plate_location='W')
@@ -378,6 +473,8 @@ class UDN(TopologyUtils):
         A2 = Patch([A2_N, A2_E, A2_S, A2_W], patch_name='A2', plate_patch=True, plate_location='W')
         # ============== Patch A3 ==============
         A3 = Patch([A3_N, A3_E, A3_S, A3_W], patch_name='A3', plate_patch=True, plate_location='W')
+        # ============== Patch A4 ==============
+        A4 = Patch([A4_N, A4_E, A4_S, A4_W], patch_name='A4', plate_patch=True, plate_location='W')
 
         # ============== Patch B1 ==============
         B1 = Patch([B1_N, B1_E, B1_S, B1_W], patch_name='B1')
@@ -385,6 +482,8 @@ class UDN(TopologyUtils):
         B2 = Patch([B2_N, B2_E, B2_S, B2_W], patch_name='B2')
         # ============== Patch B3 ==============
         B3 = Patch([B3_N, B3_E, B3_S, B3_W], patch_name='B3')
+        # ============== Patch B4 ==============
+        B4 = Patch([B4_N, B4_E, B4_S, B4_W], patch_name='B4')
 
         # ============== Patch C1 ==============
         C1 = Patch([C1_N, C1_E, C1_S, C1_W], patch_name='C1')
@@ -392,6 +491,8 @@ class UDN(TopologyUtils):
         C2 = Patch([C2_N, C2_E, C2_S, C2_W], patch_name='C2')
         # ============== Patch C3 ==============
         C3 = Patch([C3_N, C3_E, C3_S, C3_W], patch_name='C3')
+        # ============== Patch C4 ==============
+        C4 = Patch([C4_N, C4_E, C4_S, C4_W], patch_name='C4')
 
         # ============== Patch D1 ==============
         D1 = Patch([D1_N, D1_E, D1_S, D1_W], patch_name='D1', plate_patch=True, plate_location='E')
@@ -399,6 +500,8 @@ class UDN(TopologyUtils):
         D2 = Patch([D2_N, D2_E, D2_S, D2_W], patch_name='D2', plate_patch=True, plate_location='E')
         # ============== Patch D3 ==============
         D3 = Patch([D3_N, D3_E, D3_S, D3_W], patch_name='D3', plate_patch=True, plate_location='E')
+        # ============== Patch D4 ==============
+        D4 = Patch([D4_N, D4_E, D4_S, D4_W], patch_name='D4', plate_patch=True, plate_location='E')
 
         # ============== Patch E1 ==============
         E1 = Patch([E1_N, E1_E, E1_S, E1_W], patch_name='E1', plate_patch=True, plate_location='W')
@@ -406,6 +509,8 @@ class UDN(TopologyUtils):
         E2 = Patch([E2_N, E2_E, E2_S, E2_W], patch_name='E2', plate_patch=True, plate_location='W')
         # ============== Patch E3 ==============
         E3 = Patch([E3_N, E3_E, E3_S, E3_W], patch_name='E3', plate_patch=True, plate_location='W')
+        # ============== Patch E4 ==============
+        E4 = Patch([E4_N, E4_E, E4_S, E4_W], patch_name='E4', plate_patch=True, plate_location='W')
 
         # ============== Patch F1 ==============
         F1 = Patch([F1_N, F1_E, F1_S, F1_W], patch_name='F1')
@@ -413,6 +518,8 @@ class UDN(TopologyUtils):
         F2 = Patch([F2_N, F2_E, F2_S, F2_W], patch_name='F2')
         # ============== Patch F3 ==============
         F3 = Patch([F3_N, F3_E, F3_S, F3_W], patch_name='F3')
+        # ============== Patch F4 ==============
+        F4 = Patch([F4_N, F4_E, F4_S, F4_W], patch_name='F4')
 
         # ============== Patch G1 ==============
         G1 = Patch([G1_N, G1_E, G1_S, G1_W], patch_name='G1')
@@ -420,6 +527,8 @@ class UDN(TopologyUtils):
         G2 = Patch([G2_N, G2_E, G2_S, G2_W], patch_name='G2')
         # ============== Patch G3 ==============
         G3 = Patch([G3_N, G3_E, G3_S, G3_W], patch_name='G3')
+        # ============== Patch G4 ==============
+        G4 = Patch([G4_N, G4_E, G4_S, G4_W], patch_name='G4')
 
         # ============== Patch H1 ==============
         H1 = Patch([H1_N, H1_E, H1_S, H1_W], patch_name='H1', plate_patch=True, plate_location='E')
@@ -427,9 +536,11 @@ class UDN(TopologyUtils):
         H2 = Patch([H2_N, H2_E, H2_S, H2_W], patch_name='H2', plate_patch=True, plate_location='E')
         # ============== Patch H3 ==============
         H3 = Patch([H3_N, H3_E, H3_S, H3_W], patch_name='H3', plate_patch=True, plate_location='E')
+        # ============== Patch H4 ==============
+        H4 = Patch([H4_N, H4_E, H4_S, H4_W], patch_name='H4', plate_patch=True, plate_location='E')
 
-        patches = [A3, A2, A1, B3, B2, B1, C3, C2, C1, D3, D2, D1, E3, E2, E1,
-                   F3, F2, F1, G3, G2, G1, H3, H2, H1]
+        patches = [A4, A3, A2, A1, B4, B3, B2, B1, C4, C3, C2, C1, D4, D3, D2, D1, E4, E3, E2, E1,
+                   F4, F3, F2, F1, G4, G3, G2, G1, H4, H3, H2, H1]
 
         self.patches = {}
         for patch in patches:
@@ -441,6 +552,7 @@ class UDN(TopologyUtils):
     def OrderPatches(self):
 
         patches = [
+            'A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4',
             'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3',
             'A2', 'B2', 'C2', 'F2', 'G2', 'H2', 'E2', 'D2',
             'A1', 'H1', 'E1', 'D1', 'B1', 'C1', 'F1', 'G1',

@@ -1,10 +1,7 @@
-#!/usr/bin/env pythonu
-# -*- coding: utf-8 -*-
 """
 Module containing EfitData class for handling all interpolation
 related computations.
 """
-from __future__ import division, print_function, absolute_import
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import zoom
@@ -42,9 +39,22 @@ class EfitData:
         Specify the title of the figure the data will be plotted on.
     """
 
-    def __init__(self, rmin=0.0, rmax=1.0, nr=10, zmin=0.0, zmax=2.0, nz=20,
-                 rcenter=1.6955000, bcenter=-2.1094041, rlimiter=None, zlimiter=None,
-                 rmagx=0.0, zmagx=0.0, name='unnamed', parent=None):
+    def __init__(self, 
+                 rmin=0.0, 
+                 rmax=1.0, 
+                 nr=10, 
+                 zmin=0.0, 
+                 zmax=2.0, 
+                 nz=20,
+                 rcenter=1.6955000, 
+                 bcenter=-2.1094041, 
+                 rlimiter=None, 
+                 zlimiter=None,
+                 rmagx=0.0, 
+                 zmagx=0.0, 
+                 name='unnamed', 
+                 parent=None):
+
         r, dr = np.linspace(rmin, rmax, nr, retstep=True)
         z, dz = np.linspace(zmin, zmax, nz, retstep=True)
         rgrid, zgrid = np.meshgrid(r, z, indexing='ij')
@@ -229,8 +239,9 @@ class EfitData:
             self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(level)], colors=color, label=label, linestyles=linestyles)
             self.psi_levels[label].collections[0].set_label(label)
 
-    def plot_data(self: object, nlevs: int = 30, interactive: bool = False, fig: object = None,
-                  ax: object = None, view_mode: str = 'filled', refined: bool = True, refine_factor: int = 10):
+    def plot_data(self: object, nlevs: int = 30, interactive: bool = True, fig: object = None,
+                  ax: object = None, view_mode: str = 'filled', refined: bool = True, refine_factor: int = 10,
+                  r_extrapolation: float = 0.0, z_extrapolation: float = 0.0):
         """
         Plot the EFIT data.
 
@@ -265,11 +276,19 @@ class EfitData:
         rgrid = self.r
         zgrid = self.z
 
+        if r_extrapolation > 0. or z_extrapolation > 0.:
+            _r = np.linspace(self.rmin - r_extrapolation, self.rmax + r_extrapolation, self.nr)
+            _z = np.linspace(self.zmin - z_extrapolation, self.zmax + z_extrapolation, self.nz)
+            rgrid, zgrid = np.meshgrid(_r, _z, indexing='ij')
+            data = [self.get_psi(r, z) for r in _r for z in _z]
+            data = np.array(data, dtype=float).reshape(_r.shape[0], _z.shape[0])
+
         if refined is True:
-            data = zoom(input=self.v, zoom=refine_factor)
-            rgrid, zgrid = np.meshgrid(np.linspace(self.rmin, self.rmax, data.shape[0]),
-                                       np.linspace(self.zmin, self.zmax, data.shape[1]),
-                                       indexing='ij')
+            data = zoom(input=data, zoom=refine_factor)
+            rgrid, zgrid = np.meshgrid(
+                                        np.linspace(self.rmin - r_extrapolation, self.rmax + r_extrapolation, data.shape[0]),
+                                        np.linspace(self.zmin - z_extrapolation, self.zmax + z_extrapolation, data.shape[1]),
+                                        indexing='ij')
         if view_mode == 'lines':
             self.ax.contour(rgrid, zgrid, data, lev, cmap='gist_gray')
         elif view_mode == 'filled':
@@ -277,8 +296,8 @@ class EfitData:
         self.ax.set_aspect('equal', adjustable='box')
         self.ax.set_xlabel('R')
         self.ax.set_ylabel('Z')
-        self.ax.set_xlim(self.rmin, self.rmax)
-        self.ax.set_ylim(self.zmin, self.zmax)
+        self.ax.set_xlim(self.rmin - r_extrapolation, self.rmax + r_extrapolation)
+        self.ax.set_ylim(self.zmin - z_extrapolation, self.zmax + z_extrapolation)
         if interactive:
             plt.ion()
         self.fig.show()

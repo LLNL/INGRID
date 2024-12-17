@@ -712,10 +712,11 @@ class Patch:
             R, Z = line.as_np()
             patch_data.append(R)
             patch_data.append(Z)
-        patch_data = np.array(patch_data)
+        patch_data = np.array(patch_data, dtype=object)
         cell_data = self.cell_grid_as_np()
         patch_settings = self.get_settings()
-        return np.array([patch_data, cell_data, patch_settings])
+        payload = np.array([patch_data, cell_data, patch_settings], dtype=object)
+        return payload
 
     def make_subgrid(self, grid, np_cells=2, nr_cells=2, _poloidal_f=lambda x: x, _radial_f=lambda x: x, verbose=False, visual=False, ShowVertices=False):
         """

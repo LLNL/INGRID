@@ -55,25 +55,25 @@ class OMFITgeqdsk(dict):
 
         # now I have to read NW elements
         nlNW = int(np.ceil(self['NW'] / 5.))
-        self['FPOL'] = np.array(list(map(float, splitter(merge(EQDSK[offset:offset + nlNW])))))
+        self['FPOL'] = np.array(list(map(np.float64, splitter(merge(EQDSK[offset:offset + nlNW])))))
         offset = offset + nlNW
-        self['PRES'] = np.array(list(map(float, splitter(merge(EQDSK[offset:offset + nlNW])))))
+        self['PRES'] = np.array(list(map(np.float64, splitter(merge(EQDSK[offset:offset + nlNW])))))
         offset = offset + nlNW
-        self['FFPRIM'] = np.array(list(map(float, splitter(merge(EQDSK[offset:offset + nlNW])))))
+        self['FFPRIM'] = np.array(list(map(np.float64, splitter(merge(EQDSK[offset:offset + nlNW])))))
         offset = offset + nlNW
-        self['PPRIME'] = np.array(list(map(float, splitter(merge(EQDSK[offset:offset + nlNW])))))
+        self['PPRIME'] = np.array(list(map(np.float64, splitter(merge(EQDSK[offset:offset + nlNW])))))
         offset = offset + nlNW
         try:
             # official gEQDSK file format saves PSIRZ as a single flat array of size rowsXcols
             nlNWNH = int(np.ceil(self['NW'] * self['NH'] / 5.))
-            self['PSIRZ'] = np.reshape(np.fromiter(splitter(''.join(EQDSK[offset:offset + nlNWNH])), dtype=np.float),(self['NH'], self['NW']))
+            self['PSIRZ'] = np.reshape(np.fromiter(splitter(''.join(EQDSK[offset:offset + nlNWNH])), dtype=np.float64),(self['NH'], self['NW']))
             offset = offset + nlNWNH
         except ValueError:
             # sometimes gEQDSK files save row by row of the PSIRZ grid (eg. FIESTA code)
             nlNWNH = self['NH'] * nlNW
-            self['PSIRZ'] = np.reshape(np.fromiter(splitter(''.join(EQDSK[offset:offset + nlNWNH])), dtype=np.float),(self['NH'], self['NW']))
+            self['PSIRZ'] = np.reshape(np.fromiter(splitter(''.join(EQDSK[offset:offset + nlNWNH])), dtype=np.float64),(self['NH'], self['NW']))
             offset = offset + nlNWNH
-        self['QPSI'] = np.array(list(map(float, splitter(merge(EQDSK[offset:offset + nlNW])))))
+        self['QPSI'] = np.array(list(map(np.float64, splitter(merge(EQDSK[offset:offset + nlNW])))))
         offset = offset + nlNW
 
         # now vacuum vessel and limiters
@@ -81,15 +81,15 @@ class OMFITgeqdsk(dict):
         offset = offset + 1
 
         nlNBBBS = int(np.ceil(self['NBBBS'] * 2 / 5.))
-        self['RBBBS'] = np.array(list(map(float, splitter(merge(EQDSK[offset:offset + nlNBBBS]))))[0::2])
-        self['ZBBBS'] = np.array(list(map(float, splitter(merge(EQDSK[offset:offset + nlNBBBS]))))[1::2])
+        self['RBBBS'] = np.array(list(map(np.float64, splitter(merge(EQDSK[offset:offset + nlNBBBS]))))[0::2])
+        self['ZBBBS'] = np.array(list(map(np.float64, splitter(merge(EQDSK[offset:offset + nlNBBBS]))))[1::2])
         offset = offset + max(nlNBBBS, 1)
 
         try:
             # this try/except is to handle some gEQDSK files written by older versions of ONETWO
             nlLIMITR = int(np.ceil(self['LIMITR'] * 2 / 5.))
-            self['RLIM'] = np.array(list(map(float, splitter(merge(EQDSK[offset:offset + nlLIMITR]))))[0::2])
-            self['ZLIM'] = np.array(list(map(float, splitter(merge(EQDSK[offset:offset + nlLIMITR]))))[1::2])
+            self['RLIM'] = np.array(list(map(np.float64, splitter(merge(EQDSK[offset:offset + nlLIMITR]))))[0::2])
+            self['ZLIM'] = np.array(list(map(np.float64, splitter(merge(EQDSK[offset:offset + nlLIMITR]))))[1::2])
             offset = offset + nlLIMITR
         except ValueError:
             # if it fails make the limiter as a rectangle around the plasma boundary that does not exceed the computational domain

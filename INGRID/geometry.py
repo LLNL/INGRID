@@ -194,9 +194,10 @@ class Line:
     """
 
     def __init__(self, points: list):
-        self.p = points
-        self.xval = [p.x for p in points]
-        self.yval = [p.y for p in points]
+        unique_points = {p.coor: p for p in points}
+        self.p = list(unique_points.values())
+        self.xval = [p[0] for p in unique_points]
+        self.yval = [p[-1] for p in unique_points]
         if len(points) > 1:
             self.X = self.xval[1] - self.xval[0]
             self.Y = self.yval[1] - self.yval[0]
@@ -279,15 +280,19 @@ class Line:
         """
         if verbose is True:
             print(f'# Fluffing with n = {num}')
-        x_fluff = np.empty(0)
-        y_fluff = np.empty(0)
+        x_fluff = []
+        y_fluff = []
         if verbose is True:
             print(f'# fluff: len(self.xval) = {len(self.xval)}')
-        for i in range(len(self.xval) - 1):
-            x_fluff = np.append(x_fluff, np.linspace(self.xval[i], self.xval[i + 1], num, endpoint=False))
-            y_fluff = np.append(y_fluff, np.linspace(self.yval[i], self.yval[i + 1], num, endpoint=False))
-        x_fluff = np.append(x_fluff, self.xval[-1])
-        y_fluff = np.append(y_fluff, self.yval[-1])
+        for i, current in enumerate(zip(self.xval[:-1], self.yval[:-1])):
+            curr_x, curr_y = current
+            next_x, next_y = self.xval[i + 1], self.yval[i + 1]
+            x_fluff.append(np.linspace(curr_x, next_x, num, endpoint=False))
+            y_fluff.append(np.linspace(curr_y, next_y, num, endpoint=False))
+        x_fluff.append([self.xval[-1]])
+        y_fluff.append([self.yval[-1]])
+        x_fluff = np.hstack(x_fluff)
+        y_fluff = np.hstack(y_fluff)
 
         return x_fluff, y_fluff
 
@@ -801,7 +806,7 @@ class Patch:
         try:
             #Cannot fluff with too many points
             n = 500 if len(self.W.p) < 50 else 100
-           # W_vals = self.W.reverse_copy().fluff(num = n)
+            # W_vals = self.W.reverse_copy().fluff(num = n)
             W_vals = self.W.reverse_copy().fluff(n, verbose=verbose)
             Psi = psi_parameterize(grid, W_vals[0], W_vals[1])
             self.W_spl, uW = splprep([W_vals[0], W_vals[1]], u=Psi, s=10)

@@ -833,18 +833,18 @@ class Ingrid(IngridUtils):
 
         nxpt = self.settings['grid_settings']['num_xpt']
         if nxpt == 1:
-            Dic = {'psi_1': 'lime',
+            self.contour_colour_dic = {'psi_1': 'lime',
                    'psi_core': 'cyan',
                    'psi_pf_1': 'white'}
         elif nxpt == 2:
-            Dic = {'psi_core': 'cyan',
+            self.contour_colour_dic = {'psi_core': 'cyan',
                    'psi_1': 'lime',
                    'psi_2': 'fuchsia',
                    'psi_pf_1': 'white',
                    'psi_pf_2': 'yellow'}
 
-        for k, c in Dic.items():
-            self.PsiNorm.PlotLevel(self.settings['grid_settings'][k], color=Dic[k], label=k)
+        for k, c in self.contour_colour_dic.items():
+            self.PsiNorm.PlotLevel(self.settings['grid_settings'][k], color=self.contour_colour_dic[k], label=k)
 
         self.PsiNorm.PlotLevel(1.0, color='red', label='Primary Separatrix')
         if nxpt == 2:
@@ -852,6 +852,12 @@ class Ingrid(IngridUtils):
                 self.PsiNorm.get_psi(self.xpt2[0], self.xpt2[1]), color='blue', label='Secondary Separatrix')
 
         handles, labels = self.PsiNorm.ax.get_legend_handles_labels()
+        contour_count = 0
+        contour_colours = list(self.contour_colour_dic.values()) + ["red", "blue"]
+        for i in range(len(handles)):
+            if isinstance(handles[i], matplotlib.collections.PathCollection):
+                handles[i] = matplotlib.lines.Line2D([0],[0],color=contour_colours[contour_count])
+                contour_count+=1
         lookup = {label: handle for label, handle in zip(labels, handles)}
         try:
             self.PsiNorm.fig.legends[0].remove()
@@ -859,7 +865,7 @@ class Ingrid(IngridUtils):
             pass
         self.PsiNorm.fig.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
                                bbox_to_anchor=(0.5, 1), loc='upper center',
-                               ncol=len([label for label in lookup.keys()]) // 3)
+                               ncol=len([label for label in lookup.keys()]) // 3, facecolor="gray",framealpha=0.2)
 
     def PlotPsiNormMagReference(self, ax: object = None) -> None:
         """
@@ -1418,6 +1424,16 @@ class Ingrid(IngridUtils):
             self.CurrentTopology.OrderPatches()
             self.CurrentTopology.SetupPatchMatrix()
             self.CheckPatches()
+
+    def ApplyUpDownSymmetry(self) -> None:
+        if self.settings["grid_settings"]["up_down_symmetry"]:
+            if self.CurrentTopology.config == "LSN":
+                del self.CurrentTopology.patches["C1"]
+                del self.CurrentTopology.patches["C2"]
+                del self.CurrentTopology.patches["D1"]
+                del self.CurrentTopology.patches["D2"]
+            else:
+                raise Exception("Up/down symmetry not yet implemented for config " + self.CurrentTopology.config)
 
     @_timer
     def ConstructGrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:

@@ -2120,8 +2120,14 @@ class TopologyUtils():
     def _concat_one_patch_region(self, patch_matrix: list):
         """Concatenate the grid cells from all patches grouped as a single patch region
 
-        :param patch_matrix: Matrix containing all patches including boundary regions
-        :return: rm, zm
+        Parameters
+        ----------
+        patch_matrix: list
+            Matrix containing all patches including boundary regions
+
+        Returns
+        -------
+            rm, zm
         """
         np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
         nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
@@ -2180,15 +2186,25 @@ class TopologyUtils():
 
         return rm, zm
 
-    def _concat_two_patch_regions(self, patch_matrix: list, pindex1: int, pindex2: int, pindex3: int, rindex: 3):
+    def _concat_two_patch_regions(self, patch_matrix: list, pindex1: int, pindex2: int, pindex3: int, rindex: int):
         """Concatenate the grid cells from all patches grouped as two separate patch regions
 
-        :param patch_matrix: Matrix containing all patches including boundary regions
-        :param pindex1: Poloidal patch index for the end of the first patch region
-        :param pindex2: Poloidal patch index for the start of the second patch region
-        :param pindex3: Poloidal patch index for the end of the second patch region
-        :param rindex: Number of radial patches
-        :return: rm, zm
+        Parameters
+        ----------
+        patch_matrix: list
+            Matrix containing all patches including boundary regions
+        pindex1: int 
+            Poloidal patch index for the end of the first patch region
+        pindex2: int
+            Poloidal patch index for the start of the second patch region
+        pindex3: int
+            Poloidal patch index for the end of the second patch region
+        rindex: int
+            Number of radial patches
+
+        Returns
+        -------
+            rm, zm
         """
 
         # Total number of poloidal indices in all subgrids.
@@ -2310,14 +2326,26 @@ class TopologyUtils():
     def _concat_three_patch_regions(self, patch_matrix: list, pindex1: int, pindex2: int, pindex3: int, pindex4: int, pindex5: int, rindex: int):
         """Concatenate the grid cells from all patches grouped as three separate patch regions
 
-        :param patch_matrix: Matrix containing all patches including boundary regions
-        :param pindex1: Poloidal patch index for the end of the first patch region
-        :param pindex2: Poloidal patch index for the start of the second patch region
-        :param pindex3: Poloidal patch index for the end of the second patch region
-        :param pindex3: Poloidal patch index for the start of the third patch region
-        :param pindex3: Poloidal patch index for the end of the third patch region
-        :param rindex: Number of radial patches
-        :return: rm, zm
+        Parameters
+        ----------
+        patch_matrix: list
+            Matrix containing all patches including boundary regions
+        pindex1: int 
+            Poloidal patch index for the end of the first patch region
+        pindex2: int
+            Poloidal patch index for the start of the second patch region
+        pindex3: int
+            Poloidal patch index for the end of the second patch region
+        pindex4: int
+            Poloidal patch index for the start of the third patch region
+        pindex5: int
+            Poloidal patch index for the end of the third patch region
+        rindex: int
+            Number of radial patches
+
+        Returns
+        -------
+            rm, zm
         """
 
         # Total number of poloidal indices in all subgrids.

@@ -1958,7 +1958,6 @@ class TopologyUtils():
 
         if self.config in ["LSN", "USN"]:
             if self.settings["grid_settings"]["up_down_symmetry"]:
-                #TODO: Implement up/down symmetry for other geometries
                 self.patch_matrix = [
                     [[None], [None], [None], [None], [None], [None], [None], [None]],
                     [[None], p["A2"], p["B2"], [None], [None], p["E2"], p["F2"], [None]],
@@ -1974,13 +1973,22 @@ class TopologyUtils():
                 ]
 
         elif self.config in ['SF45', 'SF75', 'SF105', 'SF135']:
-            self.patch_matrix = [
-                [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]],
-                [[None], p['A3'], p['B3'], p['C3'], p['D3'], p['E3'], p['F3'], p['G3'], [None], [None], p['H3'], p['I3'], [None]],
-                [[None], p['A2'], p['B2'], p['C2'], p['D2'], p['E2'], p['F2'], p['G2'], [None], [None], p['H2'], p['I2'], [None]],
-                [[None], p['A1'], p['B1'], p['C1'], p['D1'], p['E1'], p['F1'], p['G1'], [None], [None], p['H1'], p['I1'], [None]],
-                [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]]
-            ]
+            if self.settings["grid_settings"]["up_down_symmetry"]:
+                self.patch_matrix = [
+                    [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]],
+                    [[None], p['A3'], p['B3'], [None], [None], p['E3'], p['F3'], p['G3'], [None], [None], p['H3'], p['I3'], [None]],
+                    [[None], p['A2'], p['B2'], [None], [None], p['E2'], p['F2'], p['G2'], [None], [None], p['H2'], p['I2'], [None]],
+                    [[None], p['A1'], p['B1'], [None], [None], p['E1'], p['F1'], p['G1'], [None], [None], p['H1'], p['I1'], [None]],
+                    [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]]
+                ] 
+            else:
+                self.patch_matrix = [
+                    [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]],
+                    [[None], p['A3'], p['B3'], p['C3'], p['D3'], p['E3'], p['F3'], p['G3'], [None], [None], p['H3'], p['I3'], [None]],
+                    [[None], p['A2'], p['B2'], p['C2'], p['D2'], p['E2'], p['F2'], p['G2'], [None], [None], p['H2'], p['I2'], [None]],
+                    [[None], p['A1'], p['B1'], p['C1'], p['D1'], p['E1'], p['F1'], p['G1'], [None], [None], p['H1'], p['I1'], [None]],
+                    [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]]
+                ]
         elif self.config in ['SF15', 'SF165']:
             self.patch_matrix = [
                 [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]],
@@ -2016,264 +2024,462 @@ class TopologyUtils():
             Determines the size of guard cell padding.
         """
 
-        def _add_guardc(cell_map, ixlb, ixrb, nxpt=1, eps=1e-3):
-            """
-            Add guard cells to the cell array.
-            """
-
-            def set_guard(cell_map, ix, iy, eps, boundary):
-                # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
-                # TODO: Edit the code to reflect this at some point so the next reader is not overwhelmed.
-                if boundary == 'left':
-                    ixn = ix + 1
-                    iyn = iy
-                    cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
-                    cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
-                    cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
-                    cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
-                    cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-                elif boundary == 'right':
-                    ixn = ix - 1
-                    iyn = iy
-                    cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
-                    cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
-                    cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
-                    cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
-                    cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-                elif boundary == 'bottom':
-                    ixn = ix
-                    iyn = iy + 1
-                    cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
-                    cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
-                    cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
-                    cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
-                    cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-                elif boundary == 'top':
-                    ixn = ix
-                    iyn = iy - 1
-                    cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
-                    cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
-                    cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
-                    cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
-                    cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
-
-                return cell_map
-
-            np = len(cell_map) - 2
-            nr = len(cell_map[0]) - 2
-
-            for iy in range(1, nr + 1):
-                ix = ixlb
-                cell_map = set_guard(cell_map, ix, iy, eps, boundary='left')
-                ix = ixrb + 1
-                cell_map = set_guard(cell_map, ix, iy, eps, boundary='right')
-
-            for ix in range(np + 2):
-                iy = 0
-                cell_map = set_guard(cell_map, ix, iy, eps, boundary='bottom')
-                iy = nr + 1
-                cell_map = set_guard(cell_map, ix, iy, eps, boundary='top')
-
-            return cell_map
-
         patch_matrix = self.patch_matrix
 
         for patch in self.patches.values():
             patch.npol = len(patch.cell_grid[0]) + 1
             patch.nrad = len(patch.cell_grid) + 1
 
-        if (self.parent.settings['grid_settings']['num_xpt'] == 1) and (self.parent.settings['grid_settings']["up_down_symmetry"] is False):
+        if self.parent.settings['grid_settings']["up_down_symmetry"] is True:
 
-            np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
-            nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
+            if self.parent.settings['grid_settings']['num_xpt'] == 1:
+                self.rm, self.zm = self._concat_two_patch_regions(patch_matrix, pindex1 = 3, pindex2 = 5, pindex3 = 7, rindex = 3)
+            elif self.parent.settings['grid_settings']['num_xpt'] == 2:
+                if self.config in ['SF45', 'SF75', 'SF105', 'SF135']:
+                    self.rm, self.zm = self._concat_three_patch_regions(patch_matrix, pindex1 = 3, pindex2 = 5, pindex3 = 8, pindex4 = 10, pindex5 = 12, rindex = 4)
+                elif self.config in ['SF15', 'SF165']:
+                    # Note yet implemented
+                    pass
+                elif self.config in ['UDN']:
+                    # Not yet implemented
+                    pass
 
-            rm = np.zeros((np_total, nr_total, 5), order='F')
-            zm = np.zeros((np_total, nr_total, 5), order='F')
+        elif self.parent.settings['grid_settings']["up_down_symmetry"] is False:
+            if self.parent.settings['grid_settings']['num_xpt'] == 1:
+                self.rm, self.zm = self._concat_one_patch_region(patch_matrix)
+            elif self.parent.settings['grid_settings']['num_xpt'] == 2:
+                if self.config in ['SF45', 'SF75', 'SF105', 'SF135']:
+                    self.rm, self.zm = self._concat_two_patch_regions(patch_matrix, pindex1 = 8, pindex2 = 10, pindex3 = 12, rindex = 4)
+                elif self.config in ['SF15', 'SF165']:
+                    self.rm, self.zm = self._concat_two_patch_regions(patch_matrix, pindex1 = 7, pindex2 = 9, pindex3 = 12, rindex = 4)
+                elif self.config in ['UDN']:
+                    self.rm, self.zm = self._concat_two_patch_regions(patch_matrix, pindex1 = 5, pindex2 = 7, pindex3 = 11, rindex = 4)
+    
+    def _add_guardc(self, cell_map, ixlb, ixrb, nxpt=1, eps=1e-3):
+        """
+        Add guard cells to the cell array.
+        """
 
-            ixcell = 0
-            jycell = 0
+        def set_guard(cell_map, ix, iy, eps, boundary):
+            # Note: 'USN' and 'right' is really just 'LSN' and 'left' settings.
+            # TODO: Edit the code to reflect this at some point so the next reader is not overwhelmed.
+            if boundary == 'left':
+                ixn = ix + 1
+                iyn = iy
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
 
-            # Iterate over all the patches in our SNL configuration (we exclude guard cells denoted by '[None]')
-            for ixp in range(1, 7):
+            elif boundary == 'right':
+                ixn = ix - 1
+                iyn = iy
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
 
-                nr_sum = 0
-                for jyp in range(1, 3):
-                    # Point to the current patch we are operating on.
-                    local_patch = patch_matrix[jyp][ixp]
-                    nr_sum += local_patch.nrad - 1
+            elif boundary == 'bottom':
+                ixn = ix
+                iyn = iy + 1
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][1] + eps * (cell_map[ixn][iyn][1] - cell_map[ixn][iyn][3])
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][1]
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][2] + eps * (cell_map[ixn][iyn][2] - cell_map[ixn][iyn][4])
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][2]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
+            elif boundary == 'top':
+                ixn = ix
+                iyn = iy - 1
+                cell_map[ix][iy][3] = cell_map[ixn][iyn][3] + eps * (cell_map[ixn][iyn][3] - cell_map[ixn][iyn][1])
+                cell_map[ix][iy][1] = cell_map[ixn][iyn][3]
+                cell_map[ix][iy][4] = cell_map[ixn][iyn][4] + eps * (cell_map[ixn][iyn][4] - cell_map[ixn][iyn][2])
+                cell_map[ix][iy][2] = cell_map[ixn][iyn][4]
+                cell_map[ix][iy][0] = 0.25 * (cell_map[ix][iy][1] + cell_map[ix][iy][2] + cell_map[ix][iy][3] + cell_map[ix][iy][4])
 
-                    # Access the grid that is contained within this local_patch.
-                    # ixl - number of poloidal cells in the patch.
-                    for ixl in range(len(local_patch.cell_grid[0])):
-                        # jyl - number of radial cells in the patch
-                        for jyl in range(len(local_patch.cell_grid)):
+            return cell_map
 
-                            ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp + 1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
+        np = len(cell_map) - 2
+        nr = len(cell_map[0]) - 2
 
-                            jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+        for iy in range(1, nr + 1):
+            ix = ixlb
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary='left')
+            ix = ixrb + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary='right')
 
-                            ind = 0
-                            for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                                rm[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                                zm[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                                ind += 1
+        for ix in range(np + 2):
+            iy = 0
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary='bottom')
+            iy = nr + 1
+            cell_map = set_guard(cell_map, ix, iy, eps, boundary='top')
 
-            # Flip indices into gridue format.
-            for i in range(len(rm)):
-                rm[i] = rm[i][::-1]
-            for i in range(len(zm)):
-                zm[i] = zm[i][::-1]
+        return cell_map
+    
+    def _concat_one_patch_region(self, patch_matrix: list):
+        """Concatenate the grid cells from all patches grouped as a single patch region
 
-            # Add guard cells to the concatenated grid.
-            ixrb = len(rm) - 2
-            ixlb = 0
-            self.rm = _add_guardc(rm, ixlb, ixrb)
-            self.zm = _add_guardc(zm, ixlb, ixrb)
+        :param patch_matrix: Matrix containing all patches including boundary regions
+        :return: rm, zm
+        """
+        np_total = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:-1]])) + 2
+        nr_total = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:3]])) + 2
 
-            try:
-                debug = self.settings['DEBUG']['visual']['gridue']
-            except:
-                debug = False
+        rm = np.zeros((np_total, nr_total, 5), order='F')
+        zm = np.zeros((np_total, nr_total, 5), order='F')
 
-            if debug:
-                self._animate_grid()
+        ixcell = 0
+        jycell = 0
 
-        elif (self.parent.settings['grid_settings']['num_xpt'] == 2) or ((self.parent.settings['grid_settings']['num_xpt'] == 1) and (self.parent.settings['grid_settings']["up_down_symmetry"] is True)):
+        # Iterate over all the patches in our SNL configuration (we exclude guard cells denoted by '[None]')
+        for ixp in range(1, 7):
 
-            if self.config in ['SF45', 'SF75', 'SF105', 'SF135']:
-                pindex1 = 8
-                pindex2 = 10
-                pindex3 = 12
-                rindex = 4
-            elif self.config in ['SF15', 'SF165']:
-                pindex1 = 7
-                pindex2 = 9
-                pindex3 = 12
-                rindex = 4
-            elif self.config in ['UDN']:
-                pindex1 = 5
-                pindex2 = 7
-                pindex3 = 11
-                rindex = 4
-            elif self.config in ["LSN", "USN"] and (self.parent.settings['grid_settings']["up_down_symmetry"] is True):
-                pindex1 = 3
-                pindex2 = 5
-                pindex3 = 7
-                rindex = 3
+            nr_sum = 0
+            for jyp in range(1, 3):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
+                nr_sum += local_patch.nrad - 1
 
-            # Total number of poloidal indices in all subgrids.
-            np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:pindex1]])) + 2
+                # Access the grid that is contained within this local_patch.
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
 
-            # Total number of radial indices in all subgrids.
-            nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:rindex]])) + 2
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp + 1]])) \
+                            - len(local_patch.cell_grid[0]) + ixl + 1
 
-            # Total number of poloidal indices in all subgrids.
-            np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex2:pindex3]])) + 2
+                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
 
-            # Total number of radial indices in all subgrids.
-            nr_total2 = int(np.sum([patch[pindex2].nrad - 1 for patch in patch_matrix[1:rindex]])) + 2
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
 
-            rm1 = np.zeros((np_total1, nr_total1, 5), order='F')
-            zm1 = np.zeros((np_total1, nr_total1, 5), order='F')
-            rm2 = np.zeros((np_total2, nr_total2, 5), order='F')
-            zm2 = np.zeros((np_total2, nr_total2, 5), order='F')
+        # Flip indices into gridue format.
+        for i in range(len(rm)):
+            rm[i] = rm[i][::-1]
+        for i in range(len(zm)):
+            zm[i] = zm[i][::-1]
 
-            ixcell = 0
-            jycell = 0
+        # Add guard cells to the concatenated grid.
+        ixrb = len(rm) - 2
+        ixlb = 0
+        rm = self._add_guardc(rm, ixlb, ixrb)
+        zm = self._add_guardc(zm, ixlb, ixrb)
 
-            # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
-            for ixp in range(1, pindex1):
+        try:
+            debug = self.settings['DEBUG']['visual']['gridue']
+        except:
+            debug = False
 
-                nr_sum = 0
-                for jyp in range(1, 4):
-                    # Point to the current patch we are operating on.
-                    local_patch = patch_matrix[jyp][ixp]
+        if debug:
+            self._animate_grid() 
 
-                    if local_patch == [None]:
-                        continue
+        return rm, zm
 
-                    nr_sum += local_patch.nrad - 1
+    def _concat_two_patch_regions(self, patch_matrix: list, pindex1: int, pindex2: int, pindex3: int, rindex: 3):
+        """Concatenate the grid cells from all patches grouped as two separate patch regions
 
-                    # Access the grid that is contained within this local_patch.
-                    # ixl - number of poloidal cells in the patch.
-                    for ixl in range(len(local_patch.cell_grid[0])):
-                        # jyl - number of radial cells in the patch
-                        for jyl in range(len(local_patch.cell_grid)):
+        :param patch_matrix: Matrix containing all patches including boundary regions
+        :param pindex1: Poloidal patch index for the end of the first patch region
+        :param pindex2: Poloidal patch index for the start of the second patch region
+        :param pindex3: Poloidal patch index for the end of the second patch region
+        :param rindex: Number of radial patches
+        :return: rm, zm
+        """
 
-                            ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp + 1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
+        # Total number of poloidal indices in all subgrids.
+        np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:pindex1]])) + 2
 
-                            jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+        # Total number of radial indices in all subgrids.
+        nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:rindex]])) + 2
 
-                            ind = 0
-                            for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                                rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                                zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                                ind += 1
+        # Total number of poloidal indices in all subgrids.
+        np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex2:pindex3]])) + 2
 
-            ixcell = 0
-            jycell = 0
+        # Total number of radial indices in all subgrids.
+        nr_total2 = int(np.sum([patch[pindex2].nrad - 1 for patch in patch_matrix[1:rindex]])) + 2
 
-            for ixp in range(pindex2, pindex3):
+        rm1 = np.zeros((np_total1, nr_total1, 5), order='F')
+        zm1 = np.zeros((np_total1, nr_total1, 5), order='F')
+        rm2 = np.zeros((np_total2, nr_total2, 5), order='F')
+        zm2 = np.zeros((np_total2, nr_total2, 5), order='F')
 
-                nr_sum = 0
-                for jyp in range(1, 4):
-                    # Point to the current patch we are operating on.
-                    local_patch = patch_matrix[jyp][ixp]
+        ixcell = 0
+        jycell = 0
 
-                    if local_patch == [None]:
-                        continue
+        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
+        for ixp in range(1, pindex1):
 
-                    nr_sum += local_patch.nrad - 1
+            nr_sum = 0
+            for jyp in range(1, 4):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
 
-                    # Access the grid that is contained within this local_patch.
-                    # ixl - number of poloidal cells in the patch.
-                    for ixl in range(len(local_patch.cell_grid[0])):
-                        # jyl - number of radial cells in the patch
-                        for jyl in range(len(local_patch.cell_grid)):
+                if local_patch == [None]:
+                    continue
 
-                            ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex2:ixp + 1]])) \
-                                - len(local_patch.cell_grid[0]) + ixl + 1
+                nr_sum += local_patch.nrad - 1
 
-                            jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+                # Access the grid that is contained within this local_patch.
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
 
-                            ind = 0
-                            for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
-                                rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
-                                zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
-                                ind += 1
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp + 1]])) \
+                            - len(local_patch.cell_grid[0]) + ixl + 1
 
-            # Flip indices into gridue format.
-            for i in range(len(rm1)):
-                rm1[i] = rm1[i][::-1]
-            for i in range(len(zm1)):
-                zm1[i] = zm1[i][::-1]
-            for i in range(len(rm2)):
-                rm2[i] = rm2[i][::-1]
-            for i in range(len(zm2)):
-                zm2[i] = zm2[i][::-1]
+                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
 
-            # Add guard cells to the concatenated grid.
-            ixrb1 = len(rm1) - 2
-            ixlb1 = 0
-            ixrb2 = len(rm2) - 2
-            ixlb2 = 0
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
 
-            rm1 = _add_guardc(rm1, ixlb1, ixrb1)
-            zm1 = _add_guardc(zm1, ixlb1, ixrb1)
-            rm2 = _add_guardc(rm2, ixlb2, ixrb2)
-            zm2 = _add_guardc(zm2, ixlb2, ixrb2)
+        ixcell = 0
+        jycell = 0
 
-            self.rm = np.concatenate((rm1, rm2))
-            self.zm = np.concatenate((zm1, zm2))
+        for ixp in range(pindex2, pindex3):
 
-            try:
-                debug = self.yaml['DEBUG']['visual']['gridue']
-            except:
-                debug = False
+            nr_sum = 0
+            for jyp in range(1, 4):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
 
-            if debug:
-                self._animate_grid()
+                if local_patch == [None]:
+                    continue
+
+                nr_sum += local_patch.nrad - 1
+
+                # Access the grid that is contained within this local_patch.
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
+
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex2:ixp + 1]])) \
+                            - len(local_patch.cell_grid[0]) + ixl + 1
+
+                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
+
+        # Flip indices into gridue format.
+        for i in range(len(rm1)):
+            rm1[i] = rm1[i][::-1]
+        for i in range(len(zm1)):
+            zm1[i] = zm1[i][::-1]
+        for i in range(len(rm2)):
+            rm2[i] = rm2[i][::-1]
+        for i in range(len(zm2)):
+            zm2[i] = zm2[i][::-1]
+
+        # Add guard cells to the concatenated grid.
+        ixrb1 = len(rm1) - 2
+        ixlb1 = 0
+        ixrb2 = len(rm2) - 2
+        ixlb2 = 0
+
+        rm1 = self._add_guardc(rm1, ixlb1, ixrb1)
+        zm1 = self._add_guardc(zm1, ixlb1, ixrb1)
+        rm2 = self._add_guardc(rm2, ixlb2, ixrb2)
+        zm2 = self._add_guardc(zm2, ixlb2, ixrb2)
+
+        rm = np.concatenate((rm1, rm2))
+        zm = np.concatenate((zm1, zm2))
+
+        try:
+            debug = self.yaml['DEBUG']['visual']['gridue']
+        except:
+            debug = False
+
+        if debug:
+            self._animate_grid() 
+
+        return rm, zm
+
+    def _concat_three_patch_regions(self, patch_matrix: list, pindex1: int, pindex2: int, pindex3: int, pindex4: int, pindex5: int, rindex: int):
+        """Concatenate the grid cells from all patches grouped as three separate patch regions
+
+        :param patch_matrix: Matrix containing all patches including boundary regions
+        :param pindex1: Poloidal patch index for the end of the first patch region
+        :param pindex2: Poloidal patch index for the start of the second patch region
+        :param pindex3: Poloidal patch index for the end of the second patch region
+        :param pindex3: Poloidal patch index for the start of the third patch region
+        :param pindex3: Poloidal patch index for the end of the third patch region
+        :param rindex: Number of radial patches
+        :return: rm, zm
+        """
+
+        # Total number of poloidal indices in all subgrids.
+        np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:pindex1]])) + 2
+
+        # Total number of radial indices in all subgrids.
+        nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:rindex]])) + 2
+
+        # Total number of poloidal indices in all subgrids.
+        np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex2:pindex3]])) + 2
+
+        # Total number of radial indices in all subgrids.
+        nr_total2 = int(np.sum([patch[pindex2].nrad - 1 for patch in patch_matrix[1:rindex]])) + 2
+
+        # Total number of poloidal indices in all subgrids.
+        np_total3 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex4:pindex5]])) + 2
+
+        # Total number of radial indices in all subgrids.
+        nr_total3 = int(np.sum([patch[pindex4].nrad - 1 for patch in patch_matrix[1:rindex]])) + 2
+
+        rm1 = np.zeros((np_total1, nr_total1, 5), order='F')
+        zm1 = np.zeros((np_total1, nr_total1, 5), order='F')
+        rm2 = np.zeros((np_total2, nr_total2, 5), order='F')
+        zm2 = np.zeros((np_total2, nr_total2, 5), order='F')
+        rm3 = np.zeros((np_total3, nr_total3, 5), order='F')
+        zm3 = np.zeros((np_total3, nr_total3, 5), order='F')
+
+        ixcell = 0
+        jycell = 0
+
+        # Iterate over all the patches in our DNL configuration (we exclude guard cells denoted by '[None]')
+        for ixp in range(1, pindex1):
+
+            nr_sum = 0
+            for jyp in range(1, rindex):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
+
+                if local_patch == [None]:
+                    continue
+
+                nr_sum += local_patch.nrad - 1
+
+                # Access the grid that is contained within this local_patch.
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
+
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:ixp + 1]])) \
+                            - len(local_patch.cell_grid[0]) + ixl + 1
+
+                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm1[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
+
+        ixcell = 0
+        jycell = 0
+
+        for ixp in range(pindex2, pindex3):
+
+            nr_sum = 0
+            for jyp in range(1, rindex):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
+
+                if local_patch == [None]:
+                    continue
+
+                nr_sum += local_patch.nrad - 1
+
+                # Access the grid that is contained within this local_patch.
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
+
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex2:ixp + 1]])) \
+                            - len(local_patch.cell_grid[0]) + ixl + 1
+
+                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm2[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
+
+        ixcell = 0
+        jycell = 0
+
+        for ixp in range(pindex4, pindex5):
+
+            nr_sum = 0
+            for jyp in range(1, rindex):
+                # Point to the current patch we are operating on.
+                local_patch = patch_matrix[jyp][ixp]
+
+                if local_patch == [None]:
+                    continue
+
+                nr_sum += local_patch.nrad - 1
+
+                # Access the grid that is contained within this local_patch.
+                # ixl - number of poloidal cells in the patch.
+                for ixl in range(len(local_patch.cell_grid[0])):
+                    # jyl - number of radial cells in the patch
+                    for jyl in range(len(local_patch.cell_grid)):
+
+                        ixcell = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex4:ixp + 1]])) \
+                            - len(local_patch.cell_grid[0]) + ixl + 1
+
+                        jycell = nr_sum - (local_patch.nrad - 1) + jyl + 1
+
+                        ind = 0
+                        for coor in ['CENTER', 'SW', 'SE', 'NW', 'NE']:
+                            rm3[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].x
+                            zm3[ixcell][jycell][ind] = local_patch.cell_grid[jyl][ixl].vertices[coor].y
+                            ind += 1
+
+        # Flip indices into gridue format.
+        for i in range(len(rm1)):
+            rm1[i] = rm1[i][::-1]
+        for i in range(len(zm1)):
+            zm1[i] = zm1[i][::-1]
+        for i in range(len(rm2)):
+            rm2[i] = rm2[i][::-1]
+        for i in range(len(zm2)):
+            zm2[i] = zm2[i][::-1]
+        for i in range(len(rm3)):
+            rm3[i] = rm3[i][::-1]
+        for i in range(len(zm3)):
+            zm3[i] = zm3[i][::-1]
+
+        # Add guard cells to the concatenated grid.
+        ixrb1 = len(rm1) - 2
+        ixlb1 = 0
+        ixrb2 = len(rm2) - 2
+        ixlb2 = 0
+        ixrb3 = len(rm3) - 2
+        ixlb3 = 0
+
+        rm1 = self._add_guardc(rm1, ixlb1, ixrb1)
+        zm1 = self._add_guardc(zm1, ixlb1, ixrb1)
+        rm2 = self._add_guardc(rm2, ixlb2, ixrb2)
+        zm2 = self._add_guardc(zm2, ixlb2, ixrb2)
+        rm3 = self._add_guardc(rm3, ixlb3, ixrb3)
+        zm3 = self._add_guardc(zm3, ixlb3, ixrb3)
+
+        rm = np.concatenate((rm1, rm2, rm3))
+        zm = np.concatenate((zm1, zm2, zm3))
+
+        try:
+            debug = self.yaml['DEBUG']['visual']['gridue']
+        except:
+            debug = False
+
+        if debug:
+            self._animate_grid()
+
+        return rm, zm

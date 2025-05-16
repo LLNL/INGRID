@@ -232,12 +232,12 @@ class EfitData:
                                        np.linspace(self.zmin, self.zmax, data.shape[1]),
                                        indexing='ij')
         try:
-            self.psi_levels[label].collections[0].remove()
+            self.psi_levels[label].remove()
             self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(level)], colors=color, label=label, linestyles=linestyles)
-            self.psi_levels[label].collections[0].set_label(label)
+            self.psi_levels[label].set_label(label)
         except:
             self.psi_levels[label] = plt.contour(rgrid, zgrid, data, [float(level)], colors=color, label=label, linestyles=linestyles)
-            self.psi_levels[label].collections[0].set_label(label)
+            self.psi_levels[label].set_label(label)
 
     def plot_data(self: object, nlevs: int = 30, interactive: bool = True, fig: object = None,
                   ax: object = None, view_mode: str = 'filled', refined: bool = True, refine_factor: int = 10):

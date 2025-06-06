@@ -1,0 +1,74 @@
+DEBUG:
+  verbose:
+    grid_generation: 1
+    patch_generation: 1
+    target_plates: 1
+  visual:
+    find_NSEW: 0
+    gridue: 0
+    patch_map: 0
+    subgrid: 0
+dir_settings:
+  patch_data: ../data/MASTU
+  eqdsk: ../data/MASTU
+  target_plates: ../data/MASTU
+  limiter: ../data/MASTU
+eqdsk: mastu.geqdsk
+patch_data:
+  file: "MASTU_patches.npy"
+  preferences:
+    new_fname: "MASTU_patches.npy"
+    new_file: true
+grid_settings:
+  grid_generation:
+    distortion_correction:
+      all:
+        active: false
+        resolution: 1000
+        theta_max: 120.0
+        theta_min: 80.0
+    np_default: 2
+    nr_default: 2
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+  guard_cell_eps: 0.001
+  nlevs: 30
+  num_xpt: 2
+  patch_generation:
+    xpt1_E_tilt: 0.0
+    xpt1_W_tilt: 0.0
+    rmagx_shift: 0.0
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
+    strike_pt_loc: limiter
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    use_xpt1_E: false
+    use_xpt1_W: false
+    use_xpt2_E: false
+    use_xpt2_W: false
+    zmagx_shift: 0.0
+  psi_1: 1.024
+  psi_2: 1.028
+  psi_core: 0.975
+  psi_pf_1: 0.985
+  psi_pf_2: 1.02
+  rmagx: 0.9961556425238733
+  rxpt: 0.508108025670815
+  rxpt2: 0.5081079950123113
+  view_mode: filled
+  zmagx: -3.427983847208309e-07
+  zxpt: 1.2920667279364357
+  zxpt2: -1.2920666437654365
+integrator_settings:
+  dt: 0.01
+  eps: 5.0e-05
+  first_step: 5.0e-05
+  max_step: 0.064
+  step_ratio: 0.02
+  tol: 0.005
+limiter:
+  file: "mastu_wall.txt"
+  use_efit_bounds: false
+  efit_buffer_r: 0.01
+  efit_buffer_z: 0.01

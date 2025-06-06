@@ -35,6 +35,7 @@ from INGRID.topologies.sf105 import SF105
 from INGRID.topologies.sf135 import SF135
 from INGRID.topologies.sf165 import SF165
 from INGRID.topologies.udn import UDN
+from INGRID.topologies.cdn import CDN
 from INGRID.geometry import Point, Line
 
 
@@ -1237,6 +1238,9 @@ class Ingrid(IngridUtils):
 
         elif topology == 'UDN':
             ingrid_topology = UDN(self, topology)
+        
+        elif topology == 'CDN':
+            ingrid_topology = CDN(self, topology)
 
         elif topology == 'SF15':
             ingrid_topology = SF15(self, topology)

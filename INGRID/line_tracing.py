@@ -433,10 +433,13 @@ class LineTracing:
                                 self.config = 'SF15'
                             elif self.line_group_intersect == xptNW_midLine.points():
                                 self.config = 'SF165'
-                            elif self.line_group_intersect == midline_topline_west.points():
-                                self.config = 'UDN'
-                            elif self.line_group_intersect == midline_topline_east.points():
-                                self.config = 'UDN'
+                            elif (self.line_group_intersect == midline_topline_west.points()
+                                  or self.line_group_intersect == midline_topline_east.points()
+                                ):
+                                if np.isclose(abs(xpt1["center"][1]), abs(xpt2["center"][1])):
+                                    self.config = 'CDN'
+                                else:
+                                    self.config = 'UDN'
                             break
 
                         elif region == 'PF':

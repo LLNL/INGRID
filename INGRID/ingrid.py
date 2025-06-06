@@ -1471,7 +1471,7 @@ class Ingrid(IngridUtils):
         if type(self.CurrentTopology) in [SNL]:
             if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")
-        elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:
+        elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN, CDN]:
             if self.WriteGridueDNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")
 

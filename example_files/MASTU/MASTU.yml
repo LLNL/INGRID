@@ -1,8 +1,8 @@
 DEBUG:
   verbose:
-    grid_generation: 1
-    patch_generation: 1
-    target_plates: 1
+    grid_generation: 0
+    patch_generation: 0
+    target_plates: 0
   visual:
     find_NSEW: 0
     gridue: 0
@@ -27,8 +27,8 @@ grid_settings:
         resolution: 1000
         theta_max: 120.0
         theta_min: 80.0
-    np_default: 2
-    nr_default: 2
+    np_default: 3
+    nr_default: 3
     poloidal_f_default: x, x
     radial_f_default: x, x
   guard_cell_eps: 0.001
@@ -50,7 +50,7 @@ grid_settings:
     zmagx_shift: 0.0
   psi_1: 1.024
   psi_2: 1.028
-  psi_core: 0.975
+  psi_core: 0.9
   psi_pf_1: 0.985
   psi_pf_2: 1.02
   rmagx: 0.9961556425238733

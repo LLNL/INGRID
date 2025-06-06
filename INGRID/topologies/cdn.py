@@ -193,7 +193,7 @@ class CDN(TopologyUtils):
             option='theta', direction='cw', show_plot=visual, text=verbose)
         F2_S = F1_N.reverse_copy()
 
-        xpt2__psiMinPF2 = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_2},
+        xpt2__psiMinPF2 = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_pf_1},
             option='rho', direction='cw', show_plot=visual, text=verbose)
         E1_E = xpt2__psiMinPF2
         D1_W = E1_E.reverse_copy()
@@ -262,18 +262,18 @@ class CDN(TopologyUtils):
         A2_N, B2_N = midline_1__WestPlate1.reverse_copy().split(B2_W.p[-1], add_split_point=True)
         G2_N, H2_N = midline_2__EastPlate1.split(H2_W.p[-1], add_split_point=True)
         B1_E = self.LineTracer.draw_line(B1_N.p[-1], {'psi_horizontal': psi_core}, option='z_const',
-            direction='cw', show_plot=visual, text=verbose)
+            direction='ccw', show_plot=visual, text=verbose)
         C1_W = B1_E.reverse_copy()
 
         B2_E = self.LineTracer.draw_line(B2_N.p[-1], {'psi_horizontal': 1.0}, option='z_const',
-            direction='cw', show_plot=visual, text=verbose)
+            direction='ccw', show_plot=visual, text=verbose)
         C2_W = B2_E.reverse_copy()
         F1_E = self.LineTracer.draw_line(F1_N.p[-1], {'psi_horizontal': psi_core}, option='z_const',
-            direction='ccw', show_plot=visual, text=verbose)
+            direction='cw', show_plot=visual, text=verbose)
         G1_W = F1_E.reverse_copy()
 
         F2_E = self.LineTracer.draw_line(F2_N.p[-1], {'psi_horizontal': 1.0}, option='z_const',
-            direction='ccw', show_plot=visual, text=verbose)
+            direction='cw', show_plot=visual, text=verbose)
         G2_W = F2_E.reverse_copy()
 
         visual=True

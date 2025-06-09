@@ -13,7 +13,7 @@ dir_settings:
   eqdsk: ../data/MASTU
   target_plates: ../data/MASTU
   limiter: ../data/MASTU
-eqdsk: mastu.geqdsk
+eqdsk: qian_exp45460_new_MHexample.eqdsk
 patch_data:
   file: "MASTU_patches.npy"
   preferences:
@@ -23,12 +23,12 @@ grid_settings:
   grid_generation:
     distortion_correction:
       all:
-        active: false
+        active: true
         resolution: 1000
-        theta_max: 120.0
-        theta_min: 80.0
-    np_default: 3
-    nr_default: 3
+        theta_max: 90.5
+        theta_min: 89.5
+    np_default: 5
+    nr_default: 5
     poloidal_f_default: x, x
     radial_f_default: x, x
   guard_cell_eps: 0.001
@@ -48,18 +48,18 @@ grid_settings:
     use_xpt2_E: false
     use_xpt2_W: false
     zmagx_shift: 0.0
-  psi_1: 1.024
-  psi_2: 1.028
-  psi_core: 0.9
-  psi_pf_1: 0.985
+  psi_1: 1.02
+  psi_2: 1.1
+  psi_core: 0.8
+  psi_pf_1: 0.964
   psi_pf_2: 1.02
-  rmagx: 0.9961556425238733
-  rxpt: 0.508108025670815
-  rxpt2: 0.5081079950123113
+  rmagx: 0.93
+  rxpt: 0.575
+  rxpt2: 0.575
   view_mode: filled
-  zmagx: -3.427983847208309e-07
-  zxpt: 1.2920667279364357
-  zxpt2: -1.2920666437654365
+  zmagx: 0.0
+  zxpt: 1.08
+  zxpt2: -1.08
 integrator_settings:
   dt: 0.01
   eps: 5.0e-05

@@ -153,7 +153,6 @@ class CDN(TopologyUtils):
             option='rho', direction='cw', show_plot=visual, text=verbose)
         A1_E = xpt1__psiMinPF1
         H1_W = A1_E.reverse_copy()
-        print(WestPlate1.__dict__)
         psiMinPF1__WestPlate1 = self.LineTracer.draw_line(xpt1__psiMinPF1.p[-1], {'line': WestPlate1},
             option='theta', direction='ccw', show_plot=visual, text=verbose)
         A1_S = psiMinPF1__WestPlate1

@@ -16,6 +16,7 @@ dir_settings:
 eqdsk: qian_exp45460_new_MHexample.eqdsk
 patch_data:
   file: "MASTU_patches.npy"
+  use_file: false
   preferences:
     new_fname: "MASTU_patches.npy"
     new_file: true
@@ -49,17 +50,17 @@ grid_settings:
     use_xpt2_W: false
     zmagx_shift: 0.0
   psi_1: 1.02
-  psi_2: 1.1
+  psi_2: 1.15
   psi_core: 0.8
   psi_pf_1: 0.964
   psi_pf_2: 1.02
   rmagx: 0.93
-  rxpt: 0.575
-  rxpt2: 0.575
+  rxpt: 0.572
+  rxpt2: 0.572
   view_mode: filled
   zmagx: 0.0
-  zxpt: 1.08
-  zxpt2: -1.08
+  zxpt: -1.01
+  zxpt2: 1.01
 integrator_settings:
   dt: 0.01
   eps: 5.0e-05
@@ -70,5 +71,3 @@ integrator_settings:
 limiter:
   file: "mastu_wall.txt"
   use_efit_bounds: false
-  efit_buffer_r: 0.01
-  efit_buffer_z: 0.01

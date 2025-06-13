@@ -28,10 +28,12 @@ grid_settings:
         resolution: 1000
         theta_max: 90.5
         theta_min: 89.5
-    np_default: 5
-    nr_default: 5
-    poloidal_f_default: x, x
+    np_default: 6
+    nr_default: 6
     radial_f_default: x, x
+    poloidal_f_default: x, x
+    radial_f_1: x, 1-(1-exp(-(1-x)/0.4))/(1-exp(-1/0.4))
+    radial_f_2: x, (1-exp(-(x)/0.8))/(1-exp(-1/0.8))
   guard_cell_eps: 0.001
   nlevs: 30
   num_xpt: 2

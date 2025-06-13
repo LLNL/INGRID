@@ -1489,9 +1489,25 @@ class Ingrid(IngridUtils):
         try:
             f = open(fname, mode='r')
             Values = [int(x) for x in next(f).split()]
-            HeaderItems = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
-            gridue_settings = dict(zip(HeaderItems, Values))
-            next(f)
+            
+            # Very crude method of checking what format the gridue is in
+            if len(Values) > 2:
+                HeaderItems = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
+                gridue_settings = dict(zip(HeaderItems, Values))
+                next(f)
+            else:
+                gridue_settings = {}
+                header_rows = [
+                    ['nxm', 'nym'],
+                    ['iyseparatrix1', 'iyseparatrix2'],
+                    ['ix_plate1', 'ix_cut1', '_FILLER_', 'ix_cut2', 'ix_plate2'],
+                    ['iyseparatrix3', 'iyseparatrix4'],
+                    ['ix_plate3', 'ix_cut3', '_FILLER_', 'ix_cut4', 'ix_plate4']
+                ]
+                for row in header_rows:
+                    gridue_settings = {**gridue_settings, **dict(zip(row, Values))}
+                    Values = [int(x) for x in next(f).split()]
+
             BodyItems = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
             Str = {i: [] for i in BodyItems}
             k = iter(Str.keys())

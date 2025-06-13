@@ -1,5 +1,5 @@
 """
-The ``udn`` module contains :class:`CDN` for representing a connected
+The ``cdn`` module contains :class:`CDN` for representing a connected
 double-null topology/configuration.
 
 Child of base :class:`utils.TopologyUtils`.
@@ -42,24 +42,22 @@ class CDN(TopologyUtils):
 
         self.ConnexionMap = {
 
-            'B1': None,
-            'C1': {'W': ('B1', 'E')},
-            'F1': {'W': ('C1', 'E')},
-            'G1': {'W': ('F1', 'E'), 'E': ('B1', 'W')},
-
-            'A1': None,
-            'D1': {'W': ('E1', 'E')},
-            'E1': None,
-            'H1': {'W': ('A1', 'E')},
-
-            'A2': {'S': ('A1', 'N')},
-            'B2': {'S': ('B1', 'N'), 'W': ('A2', 'E')},
-            'C2': {'S': ('C1', 'N'), 'W': ('B2', 'E')},
-            'D2': {'S': ('D1', 'N'), 'W': ('C2', 'E')},
-            'E2': {'S': ('E1', 'N')},
-            'F2': {'S': ('F1', 'N'), 'W': ('E2', 'E')},
-            'G2': {'S': ('G1', 'N'), 'W': ('F2', 'E')},
-            'H2': {'S': ('H1', 'N'), 'W': ('G2', 'E')},
+            'A1': {'N': ('A2', 'S'), 'E': ('H1', 'W')},
+            'A2': {'E': ('B2', 'W')},
+            'B1': {'N': ('B2', 'S'), 'W': ('G1', 'E'), 'E': ('C1', 'W')},
+            'B2': {'E': ('C2', 'W')},
+            'C1': {'N': ('C2', 'S'), 'E': ('F1', 'W')},
+            'C2': {'E': ('D2', 'W')},
+            'D1': {'N': ('D2', 'S'), 'W': ('E1', 'E')},
+            'D2': None,
+            'E1': {'N': ('E2', 'S')},
+            'E2': {'E': ('F2', 'W')},
+            'F1': {'N': ('F2', 'S'), 'E': ('G1', 'W')},
+            'F2': {'E': ('G2', 'W')},
+            'G1': {'N': ('G2', 'S')},
+            'G2': {'E': ('H2', 'W')},
+            'H1': {'N': ('H2', 'S')},
+            'H2': None
         }
 
     def construct_patches(self):
@@ -192,7 +190,7 @@ class CDN(TopologyUtils):
             option='theta', direction='cw', show_plot=visual, text=verbose)
         F2_S = F1_N.reverse_copy()
 
-        xpt2__psiMinPF2 = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_pf_1},
+        xpt2__psiMinPF2 = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_1},
             option='rho', direction='cw', show_plot=visual, text=verbose)
         E1_E = xpt2__psiMinPF2
         D1_W = E1_E.reverse_copy()
@@ -205,15 +203,15 @@ class CDN(TopologyUtils):
 
         if self.settings['grid_settings']['patch_generation']['use_xpt2_W']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt2_W_tilt']
-            E2_E = self.LineTracer.draw_line(xpt2['W'], {'psi_horizontal': (psi_1, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+            E2_E = self.LineTracer.draw_line(xpt2['W'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         else:
-            E2_E = self.LineTracer.draw_line(xpt2['W'], {'psi': psi_1}, option='rho', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
+            E2_E = self.LineTracer.draw_line(xpt2['W'], {'psi': psi_2}, option='rho', direction='ccw', show_plot=visual, text=verbose).reverse_copy()
         F2_W = E2_E.reverse_copy()
         if self.settings['grid_settings']['patch_generation']['use_xpt2_E']:
             tilt = self.settings['grid_settings']['patch_generation']['xpt2_E_tilt']
             D2_W = self.LineTracer.draw_line(xpt2['E'], {'psi_horizontal': (psi_2, tilt)}, option='z_const', direction='ccw', show_plot=visual, text=verbose)
         else:
-            D2_W = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_2}, option='rho', direction='ccw', show_plot=visual, text=verbose)
+            D2_W = self.LineTracer.draw_line(xpt2['E'], {'psi': psi_pf_2}, option='rho', direction='ccw', show_plot=visual, text=verbose)
         C2_E = D2_W.reverse_copy()
 
         E1_N = self.LineTracer.draw_line(xpt2['S'], {'line': EastPlate2}, option='theta', direction='ccw',
@@ -261,18 +259,18 @@ class CDN(TopologyUtils):
         A2_N, B2_N = midline_1__WestPlate1.reverse_copy().split(B2_W.p[-1], add_split_point=True)
         G2_N, H2_N = midline_2__EastPlate1.split(H2_W.p[-1], add_split_point=True)
         B1_E = self.LineTracer.draw_line(B1_N.p[-1], {'psi_horizontal': psi_core}, option='z_const',
-            direction='ccw', show_plot=visual, text=verbose)
+            direction='cw', show_plot=visual, text=verbose)
         C1_W = B1_E.reverse_copy()
 
         B2_E = self.LineTracer.draw_line(B2_N.p[-1], {'psi_horizontal': 1.0}, option='z_const',
-            direction='ccw', show_plot=visual, text=verbose)
+            direction='cw', show_plot=visual, text=verbose)
         C2_W = B2_E.reverse_copy()
         F1_E = self.LineTracer.draw_line(F1_N.p[-1], {'psi_horizontal': psi_core}, option='z_const',
-            direction='cw', show_plot=visual, text=verbose)
+            direction='ccw', show_plot=visual, text=verbose)
         G1_W = F1_E.reverse_copy()
 
         F2_E = self.LineTracer.draw_line(F2_N.p[-1], {'psi_horizontal': 1.0}, option='z_const',
-            direction='cw', show_plot=visual, text=verbose)
+            direction='ccw', show_plot=visual, text=verbose)
         G2_W = F2_E.reverse_copy()
 
         visual=True
@@ -345,11 +343,8 @@ class CDN(TopologyUtils):
 
     def OrderPatches(self):
 
-        patches = [
-                   'B1', 'C1', 'F1', 'G1', 
-                   'A1', 'E1', 'D1', 'H1',
-                   'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
-        ]
+        patches = ['D2', 'H2', 'C2', 'G2', 'H1', 'B2', 'F2', 'G1', 
+                   'A2', 'A1', 'E2', 'F1', 'C1', 'B1', 'E1', 'D1']
 
         self.patches = OrderedDict([(pname, self.patches[pname]) for pname in patches])
 

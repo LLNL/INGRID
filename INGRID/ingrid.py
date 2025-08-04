@@ -1432,7 +1432,7 @@ class Ingrid(IngridUtils):
                 del self.CurrentTopology.patches["C2"]
                 del self.CurrentTopology.patches["D1"]
                 del self.CurrentTopology.patches["D2"]
-            elif self.CurrentTopology.config == "SF75":
+            elif self.CurrentTopology.config in ["SF15", "SF75"]:
                 del self.CurrentTopology.patches["C1"]
                 del self.CurrentTopology.patches["C2"]
                 del self.CurrentTopology.patches["C3"]

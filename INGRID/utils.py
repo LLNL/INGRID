@@ -1990,13 +1990,22 @@ class TopologyUtils():
                     [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]]
                 ]
         elif self.config in ['SF15', 'SF165']:
-            self.patch_matrix = [
-                [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]],
-                [[None], p['A3'], p['B3'], p['C3'], p['D3'], p['E3'], p['F3'], [None], [None], p['G3'], p['H3'], p['I3'], [None]],
-                [[None], p['A2'], p['B2'], p['C2'], p['D2'], p['E2'], p['F2'], [None], [None], p['G2'], p['H2'], p['I2'], [None]],
-                [[None], p['A1'], p['B1'], p['C1'], p['D1'], p['E1'], p['F1'], [None], [None], p['G1'], p['H1'], p['I1'], [None]],
-                [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]]
-            ]
+            if self.settings["grid_settings"]["up_down_symmetry"]:
+                self.patch_matrix = [
+                    [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]],
+                    [[None], p['A3'], p['B3'], [None], [None], p['E3'], p['F3'], [None], [None], p['G3'], p['H3'], p['I3'], [None]],
+                    [[None], p['A2'], p['B2'], [None], [None], p['E2'], p['F2'], [None], [None], p['G2'], p['H2'], p['I2'], [None]],
+                    [[None], p['A1'], p['B1'], [None], [None], p['E1'], p['F1'], [None], [None], p['G1'], p['H1'], p['I1'], [None]],
+                    [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]]
+                ]
+            else:
+                self.patch_matrix = [
+                    [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]],
+                    [[None], p['A3'], p['B3'], p['C3'], p['D3'], p['E3'], p['F3'], [None], [None], p['G3'], p['H3'], p['I3'], [None]],
+                    [[None], p['A2'], p['B2'], p['C2'], p['D2'], p['E2'], p['F2'], [None], [None], p['G2'], p['H2'], p['I2'], [None]],
+                    [[None], p['A1'], p['B1'], p['C1'], p['D1'], p['E1'], p['F1'], [None], [None], p['G1'], p['H1'], p['I1'], [None]],
+                    [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]]
+                ]
 
         elif self.config in ['UDN']:
             self.patch_matrix = [
@@ -2038,8 +2047,7 @@ class TopologyUtils():
                 if self.config in ['SF45', 'SF75', 'SF105', 'SF135']:
                     self.rm, self.zm = self._concat_three_patch_regions(patch_matrix, pindex1 = 3, pindex2 = 5, pindex3 = 8, pindex4 = 10, pindex5 = 12, rindex = 4)
                 elif self.config in ['SF15', 'SF165']:
-                    # Note yet implemented
-                    pass
+                    self.rm, self.zm = self._concat_three_patch_regions(patch_matrix, pindex1 = 3, pindex2 = 5, pindex3 = 7, pindex4 = 9, pindex5 = 12, rindex = 4)
                 elif self.config in ['UDN']:
                     # Not yet implemented
                     pass

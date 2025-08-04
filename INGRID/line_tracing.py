@@ -652,7 +652,12 @@ class LineTracing:
                 if show_plot:
                     if hasattr(self.grid, 'ax') is False:
                         self.grid.plot_data()
-                    self.grid.ax.plot(x, y, '.-', linewidth=2, color=color, markersize=1.5)
+                    self.grid.ax.plot(x, y, '-', linewidth=0.5, color=color)
+                    try:
+                        self.cur_plot_point.set_ydata(y)
+                        self.cur_plot_point.set_xdata(x)
+                    except:
+                        self.cur_plot_point, = self.grid.ax.plot(x, y, linestyle=None, marker="*", color="red", zorder=9999)
                     plt.draw()
                     plt.pause(np.finfo(float).eps)
 

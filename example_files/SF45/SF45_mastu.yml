@@ -1,0 +1,87 @@
+DEBUG:
+  verbose:
+    grid_generation: 0
+    patch_generation: 1
+    target_plates: 1
+  visual:
+    find_NSEW: 0
+    gridue: 0
+    patch_map: 0
+    subgrid: 0
+eqdsk: ../data/SF45/g200113.00444-sfdm45-dxx50mm_modified
+grid_settings:
+  grid_generation:
+    distortion_correction:
+      all:
+        active: true
+        resolution: 1000
+        theta_max: 130.0
+        theta_min: 50.0
+    np_default: 4
+    nr_default: 8
+    np_C: 8
+    np_D: 8
+    np_B: 8
+    np_E: 8
+    np_H: 4
+    np_F: 1
+    nr_1: 8
+    nr_2: 1
+    poloidal_f_default: x, x
+    radial_f_default: x, x
+    poloidal_f_B: x, 1-(1-exp(-(1-x)/0.7))/(1-exp(-1/0.7))
+    poloidal_f_E: x, (1-exp(-(x)/0.5))/(1-exp(-1/0.5))
+  guard_cell_eps: 0.0001
+  nlevs: 30
+  num_xpt: 2
+  patch_generation:
+    xpt1_E_tilt: 0.35
+    xpt1_W_tilt: -0.45
+    xpt1_S_tilt: -2.45
+    rmagx_shift: 0.0
+    xpt2_E_tilt: 0.0
+    xpt2_W_tilt: 0.0
+    xpt2_N_tilt: 3.0
+    strike_pt_loc: target_plates
+    # strike_pt_loc: limiter
+    magx_tilt_1: 0.0
+    magx_tilt_2: 0.0
+    use_xpt1_E: true
+    use_xpt1_W: false 
+    use_xpt1_N: false 
+    use_xpt1_S: true 
+    use_xpt2_E: false
+    use_xpt2_W: false
+    use_xpt2_N: true
+    use_xpt2_S: false
+    zmagx_shift: 0.0
+  psi_1: 1.13
+  psi_2: 1.04
+  psi_core: 0.75
+  psi_pf_1: 0.97
+  psi_pf_2: 0.965
+  rmagx: 0.95
+  rxpt: 0.65
+  rxpt2: 0.67
+  view_mode: filled
+  zmagx: -0.01
+  zxpt: -1.22
+  zxpt2: -1.39
+integrator_settings:
+  dt: 0.0025
+  eps: 5.0e-05
+  first_step: 5.0e-05
+  max_step: 0.064
+  step_ratio: 0.04
+  tol: 0.005
+limiter:
+  file: '../data/SF45/geo_data/simplified_limiter_mastu.txt'
+target_plates:
+  plate_E1:
+    file: ../data/SF45/geo_data/E1_target.txt
+  plate_E2:
+    file: ../data/SF45/geo_data/E2_target.txt
+  plate_W1:
+    file: ../data/SF45/geo_data/W1_target.txt
+  plate_W2:
+    file: ../data/SF45/geo_data/W2_target.txt

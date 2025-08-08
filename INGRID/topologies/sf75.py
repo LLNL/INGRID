@@ -261,8 +261,8 @@ class SF75(TopologyUtils):
             # Draw a line along the psi_pf_1 surface; this will be intersected at the desired tilt angle from xpt1['S']
             A2_E__A1_E_tmp = self.LineTracer.draw_line(xpt1['S'], {'psi': psi_pf_1}, option='rho', direction='cw', show_plot=False, text=verbose)
             psiMinPF1__WestPlate1 = self.LineTracer.draw_line(A2_E__A1_E_tmp.p[-1], {'line': WestPlate1}, option='theta', direction='ccw', show_plot=False, text=verbose)
-            WestPlate1__EastPlate1 = self.LineTracer.draw_line(psiMinPF1__WestPlate1.p[-2], {'line': EastPlate1}, option='theta', direction='cw', show_plot=False, text=verbose)
-            A2_E__A1_E = self.LineTracer.draw_line(xpt1['S'], {'line': (WestPlate1__EastPlate1,tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+            WestPlate1__WestPlate2 = self.LineTracer.draw_line(psiMinPF1__WestPlate1.p[-2], {'line': WestPlate2}, option='theta', direction='cw', show_plot=False, text=verbose)
+            A2_E__A1_E = self.LineTracer.draw_line(xpt1['S'], {'line': (WestPlate1__WestPlate2,tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
         else:
             A2_E__A1_E = self.LineTracer.draw_line(xpt1['S'], {'psi': psi_pf_1}, option='rho', direction='cw',
                 show_plot=visual, text=verbose)

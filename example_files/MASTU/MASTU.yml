@@ -30,10 +30,13 @@ grid_settings:
         theta_min: 89.5
     np_default: 6
     nr_default: 6
-    radial_f_default: x, x
-    poloidal_f_default: x, x
-    radial_f_1: x, 1-(1-exp(-(1-x)/0.4))/(1-exp(-1/0.4))
-    radial_f_2: x, (1-exp(-(x)/0.8))/(1-exp(-1/0.8))
+    radial_f_1: x, (tanh(1.3*(x - 2.0)) - tanh(-1.3*2.0)) / (tanh(1.3*(1.0-2.0)) - tanh(-1.3*2.0)) # a = 1.3, b = 2.0
+    radial_f_2: x, tanh(1.3x) / tanh(1.3) # a = 1.3, b = 0.0
+    poloidal_f_default: x, sqrt(x)
+    poloidal_f_B: x, 1 - sqrt(1 - x)
+    poloidal_f_D: x, 1 - sqrt(1 - x)
+    poloidal_f_F: x, 1 - sqrt(1 - x)
+    poloidal_f_H: x, 1 - sqrt(1 - x)
   guard_cell_eps: 0.001
   nlevs: 30
   num_xpt: 2

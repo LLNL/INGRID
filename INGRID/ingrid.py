@@ -35,6 +35,7 @@ from INGRID.topologies.sf105 import SF105
 from INGRID.topologies.sf135 import SF135
 from INGRID.topologies.sf165 import SF165
 from INGRID.topologies.udn import UDN
+from INGRID.topologies.cdn import CDN
 from INGRID.geometry import Point, Line
 
 from INGRID.gridue_to_bout import Convert_grids
@@ -1238,6 +1239,9 @@ class Ingrid(IngridUtils):
 
         elif topology == 'UDN':
             ingrid_topology = UDN(self, topology)
+        
+        elif topology == 'CDN':
+            ingrid_topology = CDN(self, topology)
 
         elif topology == 'SF15':
             ingrid_topology = SF15(self, topology)
@@ -1494,7 +1498,7 @@ class Ingrid(IngridUtils):
             if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")
                 self.ExportBOUTgrid(fname, 'bout_from_in.grd.nc', plotting = True, verbose = True, ignore_checks = False)
-        elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:
+        elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN, CDN]:
             if self.WriteGridueDNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")
                 self.ExportBOUTgrid(fname, 'bout_from_in.grd.nc', plotting = True, verbose = True, ignore_checks = False)
@@ -1518,9 +1522,25 @@ class Ingrid(IngridUtils):
         try:
             f = open(fname, mode='r')
             Values = [int(x) for x in next(f).split()]
-            HeaderItems = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
-            gridue_settings = dict(zip(HeaderItems, Values))
-            next(f)
+            
+            # Very crude method of checking what format the gridue is in
+            if len(Values) > 2:
+                HeaderItems = ['nxm', 'nym', 'ixpt1', 'ixpt2', 'iyseptrx1']
+                gridue_settings = dict(zip(HeaderItems, Values))
+                next(f)
+            else:
+                gridue_settings = {}
+                header_rows = [
+                    ['nxm', 'nym'],
+                    ['iyseparatrix1', 'iyseparatrix2'],
+                    ['ix_plate1', 'ix_cut1', '_FILLER_', 'ix_cut2', 'ix_plate2'],
+                    ['iyseparatrix3', 'iyseparatrix4'],
+                    ['ix_plate3', 'ix_cut3', '_FILLER_', 'ix_cut4', 'ix_plate4']
+                ]
+                for row in header_rows:
+                    gridue_settings = {**gridue_settings, **dict(zip(row, Values))}
+                    Values = [int(x) for x in next(f).split()]
+
             BodyItems = ['rm', 'zm', 'psi', 'br', 'bz', 'bpol', 'bphi', 'b']
             Str = {i: [] for i in BodyItems}
             k = iter(Str.keys())

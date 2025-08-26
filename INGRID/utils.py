@@ -25,7 +25,7 @@ from freeqdsk import geqdsk
 from INGRID.interpol import EfitData
 from INGRID.line_tracing import LineTracing
 from INGRID.geometry import Point, Line, Patch, orientation_between
-
+from INGRID.udsym_tools import PsinExtender
 
 class IngridUtils:
     """
@@ -506,7 +506,7 @@ class IngridUtils:
                 )
                 continue
 
-    def LoadGEQDSK(self, geqdsk_path: str) -> None:
+    def LoadGEQDSK(self, geqdsk_path: str, up_down_symmetry: bool = False) -> None:
         """
         Python class to read the psi data in from an ascii file.
 
@@ -517,6 +517,11 @@ class IngridUtils:
             geqdsk_data = geqdsk.read(f)
             if not isinstance(geqdsk_data,dict):
                 geqdsk_data = geqdsk_data.__dict__
+        
+        if up_down_symmetry:
+            # Chop off the top half of the domain and join lines of constant psi either side of the midplane  
+            pe = PsinExtender(geqdsk_data)
+            pe.extend_psi()
 
         #
         # Extract quantities needed to initialize EfitData class
@@ -749,7 +754,7 @@ class IngridUtils:
         # Empty list of coordinates falls back on using eqdsk limiter settings
         #
         else:
-            self.LoadGEQDSK(geqdsk_path=self.settings["eqdsk"])
+            self.LoadGEQDSK(geqdsk_path=self.settings["eqdsk"], up_down_symmetry=self.settings["grid_settings"]["up_down_symmetry"])
             self.geqdsk_data["rlim"] += rshift
             self.geqdsk_data["zlim"] += zshift
 

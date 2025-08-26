@@ -515,6 +515,8 @@ class IngridUtils:
 
         with open(geqdsk_path, "r") as f:
             geqdsk_data = geqdsk.read(f)
+            if not isinstance(geqdsk_data,dict):
+                geqdsk_data = geqdsk_data.__dict__
 
         #
         # Extract quantities needed to initialize EfitData class

@@ -39,7 +39,7 @@ setup(
     ],
     keywords='grid, mesh, generator, tokamak, edge, plasma, efit, uedge',
     packages=find_packages(),
-    python_requires='>=3.8, <4',
+    python_requires='>=3.9, <4',
     install_requires=[
         'm2r2',
         'scipy >= 1.3.1',
@@ -48,7 +48,7 @@ setup(
         'matplotlib',
         'tk',
         'sympy',
-        'freeqdsk'
+        'freeqdsk>=0.5'
     ]
 )
 

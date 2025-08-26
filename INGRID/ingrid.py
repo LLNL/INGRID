@@ -983,6 +983,14 @@ class Ingrid(IngridUtils):
             magx_tilt_2 = self.settings['grid_settings']['patch_generation']['xpt1_E_tilt']
         except KeyError:
             magx_tilt_2 = 0.0
+        try:
+            magx_tilt_3 = self.settings['grid_settings']['patch_generation']['xpt1_S_tilt']
+        except KeyError:
+            magx_tilt_3 = 0.0
+        try:
+            magx_tilt_4 = self.settings['grid_settings']['patch_generation']['xpt1_N_tilt']
+        except KeyError:
+            magx_tilt_4 = 0.0
 
         if ax is None:
             ax = plt.gca()
@@ -1028,6 +1036,38 @@ class Ingrid(IngridUtils):
                 pass
             xpt1_midline_ref_W.plot(color='lightpink', label='xpt1_ref_E')
 
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_S'] is True:
+            R = self.settings['grid_settings']['rxpt']
+            Z = self.settings['grid_settings']['zxpt']
+            xpt1 = Point(np.array([R, Z]))
+
+            # Generate Horizontal Mid-Plane lines
+            LHS_Point = Point(xpt1.x, xpt1.y)
+            RHS_Point = Point(xpt1.x + 1e6 * np.cos(magx_tilt_3), xpt1.y + 1e6 * np.sin(magx_tilt_3))
+            xpt1_midline_ref_S = Line([LHS_Point, RHS_Point])
+
+            try:
+                [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt1_ref_S']
+            except:
+                pass
+            xpt1_midline_ref_S.plot(color='teal', label='xpt1_ref_S')
+
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_N'] is True:
+            R = self.settings['grid_settings']['rxpt']
+            Z = self.settings['grid_settings']['zxpt']
+            xpt1 = Point(np.array([R, Z]))
+
+            # Generate Horizontal Mid-Plane lines
+            LHS_Point = Point(xpt1.x, xpt1.y)
+            RHS_Point = Point(xpt1.x + 1e6 * np.cos(magx_tilt_4), xpt1.y + 1e6 * np.sin(magx_tilt_4))
+            xpt1_midline_ref_N = Line([LHS_Point, RHS_Point])
+
+            try:
+                [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt1_ref_N']
+            except:
+                pass
+            xpt1_midline_ref_N.plot(color='darkturquoise', label='xpt1_ref_N')
+
     def PlotEastWestXpt2Ref(self, ax: object = None) -> None:
         """
         Plot midplane line through magnetic axis with any applied
@@ -1044,6 +1084,14 @@ class Ingrid(IngridUtils):
             magx_tilt_2 = self.settings['grid_settings']['patch_generation']['xpt2_E_tilt']
         except KeyError:
             magx_tilt_2 = 0.0
+        try:
+            magx_tilt_3 = self.settings['grid_settings']['patch_generation']['xpt2_N_tilt']
+        except KeyError:
+            magx_tilt_3 = 0.0
+        try:
+            magx_tilt_4 = self.settings['grid_settings']['patch_generation']['xpt2_S_tilt']
+        except KeyError:
+            magx_tilt_4 = 0.0
 
         if ax is None:
             ax = plt.gca()
@@ -1088,6 +1136,38 @@ class Ingrid(IngridUtils):
             except:
                 pass
             xpt2_midline_ref_W.plot(color='lightpink', label='xpt2_ref_E')
+
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_N'] is True:
+            R = self.settings['grid_settings']['rxpt2']
+            Z = self.settings['grid_settings']['zxpt2']
+            xpt2 = Point(np.array([R, Z]))
+
+            # Generate Horizontal Mid-Plane lines
+            LHS_Point = Point(xpt2.x, xpt2.y)
+            RHS_Point = Point(xpt2.x + 1e6 * np.cos(magx_tilt_3), xpt2.y + 1e6 * np.sin(magx_tilt_3))
+            xpt2_midline_ref_N = Line([LHS_Point, RHS_Point])
+
+            try:
+                [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt2_ref_N']
+            except:
+                pass
+            xpt2_midline_ref_N.plot(color='darkturquoise', label='xpt2_ref_N')
+        
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_S'] is True:
+            R = self.settings['grid_settings']['rxpt2']
+            Z = self.settings['grid_settings']['zxpt2']
+            xpt2 = Point(np.array([R, Z]))
+
+            # Generate Horizontal Mid-Plane lines
+            LHS_Point = Point(xpt2.x, xpt2.y)
+            RHS_Point = Point(xpt2.x + 1e6 * np.cos(magx_tilt_4), xpt2.y + 1e6 * np.sin(magx_tilt_4))
+            xpt2_midline_ref_S = Line([LHS_Point, RHS_Point])
+
+            try:
+                [ax_line.remove() for ax_line in ax.lines if ax_line.get_label() == 'xpt2_ref_S']
+            except:
+                pass
+            xpt2_midline_ref_S.plot(color='teal', label='xpt2_ref_S')
 
     def PlotPatches(self) -> None:
         """

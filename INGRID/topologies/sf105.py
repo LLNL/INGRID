@@ -153,8 +153,15 @@ class SF105(TopologyUtils):
         # topLine.plot()
 
         # Tracing primary-separatrix: core-boundary
-
-        xpt1N__psiMinCore = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core}, option='rho', direction='cw',
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_N']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_N_tilt']
+            # Draw a line along the psi_core flux surface; this will be intersected at the desired tilt angle from xpt1['N']
+            xpt1N__psiMinCore_tmp = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core}, option='rho', direction='cw', show_plot=False, text=verbose)
+            psiMinCore__midline_1_core = self.LineTracer.draw_line(xpt1N__psiMinCore_tmp.p[-1], {'line': midline_1}, option='theta', direction='cw', show_plot=False, text=verbose)
+            midline_1_core__modline_2_core = self.LineTracer.draw_line(psiMinCore__midline_1_core.p[-2], {'line': midline_2}, option='theta', direction='ccw', show_plot=False, text=verbose)
+            xpt1N__psiMinCore = self.LineTracer.draw_line(xpt1['N'], {'line': (midline_1_core__modline_2_core, tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        else:
+            xpt1N__psiMinCore = self.LineTracer.draw_line(xpt1['N'], {'psi': psi_core}, option='rho', direction='cw',
             show_plot=visual, text=verbose)
 
         if len(xpt1N__psiMinCore.p) < 100:
@@ -254,15 +261,28 @@ class SF105(TopologyUtils):
             show_plot=visual, text=verbose)
         G3_S = G2_N.reverse_copy()
 
-        B2_E__B1_E = self.LineTracer.draw_line(xpt1['S'], {'psi': psi_pf_1}, option='rho', direction='cw',
-            show_plot=visual, text=verbose)
+        if self.settings['grid_settings']['patch_generation']['use_xpt1_S']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt1_S_tilt']
+            # Draw a line along the psi_pf_1 surface; this will be intersected at the desired tilt angle from xpt1['S']
+            B2_E__B1_E = self.LineTracer.draw_line(xpt1['S'], {'psi': psi_pf_1}, option='rho', direction='cw', show_plot=False, text=verbose)
+            B1_E__EastPlate2 = self.LineTracer.draw_line(B2_E__B1_E.p[-1], {'line': EastPlate2}, option='theta', direction='ccw', show_plot=False, text=verbose)
+            EastPlate2__WestPlate2 = self.LineTracer.draw_line(B1_E__EastPlate2.p[-2], {'line': WestPlate2}, option='theta', direction='cw', show_plot=False, text=verbose)
+            B2_E__B1_E = self.LineTracer.draw_line(xpt1['S'], {'line': (EastPlate2__WestPlate2,tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+        else:
+            B2_E__B1_E = self.LineTracer.draw_line(xpt1['S'], {'psi': psi_pf_1}, option='rho', direction='cw',
+                show_plot=visual, text=verbose)
 
         A1_N = self.LineTracer.draw_line(xpt2['NW'], {'line': WestPlate1}, option='theta', direction='ccw',
             show_plot=visual, text=verbose).reverse_copy()
         A2_S = A1_N.reverse_copy()
 
-        B2_W = self.LineTracer.draw_line(xpt2['N'], {'line': A2_N__B2_N}, option='rho', direction='ccw',
-            show_plot=visual, text=verbose)
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_N']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt2_N_tilt']
+            B2_W = self.LineTracer.draw_line(xpt2['N'], {'line': (A2_N__B2_N, tilt)}, option='z_const', direction='cw',
+                show_plot=visual, text=verbose)
+        else:
+            B2_W = self.LineTracer.draw_line(xpt2['N'], {'line': A2_N__B2_N}, option='rho', direction='ccw',
+                show_plot=visual, text=verbose)
         A2_E = B2_W.reverse_copy()
 
         B3_W = self.LineTracer.draw_line(B2_W.p[-1], {'line': A3_N__B3_N}, option='rho', direction='ccw',
@@ -302,7 +322,16 @@ class SF105(TopologyUtils):
 
         B1_S, H1_S = B1_S__H1_S.split(H1_E.p[-1], add_split_point=True)
 
-        H3_E__H2_E = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_2}, option='rho', direction='ccw',
+        if self.settings['grid_settings']['patch_generation']['use_xpt2_S']:
+            tilt = self.settings['grid_settings']['patch_generation']['xpt2_S_tilt']
+            # Draw a line along the psi_pf_2 surface; this will be intersected at the desired tilt angle from xpt2['S']
+            H3_E__H2_E_tmp = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_2}, option='rho', direction='ccw', show_plot=False, text=verbose).reverse_copy()
+            H2_E__WestPlate2 = self.LineTracer.draw_line(H3_E__H2_E_tmp.p[0], {'line': WestPlate2}, option='theta', direction='cw', show_plot=False, text=verbose)
+            WestPlate2__EastPlate2 = self.LineTracer.draw_line(H2_E__WestPlate2.p[-2], {'line': EastPlate2}, option='theta', direction='ccw', show_plot=False, text=verbose)
+            H3_E__H2_E = self.LineTracer.draw_line(xpt2['S'], {'line': (WestPlate2__EastPlate2,tilt)}, option='z_const', direction='cw', show_plot=visual, text=verbose)
+            H3_E__H2_E = H3_E__H2_E.reverse_copy()
+        else:
+            H3_E__H2_E = self.LineTracer.draw_line(xpt2['S'], {'psi': psi_pf_2}, option='rho', direction='ccw',
             show_plot=visual, text=verbose).reverse_copy()
 
         if len(H3_E__H2_E.p) < 100:

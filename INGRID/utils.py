@@ -200,12 +200,20 @@ class IngridUtils():
                 'magx_tilt_2': 0.0,
                 'use_xpt1_W': False,
                 'use_xpt1_E': False,
+                'use_xpt1_N': False,
+                'use_xpt1_S': False,
                 'use_xpt2_W': False,
                 'use_xpt2_E': False,
+                'use_xpt2_N': False,
+                'use_xpt2_S': False,
                 'xpt1_W_tilt': -0.785398,  # All values of pi / 4 radians.
                 'xpt1_E_tilt': 0.785398,
+                'xpt1_N_tilt': 1.570796,
+                'xpt1_S_tilt': -1.570796,
                 'xpt2_W_tilt': -0.785398,
                 'xpt2_E_tilt': 0.785398,
+                'xpt2_N_tilt': 1.570796, 
+                'xpt2_S_tilt': -1.570796,
             }
         }
 

@@ -800,7 +800,9 @@ class Ingrid(IngridUtils):
                 plt.draw()
         except:
             pass
-        self.PsiUNorm.plot_data(self.settings['grid_settings']['nlevs'])
+        self.PsiUNorm.plot_data(self.settings['grid_settings']['nlevs'], 
+                                up_down_symmetry=self.settings["grid_settings"]["up_down_symmetry"], 
+                                zmagx=self.magx[1] + self.settings["grid_settings"]["patch_generation"]["zmagx_shift"])
 
     def PlotPsiNorm(self, view_mode: str = 'filled') -> None:
         """
@@ -813,7 +815,12 @@ class Ingrid(IngridUtils):
         except:
             pass
 
-        self.PsiNorm.plot_data(nlevs=self.settings['grid_settings']['nlevs'], fig=self._PsiNormFig, ax=self.PsiNormAx, view_mode=view_mode)
+        self.PsiNorm.plot_data(nlevs=self.settings['grid_settings']['nlevs'], 
+                               fig=self._PsiNormFig,
+                               ax=self.PsiNormAx, 
+                               view_mode=view_mode, 
+                               up_down_symmetry=self.settings["grid_settings"]["up_down_symmetry"], 
+                               zmagx=self.magx[1] + self.settings["grid_settings"]["patch_generation"]["zmagx_shift"])
 
     def PlotPsiNormBounds(self) -> None:
         """
@@ -881,7 +888,7 @@ class Ingrid(IngridUtils):
         x += self.settings['grid_settings']['patch_generation']['rmagx_shift']
         y += self.settings['grid_settings']['patch_generation']['zmagx_shift']
         self.RemovePlotPoint(label='magx', ax=ax)
-        ax.plot(x, y, '+', color='yellow', ms=15, linewidth=5, label='magx')
+        ax.plot(x, y, '+', color='yellow', ms=15, linewidth=5, label='magx', zorder=9999)
 
         (x, y) = self.xpt1
         self.RemovePlotPoint(label='xpt1', ax=ax)
@@ -1187,7 +1194,10 @@ class Ingrid(IngridUtils):
             pass
         self._PatchFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Patches', figsize=(6, 10))
         self.PatchAx = self._PatchFig.add_subplot(111)
-        self.CurrentTopology.patch_diagram(fig=self._PatchFig, ax=self.PatchAx)
+        self.CurrentTopology.patch_diagram(fig=self._PatchFig, 
+                                           ax=self.PatchAx, 
+                                           up_down_symmetry=self.settings["grid_settings"]["up_down_symmetry"], 
+                                           zmagx=self.magx[1] + self.settings["grid_settings"]["patch_generation"]["zmagx_shift"])
         self.PlotStrikeGeometry(ax=self.PatchAx)
         if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'target_plates':
             self.RemovePlotLine(label='limiter', ax=self.PatchAx)
@@ -1202,7 +1212,10 @@ class Ingrid(IngridUtils):
             pass
         self._SubgridFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Grid', figsize=(6, 10))
         self._SubgridAx = self._SubgridFig.add_subplot(111)
-        self.CurrentTopology.grid_diagram(fig=self._SubgridFig, ax=self._SubgridAx)
+        self.CurrentTopology.grid_diagram(fig=self._SubgridFig, 
+                                          ax=self._SubgridAx, 
+                                          up_down_symmetry=self.settings["grid_settings"]["up_down_symmetry"], 
+                                          zmagx=self.magx[1] + self.settings["grid_settings"]["patch_generation"]["zmagx_shift"])
 
     def PlotSubgrid(self) -> None:
         """

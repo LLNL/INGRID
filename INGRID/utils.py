@@ -1583,7 +1583,7 @@ class TopologyUtils:
     def OrderPatches(self):
         pass
 
-    def patch_diagram(self, fig: object = None, ax: object = None) -> None:
+    def patch_diagram(self, fig: object = None, ax: object = None, up_down_symmetry: bool = False, zmagx: float = 0.0) -> None:
         """
         Generate the patch diagram for a given configuration.
 
@@ -1594,6 +1594,10 @@ class TopologyUtils:
 
         ax : object, optional
             Matplotlib axes to plot the Patch map on.
+        up_down_symmetry: bool, optional (defaults to False)
+            Up/down symmetry switch
+        zmagx: float, optional (defaults to 0.0)
+            Z position of magnetic axis (used in setting y-axis limits for the plot)
 
         """
 
@@ -1614,7 +1618,10 @@ class TopologyUtils:
         f.subplots_adjust(bottom=0.2)
         a = ax if ax else f.subplots(1, 1)
         a.set_xlim([self.PsiUNorm.rmin, self.PsiUNorm.rmax])
-        a.set_ylim([self.PsiUNorm.zmin, self.PsiUNorm.zmax])
+        if up_down_symmetry:
+            a.set_ylim(self.PsiUNorm.zmin, zmagx + 0.03*(self.PsiUNorm.zmax-self.PsiUNorm.zmin))
+        else:
+            a.set_ylim([self.PsiUNorm.zmin, self.PsiUNorm.zmax])
         a.set_aspect("equal", adjustable="box")
 
         a.set_xlabel("R")
@@ -1638,7 +1645,7 @@ class TopologyUtils:
         )
         f.show()
 
-    def grid_diagram(self, fig: object = None, ax: object = None) -> None:
+    def grid_diagram(self, fig: object = None, ax: object = None, up_down_symmetry: bool = False, zmagx: float = 0.0) -> None:
         """
         Generates the grid diagram for a given configuration.
 
@@ -1649,6 +1656,10 @@ class TopologyUtils:
 
         ax : object, optional
             Matplotlib axes to plot the grid diagram on.
+        up_down_symmetry: bool, optional (defaults to False)
+            Up/down symmetry switch
+        zmagx: float, optional (defaults to 0.0)
+            Z position of magnetic axis (used in setting y-axis limits for the plot)
 
         """
         if fig is None:
@@ -1660,7 +1671,10 @@ class TopologyUtils:
         plt.figure(fig.number)
         fig.subplots_adjust(bottom=0.2)
         ax.set_xlim(self.PsiUNorm.rmin, self.PsiUNorm.rmax)
-        ax.set_ylim(self.PsiUNorm.zmin, self.PsiUNorm.zmax)
+        if up_down_symmetry:
+            ax.set_ylim(self.PsiUNorm.zmin, zmagx + 0.03*(self.PsiUNorm.zmax-self.PsiUNorm.zmin))
+        else:
+            ax.set_ylim(self.PsiUNorm.zmin, self.PsiUNorm.zmax)
         ax.set_aspect("equal", adjustable="box")
 
         ax.set_xlabel("R")

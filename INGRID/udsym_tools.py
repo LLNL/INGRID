@@ -9,7 +9,7 @@ class PsinExtender:
     def __init__(self, eqdsk_data: dict):
         """Initialise
 
-        :param filename: Full path of the magnetic equilibrium file
+        :param eqdsk_data: Magnetic equilibrium data
         """
         self.eqdsk = eqdsk_data
         self.r = self.eqdsk["r_grid"]

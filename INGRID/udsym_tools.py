@@ -1,9 +1,6 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import interpolate
 from scipy.optimize import fsolve
-import freeqdsk
-import os
 
 
 class PsinExtender:

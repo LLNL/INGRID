@@ -1996,6 +1996,13 @@ class TopologyUtils():
                 [[None], p['A1'], p['B1'], p['C1'], p['D1'], [None], [None], p['E1'], p['F1'], p['G1'], p['H1'], [None]],
                 [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]]
             ]
+        elif self.config in ['CDN']:
+            self.patch_matrix = [
+                [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]],
+                [[None], p['A2'], p['B2'], p['C2'], p['D2'], [None], [None], p['E2'], p['F2'], p['G2'], p['H2'], [None]],
+                [[None], p['A1'], p['B1'], p['C1'], p['D1'], [None], [None], p['E1'], p['F1'], p['G1'], p['H1'], [None]],
+                [[None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None]]
+            ]
 
         return self.patch_matrix
 
@@ -2140,6 +2147,9 @@ class TopologyUtils():
                 self._animate_grid()
 
         elif self.parent.settings['grid_settings']['num_xpt'] == 2:
+            max_patch_index = 3 # e.g. A1, A2, A3
+            if self.config == "CDN":
+                max_patch_index = 2 # e.g. A1, A2
 
             if self.config in ['SF45', 'SF75', 'SF105', 'SF135']:
                 pindex1 = 8
@@ -2149,7 +2159,7 @@ class TopologyUtils():
                 pindex1 = 7
                 pindex2 = 9
                 pindex3 = 12
-            elif self.config in ['UDN']:
+            elif self.config in ['UDN', 'CDN']:
                 pindex1 = 5
                 pindex2 = 7
                 pindex3 = 11
@@ -2158,13 +2168,13 @@ class TopologyUtils():
             np_total1 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][1:pindex1]])) + 2
 
             # Total number of radial indices in all subgrids.
-            nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:4]])) + 2
+            nr_total1 = int(np.sum([patch[1].nrad - 1 for patch in patch_matrix[1:max_patch_index+1]])) + 2
 
             # Total number of poloidal indices in all subgrids.
             np_total2 = int(np.sum([patch.npol - 1 for patch in patch_matrix[1][pindex2:pindex3]])) + 2
 
             # Total number of radial indices in all subgrids.
-            nr_total2 = int(np.sum([patch[pindex2].nrad - 1 for patch in patch_matrix[1:4]])) + 2
+            nr_total2 = int(np.sum([patch[pindex2].nrad - 1 for patch in patch_matrix[1:max_patch_index+1]])) + 2
 
             rm1 = np.zeros((np_total1, nr_total1, 5), order='F')
             zm1 = np.zeros((np_total1, nr_total1, 5), order='F')

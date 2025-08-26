@@ -35,8 +35,10 @@ from INGRID.topologies.sf105 import SF105
 from INGRID.topologies.sf135 import SF135
 from INGRID.topologies.sf165 import SF165
 from INGRID.topologies.udn import UDN
+from INGRID.topologies.cdn import CDN
 from INGRID.geometry import Point, Line
 
+from INGRID.gridue_to_bout import Convert_grids
 
 def QuickStart() -> None:
     """
@@ -1317,6 +1319,9 @@ class Ingrid(IngridUtils):
 
         elif topology == 'UDN':
             ingrid_topology = UDN(self, topology)
+        
+        elif topology == 'CDN':
+            ingrid_topology = CDN(self, topology)
 
         elif topology == 'SF15':
             ingrid_topology = SF15(self, topology)
@@ -1532,6 +1537,31 @@ class Ingrid(IngridUtils):
         """
         self.ConstructGrid(NewFig, ShowVertices)
 
+    def ExportBOUTgrid(self, gridue_file, bout_grid_name: str = 'bout_from_in.grd.nc', plotting = True, verbose = True, ignore_checks = False):
+        """
+        Export a BOUT grid file for the created grid.
+
+        Parameters
+        ----------
+        gridue_file : str, mandatory
+            Name of gridue file to convert to BOUT grid.
+
+        bout_grid_name : str, optional
+            Name of BOUT grid file to save.
+
+        plotting : bool, optional
+            If True, plot the gridue file before conversion.
+
+        verbose : bool, optional
+            If True, print verbose output during conversion.
+
+        ignore_checks : bool, optional
+            If True, ignore checks for gridue file format and structure.
+
+        """
+        bout_grid_name = gridue_file + "_" + bout_grid_name
+        Convert_grids(gridue_file,bout_grid_name,plotting, verbose, ignore_checks)
+
     def ExportGridue(self, fname: str = 'gridue', guard_cell_eps=1e-3) -> None:
         """
         Export a gridue file for the created grid.
@@ -1547,9 +1577,12 @@ class Ingrid(IngridUtils):
         if type(self.CurrentTopology) in [SNL]:
             if self.WriteGridueSNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")
-        elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN]:
+                self.ExportBOUTgrid(fname, 'bout_from_in.grd.nc', plotting = True, verbose = True, ignore_checks = False)
+        elif type(self.CurrentTopology) in [SF15, SF45, SF75, SF105, SF135, SF165, UDN, CDN]:
             if self.WriteGridueDNL(self.CurrentTopology.gridue_settings, fname):
                 print(f"# Successfully saved gridue file as '{fname}'")
+                self.ExportBOUTgrid(fname, 'bout_from_in.grd.nc', plotting = True, verbose = True, ignore_checks = False)
+     
 
     @staticmethod
     def ImportGridue(fname: str = 'gridue') -> dict:

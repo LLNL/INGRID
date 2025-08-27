@@ -21,6 +21,8 @@ def test_load_geqdsk(data_dir):
     #
     with open(eqdsk_path, 'r') as f:
         baseline = geqdsk.read(f)
+        if not isinstance(baseline,dict):
+            baseline = baseline.__dict__
 
     #
     # Load data using Ingrid class

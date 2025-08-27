@@ -836,12 +836,14 @@ class Ingrid(IngridUtils):
             Dic = {'psi_1': 'lime',
                    'psi_core': 'cyan',
                    'psi_pf_1': 'white'}
+            num_psi_levels = 4
         elif nxpt == 2:
             Dic = {'psi_core': 'cyan',
                    'psi_1': 'lime',
                    'psi_2': 'fuchsia',
                    'psi_pf_1': 'white',
                    'psi_pf_2': 'yellow'}
+            num_psi_levels = 7
 
         for k, c in Dic.items():
             self.PsiNorm.PlotLevel(self.settings['grid_settings'][k], color=Dic[k], label=k)
@@ -859,7 +861,7 @@ class Ingrid(IngridUtils):
             pass
         self.PsiNorm.fig.legend(handles=[handle for handle in lookup.values()], labels=[label for label in lookup.keys()],
                                bbox_to_anchor=(0.5, 1), loc='upper center',
-                               ncol=len([label for label in lookup.keys()]) // 3)
+                               ncol=min((len([label for label in lookup.keys()]) + num_psi_levels) // 3, 5), facecolor="gray", framealpha=0.2)
 
     def PlotPsiNormMagReference(self, ax: object = None) -> None:
         """

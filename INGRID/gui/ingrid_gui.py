@@ -472,6 +472,8 @@ class FilePicker(tk.Frame):
             self.AnalyzeTopology()
             self.controller.IngridSession.ConstructPatches()
 
+        self.controller.IngridSession.ApplyUpDownSymmetry()
+
         self.controller.IngridSession.PlotPatches()
 
     def CreateSubgrid(self):

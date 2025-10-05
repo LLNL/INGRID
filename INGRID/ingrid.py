@@ -800,7 +800,9 @@ class Ingrid(IngridUtils):
                 plt.draw()
         except:
             pass
-        self.PsiUNorm.plot_data(self.settings['grid_settings']['nlevs'])
+        self.PsiUNorm.plot_data(self.settings['grid_settings']['nlevs'], 
+                                up_down_symmetry=self.settings["grid_settings"]["up_down_symmetry"], 
+                                zmagx=self.magx[1] + self.settings["grid_settings"]["patch_generation"]["zmagx_shift"])
 
     def PlotPsiNorm(self, view_mode: str = 'filled') -> None:
         """
@@ -813,7 +815,12 @@ class Ingrid(IngridUtils):
         except:
             pass
 
-        self.PsiNorm.plot_data(nlevs=self.settings['grid_settings']['nlevs'], fig=self._PsiNormFig, ax=self.PsiNormAx, view_mode=view_mode)
+        self.PsiNorm.plot_data(nlevs=self.settings['grid_settings']['nlevs'], 
+                               fig=self._PsiNormFig,
+                               ax=self.PsiNormAx, 
+                               view_mode=view_mode, 
+                               up_down_symmetry=self.settings["grid_settings"]["up_down_symmetry"], 
+                               zmagx=self.magx[1] + self.settings["grid_settings"]["patch_generation"]["zmagx_shift"])
 
     def PlotPsiNormBounds(self) -> None:
         """
@@ -833,20 +840,20 @@ class Ingrid(IngridUtils):
 
         nxpt = self.settings['grid_settings']['num_xpt']
         if nxpt == 1:
-            Dic = {'psi_1': 'lime',
+            self.contour_colour_dic = {'psi_1': 'lime',
                    'psi_core': 'cyan',
                    'psi_pf_1': 'white'}
             num_psi_levels = 4
         elif nxpt == 2:
-            Dic = {'psi_core': 'cyan',
+            self.contour_colour_dic = {'psi_core': 'cyan',
                    'psi_1': 'lime',
                    'psi_2': 'fuchsia',
                    'psi_pf_1': 'white',
                    'psi_pf_2': 'yellow'}
             num_psi_levels = 7
 
-        for k, c in Dic.items():
-            self.PsiNorm.PlotLevel(self.settings['grid_settings'][k], color=Dic[k], label=k)
+        for k, c in self.contour_colour_dic.items():
+            self.PsiNorm.PlotLevel(self.settings['grid_settings'][k], color=self.contour_colour_dic[k], label=k)
 
         self.PsiNorm.PlotLevel(1.0, color='red', label='Primary Separatrix')
         if nxpt == 2:
@@ -854,6 +861,12 @@ class Ingrid(IngridUtils):
                 self.PsiNorm.get_psi(self.xpt2[0], self.xpt2[1]), color='blue', label='Secondary Separatrix')
 
         handles, labels = self.PsiNorm.ax.get_legend_handles_labels()
+        contour_count = 0
+        contour_colours = list(self.contour_colour_dic.values()) + ["red", "blue"]
+        for i in range(len(handles)):
+            if isinstance(handles[i], matplotlib.collections.PathCollection):
+                handles[i] = matplotlib.lines.Line2D([0],[0],color=contour_colours[contour_count])
+                contour_count+=1
         lookup = {label: handle for label, handle in zip(labels, handles)}
         try:
             self.PsiNorm.fig.legends[0].remove()
@@ -875,7 +888,7 @@ class Ingrid(IngridUtils):
         x += self.settings['grid_settings']['patch_generation']['rmagx_shift']
         y += self.settings['grid_settings']['patch_generation']['zmagx_shift']
         self.RemovePlotPoint(label='magx', ax=ax)
-        ax.plot(x, y, '+', color='yellow', ms=15, linewidth=5, label='magx')
+        ax.plot(x, y, '+', color='yellow', ms=15, linewidth=5, label='magx', zorder=9999)
 
         (x, y) = self.xpt1
         self.RemovePlotPoint(label='xpt1', ax=ax)
@@ -1181,7 +1194,10 @@ class Ingrid(IngridUtils):
             pass
         self._PatchFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Patches', figsize=(6, 10))
         self.PatchAx = self._PatchFig.add_subplot(111)
-        self.CurrentTopology.patch_diagram(fig=self._PatchFig, ax=self.PatchAx)
+        self.CurrentTopology.patch_diagram(fig=self._PatchFig, 
+                                           ax=self.PatchAx, 
+                                           up_down_symmetry=self.settings["grid_settings"]["up_down_symmetry"], 
+                                           zmagx=self.magx[1] + self.settings["grid_settings"]["patch_generation"]["zmagx_shift"])
         self.PlotStrikeGeometry(ax=self.PatchAx)
         if self.settings['grid_settings']['patch_generation']['strike_pt_loc'] == 'target_plates':
             self.RemovePlotLine(label='limiter', ax=self.PatchAx)
@@ -1196,7 +1212,10 @@ class Ingrid(IngridUtils):
             pass
         self._SubgridFig = plt.figure('INGRID: ' + self.CurrentTopology.config + ' Grid', figsize=(6, 10))
         self._SubgridAx = self._SubgridFig.add_subplot(111)
-        self.CurrentTopology.grid_diagram(fig=self._SubgridFig, ax=self._SubgridAx)
+        self.CurrentTopology.grid_diagram(fig=self._SubgridFig, 
+                                          ax=self._SubgridAx, 
+                                          up_down_symmetry=self.settings["grid_settings"]["up_down_symmetry"], 
+                                          zmagx=self.magx[1] + self.settings["grid_settings"]["patch_generation"]["zmagx_shift"])
 
     def PlotSubgrid(self) -> None:
         """
@@ -1365,7 +1384,7 @@ class Ingrid(IngridUtils):
                 + 'Must be <= 2).'
             raise ValueError(v_error_str)
 
-        self.LoadGEQDSK(self.settings['eqdsk'])
+        self.LoadGEQDSK(self.settings['eqdsk'], self.settings["grid_settings"]["up_down_symmetry"])
         self.AutoRefineMagAxis()
         self.AutoRefineXPoint()
         if topology == 'DNL':
@@ -1500,6 +1519,24 @@ class Ingrid(IngridUtils):
             self.CurrentTopology.OrderPatches()
             self.CurrentTopology.SetupPatchMatrix()
             self.CheckPatches()
+
+    def ApplyUpDownSymmetry(self) -> None:
+        if self.settings["grid_settings"]["up_down_symmetry"]:
+            if self.CurrentTopology.config == "LSN":
+                del self.CurrentTopology.patches["C1"]
+                del self.CurrentTopology.patches["C2"]
+                del self.CurrentTopology.patches["D1"]
+                del self.CurrentTopology.patches["D2"]
+            elif self.CurrentTopology.config in ["SF15", "SF75"]:
+                del self.CurrentTopology.patches["C1"]
+                del self.CurrentTopology.patches["C2"]
+                del self.CurrentTopology.patches["C3"]
+                del self.CurrentTopology.patches["D1"]
+                del self.CurrentTopology.patches["D2"]
+                del self.CurrentTopology.patches["D3"]
+            else:
+                #TODO: Implement up/down symmetry for other geometries
+                raise Exception("Up/down symmetry not yet implemented for config " + self.CurrentTopology.config)
 
     @_timer
     def ConstructGrid(self, NewFig: bool = True, ShowVertices: bool = False) -> None:

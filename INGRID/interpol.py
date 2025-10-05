@@ -4,6 +4,7 @@ related computations.
 """
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 from scipy.ndimage import zoom
 from scipy.interpolate import RectBivariateSpline as rbs
 
@@ -240,7 +241,7 @@ class EfitData:
             plt.plot([],[], label=label, color=color)
 
     def plot_data(self: object, nlevs: int = 30, interactive: bool = True, fig: object = None,
-                  ax: object = None, view_mode: str = 'filled', refined: bool = True, refine_factor: int = 10):
+                  ax: object = None, view_mode: str = 'filled', refined: bool = True, refine_factor: int = 10, up_down_symmetry: bool = False, zmagx: float = 0.0):
         """
         Plot the EFIT data.
 
@@ -264,6 +265,10 @@ class EfitData:
             Plot level with hi-resolution cubic spline representation
         refine_factor: int, optional
             Refinement factor for to be passed to SciPy zoom method
+        up_down_symmetry: bool, optional (defaults to False)
+            Up/down symmetry switch
+        zmagx: float, optional (defaults to 0.0)
+            Z position of magnetic axis (used in setting y-axis limits for the plot)
         """
 
         lev = self.v.min() + (self.v.max() - self.v.min()) * np.arange(nlevs) / (nlevs - 1)
@@ -289,6 +294,10 @@ class EfitData:
         self.ax.set_ylabel('Z')
         self.ax.set_xlim(self.rmin, self.rmax)
         self.ax.set_ylim(self.zmin, self.zmax)
+        if up_down_symmetry:
+            # Hide the upper half of the domain with a patch
+            self.ax.set_ylim(self.zmin, zmagx + 0.03*(self.zmax-self.zmin))
+            ax.add_patch(Rectangle((self.rmin,zmagx), self.rmax - self.rmin, self.zmax - zmagx, facecolor="white", zorder=999))
         if interactive:
             plt.ion()
         self.fig.show()
